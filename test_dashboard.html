@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a2e; color: white; }
+        .card { background: #16213e; padding: 20px; margin: 10px 0; border-radius: 10px; }
+        .loading { color: #ffa500; }
+        .error { color: #ff4757; }
+        .success { color: #2ed573; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Dashboard API Test</h1>
+    
+    <div class="card">
+        <h3>📊 Summary API Test</h3>
+        <div id="summary-status" class="loading">Loading...</div>
+        <pre id="summary-data"></pre>
+    </div>
+    
+    <div class="card">
+        <h3>📰 Articles API Test</h3>
+        <div id="articles-status" class="loading">Loading...</div>
+        <pre id="articles-data"></pre>
+    </div>
+    
+    <div class="card">
+        <h3>⭐ Article of Day API Test</h3>
+        <div id="article-day-status" class="loading">Loading...</div>
+        <pre id="article-day-data"></pre>
+    </div>
+
+    <script>
+        console.log('🚀 Starting API tests...');
+        
+        // Test Summary API
+        fetch('/api/summary')
+            .then(response => {
+                console.log('📊 Summary API response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('📊 Summary data:', data);
+                document.getElementById('summary-status').innerHTML = '<span class="success">✅ SUCCESS</span>';
+                document.getElementById('summary-data').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                console.error('❌ Summary API error:', error);
+                document.getElementById('summary-status').innerHTML = '<span class="error">❌ ERROR</span>';
+                document.getElementById('summary-data').textContent = error.toString();
+            });
+        
+        // Test Articles API
+        fetch('/api/articles?limit=5')
+            .then(response => {
+                console.log('📰 Articles API response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('📰 Articles data:', data);
+                document.getElementById('articles-status').innerHTML = '<span class="success">✅ SUCCESS</span>';
+                document.getElementById('articles-data').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                console.error('❌ Articles API error:', error);
+                document.getElementById('articles-status').innerHTML = '<span class="error">❌ ERROR</span>';
+                document.getElementById('articles-data').textContent = error.toString();
+            });
+        
+        // Test Article of Day API
+        fetch('/api/article-of-day')
+            .then(response => {
+                console.log('⭐ Article of Day API response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('⭐ Article of Day data:', data);
+                document.getElementById('article-day-status').innerHTML = '<span class="success">✅ SUCCESS</span>';
+                document.getElementById('article-day-data').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                console.error('❌ Article of Day API error:', error);
+                document.getElementById('article-day-status').innerHTML = '<span class="error">❌ ERROR</span>';
+                document.getElementById('article-day-data').textContent = error.toString();
+            });
+    </script>
+</body>
+</html>

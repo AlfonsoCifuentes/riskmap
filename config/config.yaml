@@ -1,0 +1,232 @@
+# Application Configuration
+app:
+  name: "Geopolitical Intelligence System"
+  version: "1.0.0"
+  debug: true
+
+# Enhanced Data Sources Configuration with Global Coverage
+data_sources:
+  newsapi:
+    enabled: true
+    api_key: "${NEWSAPI_KEY}"
+    base_url: "https://newsapi.org/v2"
+    request_delay: 1.0
+    max_articles_per_country: 50
+    priority_countries: ["us", "gb", "de", "fr", "es", "ru", "cn", "jp", "in", "br", "au", "ca"]
+    endpoints:
+      everything: "/everything"
+      top_headlines: "/top-headlines"
+      sources: "/sources"
+    
+  rss:
+    enabled: true
+    timeout: 30
+    max_workers: 10
+    request_delay: 0.5
+    max_articles_per_source: 15
+    
+  global_coverage:
+    enabled: true
+    priority_languages: ["en", "es", "fr", "de", "ru", "zh", "ar", "pt", "it", "ja", "ko", "nl"]
+    regions:
+      americas: ["us", "ca", "mx", "br", "ar", "co", "cl", "pe", "ve"]
+      europe: ["gb", "de", "fr", "es", "it", "ru", "nl", "be", "ch", "at"]
+      asia_pacific: ["cn", "jp", "kr", "in", "au", "sg", "hk", "tw"]
+      middle_east: ["ae", "sa", "qa", "eg", "lb", "jo", "ma"]
+      africa: ["za", "ng", "eg", "ma"]
+    
+  specialized_sources:
+    geopolitical:
+      - "https://www.cfr.org/rss/feed"
+      - "https://www.brookings.edu/feed/"
+      - "https://www.chathamhouse.org/rss/all"
+      - "https://carnegieendowment.org/rss/rss.xml"
+    
+    international_relations:
+      - "https://foreignpolicy.com/feed/"
+      - "https://www.foreignaffairs.com/rss.xml"
+      - "https://www.atlanticcouncil.org/feed/"
+    
+    security:
+      - "https://www.janes.com/feeds/news.rss"
+      - "https://www.defensenews.com/rss/top-news/"
+    
+    economic:
+      - "https://www.imf.org/en/News/RSS"
+      - "https://www.worldbank.org/en/news/all/rss"
+
+# Languages Configuration - LOS 5 IDIOMAS OBLIGATORIOS DEL CONTEXT.IPYNB
+languages:
+  # IDIOMAS REQUERIDOS según context.ipynb: Español, Inglés, Ruso, Chino, Árabe
+  supported: ["es", "en", "ru", "zh", "ar"]
+  primary: "en"  # Language for unified analysis
+  
+  # Language-specific settings
+  config:
+    en:
+      name: "English"
+      regions: ["us", "gb", "au", "ca", "in", "za"]
+      priority_sources: ["bbc", "cnn", "reuters", "guardian", "nytimes"]
+    
+    es:
+      name: "Spanish"
+      regions: ["es", "mx", "ar", "co", "cl", "pe", "ve"]
+      priority_sources: ["elpais", "bbcmundo", "cnnespanol", "dw_spanish"]
+    
+    ru:
+      name: "Russian"
+      regions: ["ru", "ua", "by"]
+      priority_sources: ["ria", "tass", "interfax", "rt_russian"]
+    
+    zh:
+      name: "Chinese"
+      regions: ["cn", "tw", "hk", "sg"]
+      priority_sources: ["xinhua", "peoples_daily", "cctv", "bbc_chinese"]
+    
+    ar:
+      name: "Arabic"
+      regions: ["qa", "ae", "sa", "eg", "lb", "jo", "ma"]
+      priority_sources: ["aljazeera", "alarabiya", "bbc_arabic", "dw_arabic"]
+    
+    pt:
+      name: "Portuguese"
+      regions: ["br", "pt"]
+      priority_sources: ["g1", "folha", "publico", "bbc_portuguese"]
+    
+    it:
+      name: "Italian"
+      regions: ["it", "va"]
+      priority_sources: ["corriere", "repubblica", "ansa"]
+    
+    ja:
+      name: "Japanese"
+      regions: ["jp"]
+      priority_sources: ["nhk", "yomiuri", "asahi", "bbc_japanese"]
+    
+    ko:
+      name: "Korean"
+      regions: ["kr"]
+      priority_sources: ["yonhap", "chosun", "kbs"]
+    
+    nl:
+      name: "Dutch"
+      regions: ["nl", "be"]
+      priority_sources: ["nos", "volkskrant", "nrc"]
+
+# NLP Models Configuration
+nlp:
+  classification:
+    model: "xlm-roberta-base"
+    categories:
+      - "protest"
+      - "military_conflict"
+      - "diplomatic_crisis"
+      - "natural_disaster"
+      - "neutral"
+  
+  sentiment:
+    model: "cardiffnlp/twitter-xlm-roberta-base-sentiment"
+    
+  summarization:
+    model: "facebook/bart-large-cnn"
+    max_length: 150
+    min_length: 30
+    
+  ner:
+    model: "en_core_web_sm"
+    entities: ["PERSON", "ORG", "GPE", "EVENT"]
+    
+  translation:
+    service: "google"  # google, deepl, huggingface
+    cache_translations: true
+
+# Database Configuration
+database:
+  type: "sqlite"
+  path: "data/geopolitical_intel.db"
+  tables:
+    articles: "articles"
+    processed_data: "processed_data"
+    analysis_results: "analysis_results"
+
+# Dashboard Configuration
+dashboard:
+  host: "0.0.0.0"
+  port: 5000
+  title: "Geopolitical Intelligence Dashboard"
+  refresh_interval: 300  # seconds
+  
+  features:
+    world_map: true
+    sentiment_analysis: true
+    trend_charts: true
+    real_time_updates: true
+
+# Chatbot Configuration
+chatbot:
+  host: "0.0.0.0"
+  port: 7860
+  model: "gpt-3.5-turbo"
+  max_tokens: 500
+  temperature: 0.7
+  
+  system_prompt: |
+    You are a geopolitical intelligence analyst. You have access to real-time news data 
+    and analysis from multiple sources in Spanish, English, Russian, Chinese, and Arabic.
+    Provide accurate, factual responses based on the available data. Always cite sources
+    and dates when possible.
+
+# Reporting Configuration
+reporting:
+  frequency: "daily"  # daily, weekly
+  formats: ["html", "pdf"]
+  output_dir: "reports"
+  
+  sections:
+    - executive_summary
+    - risk_assessment
+    - regional_analysis
+    - trend_analysis
+    - data_sources
+
+# Data Processing Configuration
+processing:
+  batch_size: 50
+  max_concurrent_requests: 10
+  retry_attempts: 3
+  timeout: 30  # seconds
+  
+  filters:
+    min_article_length: 100
+    max_article_age_days: 7
+    exclude_categories: ["sports", "entertainment"]
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/geopolitical_intel.log"
+  max_size: "10MB"
+  backup_count: 5
+
+# Collection Settings
+collection:
+  max_articles_per_run: 1000
+  duplicate_check_hours: 24
+  batch_size: 50
+  concurrent_sources: 10
+  retry_attempts: 3
+  quality_threshold: 60
+  
+  # Scheduling
+  intervals:
+    newsapi: 3600  # Every hour
+    rss: 1800      # Every 30 minutes
+    specialized: 7200  # Every 2 hours
+    cleanup: 86400     # Daily
+  
+  # Geographic prioritization
+  geo_priority:
+    high: ["us", "gb", "de", "fr", "ru", "cn"]
+    medium: ["es", "jp", "in", "br", "au", "ca"]
+    low: ["all_others"]

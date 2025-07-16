@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Página No Encontrada - OSINT Intelligence{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card bg-dark border-danger">
+                <div class="card-body">
+                    <h1 class="display-1 text-danger">404</h1>
+                    <h2 class="text-light mb-4">Página No Encontrada</h2>
+                    <p class="text-muted mb-4">
+                        La página que buscas no existe en el sistema de inteligencia geopolítica.
+                    </p>
+                    
+                    <div class="row text-center mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-secondary border-0">
+                                <div class="card-body">
+                                    <i class="fas fa-home fa-2x text-primary mb-3"></i>
+                                    <h5 class="text-light">Dashboard</h5>
+                                    <p class="small text-muted">Volver al panel principal</p>
+                                    <a href="/" class="btn btn-primary btn-sm">Ir al Dashboard</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card bg-secondary border-0">
+                                <div class="card-body">
+                                    <i class="fas fa-chart-bar fa-2x text-success mb-3"></i>
+                                    <h5 class="text-light">Analytics</h5>
+                                    <p class="small text-muted">Ver estadísticas del sistema</p>
+                                    <a href="/analytics" class="btn btn-success btn-sm">Ver Analytics</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card bg-secondary border-0">
+                                <div class="card-body">
+                                    <i class="fas fa-cog fa-2x text-warning mb-3"></i>
+                                    <h5 class="text-light">Settings</h5>
+                                    <p class="small text-muted">Configuración del sistema</p>
+                                    <a href="/settings" class="btn btn-warning btn-sm">Configurar</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-dark border-info">
+                        <i class="fas fa-info-circle text-info"></i>
+                        <strong>Sugerencia:</strong> 
+                        Verifica que la URL esté correcta o usa la navegación principal para encontrar lo que buscas.
+                    </div>
+                    
+                    <a href="javascript:history.back()" class="btn btn-outline-light me-3">
+                        <i class="fas fa-arrow-left"></i> Volver Atrás
+                    </a>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Página Principal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.display-1 {
+    font-size: 8rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.card {
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.alert {
+    border-radius: 10px;
+}
+</style>
+{% endblock %}
