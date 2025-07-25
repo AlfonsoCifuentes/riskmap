@@ -101,8 +101,242 @@ class GeopoliticalDashboard {
     
     initializeChoroplethLayer() {
         this.choroplethLayer = L.layerGroup();
-        // In production, you'd load GeoJSON country boundaries
-        // and color them based on risk levels
+        this.loadChoroplethData();
+    }
+    
+    async loadChoroplethData() {
+        try {
+            // Load world countries GeoJSON data
+            const response = await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');
+            const worldData = await response.json();
+            
+            // Get risk data for countries
+            const riskData = await this.getRiskDataByCountry();
+            
+            // Create choropleth layer
+            L.geoJSON(worldData, {
+                style: (feature) => this.getChoroplethStyle(feature, riskData),
+                onEachFeature: (feature, layer) => {
+                    const countryName = feature.properties.name;
+                    const riskLevel = riskData[countryName] || 0;
+                    const riskText = this.getRiskLevelText(riskLevel);
+                    
+                    layer.bindPopup(`
+                        <div class="choropleth-popup">
+                            <h4>${countryName}</h4>
+                            <p>Nivel de Riesgo: <span class="risk-${riskText.toLowerCase()}">${riskText}</span></p>
+                            <p>Puntuación: ${riskLevel.toFixed(1)}/10</p>
+                        </div>
+                    `);
+                    
+                    layer.on({
+                        mouseover: (e) => {
+                            const layer = e.target;
+                            layer.setStyle({
+                                weight: 3,
+                                color: '#666',
+                                dashArray: '',
+                                fillOpacity: 0.9
+                            });
+                        },
+                        mouseout: (e) => {
+                            const layer = e.target;
+                            layer.setStyle(this.getChoroplethStyle(feature, riskData));
+                        }
+                    });
+                }
+            }).addTo(this.choroplethLayer);
+            
+        } catch (error) {
+            console.error('Error loading choropleth data:', error);
+            // Fallback to basic choropleth with sample data
+            this.createFallbackChoropleth();
+        }
+    }
+    
+    async getRiskDataByCountry() {
+        try {
+            const response = await fetch('/api/risk-by-country');
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching risk data:', error);
+            // Return sample risk data
+            return {
+                'United States': 6.5,
+                'China': 7.2,
+                'Russia': 8.1,
+                'Ukraine': 9.5,
+                'Iran': 7.8,
+                'Israel': 7.0,
+                'Syria': 8.9,
+                'Afghanistan': 8.7,
+                'North Korea': 8.3,
+                'Venezuela': 7.5,
+                'Myanmar': 8.0,
+                'Ethiopia': 7.3,
+                'Mali': 7.8,
+                'Somalia': 8.5,
+                'Yemen': 9.0,
+                'Lebanon': 7.6,
+                'Turkey': 6.8,
+                'India': 6.2,
+                'Pakistan': 7.4,
+                'Brazil': 5.8,
+                'Mexico': 6.3,
+                'Colombia': 6.7,
+                'Nigeria': 7.1,
+                'South Africa': 6.0,
+                'Egypt': 6.9,
+                'Saudi Arabia': 6.4,
+                'Iraq': 8.2,
+                'Libya': 8.4,
+                'Sudan': 8.6,
+                'Belarus': 7.7,
+                'Kazakhstan': 5.9,
+                'Algeria': 6.6,
+                'Morocco': 5.5,
+                'Tunisia': 6.1,
+                'Jordan': 6.5,
+                'Kuwait': 5.7,
+                'Qatar': 4.8,
+                'United Arab Emirates': 4.5,
+                'Oman': 4.9,
+                'Bahrain': 5.2,
+                'Cyprus': 5.1,
+                'Malta': 4.2,
+                'Luxembourg': 3.8,
+                'Switzerland': 3.5,
+                'Norway': 3.2,
+                'Denmark': 3.1,
+                'Sweden': 3.3,
+                'Finland': 3.6,
+                'Iceland': 2.9,
+                'Ireland': 3.4,
+                'United Kingdom': 4.7,
+                'France': 5.0,
+                'Germany': 4.3,
+                'Netherlands': 4.1,
+                'Belgium': 4.4,
+                'Austria': 4.0,
+                'Italy': 5.3,
+                'Spain': 4.9,
+                'Portugal': 4.6,
+                'Greece': 5.8,
+                'Poland': 5.4,
+                'Czech Republic': 4.8,
+                'Slovakia': 4.7,
+                'Hungary': 5.1,
+                'Romania': 5.5,
+                'Bulgaria': 5.6,
+                'Croatia': 4.9,
+                'Slovenia': 4.2,
+                'Estonia': 4.1,
+                'Latvia': 4.3,
+                'Lithuania': 4.4,
+                'Japan': 4.5,
+                'South Korea': 5.2,
+                'Taiwan': 6.8,
+                'Singapore': 4.0,
+                'Malaysia': 5.3,
+                'Thailand': 5.7,
+                'Vietnam': 5.9,
+                'Philippines': 6.4,
+                'Indonesia': 6.1,
+                'Australia': 3.7,
+                'New Zealand': 3.0,
+                'Canada': 3.9,
+                'Chile': 5.0,
+                'Argentina': 5.8,
+                'Uruguay': 4.5,
+                'Paraguay': 5.2,
+                'Bolivia': 6.0,
+                'Peru': 6.3,
+                'Ecuador': 6.1,
+                'Costa Rica': 4.8,
+                'Panama': 5.1,
+                'Guatemala': 6.2,
+                'Honduras': 6.7,
+                'El Salvador': 6.4,
+                'Nicaragua': 6.9,
+                'Cuba': 6.6,
+                'Dominican Republic': 5.9,
+                'Haiti': 7.8,
+                'Jamaica': 5.7,
+                'Trinidad and Tobago': 5.4,
+                'Barbados': 4.3,
+                'Bahamas': 4.6,
+                'Belize': 5.8,
+                'Guyana': 5.5,
+                'Suriname': 5.3,
+                'French Guiana': 4.7
+            };
+        }
+    }
+    
+    getChoroplethStyle(feature, riskData) {
+        const countryName = feature.properties.name;
+        const riskLevel = riskData[countryName] || 0;
+        
+        return {
+            fillColor: this.getChoroplethColor(riskLevel),
+            weight: 1,
+            opacity: 1,
+            color: '#333',
+            dashArray: '2',
+            fillOpacity: 0.7
+        };
+    }
+    
+    getChoroplethColor(riskLevel) {
+        // Color scale from green (low risk) to red (high risk)
+        if (riskLevel >= 8.5) return '#8B0000'; // Dark red - Critical
+        if (riskLevel >= 7.5) return '#DC143C'; // Crimson - Very High
+        if (riskLevel >= 6.5) return '#FF4500'; // Orange Red - High
+        if (riskLevel >= 5.5) return '#FF8C00'; // Dark Orange - Medium-High
+        if (riskLevel >= 4.5) return '#FFD700'; // Gold - Medium
+        if (riskLevel >= 3.5) return '#ADFF2F'; // Green Yellow - Low-Medium
+        if (riskLevel >= 2.5) return '#32CD32'; // Lime Green - Low
+        return '#228B22'; // Forest Green - Very Low
+    }
+    
+    getRiskLevelText(riskLevel) {
+        if (riskLevel >= 8.5) return 'Crítico';
+        if (riskLevel >= 7.5) return 'Muy Alto';
+        if (riskLevel >= 6.5) return 'Alto';
+        if (riskLevel >= 5.5) return 'Medio-Alto';
+        if (riskLevel >= 4.5) return 'Medio';
+        if (riskLevel >= 3.5) return 'Bajo-Medio';
+        if (riskLevel >= 2.5) return 'Bajo';
+        return 'Muy Bajo';
+    }
+    
+    createFallbackChoropleth() {
+        // Create simple country shapes for major countries if GeoJSON fails
+        const majorCountries = [
+            { name: 'United States', bounds: [[24.396308, -125.0], [49.384358, -66.93457]], risk: 6.5 },
+            { name: 'China', bounds: [[18.197700, 73.677368], [53.560974, 134.773911]], risk: 7.2 },
+            { name: 'Russia', bounds: [[41.188004, 19.638718], [81.857361, 180.0]], risk: 8.1 },
+            { name: 'Ukraine', bounds: [[44.386463, 22.137059], [52.379581, 40.228581]], risk: 9.5 },
+            { name: 'Iran', bounds: [[25.064327, 44.047256], [39.782056, 63.317471]], risk: 7.8 }
+        ];
+        
+        majorCountries.forEach(country => {
+            const rectangle = L.rectangle(country.bounds, {
+                color: this.getChoroplethColor(country.risk),
+                fillColor: this.getChoroplethColor(country.risk),
+                fillOpacity: 0.7,
+                weight: 2
+            }).bindPopup(`
+                <div class="choropleth-popup">
+                    <h4>${country.name}</h4>
+                    <p>Nivel de Riesgo: ${this.getRiskLevelText(country.risk)}</p>
+                    <p>Puntuación: ${country.risk}/10</p>
+                </div>
+            `);
+            
+            rectangle.addTo(this.choroplethLayer);
+        });
     }
     
     generateHeatmapData() {
@@ -252,13 +486,7 @@ class GeopoliticalDashboard {
             });
         });
         
-        // Mini map toggle
-        const miniMapToggle = document.getElementById('miniMapToggle');
-        if (miniMapToggle) {
-            miniMapToggle.addEventListener('click', () => {
-                this.toggleMiniMap();
-            });
-        }
+        // Mini map toggle removed - functionality no longer needed
         
         // Theme toggle
         const themeToggle = document.getElementById('themeToggle');

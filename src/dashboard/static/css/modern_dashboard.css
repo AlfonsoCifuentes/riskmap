@@ -623,6 +623,176 @@ body {
     opacity: 1;
 }
 
+/* Choropleth Map Popup Styles */
+.choropleth-popup {
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 1rem;
+    min-width: 200px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--accent-primary);
+}
+
+.choropleth-popup h4 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--bg-hover);
+    padding-bottom: 0.5rem;
+}
+
+.choropleth-popup p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.choropleth-popup p:last-child {
+    margin-bottom: 0;
+}
+
+/* Risk level colors in popup */
+.choropleth-popup .risk-crítico {
+    color: #8B0000;
+    font-weight: 600;
+}
+
+.choropleth-popup .risk-muy.alto {
+    color: #DC143C;
+    font-weight: 600;
+}
+
+.choropleth-popup .risk-alto {
+    color: #FF4500;
+    font-weight: 600;
+}
+
+.choropleth-popup .risk-medio-alto {
+    color: #FF8C00;
+    font-weight: 600;
+}
+
+.choropleth-popup .risk-medio {
+    color: #FFD700;
+    font-weight: 600;
+}
+
+.choropleth-popup .risk-bajo-medio {
+    color: #ADFF2F;
+    font-weight: 600;
+}
+
+.choropleth-popup .risk-bajo {
+    color: #32CD32;
+    font-weight: 600;
+}
+
+.choropleth-popup .risk-muy.bajo {
+    color: #228B22;
+    font-weight: 600;
+}
+
+/* Custom Leaflet Popup Styling */
+.leaflet-popup-content-wrapper {
+    background: var(--bg-card) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--shadow-lg) !important;
+    border: 1px solid var(--accent-primary) !important;
+}
+
+.leaflet-popup-content {
+    margin: 0 !important;
+    line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--accent-primary) !important;
+    box-shadow: none !important;
+}
+
+.leaflet-popup-close-button {
+    color: var(--text-primary) !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    padding: 4px 8px !important;
+}
+
+.leaflet-popup-close-button:hover {
+    color: var(--accent-primary) !important;
+    background: var(--bg-hover) !important;
+    border-radius: 4px !important;
+}
+
+/* Event Popup Styles */
+.event-popup {
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 1rem;
+    min-width: 200px;
+}
+
+.event-popup h4 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--bg-hover);
+    padding-bottom: 0.5rem;
+}
+
+.event-popup p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.event-popup p:last-child {
+    margin-bottom: 0;
+}
+
+.event-popup .risk-high {
+    color: var(--risk-high);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.event-popup .risk-medium {
+    color: var(--risk-medium);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.event-popup .risk-low {
+    color: var(--risk-low);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.event-popup .risk-unknown {
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Custom Leaflet Icon Styles */
+.custom-div-icon {
+    background: transparent !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.custom-div-icon i {
+    font-size: 20px !important;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.8) !important;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5)) !important;
+}
+
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
     width: 10px;

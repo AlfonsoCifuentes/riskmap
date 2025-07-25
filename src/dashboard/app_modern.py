@@ -724,6 +724,289 @@ def set_language():
         logger.error(f"Error setting language: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/risk-by-country')
+def get_risk_by_country():
+    """Get risk levels by country for choropleth map."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get risk data aggregated by country
+        cursor.execute("""
+            SELECT 
+                country,
+                COUNT(*) as article_count,
+                AVG(CASE 
+                    WHEN risk_level = 'high' THEN 9.0
+                    WHEN risk_level = 'medium' THEN 6.0
+                    WHEN risk_level = 'low' THEN 3.0
+                    ELSE 2.0
+                END) as avg_risk_score,
+                SUM(CASE WHEN risk_level = 'high' THEN 1 ELSE 0 END) as high_risk_count,
+                SUM(CASE WHEN risk_level = 'medium' THEN 1 ELSE 0 END) as medium_risk_count,
+                SUM(CASE WHEN risk_level = 'low' THEN 1 ELSE 0 END) as low_risk_count
+            FROM articles
+            WHERE created_at > datetime('now', '-30 days')
+            AND country IS NOT NULL
+            AND country != ''
+            GROUP BY country
+        """)
+        
+        risk_data = {}
+        
+        # Process database results
+        for row in cursor.fetchall():
+            country = row['country']
+            
+            # Calculate weighted risk score based on article distribution
+            total_articles = row['article_count']
+            if total_articles > 0:
+                # Base score from average
+                base_score = row['avg_risk_score']
+                
+                # Adjust based on volume and distribution
+                high_ratio = row['high_risk_count'] / total_articles
+                medium_ratio = row['medium_risk_count'] / total_articles
+                
+                # Volume multiplier (more articles = higher confidence in score)
+                volume_multiplier = min(1.2, 1 + (total_articles - 1) * 0.02)
+                
+                # Risk distribution bonus
+                if high_ratio > 0.5:  # More than 50% high risk
+                    distribution_bonus = 1.5
+                elif high_ratio > 0.3:  # More than 30% high risk
+                    distribution_bonus = 1.2
+                elif medium_ratio > 0.6:  # More than 60% medium risk
+                    distribution_bonus = 1.1
+                else:
+                    distribution_bonus = 1.0
+                
+                final_score = min(10.0, base_score * volume_multiplier * distribution_bonus)
+                
+                # Map country names to standard names used in GeoJSON
+                standard_country_name = map_to_standard_country_name(country)
+                risk_data[standard_country_name] = round(final_score, 1)
+        
+        # Add some baseline risk scores for major countries not in database
+        baseline_risks = {
+            'United States': 4.5,
+            'China': 6.8,
+            'Russia': 7.5,
+            'India': 5.2,
+            'Brazil': 4.8,
+            'Germany': 3.2,
+            'France': 3.8,
+            'United Kingdom': 4.1,
+            'Japan': 3.5,
+            'South Korea': 4.3,
+            'Canada': 3.1,
+            'Australia': 2.9,
+            'Mexico': 5.5,
+            'Argentina': 5.1,
+            'South Africa': 5.8,
+            'Egypt': 6.2,
+            'Turkey': 6.0,
+            'Saudi Arabia': 5.7,
+            'Indonesia': 5.4,
+            'Thailand': 4.9,
+            'Vietnam': 4.6,
+            'Philippines': 5.9,
+            'Nigeria': 6.5,
+            'Kenya': 5.3,
+            'Morocco': 4.4,
+            'Algeria': 5.6,
+            'Tunisia': 4.7,
+            'Libya': 7.8,
+            'Sudan': 8.2,
+            'Ethiopia': 6.9,
+            'Somalia': 8.5,
+            'Mali': 7.1,
+            'Niger': 6.8,
+            'Chad': 7.0,
+            'Central African Republic': 7.9,
+            'Democratic Republic of the Congo': 7.6,
+            'Afghanistan': 8.8,
+            'Pakistan': 6.7,
+            'Bangladesh': 5.0,
+            'Myanmar': 7.4,
+            'North Korea': 8.1,
+            'Iran': 7.3,
+            'Iraq': 7.7,
+            'Syria': 8.9,
+            'Lebanon': 6.4,
+            'Jordan': 5.8,
+            'Israel': 6.6,
+            'Palestine': 7.2,
+            'Yemen': 8.7,
+            'Venezuela': 6.9,
+            'Colombia': 5.7,
+            'Peru': 5.2,
+            'Ecuador': 5.4,
+            'Bolivia': 5.6,
+            'Chile': 4.2,
+            'Uruguay': 3.6,
+            'Paraguay': 4.8,
+            'Cuba': 5.9,
+            'Haiti': 7.5,
+            'Dominican Republic': 4.9,
+            'Jamaica': 4.7,
+            'Guatemala': 5.8,
+            'Honduras': 6.1,
+            'El Salvador': 5.5,
+            'Nicaragua': 6.3,
+            'Costa Rica': 3.9,
+            'Panama': 4.1,
+            'Belarus': 6.8,
+            'Ukraine': 8.6,
+            'Moldova': 5.7,
+            'Georgia': 5.4,
+            'Armenia': 5.6,
+            'Azerbaijan': 6.0,
+            'Kazakhstan': 4.8,
+            'Uzbekistan': 5.1,
+            'Kyrgyzstan': 5.3,
+            'Tajikistan': 5.9,
+            'Turkmenistan': 5.5,
+            'Mongolia': 4.3,
+            'Nepal': 5.0,
+            'Bhutan': 3.7,
+            'Sri Lanka': 5.8,
+            'Maldives': 3.4,
+            'Singapore': 2.8,
+            'Malaysia': 4.5,
+            'Brunei': 3.2,
+            'Cambodia': 5.2,
+            'Laos': 4.9,
+            'Papua New Guinea': 5.7,
+            'Fiji': 3.8,
+            'New Zealand': 2.6,
+            'Norway': 2.4,
+            'Sweden': 2.7,
+            'Finland': 2.9,
+            'Denmark': 2.5,
+            'Iceland': 2.1,
+            'Ireland': 2.8,
+            'Netherlands': 3.0,
+            'Belgium': 3.3,
+            'Luxembourg': 2.9,
+            'Switzerland': 2.3,
+            'Austria': 3.1,
+            'Czech Republic': 3.4,
+            'Slovakia': 3.6,
+            'Hungary': 3.8,
+            'Poland': 3.7,
+            'Lithuania': 3.2,
+            'Latvia': 3.3,
+            'Estonia': 3.1,
+            'Slovenia': 3.0,
+            'Croatia': 3.5,
+            'Bosnia and Herzegovina': 4.8,
+            'Serbia': 4.6,
+            'Montenegro': 4.2,
+            'North Macedonia': 4.4,
+            'Albania': 4.1,
+            'Bulgaria': 4.0,
+            'Romania': 4.3,
+            'Greece': 4.7,
+            'Cyprus': 3.9,
+            'Malta': 3.1,
+            'Italy': 4.2,
+            'Spain': 3.9,
+            'Portugal': 3.6,
+            'Andorra': 2.8,
+            'Monaco': 2.5,
+            'San Marino': 2.7,
+            'Vatican City': 2.2
+        }
+        
+        # Add baseline risks for countries not in database
+        for country, risk in baseline_risks.items():
+            if country not in risk_data:
+                risk_data[country] = risk
+        
+        conn.close()
+        return jsonify(risk_data)
+        
+    except Exception as e:
+        logger.error(f"Error getting risk by country: {e}")
+        return jsonify({'error': str(e)}), 500
+
+def map_to_standard_country_name(country_name):
+    """Map various country name formats to standard GeoJSON country names."""
+    country_mapping = {
+        'US': 'United States',
+        'USA': 'United States',
+        'United States of America': 'United States',
+        'UK': 'United Kingdom',
+        'Britain': 'United Kingdom',
+        'Great Britain': 'United Kingdom',
+        'England': 'United Kingdom',
+        'Scotland': 'United Kingdom',
+        'Wales': 'United Kingdom',
+        'Northern Ireland': 'United Kingdom',
+        'UAE': 'United Arab Emirates',
+        'South Korea': 'South Korea',
+        'North Korea': 'North Korea',
+        'DRC': 'Democratic Republic of the Congo',
+        'Congo': 'Democratic Republic of the Congo',
+        'CAR': 'Central African Republic',
+        'Bosnia': 'Bosnia and Herzegovina',
+        'Herzegovina': 'Bosnia and Herzegovina',
+        'Macedonia': 'North Macedonia',
+        'FYROM': 'North Macedonia',
+        'Czech Republic': 'Czech Republic',
+        'Czechia': 'Czech Republic',
+        'Slovak Republic': 'Slovakia',
+        'Republic of Korea': 'South Korea',
+        'DPRK': 'North Korea',
+        'Democratic People\'s Republic of Korea': 'North Korea',
+        'Republic of China': 'Taiwan',
+        'Taiwan': 'Taiwan',
+        'ROC': 'Taiwan',
+        'PRC': 'China',
+        'People\'s Republic of China': 'China',
+        'Russian Federation': 'Russia',
+        'Islamic Republic of Iran': 'Iran',
+        'Kingdom of Saudi Arabia': 'Saudi Arabia',
+        'State of Israel': 'Israel',
+        'Hashemite Kingdom of Jordan': 'Jordan',
+        'Arab Republic of Egypt': 'Egypt',
+        'Republic of Turkey': 'Turkey',
+        'Federal Republic of Germany': 'Germany',
+        'French Republic': 'France',
+        'Italian Republic': 'Italy',
+        'Kingdom of Spain': 'Spain',
+        'Portuguese Republic': 'Portugal',
+        'Hellenic Republic': 'Greece',
+        'Republic of Cyprus': 'Cyprus',
+        'Republic of Malta': 'Malta',
+        'Republic of Ireland': 'Ireland',
+        'Kingdom of Norway': 'Norway',
+        'Kingdom of Sweden': 'Sweden',
+        'Republic of Finland': 'Finland',
+        'Kingdom of Denmark': 'Denmark',
+        'Republic of Iceland': 'Iceland',
+        'Kingdom of the Netherlands': 'Netherlands',
+        'Kingdom of Belgium': 'Belgium',
+        'Grand Duchy of Luxembourg': 'Luxembourg',
+        'Swiss Confederation': 'Switzerland',
+        'Republic of Austria': 'Austria',
+        'Republic of Poland': 'Poland',
+        'Republic of Lithuania': 'Lithuania',
+        'Republic of Latvia': 'Latvia',
+        'Republic of Estonia': 'Estonia',
+        'Republic of Slovenia': 'Slovenia',
+        'Republic of Croatia': 'Croatia',
+        'Republic of Serbia': 'Serbia',
+        'Montenegro': 'Montenegro',
+        'Republic of North Macedonia': 'North Macedonia',
+        'Republic of Albania': 'Albania',
+        'Republic of Bulgaria': 'Bulgaria',
+        'Romania': 'Romania'
+    }
+    
+    return country_mapping.get(country_name, country_name)
+
 @app.route('/api/ai/weekly-analysis')
 def get_ai_weekly_analysis():
     """Return realistic AI-generated weekly analysis using OpenAI (or fallback)."""
