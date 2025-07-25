@@ -1,25 +1,32 @@
-#!/usr/bin/env python3
 import sqlite3
-from datetime import datetime, timedelta
 
-conn = sqlite3.connect('data/geopolitical_intel.db')
+conn = sqlite3.connect('data/riskmap.db')
 cursor = conn.cursor()
 
-# Check table structure
-cursor.execute('PRAGMA table_info(articles)')
-print('Columns in articles table:')
-for row in cursor.fetchall():
-    print(f'  {row[1]} ({row[2]})')
+# Get all tables
+cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+tables = cursor.fetchall()
+print("Tables in database:")
+for table in tables:
+    print(f"  - {table[0]}")
 
-# Check total articles
-cursor.execute('SELECT COUNT(*) FROM articles')
-total = cursor.fetchone()[0]
-print(f'\nTotal articles: {total}')
-
-# Check recent articles
-cursor.execute('SELECT title, created_at, risk_level, conflict_type FROM articles ORDER BY created_at DESC LIMIT 5')
-print('\nRecent articles:')
-for row in cursor.fetchall():
-    print(f"  {row[0][:50]}... | {row[1]} | Risk: {row[2]} | Type: {row[3]}")
+# Check if processed_data table exists
+if ('processed_data',) not in tables:
+    print("\nTable 'processed_data' does not exist. Creating it...")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS processed_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            article_id INTEGER NOT NULL,
+            category TEXT,
+            sentiment REAL,
+            entities TEXT,
+            summary TEXT,
+            keywords TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (article_id) REFERENCES articles (id)
+        )
+    """)
+    conn.commit()
+    print("Table 'processed_data' created successfully.")
 
 conn.close()

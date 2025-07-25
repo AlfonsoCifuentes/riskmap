@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ translations['analysis'] }}{% endblock %}
+
+{% block content %}
+<div class="glass-card p-8 rounded-lg">
+    <h2 class="text-2xl mb-4">Geopolitical Analysis</h2>
+    <div class="flex flex-col gap-4">
+        <textarea id="analysis-input" class="w-full h-48 bg-gray-800 border border-gray-700 rounded-lg p-4" placeholder="Enter text for analysis..."></textarea>
+        <button id="analysis-button" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg self-start">Analyze</button>
+        <div id="analysis-output" class="mt-4 p-4 bg-gray-800 border border-gray-700 rounded-lg min-h-[200px]"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Lógica para la página de análisis
+</script>
+{% endblock %}

@@ -1,0 +1,104 @@
+# config/config.yaml
+
+# Configuración de la aplicación
+app:
+  name: "Sistema de Inteligencia Geopolítica"
+  version: "1.1.0" # Versión actualizada
+  debug: false # Desactivado por defecto para producción
+
+# Configuración de la base de datos
+database:
+  path: "data/geopolitical_intelligence.db"
+  timeout: 10 # Timeout para operaciones de base de datos
+  backup_path: "data/backups/"
+  backup_interval_hours: 24
+
+# Configuración de logging
+logging:
+  level: "INFO" # Niveles: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_file: "logs/geopolitical_intel.log"
+  max_size_mb: 10
+  backup_count: 5
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Configuración de APIs y servicios externos
+api_keys:
+  newsapi: "${NEWSAPI_KEY}" # Clave para NewsAPI (desde .env)
+  google_translate: "${GOOGLE_TRANSLATE_KEY}" # Clave para Google Translate (opcional)
+  openai: "${OPENAI_KEY}" # Clave para OpenAI (opcional)
+  groq: "${GROQ_API_KEY}" # Clave para Groq (opcional)
+
+# Configuración de procesamiento
+processing:
+  max_workers: 4 # Número de hilos para tareas concurrentes
+  nlp:
+    # Configuración de traducción
+    translation:
+      service: "google" # Servicios: "google", "mock"
+      cache_enabled: true
+      cache_ttl_days: 30
+    
+    # Configuración de clasificación de texto
+    classification:
+      model: "facebook/bart-large-cnn" # Modelo para resumen y clasificación
+      max_length: 1024
+      min_length: 50
+
+    # Configuración de análisis de sentimiento
+    sentiment:
+      model: "cardiffnlp/twitter-xlm-roberta-base-sentiment" # Modelo multilingüe robusto
+    
+    # Configuración de reconocimiento de entidades
+    ner:
+      model: "dbmdz/bert-large-cased-finetuned-conll03-english" # Modelo para NER
+
+# Configuración de fuentes de datos
+data_sources:
+  # Configuración de NewsAPI
+  newsapi:
+    enabled: true
+    base_url: "https://newsapi.org/v2"
+    request_delay: 1.0
+    max_articles_per_country: 50
+    priority_countries: ["us", "gb", "de", "fr", "es", "ru", "cn", "jp", "in", "br", "au", "ca"]
+    endpoints:
+      everything: "/everything"
+      top_headlines: "/top-headlines"
+      sources: "/sources"
+  
+  # Configuración de fuentes RSS
+  rss:
+    enabled: true
+    timeout: 30
+    max_workers: 10
+    request_delay: 0.5
+    max_articles_per_source: 15
+  
+  # Cobertura global y por idiomas
+  global_coverage:
+    enabled: true
+    priority_languages: ["en", "es", "fr", "de", "ru", "zh", "ar", "pt", "it", "ja", "ko", "nl"]
+    regions:
+      americas: ["us", "ca", "mx", "br", "ar", "co", "cl", "pe", "ve"]
+      europe: ["gb", "de", "fr", "es", "it", "ru", "nl", "be", "ch", "at"]
+      asia_pacific: ["cn", "jp", "kr", "in", "au", "sg", "hk", "tw"]
+      middle_east: ["ae", "sa", "qa", "eg", "lb", "jo", "ma"]
+      africa: ["za", "ng", "eg", "ma"]
+
+# Configuración de idiomas
+languages:
+  supported: ["es", "en", "ru", "zh", "ar"]
+  primary: "en"
+
+# Configuración de planificación de tareas
+schedules:
+  collection:
+    global_hours: 4
+    intelligence_time: "03:00"
+  processing:
+    minutes: 60
+  reporting:
+    daily_time: "06:00"
+    weekly_time: "07:00"
+  maintenance:
+    time: "04:00"

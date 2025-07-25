@@ -93,7 +93,7 @@ class TestIntegration(unittest.TestCase):
             from utils.config import config
             from data_ingestion.news_collector import GeopoliticalNewsCollector
             from nlp_processing.text_analyzer import GeopoliticalTextAnalyzer
-            from reporting.report_generator import ReportGenerator
+            from reporting import ReportGenerator
             
             collector = GeopoliticalNewsCollector()
             analyzer = GeopoliticalTextAnalyzer()

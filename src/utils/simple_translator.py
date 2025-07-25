@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 TRANSLATIONS = {
     'es': {
         'dashboard': 'Panel de Control',
-        'reports': 'Informes', 
+        'reports': 'Informes',
         'ai_chat': 'Chat IA',
         'about': 'Acerca de',
         'recent_articles': 'Artículos Recientes',
@@ -49,7 +49,7 @@ TRANSLATIONS = {
     },
     'de': {
         'dashboard': 'Dashboard',
-        'reports': 'Berichte', 
+        'reports': 'Berichte',
         'ai_chat': 'KI-Chat',
         'about': 'Über',
         'recent_articles': 'Aktuelle Artikel',
@@ -85,7 +85,7 @@ TRANSLATIONS = {
     },
     'fr': {
         'dashboard': 'Tableau de Bord',
-        'reports': 'Rapports', 
+        'reports': 'Rapports',
         'ai_chat': 'Chat IA',
         'about': 'À propos',
         'recent_articles': 'Articles Récents',
@@ -121,7 +121,7 @@ TRANSLATIONS = {
     },
     'it': {
         'dashboard': 'Cruscotto',
-        'reports': 'Rapporti', 
+        'reports': 'Rapporti',
         'ai_chat': 'Chat IA',
         'about': 'Informazioni',
         'recent_articles': 'Articoli Recenti',
@@ -157,7 +157,7 @@ TRANSLATIONS = {
     },
     'ru': {
         'dashboard': 'Панель управления',
-        'reports': 'Отчеты', 
+        'reports': 'Отчеты',
         'ai_chat': 'ИИ Чат',
         'about': 'О нас',
         'recent_articles': 'Последние статьи',
@@ -193,7 +193,7 @@ TRANSLATIONS = {
     },
     'zh': {
         'dashboard': '仪表板',
-        'reports': '报告', 
+        'reports': '报告',
         'ai_chat': 'AI聊天',
         'about': '关于',
         'recent_articles': '最新文章',
@@ -229,7 +229,7 @@ TRANSLATIONS = {
     },
     'ja': {
         'dashboard': 'ダッシュボード',
-        'reports': 'レポート', 
+        'reports': 'レポート',
         'ai_chat': 'AIチャット',
         'about': 'について',
         'recent_articles': '最新記事',
@@ -265,19 +265,20 @@ TRANSLATIONS = {
     }
 }
 
+
 class SimpleTranslator:
     """Traductor simple basado en diccionario"""
-    
+
     def __init__(self):
         self.translations = TRANSLATIONS
-    
+
     def get_ui_translations(self, target_lang: str) -> Dict[str, str]:
         """Obtiene traducciones para elementos de la interfaz"""
         if target_lang == 'en' or target_lang not in self.translations:
             # Retornar textos en inglés por defecto
             return {
                 'dashboard': 'Dashboard',
-                'reports': 'Reports', 
+                'reports': 'Reports',
                 'ai_chat': 'AI Chat',
                 'about': 'About',
                 'recent_articles': 'Recent Articles',
@@ -309,22 +310,28 @@ class SimpleTranslator:
                 'geopolitical_intelligence_system': 'Geopolitical Intelligence System',
                 'osint_intelligence': 'OSINT Intelligence',
                 'built_with_ai': 'Built with advanced AI and NLP technologies',
-                'copyright': '© 2025 Geopolitical Intelligence System'
-            }
-        
+                'copyright': '© 2025 Geopolitical Intelligence System'}
+
         return self.translations[target_lang]
-    
-    def translate(self, text: str, target_lang: str, source_lang: str = 'en') -> str:
+
+    def translate(
+            self,
+            text: str,
+            target_lang: str,
+            source_lang: str = 'en') -> str:
         """Traduce un texto simple (no implementado para textos largos)"""
         # Para artículos largos, simplemente retornamos el texto original
         return text
-    
-    def translate_articles_list(self, articles: List[Dict[str, Any]], target_lang: str) -> List[Dict[str, Any]]:
+
+    def translate_articles_list(
+            self, articles: List[Dict[str, Any]], target_lang: str) -> List[Dict[str, Any]]:
         """Para artículos, simplemente retornamos la lista original"""
         return articles
 
+
 # Instancia global del traductor
 simple_translator = SimpleTranslator()
+
 
 def get_translator() -> SimpleTranslator:
     """Obtiene la instancia del traductor"""
