@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Inteligencia Geopolítica - Dashboard</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rtl.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/effects.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/articles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/scroll_fix.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Geopolitical Particles Background -->
+    <div id="particles-js"></div>
+    
+    <!-- Sonar Animation Overlay -->
+    <div class="sonar-overlay" id="sonarOverlay">
+        <div class="sonar-intro-content">
+            <div class="sonar-title">Stratosight</div>
+            <div class="sonar-container">
+                <div class="sonar-ring"></div>
+                <div class="sonar-ring"></div>
+                <div class="sonar-ring"></div>
+                <div class="sonar-center"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <span>Stratosight</span>
+            </a>
+            
+            <div class="nav-controls">
+                <!-- Language Selector -->
+                <div class="language-selector">
+                    <button class="language-btn" id="languageBtn">
+                        <i class="fas fa-language"></i>
+                        <span id="currentLang">ES</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="language-dropdown" id="languageDropdown">
+                        <div class="language-option" data-lang="es">
+                            <span>🇪🇸</span> Español
+                        </div>
+                        <div class="language-option" data-lang="en">
+                            <span>🇬🇧</span> English
+                        </div>
+                        <div class="language-option" data-lang="ru">
+                            <span>🇷🇺</span> Русский
+                        </div>
+                        <div class="language-option" data-lang="zh">
+                            <span>🇨🇳</span> 中文
+                        </div>
+                        <div class="language-option" data-lang="ar">
+                            <span>🇸🇦</span> العربية
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Theme Toggle -->
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                
+                <!-- Notifications -->
+                <button class="theme-toggle" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard-container">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                </div>
+                <div class="stat-value" id="totalArticles">0</div>
+                <div class="stat-label" data-i18n="stats.total_articles">Total Artículos</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>12%</span>
+                </div>
+            </div>
+            
+            <div class="stat-card danger">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+                <div class="stat-value" id="highRiskEvents">0</div>
+                <div class="stat-label" data-i18n="stats.high_risk">Eventos Alto Riesgo</div>
+                <div class="stat-change negative">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>8%</span>
+                </div>
+            </div>
+            
+            <div class="stat-card success">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                </div>
+                <div class="stat-value" id="processedToday">0</div>
+                <div class="stat-label" data-i18n="stats.processed_today">Procesados Hoy</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>25%</span>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-globe-americas"></i>
+                    </div>
+                </div>
+                <div class="stat-value" id="activeRegions">0</div>
+                <div class="stat-label" data-i18n="stats.active_regions">Regiones Activas</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>5%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="map-section">
+            <div class="section-header">
+                <h2 class="section-title" data-i18n="map.title">Mapa de Calor Global</h2>
+                <div class="map-controls">
+                    <button class="map-control-btn active" data-layer="heatmap">
+                        <i class="fas fa-fire"></i> Calor
+                    </button>
+                    <button class="map-control-btn" data-layer="markers">
+                        <i class="fas fa-map-marker-alt"></i> Marcadores
+                    </button>
+                    <button class="map-control-btn" data-layer="choropleth">
+                        <i class="fas fa-globe"></i> Coroplético
+                    </button>
+                    <button class="map-control-btn" id="miniMapToggle">
+                        <i class="fas fa-compress"></i> Mini Mapa
+                    </button>
+                </div>
+            </div>
+            <div id="main-map"></div>
+            <div class="mini-map" id="miniMap"></div>
+        </div>
+
+        <!-- Featured Article of the Week -->
+        <div class="featured-article" id="featuredArticle">
+            <div class="featured-badge">
+                <i class="fas fa-fire"></i> Artículo de Mayor Riesgo
+            </div>
+            <div class="featured-content">
+                <div class="featured-text">
+                    <h2 class="featured-title">Cargando artículo destacado...</h2>
+                    <div class="featured-meta">
+                        <div class="featured-meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span id="featuredDate">--</span>
+                        </div>
+                        <div class="featured-meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="featuredLocation">--</span>
+                        </div>
+                        <div class="featured-meta-item">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span id="featuredRisk">--</span>
+                        </div>
+                    </div>
+                    <p class="featured-description" id="featuredDescription">
+                        Cargando descripción...
+                    </p>
+                    <div class="featured-actions">
+                        <a href="#" class="btn-primary" id="featuredReadMore">
+                            <i class="fas fa-book-open"></i> Leer Artículo Completo
+                        </a>
+                        <button class="btn-secondary" id="featuredAnalysis">
+                            <i class="fas fa-chart-line"></i> Ver Análisis
+                        </button>
+                    </div>
+                </div>
+                <div class="featured-image">
+                    <img id="featuredImage" src="" alt="Featured article image">
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Generated Weekly Analysis - Redesigned -->
+        <div class="weekly-analysis-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-brain text-primary"></i> 
+                    Análisis Geopolítico Semanal
+                </h2>
+                <div class="section-controls">
+                    <span class="ai-badge">
+                        <i class="fas fa-robot"></i> Generado por IA
+                    </span>
+                </div>
+            </div>
+            
+            <div class="analysis-content-card">
+                <div class="analysis-header">
+                    <div class="analysis-meta">
+                        <span><i class="fas fa-calendar"></i> <span id="aiArticleDate">--</span></span>
+                        <span><i class="fas fa-clock"></i> 5 min de lectura</span>
+                        <span><i class="fas fa-brain"></i> Análisis por IA</span>
+                    </div>
+                </div>
+                <div class="analysis-body" id="aiArticleContent">
+                    <p>Cargando análisis semanal...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid - Redesigned -->
+        <div class="charts-grid-redesigned">
+            <!-- Top Row: Categories and Sentiment side by side (larger) -->
+            <div class="charts-row-wide">
+                <div class="chart-card wide">
+                    <div class="section-header">
+                        <h3 class="section-title" data-i18n="charts.categories">Distribución por Categorías</h3>
+                    </div>
+                    <div class="chart-container wide-chart" id="categoryChart"></div>
+                </div>
+                
+                <div class="chart-card wide">
+                    <div class="section-header">
+                        <h3 class="section-title" data-i18n="charts.sentiment">Análisis de Sentimiento</h3>
+                    </div>
+                    <div class="chart-container wide-chart" id="sentimentChart"></div>
+                </div>
+            </div>
+            
+            <!-- Bottom Row: Timeline increased height -->
+            <div class="chart-card timeline-improved">
+                <div class="section-header">
+                    <h3 class="section-title" data-i18n="charts.timeline">Línea de Tiempo</h3>
+                </div>
+                <div class="chart-container timeline-chart-improved" id="timelineChart"></div>
+            </div>
+        </div>
+
+        <!-- High Risk Articles Section (Full Width) -->
+        <div class="articles-section-full">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-exclamation-triangle text-danger"></i> 
+                    Artículos de Alto Riesgo
+                </h2>
+                <div class="section-controls">
+                    <button class="btn-refresh" id="refreshHighRisk">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                    <button class="btn-filter" id="filterHighRisk">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="articles-grid" id="highRiskArticlesGrid">
+                <!-- High risk articles will be loaded here as cards -->
+            </div>
+        </div>
+
+        <!-- Latest Articles Section (List Style) -->
+        <div class="articles-section-list">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-clock text-primary"></i> 
+                    Últimos Artículos
+                </h2>
+                <div class="section-controls">
+                    <button class="btn-refresh" id="refreshLatest">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                    <button class="btn-filter" id="filterLatest">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="articles-list" id="latestArticlesList">
+                <!-- Latest articles will be loaded here as list items -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="{{ url_for('static', filename='js/city_lights.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modern_dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/enhanced_dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+</body>
+</html>

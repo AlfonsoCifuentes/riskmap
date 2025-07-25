@@ -225,22 +225,29 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <div class="navbar-nav ms-auto">
-                    <a class="nav-link" href="/">
+                    <a class="nav-link" href="/" data-i18n-key="nav_dashboard">
                         <i class="fas fa-tachometer-alt me-1"></i>
                         Dashboard
                     </a>
-                    <a class="nav-link" href="/reports">
+                    <a class="nav-link" href="/reports" data-i18n-key="nav_reports">
                         <i class="fas fa-file-alt me-1"></i>
                         Reports
                     </a>
-                    <a class="nav-link" href="/chat">
+                    <a class="nav-link" href="/chat" data-i18n-key="nav_chat">
                         <i class="fas fa-comments me-1"></i>
                         AI Chat
                     </a>
-                    <a class="nav-link" href="/about">
+                    <a class="nav-link" href="/about" data-i18n-key="nav_about">
                         <i class="fas fa-info-circle me-1"></i>
                         About
                     </a>
+                    <select id="language-selector" class="form-select form-select-sm ms-3" style="width:auto;">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="ru">Русский</option>
+                        <option value="zh">中文</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -256,7 +263,7 @@
     <!-- Footer -->
     <footer class="text-center text-muted py-4">
         <div class="container">
-            <p>&copy; 2025 Geopolitical Intelligence System. Built with advanced AI and NLP technologies.</p>
+            <p data-i18n-key="footer_text">&copy; 2025 Geopolitical Intelligence System. Built with advanced AI and NLP technologies.</p>
         </div>
     </footer>
 
@@ -344,6 +351,56 @@
             const toast = new bootstrap.Toast(toastElement);
             toast.show();
         }
+
+        // Front-end translation script
+        const translations = {
+            en: {
+                nav_dashboard: 'Dashboard', nav_reports: 'Reports', nav_chat: 'AI Chat', nav_about: 'About',
+                footer_text: '© 2025 Geopolitical Intelligence System. Built with advanced AI and NLP technologies.'
+            },
+            es: {
+                nav_dashboard: 'Panel', nav_reports: 'Informes', nav_chat: 'Chat IA', nav_about: 'Acerca de',
+                footer_text: '© 2025 Sistema de Inteligencia Geopolítica. Construido con tecnologías avanzadas de IA y PLN.'
+            },
+            fr: {
+                nav_dashboard: 'Tableau de Bord', nav_reports: 'Rapports', nav_chat: 'Chat IA', nav_about: 'À Propos',
+                footer_text: '© 2025 Système d’Intelligence Géopolitique. Construit avec des technologies avancées d’IA et de TAL.'
+            },
+            ru: {
+                nav_dashboard: 'Панель', nav_reports: 'Отчёты', nav_chat: 'Чат ИИ', nav_about: 'О нас',
+                footer_text: '© 2025 Система Геополитической Разведки. Создано с помощью передовых технологий ИИ и НЛП.'
+            },
+            zh: {
+                nav_dashboard: '仪表板', nav_reports: '报告', nav_chat: 'AI 聊天', nav_about: '关于',
+                footer_text: '© 2025 地缘政治情报系统。使用先进的 AI 和 NLP 技术构建。'
+            }
+        };
+
+        function applyTranslations() {
+            const lang = localStorage.getItem('selectedLanguage') || 'en';
+            document.querySelectorAll('[data-i18n-key]').forEach(el => {
+                const key = el.getAttribute('data-i18n-key');
+                if (translations[lang] && translations[lang][key]) {
+                    el.innerText = translations[lang][key];
+                }
+            });
+            const selector = document.getElementById('language-selector');
+            if (selector) selector.value = lang;
+            // Set HTML lang attribute
+            document.documentElement.lang = lang;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const selector = document.getElementById('language-selector');
+            if (selector) {
+                selector.addEventListener('change', e => {
+                    const selected = e.target.value;
+                    localStorage.setItem('selectedLanguage', selected);
+                    applyTranslations();
+                });
+            }
+            applyTranslations();
+        });
     </script>
 
     {% block extra_scripts %}{% endblock %}
