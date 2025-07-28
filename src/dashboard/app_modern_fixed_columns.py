@@ -1,6 +1,6 @@
 """
 Modern Flask Dashboard Application for Geopolitical Intelligence System
-VERSIÓN CORREGIDA - SIN PROBLEMAS DE SCHEDULER
+VERSIÓN CORREGIDA - COLUMNAS DE BASE DE DATOS CORREGIDAS
 """
 
 from flask import Flask, render_template, jsonify, request
@@ -260,12 +260,6 @@ def video_surveillance():
 def historical_analysis():
     """Render the historical analysis page."""
     return render_template('historical_analysis.html')
-
-@app.route('/test-articles')
-def test_articles():
-    """Render the test articles page."""
-    from flask import send_from_directory
-    return send_from_directory(BASE_DIR, 'test_articles_simple.html')
 
 @app.route('/api/dashboard/stats')
 def get_dashboard_stats():
@@ -898,7 +892,7 @@ def test_api():
         }), 500
 
 if __name__ == '__main__':
-    print("🚀 Iniciando Riskmap Dashboard (Versión Corregida)...")
+    print("🚀 Iniciando Riskmap Dashboard (Versión Corregida - Columnas DB)...")
     print(f"📂 Base de datos: {DB_PATH}")
     print("🌐 URL: http://localhost:5000")
     print("🧪 Test API: http://localhost:5000/api/test")

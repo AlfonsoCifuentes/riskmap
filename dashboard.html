@@ -3,6 +3,49 @@
 {% block title %}Dashboard - Geopolitical Intelligence{% endblock %}
 
 {% block content %}
+<!-- 3D Earth Wireframe Background -->
+<div id="earth-wireframe">
+    <div class="earth-container">
+        <div class="earth-sphere">
+            <!-- Latitude lines -->
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            
+            <!-- Longitude lines -->
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            
+            <!-- Orbital rings -->
+            <div class="orbital-ring"></div>
+            <div class="orbital-ring"></div>
+            
+            <!-- Data points representing global monitoring stations -->
+            <div class="data-point" style="top: 25%; left: 15%;"></div>
+            <div class="data-point" style="top: 35%; left: 45%;"></div>
+            <div class="data-point" style="top: 45%; left: 75%;"></div>
+            <div class="data-point" style="top: 55%; left: 25%;"></div>
+            <div class="data-point" style="top: 65%; left: 65%;"></div>
+            <div class="data-point" style="top: 30%; left: 85%;"></div>
+            <div class="data-point" style="top: 70%; left: 35%;"></div>
+            <div class="data-point" style="top: 40%; left: 55%;"></div>
+        </div>
+    </div>
+</div>
+
 <style>
     :root {
         --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -37,8 +80,8 @@
         position: relative;
     }
 
-    /* Geopolitical particles background */
-    #particles-js {
+    /* 3D Earth Wireframe Background */
+    #earth-wireframe {
         position: fixed;
         top: 0;
         left: 0;
@@ -54,6 +97,162 @@
             rgba(11, 19, 32, 0.95) 100%
         );
         background-attachment: fixed;
+        overflow: hidden;
+    }
+
+    .earth-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 800px;
+        height: 800px;
+        perspective: 1000px;
+    }
+
+    .earth-sphere {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        animation: earthRotation 60s linear infinite;
+    }
+
+    @keyframes earthRotation {
+        0% { transform: rotateY(0deg) rotateX(15deg); }
+        100% { transform: rotateY(360deg) rotateX(15deg); }
+    }
+
+    .wireframe-line {
+        position: absolute;
+        background: linear-gradient(90deg, transparent, #00ffff, transparent);
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        opacity: 0.6;
+    }
+
+    /* Latitude lines */
+    .lat-line {
+        width: 100%;
+        height: 2px;
+        border-radius: 1px;
+        left: 0;
+        animation: wireframePulse 4s ease-in-out infinite;
+    }
+
+    .lat-line:nth-child(1) { top: 10%; transform: scaleX(0.3); }
+    .lat-line:nth-child(2) { top: 20%; transform: scaleX(0.6); }
+    .lat-line:nth-child(3) { top: 30%; transform: scaleX(0.8); }
+    .lat-line:nth-child(4) { top: 40%; transform: scaleX(0.95); }
+    .lat-line:nth-child(5) { top: 50%; transform: scaleX(1); }
+    .lat-line:nth-child(6) { top: 60%; transform: scaleX(0.95); }
+    .lat-line:nth-child(7) { top: 70%; transform: scaleX(0.8); }
+    .lat-line:nth-child(8) { top: 80%; transform: scaleX(0.6); }
+    .lat-line:nth-child(9) { top: 90%; transform: scaleX(0.3); }
+
+    /* Longitude lines */
+    .lon-line {
+        width: 2px;
+        height: 100%;
+        border-radius: 1px;
+        top: 0;
+        animation: wireframePulse 4s ease-in-out infinite;
+        animation-delay: 2s;
+    }
+
+    .lon-line:nth-child(10) { left: 10%; }
+    .lon-line:nth-child(11) { left: 20%; }
+    .lon-line:nth-child(12) { left: 30%; }
+    .lon-line:nth-child(13) { left: 40%; }
+    .lon-line:nth-child(14) { left: 50%; }
+    .lon-line:nth-child(15) { left: 60%; }
+    .lon-line:nth-child(16) { left: 70%; }
+    .lon-line:nth-child(17) { left: 80%; }
+    .lon-line:nth-child(18) { left: 90%; }
+
+    @keyframes wireframePulse {
+        0%, 100% { 
+            opacity: 0.4; 
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        50% { 
+            opacity: 0.8; 
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+        }
+    }
+
+    /* Orbital rings */
+    .orbital-ring {
+        position: absolute;
+        border: 2px solid rgba(0, 255, 255, 0.3);
+        border-radius: 50%;
+        animation: orbitalRotation 30s linear infinite;
+    }
+
+    .orbital-ring:nth-child(19) {
+        width: 120%;
+        height: 120%;
+        top: -10%;
+        left: -10%;
+        transform: rotateX(60deg);
+    }
+
+    .orbital-ring:nth-child(20) {
+        width: 140%;
+        height: 140%;
+        top: -20%;
+        left: -20%;
+        transform: rotateX(30deg);
+        animation-direction: reverse;
+        animation-duration: 45s;
+    }
+
+    @keyframes orbitalRotation {
+        0% { transform: rotateX(60deg) rotateZ(0deg); }
+        100% { transform: rotateX(60deg) rotateZ(360deg); }
+    }
+
+    /* Data points on Earth */
+    .data-point {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #00ffff;
+        border-radius: 50%;
+        box-shadow: 0 0 8px rgba(0, 255, 255, 0.8);
+        animation: dataPointPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes dataPointPulse {
+        0%, 100% { 
+            transform: scale(1);
+            opacity: 0.8;
+        }
+        50% { 
+            transform: scale(1.5);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+        .earth-container {
+            width: 600px;
+            height: 600px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .earth-container {
+            width: 400px;
+            height: 400px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .earth-container {
+            width: 300px;
+            height: 300px;
+        }
     }
 
     /* Enhanced glass morphism for geopolitical theme */ Glass morphism cards */
@@ -1960,6 +2159,213 @@
         margin-bottom: 1rem;
         border: 1px solid var(--border-color);
     }
+ 
+    /* Section Headers with Dot Matrix Icons */
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 2rem 0;
+        border-bottom: 2px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .section-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        opacity: 0.1;
+        z-index: 0;
+    }
+
+    .dot-matrix-icon {
+        width: 80px;
+        height: 80px;
+        margin-right: 2rem;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        backdrop-filter: blur(20px);
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    .dot-matrix-icon::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 20% 20%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 40% 20%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 60% 20%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 80% 20%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 20% 40%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 40% 40%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 60% 40%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 80% 40%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 20% 60%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 40% 60%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 60% 60%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 80% 60%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 20% 80%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 40% 80%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 60% 80%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 80% 80%, currentColor 2px, transparent 2px);
+        background-size: 20px 20px;
+        opacity: 0.3;
+        animation: dotMatrixPulse 3s ease-in-out infinite;
+    }
+
+    .dot-matrix-icon i {
+        font-size: 2.5rem;
+        z-index: 2;
+        position: relative;
+        text-shadow: 0 0 20px currentColor;
+    }
+
+    @keyframes dotMatrixPulse {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.05); }
+    }
+
+    .section-title {
+        z-index: 1;
+        position: relative;
+    }
+
+    .section-title h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        background: linear-gradient(135deg, var(--text-primary), var(--primary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .section-title p {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin: 0.5rem 0 0 0;
+        line-height: 1.4;
+    }
+
+    /* Color variations for different sections */
+    .section-header.news-analysis .dot-matrix-icon {
+        color: #667eea;
+        background: linear-gradient(145deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.1));
+        border: 1px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .section-header.satellite-analysis .dot-matrix-icon {
+        color: #00ffff;
+        background: linear-gradient(145deg, rgba(0, 255, 255, 0.2), rgba(0, 153, 204, 0.1));
+        border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+
+    .section-header.video-surveillance .dot-matrix-icon {
+        color: #ff0000;
+        background: linear-gradient(145deg, rgba(255, 0, 0, 0.2), rgba(204, 0, 0, 0.1));
+        border: 1px solid rgba(255, 0, 0, 0.3);
+    }
+
+    .section-header.historical-analysis .dot-matrix-icon {
+        color: #8b4513;
+        background: linear-gradient(145deg, rgba(139, 69, 19, 0.2), rgba(160, 82, 45, 0.1));
+        border: 1px solid rgba(139, 69, 19, 0.3);
+    }
+
+    /* Ensure all sections have proper glass card styling */
+    .section-container {
+        background: var(--card-gradient);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        box-shadow: var(--shadow-lg);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .section-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        opacity: 0.5;
+    }
+
+    .section-container:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--primary-color);
+    }
+
+    .section-content {
+        padding: 2rem;
+    }
+
+    /* Responsive adjustments for section headers */
+    @media (max-width: 768px) {
+        .section-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.5rem 0;
+        }
+
+        .dot-matrix-icon {
+            margin-right: 0;
+            margin-bottom: 1rem;
+            width: 60px;
+            height: 60px;
+        }
+
+        .dot-matrix-icon i {
+            font-size: 2rem;
+        }
+
+        .section-title h2 {
+            font-size: 2rem;
+        }
+
+        .section-title p {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .section-header {
+            padding: 1rem 0;
+        }
+
+        .dot-matrix-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .dot-matrix-icon i {
+            font-size: 1.5rem;
+        }
+
+        .section-title h2 {
+            font-size: 1.8rem;
+        }
+    }
 </style>
 
     <script>
@@ -2039,6 +2445,138 @@
 let currentLanguage = localStorage.getItem('selectedLanguage') || 'en';
 let translations = {};
 
+// Enhanced source detection function using AI/Groq
+function getEnhancedSourceName(article) {
+    // If we already have a good source, use it
+    if (article.source && 
+        article.source.toLowerCase() !== 'agencia internacional' && 
+        article.source.toLowerCase() !== 'fuente desconocida' &&
+        article.source.toLowerCase() !== 'rss feed' &&
+        article.source.toLowerCase() !== 'feed' &&
+        article.source.toLowerCase() !== 'rss') {
+        return article.source;
+    }
+    
+    // Try to detect from URL
+    if (article.url) {
+        const detectedFromUrl = detectSourceFromUrl(article.url);
+        if (detectedFromUrl) {
+            return detectedFromUrl;
+        }
+    }
+    
+    // Try to detect from content
+    if (article.title || article.content) {
+        const detectedFromContent = detectSourceFromContent(article.title, article.content);
+        if (detectedFromContent) {
+            return detectedFromContent;
+        }
+    }
+    
+    // Fallback to original source or default
+    return article.source || 'Fuente Internacional';
+}
+
+// Detect source from URL
+function detectSourceFromUrl(url) {
+    if (!url) return null;
+    
+    try {
+        const domain = new URL(url).hostname.toLowerCase().replace('www.', '');
+        
+        const knownSources = {
+            'elpais.com': 'El País',
+            'elmundo.es': 'El Mundo',
+            'abc.es': 'ABC',
+            'lavanguardia.com': 'La Vanguardia',
+            'elconfidencial.com': 'El Confidencial',
+            'publico.es': 'Público',
+            'rtve.es': 'RTVE',
+            'reuters.com': 'Reuters',
+            'bbc.com': 'BBC News',
+            'bbc.co.uk': 'BBC News',
+            'cnn.com': 'CNN',
+            'nytimes.com': 'The New York Times',
+            'washingtonpost.com': 'The Washington Post',
+            'theguardian.com': 'The Guardian',
+            'ft.com': 'Financial Times',
+            'wsj.com': 'Wall Street Journal',
+            'bloomberg.com': 'Bloomberg',
+            'ap.org': 'Associated Press',
+            'apnews.com': 'Associated Press',
+            'lemonde.fr': 'Le Monde',
+            'lefigaro.fr': 'Le Figaro',
+            'liberation.fr': 'Libération',
+            'spiegel.de': 'Der Spiegel',
+            'zeit.de': 'Die Zeit',
+            'faz.net': 'Frankfurter Allgemeine',
+            'corriere.it': 'Corriere della Sera',
+            'repubblica.it': 'La Repubblica',
+            'aljazeera.com': 'Al Jazeera',
+            'alarabiya.net': 'Al Arabiya',
+            'haaretz.com': 'Haaretz',
+            'scmp.com': 'South China Morning Post',
+            'japantimes.co.jp': 'The Japan Times',
+            'straitstimes.com': 'The Straits Times',
+            'rt.com': 'RT News',
+            'sputniknews.com': 'Sputnik News',
+            'tass.com': 'TASS',
+            'pravda.ru': 'Pravda',
+            'clarin.com': 'Clarín',
+            'lanacion.com.ar': 'La Nación',
+            'folha.uol.com.br': 'Folha de S.Paulo',
+            'globo.com': 'O Globo',
+            'milenio.com': 'Milenio',
+            'excelsior.com.mx': 'Excélsior',
+            'xinhuanet.com': 'Xinhua News',
+            'efe.com': 'Agencia EFE',
+            'afp.com': 'AFP',
+            'dpa.com': 'DPA',
+            'ansa.it': 'ANSA'
+        };
+        
+        return knownSources[domain] || null;
+    } catch (e) {
+        return null;
+    }
+}
+
+// Detect source from content using keywords
+function detectSourceFromContent(title, content) {
+    if (!title && !content) return null;
+    
+    const text = ((title || '') + ' ' + (content || '')).toLowerCase();
+    
+    const sourcePatterns = {
+        'Reuters': ['reuters', 'thomson reuters'],
+        'BBC News': ['bbc', 'british broadcasting corporation'],
+        'CNN': ['cnn', 'cable news network'],
+        'Associated Press': ['associated press', 'ap news'],
+        'Bloomberg': ['bloomberg'],
+        'Financial Times': ['financial times', 'ft.com'],
+        'The Guardian': ['guardian', 'theguardian'],
+        'El País': ['el país', 'elpais'],
+        'Le Monde': ['le monde'],
+        'Der Spiegel': ['der spiegel', 'spiegel'],
+        'Al Jazeera': ['al jazeera', 'aljazeera'],
+        'Xinhua News': ['xinhua'],
+        'TASS': ['tass'],
+        'RT News': ['russia today', 'rt news'],
+        'Agencia EFE': ['agencia efe', 'efe'],
+        'AFP': ['agence france-presse', 'afp'],
+        'DPA': ['deutsche presse-agentur', 'dpa'],
+        'ANSA': ['agenzia nazionale stampa associata', 'ansa']
+    };
+    
+    for (const [source, patterns] of Object.entries(sourcePatterns)) {
+        if (patterns.some(pattern => text.includes(pattern))) {
+            return source;
+        }
+    }
+    
+    return null;
+}
+
 // Article of the Day JavaScript Functions
 function updateArticleOfDay() {
     const tbody = document.getElementById('articles-table-body');
@@ -2080,7 +2618,7 @@ function updateArticleOfDay() {
                 </div>
             </td>
             <td>
-                <span class="text-secondary">${article.source || 'Fuente desconocida'}</span>
+                <span class="text-secondary">${getEnhancedSourceName(article)}</span>
             </td>
             <td>
                 <span class="language-badge lang-${article.language || 'unknown'}"></span>
@@ -2534,6 +3072,20 @@ class IntelligenceDashboard {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Dashboard JavaScript is loading...');
     
+    // Initialize heatmap
+    setTimeout(() => {
+        console.log('🗺️ Initializing heatmap...');
+        createHeatmap();
+    }, 2000);
+    
+    // Initialize articles table
+    setTimeout(() => {
+        console.log('📰 Initializing articles table...');
+        updateArticleOfDay();
+        populateSourceFilter();
+        setupFilterListeners();
+    }, 1000);
+    
     // Test basic endpoint calls
     setTimeout(async () => {
         console.log('🧪 Testing API calls...');
@@ -2554,7 +3106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('❌ API test failed:', error);
         }
-    }, 1000);
+    }, 3000);
 });
 
 function fetchRecentArticles(sortBy = 'published_at', sortOrder = 'desc') {
@@ -2796,37 +3348,113 @@ function fetchRecentArticles(sortBy = 'published_at', sortOrder = 'desc') {
     }
 
     function createHeatmap(conflictType = 'all') {
-        fetch(`/api/heatmap?conflict_type=${conflictType}&lang=${currentLanguage}`)
-            .then(response => response.json())
-            .then(data => {
-                const plotData = [{
-                    type: 'densitymapbox',
-                    lon: data.map(p => p.lon),
-                    lat: data.map(p => p.lat),
-                    z: data.map(p => p.intensity),
-                    radius: data.map(p => p.intensity * 20),
-                    colorscale: 'YlOrRd',
-                    showscale: false,
-                    hoverinfo: 'skip'
-                }];
+        const container = document.getElementById('heatmap-container');
+        if (!container) {
+            console.warn('Heatmap container not found');
+            return;
+        }
 
-                const layout = {
-                    mapbox: {
-                        style: 'carto-darkmatter',
-                        center: { lon: 10, lat: 30 },
-                        zoom: 1.5
+        console.log('🗺️ Creating heatmap with conflict type:', conflictType);
+
+        // Use pre-loaded heatmap data if available
+        if (typeof heatmapData !== 'undefined' && heatmapData.length > 0) {
+            console.log('📊 Using pre-loaded heatmap data:', heatmapData.length, 'points');
+            renderHeatmapWithData(heatmapData);
+        } else {
+            // Fallback to API call
+            console.log('🔄 Fetching heatmap data from API...');
+            fetch(`/api/heatmap?conflict_type=${conflictType}&lang=${currentLanguage}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('✅ Heatmap data received:', data.length, 'points');
+                    renderHeatmapWithData(data);
+                })
+                .catch(error => {
+                    console.error('❌ Error fetching heatmap data:', error);
+                    renderFallbackHeatmap();
+                });
+        }
+    }
+
+    function renderHeatmapWithData(data) {
+        const container = document.getElementById('heatmap-container');
+        if (!container) return;
+
+        if (typeof Plotly === 'undefined') {
+            console.error('Plotly not loaded');
+            container.innerHTML = '<div class="text-center text-warning">Plotly library not loaded</div>';
+            return;
+        }
+
+        try {
+            const plotData = [{
+                type: 'scattermapbox',
+                lon: data.map(p => p.lon || p.longitude || 0),
+                lat: data.map(p => p.lat || p.latitude || 0),
+                mode: 'markers',
+                marker: {
+                    size: data.map(p => (p.intensity || p.risk_score || 0.5) * 25 + 5),
+                    color: data.map(p => p.intensity || p.risk_score || 0.5),
+                    colorscale: [
+                        [0, '#2ed573'],    // Green for low risk
+                        [0.5, '#ffa502'],  // Orange for medium risk
+                        [1, '#ff4757']     // Red for high risk
+                    ],
+                    showscale: true,
+                    colorbar: {
+                        title: 'Nivel de Riesgo',
+                        titlefont: { color: '#ffffff' },
+                        tickfont: { color: '#ffffff' }
                     },
-                    margin: { r: 0, t: 0, b: 0, l: 0 },
-                    paper_bgcolor: 'rgba(0,0,0,0)',
-                    plot_bgcolor: 'rgba(0,0,0,0)'
-                };
+                    opacity: 0.8
+                },
+                text: data.map(p => `${p.name || p.location || 'Ubicación'}<br>Riesgo: ${((p.intensity || p.risk_score || 0) * 100).toFixed(0)}%`),
+                hoverinfo: 'text',
+                hovertemplate: '%{text}<extra></extra>'
+            }];
 
-                Plotly.newPlot('heatmap-container', plotData, layout, {responsive: true});
-            })
-            .catch(error => {
-                console.error('Error fetching heatmap data:', error);
-                document.getElementById('heatmap-container').innerHTML = '<div class="text-center text-danger">Failed to load heatmap data.</div>';
+            const layout = {
+                mapbox: {
+                    style: 'carto-darkmatter',
+                    center: { lon: 10, lat: 30 },
+                    zoom: 1.5
+                },
+                margin: { r: 0, t: 0, b: 0, l: 0 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#ffffff' }
+            };
+
+            Plotly.newPlot('heatmap-container', plotData, layout, {
+                responsive: true,
+                displayModeBar: false
             });
+
+            console.log('✅ Heatmap rendered successfully');
+        } catch (error) {
+            console.error('❌ Error rendering heatmap:', error);
+            renderFallbackHeatmap();
+        }
+    }
+
+    function renderFallbackHeatmap() {
+        const container = document.getElementById('heatmap-container');
+        if (!container) return;
+
+        // Sample data for demonstration
+        const sampleData = [
+            {lat: 40.7128, lon: -74.0060, intensity: 0.8, name: 'Nueva York'},
+            {lat: 51.5074, lon: -0.1278, intensity: 0.6, name: 'Londres'},
+            {lat: 35.6762, lon: 139.6503, intensity: 0.4, name: 'Tokio'},
+            {lat: 48.8566, lon: 2.3522, intensity: 0.7, name: 'París'},
+            {lat: -33.8688, lon: 151.2093, intensity: 0.3, name: 'Sídney'},
+            {lat: 55.7558, lon: 37.6176, intensity: 0.9, name: 'Moscú'},
+            {lat: 39.9042, lon: 116.4074, intensity: 0.5, name: 'Pekín'},
+            {lat: 28.6139, lon: 77.2090, intensity: 0.6, name: 'Nueva Delhi'}
+        ];
+
+        console.log('🔄 Rendering fallback heatmap with sample data');
+        renderHeatmapWithData(sampleData);
     }
 
     // Helper functions
@@ -2841,160 +3469,273 @@ function fetchRecentArticles(sortBy = 'published_at', sortOrder = 'desc') {
 
     // Initialize geopolitical themed particles background
     function initParticles() {
-        if (typeof particlesJS !== 'undefined') {
-            particlesJS('particles-js', {
-                "particles": {
-                    "number": { 
-                        "value": 120, 
-                        "density": { 
-                            "enable": true, 
-                            "value_area": 1000 
-                        } 
-                    },
-                    "color": { 
-                        "value": ["#00d4aa", "#0099cc", "#ff6b6b", "#ffd93d", "#ff8c42"] 
-                    },
-                    "shape": { 
-                        "type": ["circle", "triangle", "edge"], 
-                        "stroke": { 
-                            "width": 1, 
-                            "color": "#00d4aa" 
-                        },
-                        "polygon": { 
-                            "nb_sides": 6 
-                        }
-                    },
-                    "opacity": { 
-                        "value": 0.7, 
-                        "random": true, 
-                        "anim": { 
-                            "enable": true, 
-                            "speed": 1.5, 
-                            "opacity_min": 0.2, 
-                            "sync": false 
-                        } 
-                    },
-                    "size": { 
-                        "value": 4, 
-                        "random": true, 
-                        "anim": { 
-                            "enable": true, 
-                            "speed": 3, 
-                            "size_min": 0.5, 
-                            "sync": false 
-                        } 
-                    },
-                    "line_linked": { 
-                        "enable": true, 
-                        "distance": 200, 
-                        "color": "#00d4aa", 
-                        "opacity": 0.3, 
-                        "width": 1.5,
-                        "shadow": {
-                            "enable": true,
-                            "color": "#00d4aa",
-                            "blur": 5
-                        }
-                    },
-                    "move": { 
-                        "enable": true, 
-                        "speed": 1.5, 
-                        "direction": "none", 
-                        "random": true, 
-                        "straight": false, 
-                        "out_mode": "bounce", 
-                        "bounce": true,
-                        "attract": {
-                            "enable": true,
-                            "rotateX": 600,
-                            "rotateY": 1200
-                        }
-                    }
-                },
-                "interactivity": {
-                    "detect_on": "canvas",
-                    "events": { 
-                        "onhover": { 
-                            "enable": true, 
-                            "mode": ["grab", "bubble"] 
-                        }, 
-                        "onclick": { 
-                            "enable": true, 
-                            "mode": "repulse" 
-                        }, 
-                        "resize": true 
-                    },
-                    "modes": { 
-                        "grab": {
-                            "distance": 250,
-                            "line_linked": {
-                                "opacity": 0.8
-                            }
-                        },
-                        "bubble": {
-                            "distance": 300,
-                            "size": 8,
-                            "duration": 2,
-                            "opacity": 0.9,
-                            "speed": 3
-                        },
-                        "repulse": { 
-                            "distance": 150, 
-                            "duration": 0.6 
-                        }
-                    }
-                },
-                "retina_detect": true
-            });
-        }
+    console.log('🌌 Initializing enhanced interconnected particles...');
+    
+    // Remove existing particles container if any
+    const existingContainer = document.getElementById('particles-js');
+    if (existingContainer) {
+    existingContainer.innerHTML = '';
+    }
+    
+    // Create canvas
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas properties
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.zIndex = '-1';
+    canvas.style.pointerEvents = 'none';
+    
+    // Create gradient background with dawn effect
+    canvas.style.background = `
+    linear-gradient(
+    180deg,
+    #0a1a2e 0%,
+    #16213e 25%,
+    #0f3460 50%,
+    #16537e 75%,
+    #06b6d4 100%
+    )
+    `;
+    
+    // Insert canvas into particles container
+    const particlesContainer = document.getElementById('particles-js');
+    if (particlesContainer) {
+    particlesContainer.appendChild(canvas);
+    } else {
+    document.body.appendChild(canvas);
+    }
+    
+    // Resize canvas
+    function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    }
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Particle system configuration
+    const config = {
+    particleCount: 80,
+    connectionDistance: 120,
+    maxConnections: 3,
+    mouseInfluenceRadius: 150,
+    mouseInfluenceStrength: 0.3,
+    colors: [
+    '#06b6d4', // Cyan
+    '#3b82f6', // Blue
+    '#10b981', // Green
+    '#0ea5e9', // Sky blue
+    '#14b8a6'  // Teal
+    ]
+    };
+    
+    // Mouse tracking
+    let mouse = {
+    x: 0,
+    y: 0,
+    isMoving: false
+    };
+    
+    // Track mouse movement
+    document.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.isMoving = true;
+    
+    // Reset moving flag after a delay
+    clearTimeout(mouse.timeout);
+    mouse.timeout = setTimeout(() => {
+    mouse.isMoving = false;
+    }, 100);
+    });
+    
+    // Particle class
+    class EnhancedParticle {
+    constructor() {
+    this.reset();
+    this.baseSpeed = 0.3 + Math.random() * 0.7;
+    this.pulsePhase = Math.random() * Math.PI * 2;
+    this.pulseSpeed = 0.02 + Math.random() * 0.03;
+    }
+    
+    reset() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.vx = (Math.random() - 0.5) * this.baseSpeed;
+    this.vy = (Math.random() - 0.5) * this.baseSpeed;
+    this.radius = 1.5 + Math.random() * 2;
+    this.baseOpacity = 0.4 + Math.random() * 0.4;
+    this.color = config.colors[Math.floor(Math.random() * config.colors.length)];
+    this.connections = [];
+    }
+    
+    update() {
+    // Mouse influence
+    if (mouse.isMoving) {
+    const dx = mouse.x - this.x;
+    const dy = mouse.y - this.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < config.mouseInfluenceRadius) {
+    const force = (config.mouseInfluenceRadius - distance) / config.mouseInfluenceRadius;
+    const angle = Math.atan2(dy, dx);
+    
+    this.vx += Math.cos(angle) * force * config.mouseInfluenceStrength * 0.1;
+    this.vy += Math.sin(angle) * force * config.mouseInfluenceStrength * 0.1;
+    }
+    }
+    
+    // Apply velocity with damping
+    this.x += this.vx;
+    this.y += this.vy;
+    
+    // Velocity damping
+    this.vx *= 0.99;
+    this.vy *= 0.99;
+    
+    // Boundary wrapping
+    if (this.x < -this.radius) this.x = canvas.width + this.radius;
+    if (this.x > canvas.width + this.radius) this.x = -this.radius;
+    if (this.y < -this.radius) this.y = canvas.height + this.radius;
+    if (this.y > canvas.height + this.radius) this.y = -this.radius;
+    
+    // Update pulse phase
+    this.pulsePhase += this.pulseSpeed;
+    }
+    
+    draw() {
+    // Calculate pulsing opacity
+    const pulseOpacity = this.baseOpacity + Math.sin(this.pulsePhase) * 0.2;
+    
+    // Draw particle with glow effect
+    ctx.save();
+    
+    // Outer glow
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius * 3, 0, Math.PI * 2);
+    const gradient = ctx.createRadialGradient(
+    this.x, this.y, 0,
+    this.x, this.y, this.radius * 3
+    );
+    gradient.addColorStop(0, this.color + '40');
+    gradient.addColorStop(1, this.color + '00');
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    // Main particle
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = this.color + Math.floor(pulseOpacity * 255).toString(16).padStart(2, '0');
+    ctx.fill();
+    
+    // Inner bright core
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff' + Math.floor(pulseOpacity * 128).toString(16).padStart(2, '0');
+    ctx.fill();
+    
+    ctx.restore();
+    }
+    
+    findConnections(particles) {
+    this.connections = [];
+    let connectionCount = 0;
+    
+    for (let other of particles) {
+    if (other === this || connectionCount >= config.maxConnections) continue;
+    
+    const dx = this.x - other.x;
+    const dy = this.y - other.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < config.connectionDistance) {
+    this.connections.push({
+    particle: other,
+    distance: distance,
+    opacity: (config.connectionDistance - distance) / config.connectionDistance
+    });
+    connectionCount++;
+    }
+    }
+    }
+    
+    drawConnections() {
+    for (let connection of this.connections) {
+    const other = connection.particle;
+    const opacity = connection.opacity * 0.3;
+    
+    // Create gradient line
+    const gradient = ctx.createLinearGradient(
+    this.x, this.y,
+    other.x, other.y
+    );
+    gradient.addColorStop(0, this.color + Math.floor(opacity * 255).toString(16).padStart(2, '0'));
+    gradient.addColorStop(0.5, '#ffffff' + Math.floor(opacity * 128).toString(16).padStart(2, '0'));
+    gradient.addColorStop(1, other.color + Math.floor(opacity * 255).toString(16).padStart(2, '0'));
+    
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(other.x, other.y);
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = 1 + opacity;
+    ctx.stroke();
+    
+    // Add subtle glow to connection
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(other.x, other.y);
+    ctx.strokeStyle = '#ffffff' + Math.floor(opacity * 64).toString(16).padStart(2, '0');
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    }
+    }
+    }
+    
+    // Initialize particles
+    const particles = [];
+    for (let i = 0; i < config.particleCount; i++) {
+    particles.push(new EnhancedParticle());
+    }
+    
+    // Animation loop
+    function animate() {
+    // Clear canvas with slight trail effect
+    ctx.fillStyle = 'rgba(10, 26, 46, 0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Update particles and find connections
+    particles.forEach(particle => {
+    particle.update();
+    particle.findConnections(particles);
+    });
+    
+    // Draw connections first (behind particles)
+    particles.forEach(particle => {
+    particle.drawConnections();
+    });
+    
+    // Draw particles on top
+    particles.forEach(particle => {
+    particle.draw();
+    });
+    
+    requestAnimationFrame(animate);
+    }
+    
+    // Start animation
+    animate();
+    
+    console.log('✨ Enhanced particles initialized successfully');
     }
 
     // Create heatmap with Plotly
-    function createHeatmap(conflictType = 'all') {
-        const container = document.getElementById('heatmap-container');
-        if (!container) return;
-        
-        // Sample data for demonstration
-        const sampleData = [
-            {lat: 40.7128, lon: -74.0060, intensity: 0.8, name: 'New York'},
-            {lat: 51.5074, lon: -0.1278, intensity: 0.6, name: 'London'},
-            {lat: 35.6762, lon: 139.6503, intensity: 0.4, name: 'Tokyo'},
-            {lat: 48.8566, lon: 2.3522, intensity: 0.7, name: 'Paris'},
-            {lat: -33.8688, lon: 151.2093, intensity: 0.3, name: 'Sydney'}
-        ];
-
-        if (typeof Plotly !== 'undefined') {
-            const plotData = [{
-                type: 'scattermapbox',
-                lon: sampleData.map(p => p.lon),
-                lat: sampleData.map(p => p.lat),
-                mode: 'markers',
-                marker: {
-                    size: sampleData.map(p => p.intensity * 30),
-                    color: sampleData.map(p => p.intensity),
-                    colorscale: 'Reds',
-                    showscale: false
-                },
-                text: sampleData.map(p => p.name),
-                hoverinfo: 'text'
-            }];
-
-            const layout = {
-                mapbox: {
-                    style: 'carto-darkmatter',
-                    center: { lon: 10, lat: 30 },
-                    zoom: 1.5
-                },
-                margin: { r: 0, t: 0, b: 0, l: 0 },
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)'
-            };
-
-            Plotly.newPlot('heatmap-container', plotData, layout, {responsive: true});
-        } else {
-            container.innerHTML = '<div class="text-center text-warning">Plotly not loaded. Using fallback visualization.</div>';
-        }
-    }
+    
 
     // AI Analysis function
     function fetchAiAnalysis() {

@@ -1,20 +1,394 @@
-{% extends "layout.html" %}
+{% extends "base.html" %}
 
 {% block title %}{{ translations['analysis'] }}{% endblock %}
 
 {% block content %}
-<div class="glass-card p-8 rounded-lg">
-    <h2 class="text-2xl mb-4">Geopolitical Analysis</h2>
-    <div class="flex flex-col gap-4">
-        <textarea id="analysis-input" class="w-full h-48 bg-gray-800 border border-gray-700 rounded-lg p-4" placeholder="Enter text for analysis..."></textarea>
-        <button id="analysis-button" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg self-start">Analyze</button>
-        <div id="analysis-output" class="mt-4 p-4 bg-gray-800 border border-gray-700 rounded-lg min-h-[200px]"></div>
+<div class="container">
+    <!-- News Analysis Section -->
+    <div class="glass-card section-spacing">
+        <div class="card-header">
+            <h2 class="mb-0">
+                <i class="fas fa-newspaper me-2"></i>
+                Análisis de Noticias Geopolíticas
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="mb-4">
+                        <label for="analysis-input" class="form-label">Texto para Análisis</label>
+                        <textarea 
+                            id="analysis-input" 
+                            class="form-control" 
+                            rows="8" 
+                            placeholder="Ingresa el texto de noticias para análisis geopolítico...">
+                        </textarea>
+                    </div>
+                    <button id="analysis-button" class="btn btn-primary">
+                        <i class="fas fa-brain me-2"></i>
+                        Analizar Contenido
+                    </button>
+                </div>
+                <div class="col-lg-4">
+                    <div class="glass-card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Información del Análisis
+                            </h5>
+                            <p class="card-text text-muted">
+                                El sistema analizará el contenido para identificar:
+                            </p>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Sentimiento geopolítico</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Entidades mencionadas</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Nivel de riesgo</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Categorización de eventos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="analysis-output" class="mt-4 glass-card" style="display: none;">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Resultados del Análisis
+                    </h5>
+                    <div id="analysis-results"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Heat Map Section -->
+    <div class="glass-card section-spacing">
+        <div class="card-header">
+            <h2 class="mb-0">
+                <i class="fas fa-globe-americas me-2"></i>
+                Mapa de Calor Global de Riesgos
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-9">
+                    <div id="global-heatmap" style="height: 500px; border-radius: 15px; overflow: hidden;"></div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="glass-card">
+                        <div class="card-body">
+                            <h6 class="card-title">Leyenda de Riesgos</h6>
+                            <div class="risk-legend">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="risk-indicator risk-critical me-2"></div>
+                                    <span class="small">Crítico (9-10)</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="risk-indicator risk-high me-2"></div>
+                                    <span class="small">Alto (7-8)</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="risk-indicator risk-medium me-2"></div>
+                                    <span class="small">Medio (4-6)</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="risk-indicator risk-low me-2"></div>
+                                    <span class="small">Bajo (1-3)</span>
+                                </div>
+                            </div>
+                            
+                            <hr>
+                            
+                            <h6 class="card-title mt-3">Estadísticas</h6>
+                            <div id="heatmap-stats">
+                                <div class="stat-item mb-2">
+                                    <small class="text-muted">Países monitoreados:</small>
+                                    <div class="fw-bold" id="countries-count">195</div>
+                                </div>
+                                <div class="stat-item mb-2">
+                                    <small class="text-muted">Eventos activos:</small>
+                                    <div class="fw-bold" id="active-events">1,247</div>
+                                </div>
+                                <div class="stat-item">
+                                    <small class="text-muted">Última actualización:</small>
+                                    <div class="fw-bold small" id="last-update">Hace 5 min</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Analysis Results -->
+    <div class="glass-card section-spacing">
+        <div class="card-header">
+            <h2 class="mb-0">
+                <i class="fas fa-history me-2"></i>
+                Análisis Recientes
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table modern-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Fuente</th>
+                            <th>Región</th>
+                            <th>Sentimiento</th>
+                            <th>Riesgo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-analysis-table">
+                        <!-- Datos se cargarán dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
 <script>
-    // Lógica para la página de análisis
+document.addEventListener('DOMContentLoaded', function() {
+    initializeGlobalHeatmap();
+    loadRecentAnalysis();
+    
+    // Analysis button functionality
+    document.getElementById('analysis-button').addEventListener('click', performAnalysis);
+});
+
+function initializeGlobalHeatmap() {
+    // Initialize Leaflet map
+    const map = L.map('global-heatmap').setView([20, 0], 2);
+    
+    // Add tile layer with dark theme
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Sample heat map data (replace with real data)
+    const heatmapData = [
+        [51.505, -0.09, 0.8], // London
+        [48.8566, 2.3522, 0.9], // Paris
+        [40.7128, -74.0060, 0.7], // New York
+        [35.6762, 139.6503, 0.6], // Tokyo
+        [55.7558, 37.6176, 0.9], // Moscow
+        [39.9042, 116.4074, 0.8], // Beijing
+        [28.6139, 77.2090, 0.7], // Delhi
+        [-23.5505, -46.6333, 0.5], // São Paulo
+        [30.0444, 31.2357, 0.8], // Cairo
+        [33.6844, 73.0479, 0.9], // Islamabad
+        [31.2304, 121.4737, 0.6], // Shanghai
+        [19.4326, -99.1332, 0.5], // Mexico City
+        [6.5244, 3.3792, 0.7], // Lagos
+        [1.3521, 103.8198, 0.4], // Singapore
+        [25.2048, 55.2708, 0.6], // Dubai
+        [41.9028, 12.4964, 0.5], // Rome
+        [52.5200, 13.4050, 0.4], // Berlin
+        [59.9311, 10.7579, 0.3], // Oslo
+        [37.7749, -122.4194, 0.5], // San Francisco
+        [34.0522, -118.2437, 0.4], // Los Angeles
+    ];
+    
+    // Add heat layer
+    const heat = L.heatLayer(heatmapData, {
+        radius: 25,
+        blur: 15,
+        maxZoom: 17,
+        gradient: {
+            0.0: '#10b981',
+            0.3: '#fbbf24', 
+            0.6: '#f59e0b',
+            0.8: '#ef4444',
+            1.0: '#dc2626'
+        }
+    }).addTo(map);
+    
+    // Add markers for high-risk areas
+    heatmapData.forEach(point => {
+        if (point[2] > 0.7) {
+            const marker = L.circleMarker([point[0], point[1]], {
+                radius: 8,
+                fillColor: point[2] > 0.8 ? '#dc2626' : '#f59e0b',
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+            
+            marker.bindPopup(`
+                <div class="popup-content">
+                    <strong>Nivel de Riesgo: ${(point[2] * 10).toFixed(1)}/10</strong><br>
+                    <small>Coordenadas: ${point[0].toFixed(2)}, ${point[1].toFixed(2)}</small>
+                </div>
+            `);
+        }
+    });
+    
+    // Update stats periodically
+    updateHeatmapStats();
+}
+
+function updateHeatmapStats() {
+    // Simulate real-time updates
+    setInterval(() => {
+        const events = Math.floor(Math.random() * 100) + 1200;
+        document.getElementById('active-events').textContent = events.toLocaleString();
+        
+        const now = new Date();
+        document.getElementById('last-update').textContent = `Hace ${Math.floor(Math.random() * 10) + 1} min`;
+    }, 30000);
+}
+
+function performAnalysis() {
+    const input = document.getElementById('analysis-input').value.trim();
+    if (!input) {
+        showToast('Por favor ingresa texto para analizar', 'warning');
+        return;
+    }
+    
+    const button = document.getElementById('analysis-button');
+    const originalText = button.innerHTML;
+    
+    // Show loading state
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analizando...';
+    button.disabled = true;
+    
+    // Simulate API call
+    setTimeout(() => {
+        const results = generateMockAnalysis(input);
+        displayAnalysisResults(results);
+        
+        // Reset button
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        showToast('Análisis completado exitosamente', 'success');
+    }, 2000);
+}
+
+function generateMockAnalysis(text) {
+    const sentiment = (Math.random() - 0.5) * 2; // -1 to 1
+    const riskLevel = Math.random() * 10; // 0 to 10
+    const entities = ['Estados Unidos', 'China', 'Rusia', 'Ucrania', 'Israel'];
+    
+    return {
+        sentiment: sentiment,
+        riskLevel: riskLevel,
+        entities: entities.slice(0, Math.floor(Math.random() * 3) + 1),
+        category: ['military_conflict', 'diplomatic_crisis', 'economic_tension'][Math.floor(Math.random() * 3)],
+        confidence: Math.random() * 0.3 + 0.7,
+        wordCount: text.split(' ').length
+    };
+}
+
+function displayAnalysisResults(results) {
+    const outputDiv = document.getElementById('analysis-output');
+    const resultsDiv = document.getElementById('analysis-results');
+    
+    const sentimentClass = results.sentiment > 0.1 ? 'success' : results.sentiment < -0.1 ? 'danger' : 'warning';
+    const riskClass = results.riskLevel > 7 ? 'danger' : results.riskLevel > 4 ? 'warning' : 'success';
+    
+    resultsDiv.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="stat-card mb-3">
+                    <div class="stat-number text-${sentimentClass}">
+                        ${results.sentiment.toFixed(2)}
+                    </div>
+                    <div class="stat-label">Sentimiento</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card mb-3">
+                    <div class="stat-number text-${riskClass}">
+                        ${results.riskLevel.toFixed(1)}/10
+                    </div>
+                    <div class="stat-label">Nivel de Riesgo</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <h6>Entidades Detectadas:</h6>
+                <div class="mb-3">
+                    ${results.entities.map(entity => `<span class="badge bg-primary me-1">${entity}</span>`).join('')}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h6>Detalles del Análisis:</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Categoría:</strong> <span class="badge bg-secondary">${results.category}</span></li>
+                    <li><strong>Confianza:</strong> ${(results.confidence * 100).toFixed(1)}%</li>
+                    <li><strong>Palabras analizadas:</strong> ${results.wordCount}</li>
+                </ul>
+            </div>
+        </div>
+    `;
+    
+    outputDiv.style.display = 'block';
+}
+
+function loadRecentAnalysis() {
+    const tableBody = document.getElementById('recent-analysis-table');
+    
+    // Mock data for recent analysis
+    const recentData = [
+        {
+            date: '2025-01-15 14:30',
+            source: 'Reuters',
+            region: 'Europa Oriental',
+            sentiment: 0.2,
+            risk: 6.5
+        },
+        {
+            date: '2025-01-15 13:45',
+            source: 'BBC',
+            region: 'Medio Oriente',
+            sentiment: -0.7,
+            risk: 8.2
+        },
+        {
+            date: '2025-01-15 12:15',
+            source: 'CNN',
+            region: 'Asia Pacífico',
+            sentiment: 0.1,
+            risk: 4.3
+        }
+    ];
+    
+    tableBody.innerHTML = recentData.map(item => {
+        const sentimentClass = item.sentiment > 0.1 ? 'success' : item.sentiment < -0.1 ? 'danger' : 'warning';
+        const riskClass = item.risk > 7 ? 'danger' : item.risk > 4 ? 'warning' : 'success';
+        
+        return `
+            <tr>
+                <td>${item.date}</td>
+                <td>${item.source}</td>
+                <td>${item.region}</td>
+                <td><span class="badge bg-${sentimentClass}">${item.sentiment.toFixed(2)}</span></td>
+                <td><span class="badge bg-${riskClass}">${item.risk.toFixed(1)}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
 </script>
 {% endblock %}
