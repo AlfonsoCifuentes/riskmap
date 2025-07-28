@@ -261,12 +261,6 @@ def historical_analysis():
     """Render the historical analysis page."""
     return render_template('historical_analysis.html')
 
-@app.route('/test-articles')
-def test_articles():
-    """Render the test articles page."""
-    from flask import send_from_directory
-    return send_from_directory(BASE_DIR, 'test_articles_simple.html')
-
 @app.route('/api/dashboard/stats')
 def get_dashboard_stats():
     """Get dashboard statistics - CARGA DATOS REALES DE SQLITE."""
@@ -347,7 +341,7 @@ def get_articles():
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT title, content, created_at, country, risk_level, url, source, language
+            SELECT title, content, created_at, country, risk_level, source_url, source, language
             FROM articles 
             ORDER BY created_at DESC 
             LIMIT ?
@@ -363,8 +357,8 @@ def get_articles():
                 'country': row['country'] or 'Global',
                 'location': row['country'] or 'Global',
                 'risk_level': row['risk_level'] or 'medium',
-                'source_url': row['url'],
-                'url': row['url'],
+                'source_url': row['source_url'],
+                'url': row['source_url'],
                 'source': row['source'] or 'Fuente desconocida',
                 'language': row['language'] or 'es'
             })
@@ -390,7 +384,7 @@ def get_latest_articles():
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT title, content, created_at, country, risk_level, url, source, language
+            SELECT title, content, created_at, country, risk_level, source_url, source, language
             FROM articles 
             ORDER BY created_at DESC 
             LIMIT ?
@@ -406,8 +400,8 @@ def get_latest_articles():
                 'country': row['country'] or 'Global',
                 'location': row['country'] or 'Global',
                 'risk_level': row['risk_level'] or 'medium',
-                'source_url': row['url'],
-                'url': row['url'],
+                'source_url': row['source_url'],
+                'url': row['source_url'],
                 'source': row['source'] or 'Fuente desconocida',
                 'language': row['language'] or 'es'
             })
@@ -433,7 +427,7 @@ def get_high_risk_articles():
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT title, content, created_at, country, risk_level, url, source, language
+            SELECT title, content, created_at, country, risk_level, source_url, source, language
             FROM articles 
             WHERE risk_level = 'high'
             ORDER BY created_at DESC 
@@ -450,8 +444,8 @@ def get_high_risk_articles():
                 'country': row['country'] or 'Global',
                 'location': row['country'] or 'Global',
                 'risk_level': 'high',
-                'source_url': row['url'],
-                'url': row['url'],
+                'source_url': row['source_url'],
+                'url': row['source_url'],
                 'source': row['source'] or 'Fuente desconocida',
                 'language': row['language'] or 'es'
             })
@@ -476,7 +470,7 @@ def get_featured_article():
         
         # Buscar el artículo de mayor riesgo más reciente
         cursor.execute("""
-            SELECT title, content, created_at, country, risk_level, url, source, language
+            SELECT title, content, created_at, country, risk_level, source_url, source, language
             FROM articles 
             WHERE risk_level = 'high'
             ORDER BY created_at DESC 
@@ -495,15 +489,15 @@ def get_featured_article():
                 'country': row['country'] or 'Global',
                 'location': row['country'] or 'Global',
                 'risk_level': 'high',
-                'source_url': row['url'],
-                'url': row['url'],
+                'source_url': row['source_url'],
+                'url': row['source_url'],
                 'source': row['source'] or 'Fuente desconocida',
                 'language': row['language'] or 'es'
             }
         else:
             # Si no hay artículos de alto riesgo, buscar cualquier artículo reciente
             cursor.execute("""
-                SELECT title, content, created_at, country, risk_level, url, source, language
+                SELECT title, content, created_at, country, risk_level, source_url, source, language
                 FROM articles 
                 ORDER BY created_at DESC 
                 LIMIT 1
@@ -520,8 +514,8 @@ def get_featured_article():
                     'country': row['country'] or 'Global',
                     'location': row['country'] or 'Global',
                     'risk_level': row['risk_level'] or 'medium',
-                    'source_url': row['url'],
-                    'url': row['url'],
+                    'source_url': row['source_url'],
+                    'url': row['source_url'],
                     'source': row['source'] or 'Fuente desconocida',
                     'language': row['language'] or 'es'
                 }

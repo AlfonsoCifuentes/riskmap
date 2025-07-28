@@ -40,29 +40,271 @@ class GeopoliticalDashboard {
     }
     
     initializeMap() {
-        // Initialize main map
-        this.map = L.map('main-map', {
-            center: [20, 0],
-            zoom: 2,
-            minZoom: 2,
-            maxZoom: 18,
-            worldCopyJump: true
+        try {
+            console.log('Initializing map...');
+            
+            // Check if Leaflet is available
+            if (typeof L === 'undefined') {
+                console.error('Leaflet library not loaded');
+                this.showMapError('Leaflet library not available');
+                return;
+            }
+            
+            // Check if map container exists
+            const mapContainer = document.getElementById('main-map');
+            if (!mapContainer) {
+                console.error('Map container not found');
+                return;
+            }
+            
+            // Clear any existing map
+            if (this.map) {
+                this.map.remove();
+            }
+            
+            // Initialize main map
+            this.map = L.map('main-map', {
+                center: [20, 0],
+                zoom: 2,
+                minZoom: 1,
+                maxZoom: 18,
+                worldCopyJump: true,
+                zoomControl: true,
+                attributionControl: true
+            });
+            
+            // Add dark theme tile layer with fallback
+            const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors © CARTO',
+                subdomains: 'abcd',
+                maxZoom: 19,
+                errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+            });
+            
+            tileLayer.addTo(this.map);
+            
+            // Add fallback tile layer
+            const fallbackLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            });
+            
+            // Handle tile loading errors
+            tileLayer.on('tileerror', () => {
+                console.warn('Primary tile layer failed, switching to fallback');
+                this.map.removeLayer(tileLayer);
+                fallbackLayer.addTo(this.map);
+            });
+            
+            // Initialize layers
+            this.initializeHeatmapLayer();
+            this.initializeMarkersLayer();
+            this.initializeChoroplethLayer();
+            
+            // Show default layer
+            this.showLayer('heatmap');
+            
+            // Add map ready event
+            this.map.whenReady(() => {
+                console.log('Map initialized successfully');
+                this.loadMapData();
+            });
+            
+        } catch (error) {
+            console.error('Error initializing map:', error);
+            this.showMapError('Error initializing map: ' + error.message);
+        }
+    }
+    
+    showMapError(message) {
+        const mapContainer = document.getElementById('main-map');
+        if (mapContainer) {
+            mapContainer.innerHTML = `
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100%;
+                    background: var(--bg-secondary);
+                    color: var(--text-secondary);
+                    border-radius: 8px;
+                    border: 2px dashed var(--bg-hover);
+                    flex-direction: column;
+                    gap: 1rem;
+                ">
+                    <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: var(--accent-primary);"></i>
+                    <div style="text-align: center;">
+                        <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Mapa no disponible</h3>
+                        <p>${message}</p>
+                        <button onclick="window.dashboard.retryMapInitialization()" style="
+                            margin-top: 1rem;
+                            padding: 0.5rem 1rem;
+                            background: var(--accent-primary);
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                        ">Reintentar</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    retryMapInitialization() {
+        console.log('Retrying map initialization...');
+        setTimeout(() => {
+            this.initializeMap();
+        }, 1000);
+    }
+    
+    async loadMapData() {
+        try {
+            // Load heatmap data
+            const heatmapResponse = await fetch('/api/events/heatmap');
+            if (heatmapResponse.ok) {
+                const heatmapData = await heatmapResponse.json();
+                this.updateHeatmapWithData(heatmapData);
+            }
+            
+            // Load events data
+            const eventsResponse = await fetch('/api/dashboard/stats');
+            if (eventsResponse.ok) {
+                const eventsData = await eventsResponse.json();
+                if (eventsData.events) {
+                    this.updateMarkersWithData(eventsData.events);
+                }
+            }
+            
+            // Load choropleth data
+            const choroplethResponse = await fetch('/api/risk-by-country');
+            if (choroplethResponse.ok) {
+                const choroplethData = await choroplethResponse.json();
+                this.updateChoroplethWithData(choroplethData);
+            }
+            
+        } catch (error) {
+            console.error('Error loading map data:', error);
+            // Use fallback data
+            this.loadFallbackMapData();
+        }
+    }
+    
+    loadFallbackMapData() {
+        console.log('Loading fallback map data...');
+        
+        // Generate sample heatmap data
+        const sampleHeatmapData = [
+            { lat: 50.4501, lng: 30.5234, intensity: 0.9, count: 15, country: 'Ukraine' },
+            { lat: 33.3152, lng: 44.3661, intensity: 0.8, count: 12, country: 'Iraq' },
+            { lat: 31.7683, lng: 35.2137, intensity: 0.85, count: 18, country: 'Israel' },
+            { lat: 33.5138, lng: 36.2765, intensity: 0.75, count: 10, country: 'Syria' },
+            { lat: 15.5527, lng: 48.5164, intensity: 0.9, count: 20, country: 'Yemen' },
+            { lat: 34.5553, lng: 69.2075, intensity: 0.8, count: 14, country: 'Afghanistan' },
+            { lat: 25.2048, lng: 55.2708, intensity: 0.6, count: 8, country: 'UAE' },
+            { lat: 39.9334, lng: 32.8597, intensity: 0.7, count: 11, country: 'Turkey' }
+        ];
+        
+        this.updateHeatmapWithData(sampleHeatmapData);
+        
+        // Generate sample events
+        const sampleEvents = [
+            {
+                id: 1,
+                lat: 50.4501,
+                lng: 30.5234,
+                title: 'Conflicto en Europa del Este',
+                risk_level: 'high',
+                category: 'military_conflict',
+                country: 'Ukraine',
+                date: new Date().toISOString()
+            },
+            {
+                id: 2,
+                lat: 33.3152,
+                lng: 44.3661,
+                title: 'Tensiones en Medio Oriente',
+                risk_level: 'high',
+                category: 'political_tension',
+                country: 'Iraq',
+                date: new Date().toISOString()
+            },
+            {
+                id: 3,
+                lat: 31.7683,
+                lng: 35.2137,
+                title: 'Crisis diplomática',
+                risk_level: 'medium',
+                category: 'political_tension',
+                country: 'Israel',
+                date: new Date().toISOString()
+            }
+        ];
+        
+        this.updateMarkersWithData(sampleEvents);
+    }
+    
+    updateHeatmapWithData(data) {
+        if (!this.heatmapLayer || !Array.isArray(data)) return;
+        
+        // Clear existing heatmap
+        this.heatmapLayer.clearLayers();
+        
+        data.forEach(point => {
+            const lat = point.lat || point[0];
+            const lng = point.lng || point[1];
+            const intensity = point.intensity || point[2] || 0.5;
+            const count = point.count || 1;
+            
+            if (lat && lng) {
+                const color = this.getHeatColor(intensity);
+                const radius = Math.max(30000, 50000 * intensity * Math.sqrt(count));
+                
+                const circle = L.circle([lat, lng], {
+                    radius: radius,
+                    fillColor: color,
+                    fillOpacity: 0.6,
+                    stroke: true,
+                    color: color,
+                    weight: 2,
+                    opacity: 0.8
+                }).bindPopup(`
+                    <div class="heatmap-popup">
+                        <h4>${point.country || 'Región'}</h4>
+                        <p>Intensidad: ${(intensity * 100).toFixed(1)}%</p>
+                        <p>Eventos: ${count}</p>
+                    </div>
+                `);
+                
+                circle.addTo(this.heatmapLayer);
+            }
         });
         
-        // Add dark theme tile layer
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors © CARTO',
-            subdomains: 'abcd',
-            maxZoom: 19
-        }).addTo(this.map);
+        console.log(`Updated heatmap with ${data.length} points`);
+    }
+    
+    updateMarkersWithData(events) {
+        if (!this.markersLayer || !Array.isArray(events)) return;
         
-        // Initialize layers
-        this.initializeHeatmapLayer();
-        this.initializeMarkersLayer();
-        this.initializeChoroplethLayer();
+        // Clear existing markers
+        this.markersLayer.clearLayers();
         
-        // Show default layer
-        this.showLayer('heatmap');
+        events.forEach(event => {
+            if (event.lat && event.lng) {
+                const icon = this.getEventIcon(event.category);
+                const marker = L.marker([event.lat, event.lng], { icon })
+                    .bindPopup(this.createEventPopup(event));
+                
+                marker.addTo(this.markersLayer);
+            }
+        });
+        
+        console.log(`Updated markers with ${events.length} events`);
+    }
+    
+    updateChoroplethWithData(riskData) {
+        // This will be handled by the existing choropleth initialization
+        console.log('Choropleth data updated:', Object.keys(riskData).length, 'countries');
     }
     
     initializeHeatmapLayer() {

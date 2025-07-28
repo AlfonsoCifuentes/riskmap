@@ -1,0 +1,1312 @@
+{% extends "base_navigation.html" %}
+
+{% block title %}Análisis de Video Vigilancia - Sistema de Inteligencia Geopolítica{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Video Surveillance Specific Styles */
+    .surveillance-hero {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
+        padding: 3rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .surveillance-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,0,0,0.1)"><polygon points="0,100 1000,0 1000,100"/></svg>');
+        background-size: cover;
+    }
+    
+    .surveillance-card {
+        background: linear-gradient(145deg, rgba(26, 35, 50, 0.95) 0%, rgba(15, 20, 25, 0.9) 100%);
+        border: 1px solid rgba(255, 0, 0, 0.2);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .surveillance-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #ff0000, transparent);
+        opacity: 0.6;
+    }
+    
+    .surveillance-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(255, 0, 0, 0.2);
+        border-color: #ff0000;
+    }
+    
+    .camera-feed {
+        position: relative;
+        border-radius: 15px;
+        overflow: hidden;
+        background: #000;
+        aspect-ratio: 16/9;
+        border: 2px solid rgba(255, 0, 0, 0.3);
+    }
+    
+    .camera-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .camera-video:hover {
+        transform: scale(1.02);
+    }
+    
+    .camera-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 30%, rgba(255, 0, 0, 0.1) 50%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    
+    .camera-feed:hover .camera-overlay {
+        opacity: 1;
+    }
+    
+    .detection-box {
+        position: absolute;
+        border: 2px solid #ff0000;
+        background: rgba(255, 0, 0, 0.1);
+        border-radius: 4px;
+        animation: pulse-detection 2s infinite;
+    }
+    
+    @keyframes pulse-detection {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
+    
+    .detection-label {
+        position: absolute;
+        top: -25px;
+        left: 0;
+        background: #ff0000;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .camera-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 0.5rem;
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    .status-live {
+        background: #00ff00;
+    }
+    
+    .status-recording {
+        background: #ff0000;
+    }
+    
+    .status-offline {
+        background: #666;
+    }
+    
+    .status-processing {
+        background: #ffa500;
+    }
+    
+    .camera-info {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 0.5rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        backdrop-filter: blur(10px);
+    }
+    
+    .detection-type-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0.2rem;
+        backdrop-filter: blur(10px);
+    }
+    
+    .detection-military {
+        background: rgba(255, 0, 0, 0.2);
+        color: #ff0000;
+        border: 1px solid #ff0000;
+    }
+    
+    .detection-crowd {
+        background: rgba(255, 165, 0, 0.2);
+        color: #ffa500;
+        border: 1px solid #ffa500;
+    }
+    
+    .detection-disaster {
+        background: rgba(255, 69, 0, 0.2);
+        color: #ff4500;
+        border: 1px solid #ff4500;
+    }
+    
+    .detection-traffic {
+        background: rgba(0, 191, 255, 0.2);
+        color: #00bfff;
+        border: 1px solid #00bfff;
+    }
+    
+    .detection-suspicious {
+        background: rgba(138, 43, 226, 0.2);
+        color: #8a2be2;
+        border: 1px solid #8a2be2;
+    }
+    
+    .ai-model-badge {
+        background: linear-gradient(45deg, #ff0000, #cc0000);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin: 0.2rem;
+        display: inline-block;
+    }
+    
+    .confidence-meter {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+    }
+    
+    .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ff4500, #ffa500, #00ff00);
+        border-radius: 4px;
+        transition: width 0.8s ease;
+    }
+    
+    .camera-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .feed-controls {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin: 2rem 0;
+    }
+    
+    .control-group {
+        margin: 1rem 0;
+    }
+    
+    .control-label {
+        display: block;
+        color: #ff0000;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .control-input {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 0, 0, 0.3);
+        border-radius: 8px;
+        color: white;
+        font-size: 0.9rem;
+    }
+    
+    .control-input:focus {
+        outline: none;
+        border-color: #ff0000;
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+    }
+    
+    .btn-surveillance {
+        background: linear-gradient(45deg, #ff0000, #cc0000);
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+    }
+    
+    .btn-surveillance:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
+        background: linear-gradient(45deg, #ff3333, #ff0000);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .stat-card {
+        background: linear-gradient(145deg, rgba(26, 35, 50, 0.9) 0%, rgba(15, 20, 25, 0.8) 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 0, 0, 0.2);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #ff0000, transparent);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ff0000;
+        margin: 0.5rem 0;
+        text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    }
+    
+    .stat-label {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .alert-panel {
+        background: linear-gradient(145deg, rgba(255, 0, 0, 0.1) 0%, rgba(255, 69, 0, 0.05) 100%);
+        border: 1px solid rgba(255, 0, 0, 0.3);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .alert-title {
+        color: #ff0000;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .real-time-feed {
+        max-height: 400px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        padding: 1rem;
+    }
+    
+    .feed-item {
+        display: flex;
+        align-items: center;
+        padding: 0.8rem;
+        margin: 0.5rem 0;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        border-left: 3px solid #ff0000;
+    }
+    
+    .feed-time {
+        color: #ff0000;
+        font-size: 0.8rem;
+        margin-right: 1rem;
+        min-width: 60px;
+    }
+    
+    .source-info {
+        background: rgba(255, 0, 0, 0.1);
+        padding: 1rem;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 0, 0, 0.3);
+        margin: 1rem 0;
+    }
+    
+    .coordinates {
+        font-family: 'Courier New', monospace;
+        color: #ff0000;
+        font-weight: 600;
+    }
+    
+    .model-performance {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+    
+    .model-card {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+    }
+    
+    .model-accuracy {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ff0000;
+        margin: 0.5rem 0;
+    }
+    
+    .processing-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .timeline-item {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        position: relative;
+    }
+    
+    .timeline-marker {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ff0000;
+        margin-right: 1rem;
+        flex-shrink: 0;
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    }
+    
+    .timeline-content {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        border-radius: 10px;
+        border-left: 3px solid #ff0000;
+        flex-grow: 1;
+    }
+    
+    .camera-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .camera-tab {
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 0, 0, 0.3);
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.8rem;
+    }
+    
+    .camera-tab.active {
+        background: rgba(255, 0, 0, 0.2);
+        border-color: #ff0000;
+        color: #ff0000;
+    }
+    
+    .camera-tab:hover {
+        background: rgba(255, 0, 0, 0.1);
+        border-color: #ff0000;
+    }
+    
+    .detection-history {
+        max-height: 300px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        padding: 1rem;
+    }
+    
+    .detection-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem;
+        margin: 0.5rem 0;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        border-left: 3px solid #ff0000;
+    }
+    
+    .stream-quality {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .quality-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    
+    .quality-hd {
+        background: #00ff00;
+    }
+    
+    .quality-sd {
+        background: #ffa500;
+    }
+    
+    .quality-low {
+        background: #ff0000;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Section Header with Dot Matrix Icon -->
+    <div class="glass-card section-spacing">
+        <div class="card-body">
+            <div class="section-header video-surveillance">
+                <div class="dot-matrix-icon">
+                    <i class="fas fa-video"></i>
+                </div>
+                <div class="section-title">
+                    <h2>Video Vigilancia</h2>
+                    <p>Sistema avanzado de computer vision para análisis automatizado de feeds de video en tiempo real desde cámaras públicas, privadas y fuentes internacionales</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="glass-card section-spacing">
+        <div class="card-body">
+            <div class="surveillance-hero">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h1 class="display-4 fw-bold text-white mb-3">
+                            <i class="fas fa-video me-3" style="color: #ff0000;"></i>
+                            Análisis de Video Vigilancia
+                        </h1>
+                        <p class="lead text-light mb-4">
+                            Sistema avanzado de computer vision para análisis automatizado de feeds de video en tiempo real 
+                            desde cámaras públicas, privadas y fuentes internacionales para detección de eventos geopolíticos.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="ai-model-badge">YOLOv8</span>
+                            <span class="ai-model-badge">EfficientDet</span>
+                            <span class="ai-model-badge">Vision Transformers</span>
+                            <span class="ai-model-badge">OpenCV DNN</span>
+                            <span class="ai-model-badge">Object Tracking</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-center">
+                        <div class="surveillance-card p-4">
+                            <h3 class="text-white mb-3">Estado del Sistema</h3>
+                            <div class="processing-status">
+                                <div class="status-indicator status-live"></div>
+                                <span class="text-light">Feeds Activos</span>
+                            </div>
+                            <div class="processing-status">
+                                <div class="status-indicator status-recording"></div>
+                                <span class="text-light">Grabación Continua</span>
+                            </div>
+                            <div class="processing-status">
+                                <div class="status-indicator status-processing"></div>
+                                <span class="text-light">Análisis en Tiempo Real</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Dashboard -->
+    <div class="glass-card section-spacing">
+        <div class="card-body">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="active-cameras">247</div>
+                    <div class="stat-label">Cámaras Activas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="detections-today">1,834</div>
+                    <div class="stat-label">Detecciones Hoy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="alerts-generated">23</div>
+                    <div class="stat-label">Alertas Generadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="processing-fps">98.7%</div>
+                    <div class="stat-label">Eficiencia Procesamiento</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Surveillance Dashboard -->
+    <div class="row">
+        <!-- Live Camera Feeds -->
+        <div class="col-lg-8">
+            <div class="glass-card section-spacing">
+                <div class="card-body">
+                    <h3 class="text-white mb-4">
+                        <i class="fas fa-camera me-2" style="color: #ff0000;"></i>
+                        Feeds de Video en Tiempo Real
+                    </h3>
+                    
+                    <!-- Camera Selector Tabs -->
+                    <div class="camera-selector">
+                        <div class="camera-tab active" data-category="all">Todas</div>
+                        <div class="camera-tab" data-category="urban">Urbanas</div>
+                        <div class="camera-tab" data-category="infrastructure">Infraestructura</div>
+                        <div class="camera-tab" data-category="environmental">Ambientales</div>
+                        <div class="camera-tab" data-category="border">Fronteras</div>
+                        <div class="camera-tab" data-category="international">Internacionales</div>
+                    </div>
+                    
+                    <div class="camera-grid" id="camera-feeds">
+                        <!-- Camera feeds will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Model Performance -->
+            <div class="glass-card section-spacing">
+                <div class="card-body">
+                    <h3 class="text-white mb-4">
+                        <i class="fas fa-brain me-2" style="color: #ff0000;"></i>
+                        Rendimiento de Modelos de IA
+                    </h3>
+                    
+                    <div class="model-performance">
+                        <div class="model-card">
+                            <h5 class="text-white">YOLOv8</h5>
+                            <div class="model-accuracy">97.2%</div>
+                            <p class="text-muted small">Detección de Objetos</p>
+                            <div class="confidence-meter">
+                                <div class="confidence-fill" style="width: 97.2%;"></div>
+                            </div>
+                        </div>
+                        <div class="model-card">
+                            <h5 class="text-white">EfficientDet</h5>
+                            <div class="model-accuracy">95.8%</div>
+                            <p class="text-muted small">Detección Eficiente</p>
+                            <div class="confidence-meter">
+                                <div class="confidence-fill" style="width: 95.8%;"></div>
+                            </div>
+                        </div>
+                        <div class="model-card">
+                            <h5 class="text-white">Vision Transformer</h5>
+                            <div class="model-accuracy">93.4%</div>
+                            <p class="text-muted small">Análisis Contextual</p>
+                            <div class="confidence-meter">
+                                <div class="confidence-fill" style="width: 93.4%;"></div>
+                            </div>
+                        </div>
+                        <div class="model-card">
+                            <h5 class="text-white">Object Tracking</h5>
+                            <div class="model-accuracy">91.6%</div>
+                            <p class="text-muted small">Seguimiento Multi-objeto</p>
+                            <div class="confidence-meter">
+                                <div class="confidence-fill" style="width: 91.6%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls & Real-time Feed -->
+        <div class="col-lg-4">
+            <!-- Feed Controls -->
+            <div class="glass-card section-spacing">
+                <div class="card-body">
+                    <h4 class="text-white mb-3">
+                        <i class="fas fa-sliders-h me-2" style="color: #ff0000;"></i>
+                        Controles de Análisis
+                    </h4>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Región de Monitoreo</label>
+                        <select class="control-input" id="region-selector">
+                            <option value="global">Global</option>
+                            <option value="europe">Europa</option>
+                            <option value="middle-east">Medio Oriente</option>
+                            <option value="asia-pacific">Asia-Pacífico</option>
+                            <option value="americas">Américas</option>
+                            <option value="africa">África</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Tipo de Detección</label>
+                        <select class="control-input" id="detection-type">
+                            <option value="all">Todas las Detecciones</option>
+                            <option value="military">Actividad Militar</option>
+                            <option value="crowd">Multitudes/Manifestaciones</option>
+                            <option value="disaster">Desastres Naturales</option>
+                            <option value="traffic">Anomalías de Tráfico</option>
+                            <option value="suspicious">Actividad Sospechosa</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Calidad de Stream</label>
+                        <select class="control-input" id="stream-quality">
+                            <option value="auto">Automática</option>
+                            <option value="hd">Alta Definición</option>
+                            <option value="sd">Definición Estándar</option>
+                            <option value="low">Baja Calidad</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Umbral de Confianza</label>
+                        <input type="range" class="control-input" id="confidence-threshold" min="0.5" max="1.0" step="0.05" value="0.80">
+                        <small class="text-muted">Actual: <span id="confidence-value">80%</span></small>
+                    </div>
+                    
+                    <button class="btn-surveillance w-100 mt-3" onclick="updateAnalysis()">
+                        <i class="fas fa-sync-alt me-2"></i>
+                        Actualizar Análisis
+                    </button>
+                </div>
+            </div>
+
+            <!-- Real-time Detection Feed -->
+            <div class="glass-card section-spacing">
+                <div class="card-body">
+                    <h4 class="text-white mb-3">
+                        <i class="fas fa-rss me-2" style="color: #ff0000;"></i>
+                        Detecciones en Tiempo Real
+                    </h4>
+                    
+                    <div class="real-time-feed" id="real-time-detections">
+                        <!-- Detection items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Alerts -->
+            <div class="alert-panel">
+                <div class="alert-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Alertas Críticas
+                </div>
+                <div id="critical-alerts">
+                    <!-- Critical alerts will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detection History & Analytics -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="glass-card section-spacing">
+                <div class="card-body">
+                    <h3 class="text-white mb-4">
+                        <i class="fas fa-history me-2" style="color: #ff0000;"></i>
+                        Historial de Detecciones
+                    </h3>
+                    
+                    <div class="detection-history" id="detection-history">
+                        <!-- Detection history will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="glass-card section-spacing">
+                <div class="card-body">
+                    <h3 class="text-white mb-4">
+                        <i class="fas fa-chart-line me-2" style="color: #ff0000;"></i>
+                        Timeline de Análisis
+                    </h3>
+                    
+                    <div class="analysis-timeline">
+                        <div id="analysis-timeline">
+                            <!-- Timeline items will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Sources Information -->
+    <div class="glass-card section-spacing">
+        <div class="card-body">
+            <h3 class="text-white mb-4">
+                <i class="fas fa-database me-2" style="color: #ff0000;"></i>
+                Fuentes de Video y Cobertura
+            </h3>
+            
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="source-info">
+                        <h5 class="text-white">Cámaras Urbanas</h5>
+                        <p class="text-muted small">CCTV municipales, tráfico, transporte</p>
+                        <div class="coordinates">Feeds: RTSP/HTTP</div>
+                        <div class="coordinates">Resolución: 1080p-4K</div>
+                        <div class="coordinates">Cobertura: 156 ciudades</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="source-info">
+                        <h5 class="text-white">Infraestructura Crítica</h5>
+                        <p class="text-muted small">Puertos, aeropuertos, plantas eléctricas</p>
+                        <div class="coordinates">Feeds: HLS/RTMP</div>
+                        <div class="coordinates">Resolución: 720p-1080p</div>
+                        <div class="coordinates">Cobertura: 89 instalaciones</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="source-info">
+                        <h5 class="text-white">Webcams Ambientales</h5>
+                        <p class="text-muted small">Volcanes, costas, montañas, ríos</p>
+                        <div class="coordinates">Feeds: HTTP/WebRTC</div>
+                        <div class="coordinates">Resolución: 480p-1080p</div>
+                        <div class="coordinates">Cobertura: 234 ubicaciones</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="source-info">
+                        <h5 class="text-white">Fuentes Internacionales</h5>
+                        <p class="text-muted small">ONU, USGS, EarthCam, SkylineWebcams</p>
+                        <div class="coordinates">Feeds: Múltiples protocolos</div>
+                        <div class="coordinates">Resolución: Variable</div>
+                        <div class="coordinates">Cobertura: Global</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Video Surveillance JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    initializeVideoSurveillance();
+    loadCameraFeeds();
+    startRealTimeDetections();
+    loadCriticalAlerts();
+    loadDetectionHistory();
+    loadAnalysisTimeline();
+    
+    // Update confidence threshold display
+    const confidenceSlider = document.getElementById('confidence-threshold');
+    const confidenceValue = document.getElementById('confidence-value');
+    
+    confidenceSlider.addEventListener('input', function() {
+        confidenceValue.textContent = Math.round(this.value * 100) + '%';
+    });
+    
+    // Camera tab switching
+    document.querySelectorAll('.camera-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.camera-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            filterCameraFeeds(this.dataset.category);
+        });
+    });
+});
+
+function initializeVideoSurveillance() {
+    console.log('📹 Initializing Video Surveillance System...');
+    
+    // Simulate real-time statistics updates
+    setInterval(updateStatistics, 15000); // Update every 15 seconds
+    
+    // Initialize WebSocket connection for real-time updates (simulated)
+    simulateWebSocketConnection();
+}
+
+function updateStatistics() {
+    // Simulate incrementing statistics
+    const detectionsToday = document.getElementById('detections-today');
+    const alertsGenerated = document.getElementById('alerts-generated');
+    
+    if (detectionsToday) {
+        const current = parseInt(detectionsToday.textContent.replace(',', ''));
+        detectionsToday.textContent = (current + Math.floor(Math.random() * 5) + 1).toLocaleString();
+    }
+    
+    if (alertsGenerated) {
+        const current = parseInt(alertsGenerated.textContent);
+        if (Math.random() > 0.8) { // 20% chance of new alert
+            alertsGenerated.textContent = current + 1;
+        }
+    }
+}
+
+function loadCameraFeeds() {
+    const container = document.getElementById('camera-feeds');
+    
+    const cameras = [
+        {
+            id: 1,
+            name: 'Kiev Centro - Plaza Independencia',
+            location: 'Kiev, Ucrania',
+            coordinates: '50.4501°N, 30.5234°E',
+            type: 'urban',
+            status: 'live',
+            quality: 'hd',
+            stream_url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            detections: [
+                { type: 'crowd', confidence: 94.2, bbox: { x: 20, y: 30, w: 40, h: 25 } },
+                { type: 'military', confidence: 87.5, bbox: { x: 60, y: 15, w: 25, h: 20 } }
+            ]
+        },
+        {
+            id: 2,
+            name: 'Puerto de Beirut - Terminal Principal',
+            location: 'Beirut, Líbano',
+            coordinates: '33.9010°N, 35.5200°E',
+            type: 'infrastructure',
+            status: 'live',
+            quality: 'hd',
+            stream_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            detections: [
+                { type: 'traffic', confidence: 91.8, bbox: { x: 10, y: 40, w: 30, h: 15 } }
+            ]
+        },
+        {
+            id: 3,
+            name: 'Volcán Etna - Cráter Principal',
+            location: 'Sicilia, Italia',
+            coordinates: '37.7510°N, 14.9934°E',
+            type: 'environmental',
+            status: 'live',
+            quality: 'sd',
+            stream_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            detections: [
+                { type: 'disaster', confidence: 96.7, bbox: { x: 35, y: 20, w: 30, h: 40 } }
+            ]
+        },
+        {
+            id: 4,
+            name: 'Frontera Gaza - Punto de Control',
+            location: 'Gaza, Palestina',
+            coordinates: '31.3547°N, 34.3088°E',
+            type: 'border',
+            status: 'recording',
+            quality: 'hd',
+            stream_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            detections: [
+                { type: 'military', confidence: 98.3, bbox: { x: 45, y: 25, w: 35, h: 30 } },
+                { type: 'suspicious', confidence: 82.1, bbox: { x: 15, y: 60, w: 20, h: 15 } }
+            ]
+        },
+        {
+            id: 5,
+            name: 'Times Square - Cruce Principal',
+            location: 'Nueva York, EE.UU.',
+            coordinates: '40.7580°N, 73.9855°W',
+            type: 'urban',
+            status: 'live',
+            quality: 'hd',
+            stream_url: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            detections: [
+                { type: 'crowd', confidence: 89.4, bbox: { x: 25, y: 35, w: 50, h: 40 } }
+            ]
+        },
+        {
+            id: 6,
+            name: 'Aeropuerto Ben Gurion - Terminal 3',
+            location: 'Tel Aviv, Israel',
+            coordinates: '32.0114°N, 34.8867°E',
+            type: 'infrastructure',
+            status: 'live',
+            quality: 'hd',
+            stream_url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            detections: [
+                { type: 'traffic', confidence: 93.6, bbox: { x: 30, y: 20, w: 40, h: 25 } }
+            ]
+        }
+    ];
+    
+    container.innerHTML = cameras.map(camera => `
+        <div class="surveillance-card camera-feed-card" data-category="${camera.type}">
+            <div class="camera-feed">
+                <img src="${camera.stream_url}" alt="${camera.name}" class="camera-video">
+                <div class="camera-overlay"></div>
+                
+                <!-- Detection Boxes -->
+                ${camera.detections.map(detection => `
+                    <div class="detection-box" style="
+                        left: ${detection.bbox.x}%; 
+                        top: ${detection.bbox.y}%; 
+                        width: ${detection.bbox.w}%; 
+                        height: ${detection.bbox.h}%;
+                    ">
+                        <div class="detection-label">${getDetectionTypeLabel(detection.type)} ${detection.confidence}%</div>
+                    </div>
+                `).join('')}
+                
+                <!-- Camera Status -->
+                <div class="camera-status">
+                    <div class="status-indicator status-${camera.status}"></div>
+                    <span class="text-white small">${camera.status.toUpperCase()}</span>
+                </div>
+                
+                <!-- Camera Info -->
+                <div class="camera-info">
+                    <div class="fw-bold">${camera.name}</div>
+                    <div class="small">${camera.location}</div>
+                    <div class="coordinates small">${camera.coordinates}</div>
+                    <div class="stream-quality">
+                        <div class="quality-indicator quality-${camera.quality}"></div>
+                        <span>${camera.quality.toUpperCase()}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-3">
+                <h6 class="text-white mb-2">${camera.name}</h6>
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                    ${camera.detections.map(detection => `
+                        <span class="detection-type-badge detection-${detection.type}">
+                            ${getDetectionTypeLabel(detection.type)}
+                        </span>
+                    `).join('')}
+                </div>
+                <div class="text-muted small">
+                    <i class="fas fa-map-marker-alt me-1"></i>
+                    ${camera.location}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterCameraFeeds(category) {
+    const cards = document.querySelectorAll('.camera-feed-card');
+    cards.forEach(card => {
+        if (category === 'all' || card.dataset.category === category) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function startRealTimeDetections() {
+    const feedContainer = document.getElementById('real-time-detections');
+    
+    function addDetectionItem(detection) {
+        const time = new Date().toLocaleTimeString('es-ES', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        const feedItem = document.createElement('div');
+        feedItem.className = 'feed-item';
+        feedItem.innerHTML = `
+            <div class="feed-time">${time}</div>
+            <div class="flex-grow-1">
+                <div class="text-white small fw-bold">${detection.message}</div>
+                <div class="text-muted small">${detection.location}</div>
+                <div class="text-info small">Confianza: ${detection.confidence}%</div>
+            </div>
+        `;
+        
+        feedContainer.insertBefore(feedItem, feedContainer.firstChild);
+        
+        // Keep only last 15 items
+        while (feedContainer.children.length > 15) {
+            feedContainer.removeChild(feedContainer.lastChild);
+        }
+    }
+    
+    // Simulate real-time detections
+    const detectionMessages = [
+        { message: 'Multitud detectada en plaza principal', location: 'Kiev, Ucrania', confidence: 94.2 },
+        { message: 'Vehículo militar identificado', location: 'Frontera Gaza', confidence: 98.3 },
+        { message: 'Actividad volcánica aumentada', location: 'Etna, Italia', confidence: 96.7 },
+        { message: 'Congestión de tráfico anómala', location: 'Beirut, Líbano', confidence: 91.8 },
+        { message: 'Actividad sospechosa en zona restringida', location: 'Frontera Gaza', confidence: 82.1 },
+        { message: 'Manifestación pacífica detectada', location: 'Times Square, NY', confidence: 89.4 },
+        { message: 'Movimiento de aeronaves militares', location: 'Ben Gurion, Israel', confidence: 93.6 },
+        { message: 'Incendio forestal en desarrollo', location: 'California, EE.UU.', confidence: 87.9 },
+        { message: 'Embarcación no identificada', location: 'Estrecho de Hormuz', confidence: 85.3 },
+        { message: 'Explosión detectada en área industrial', location: 'Donbass, Ucrania', confidence: 92.1 }
+    ];
+    
+    let messageIndex = 0;
+    setInterval(() => {
+        addDetectionItem(detectionMessages[messageIndex % detectionMessages.length]);
+        messageIndex++;
+    }, 6000); // New detection every 6 seconds
+    
+    // Add initial detections
+    addDetectionItem({ message: 'Sistema de video vigilancia iniciado', location: 'Global', confidence: 100 });
+    addDetectionItem({ message: 'Conectado a 247 feeds de video', location: 'Mundial', confidence: 100 });
+    addDetectionItem({ message: 'Modelos de IA cargados y operativos', location: 'Sistema', confidence: 100 });
+}
+
+function loadCriticalAlerts() {
+    const container = document.getElementById('critical-alerts');
+    
+    const alerts = [
+        {
+            level: 'critical',
+            message: 'Actividad militar intensificada en zona fronteriza',
+            location: 'Europa Oriental',
+            time: 'hace 8 min',
+            camera: 'Kiev Centro'
+        },
+        {
+            level: 'high',
+            message: 'Erupción volcánica en progreso',
+            location: 'Sicilia, Italia',
+            time: 'hace 23 min',
+            camera: 'Volcán Etna'
+        },
+        {
+            level: 'medium',
+            message: 'Manifestación masiva detectada',
+            location: 'Nueva York, EE.UU.',
+            time: 'hace 1 hora',
+            camera: 'Times Square'
+        }
+    ];
+    
+    container.innerHTML = alerts.map(alert => `
+        <div class="mb-3 p-2 rounded" style="background: rgba(255, 255, 255, 0.05);">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <div class="text-white small fw-bold">${alert.message}</div>
+                    <div class="text-muted small">${alert.location}</div>
+                    <div class="text-info small">Cámara: ${alert.camera}</div>
+                </div>
+                <div class="text-muted small">${alert.time}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function loadDetectionHistory() {
+    const container = document.getElementById('detection-history');
+    
+    const history = [
+        { time: '14:23:45', type: 'military', message: 'Convoy militar detectado', location: 'Kiev', confidence: 94.2 },
+        { time: '14:18:32', type: 'crowd', message: 'Multitud en plaza principal', location: 'Times Square', confidence: 89.4 },
+        { time: '14:15:18', type: 'disaster', message: 'Actividad volcánica', location: 'Etna', confidence: 96.7 },
+        { time: '14:12:07', type: 'suspicious', message: 'Actividad sospechosa', location: 'Gaza', confidence: 82.1 },
+        { time: '14:08:54', type: 'traffic', message: 'Anomalía de tráfico', location: 'Beirut', confidence: 91.8 },
+        { time: '14:05:41', type: 'military', message: 'Aeronave militar', location: 'Ben Gurion', confidence: 93.6 },
+        { time: '14:02:28', type: 'crowd', message: 'Concentración de personas', location: 'Kiev', confidence: 87.3 },
+        { time: '13:59:15', type: 'disaster', message: 'Humo detectado', location: 'California', confidence: 85.9 }
+    ];
+    
+    container.innerHTML = history.map(item => `
+        <div class="detection-item">
+            <div>
+                <div class="text-white small fw-bold">${item.message}</div>
+                <div class="text-muted small">${item.location} - ${item.time}</div>
+            </div>
+            <div class="text-end">
+                <span class="detection-type-badge detection-${item.type}">
+                    ${getDetectionTypeLabel(item.type)}
+                </span>
+                <div class="text-info small">${item.confidence}%</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function loadAnalysisTimeline() {
+    const container = document.getElementById('analysis-timeline');
+    
+    const timelineItems = [
+        {
+            time: '14:23',
+            event: 'Detección militar confirmada en Kiev',
+            status: 'completed',
+            confidence: 94.2
+        },
+        {
+            time: '14:18',
+            event: 'Análisis de multitudes en Times Square',
+            status: 'completed',
+            confidence: 89.4
+        },
+        {
+            time: '14:15',
+            event: 'Monitoreo volcánico Etna actualizado',
+            status: 'processing',
+            confidence: null
+        },
+        {
+            time: '14:12',
+            event: 'Validación de actividad sospechosa',
+            status: 'completed',
+            confidence: 82.1
+        },
+        {
+            time: '14:08',
+            event: 'Análisis de tráfico en Beirut',
+            status: 'completed',
+            confidence: 91.8
+        }
+    ];
+    
+    container.innerHTML = timelineItems.map(item => `
+        <div class="timeline-item">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-white small">${item.event}</div>
+                    <div class="text-muted small">${item.time}</div>
+                </div>
+                <div class="mt-1 d-flex justify-content-between align-items-center">
+                    <span class="badge ${item.status === 'completed' ? 'bg-success' : 'bg-warning'}">
+                        ${item.status === 'completed' ? 'Completado' : 'En Proceso'}
+                    </span>
+                    ${item.confidence ? `<span class="text-info small">${item.confidence}%</span>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getDetectionTypeLabel(type) {
+    const labels = {
+        'military': 'Militar',
+        'crowd': 'Multitud',
+        'disaster': 'Desastre',
+        'traffic': 'Tráfico',
+        'suspicious': 'Sospechoso'
+    };
+    return labels[type] || type;
+}
+
+function updateAnalysis() {
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Actualizando...';
+    button.disabled = true;
+    
+    // Simulate analysis update
+    setTimeout(() => {
+        loadCameraFeeds();
+        loadCriticalAlerts();
+        loadDetectionHistory();
+        updateStatistics();
+        
+        // Reset button
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Show success message
+        showNotification('Análisis de video actualizado correctamente', 'success');
+    }, 2000);
+}
+
+function simulateWebSocketConnection() {
+    // Simulate WebSocket messages for real-time updates
+    setInterval(() => {
+        if (Math.random() > 0.7) { // 30% chance
+            const events = [
+                'Nueva detección militar confirmada',
+                'Análisis de multitudes completado',
+                'Alerta de actividad sospechosa',
+                'Validación de evento natural',
+                'Actualización de modelo de IA'
+            ];
+            
+            const randomEvent = events[Math.floor(Math.random() * events.length)];
+            showNotification(randomEvent, 'info');
+        }
+    }, 12000); // Check every 12 seconds
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}
