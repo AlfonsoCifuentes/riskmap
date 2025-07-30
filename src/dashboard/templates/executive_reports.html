@@ -1649,47 +1649,24 @@
     
     async function loadConfiguration() {
         try {
+            console.log('Loading configuration from backend...');
             const response = await fetch('/api/reports/config');
-            const result = await response.json();
             
-            if (result.success) {
-                // Populate form fields with current configuration
-                const config = result.configuration;
-                
-                // General tab
-                if (document.getElementById('autoGeneration')) {
-                    document.getElementById('autoGeneration').checked = config.auto_generation.enabled;
-                }
-                if (document.getElementById('defaultFormat')) {
-                    document.getElementById('defaultFormat').value = config.formats.default_format.toLowerCase();
-                }
-                
-                // Distribution tab
-                if (document.getElementById('emailEnabled')) {
-                    document.getElementById('emailEnabled').checked = config.distribution.email_enabled;
-                }
-                if (document.getElementById('defaultRecipients')) {
-                    document.getElementById('defaultRecipients').value = config.distribution.email_recipients.join(', ');
-                }
-                
-                // Security tab
-                if (document.getElementById('passwordProtect')) {
-                    document.getElementById('passwordProtect').checked = config.security.password_protect;
-                }
-                if (document.getElementById('watermark')) {
-                    document.getElementById('watermark').checked = config.security.watermark;
-                }
-                
-                // AI tab
-                if (document.getElementById('includePredictions')) {
-                    document.getElementById('includePredictions').checked = config.ai_settings.include_predictions;
-                }
-                if (document.getElementById('confidenceThreshold')) {
-                    document.getElementById('confidenceThreshold').value = config.ai_settings.confidence_threshold;
-                }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                updateConfigurationDisplay(data.config);
+                console.log('Configuration loaded successfully:', data.config);
+            } else {
+                throw new Error(data.message || 'Error loading configuration');
             }
         } catch (error) {
-            console.log('Using default configuration');
+            console.error('Error loading configuration:', error);
+            showNotification('Error al cargar la configuración', 'error');
         }
     }
     
@@ -1938,30 +1915,60 @@
     
     async function loadReportsData() {
         try {
+            console.log('Loading reports data from backend...');
             const response = await fetch('/api/reports/recent');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
-            updateReportsStats(data);
+            
+            if (data.status === 'success') {
+                currentReports = data.reports;
+                updateReportsDisplay(data.reports);
+                updateReportsStats({
+                    totalReports: data.total,
+                    weeklyReports: data.reports.filter(r => r.type === 'weekly').length,
+                    monthlyReports: data.reports.filter(r => r.type === 'monthly').length,
+                    specialReports: data.reports.filter(r => r.type === 'special').length
+                });
+                console.log('Reports loaded successfully:', data.reports);
+            } else {
+                throw new Error(data.message || 'Error loading reports');
+            }
         } catch (error) {
-            console.log('Using simulated reports data');
+            console.error('Error loading reports data:', error);
             updateReportsStats({
-                totalReports: 156,
-                weeklyReports: 24,
-                monthlyReports: 6,
-                specialReports: 12
+                totalReports: 0,
+                weeklyReports: 0,
+                monthlyReports: 0,
+                specialReports: 0
             });
+            showNotification('Error al cargar los reportes', 'error');
         }
     }
     
     async function loadTemplates() {
         try {
+            console.log('Loading report templates from backend...');
             const response = await fetch('/api/reports/templates');
-            const result = await response.json();
             
-            if (result.success) {
-                updateTemplatesDisplay(result.templates);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                updateTemplatesDisplay(data.templates);
+                console.log('Templates loaded successfully:', data.templates);
+            } else {
+                throw new Error(data.message || 'Error loading templates');
             }
         } catch (error) {
-            console.log('Using default templates');
+            console.error('Error loading templates:', error);
+            showNotification('Error al cargar las plantillas', 'error');
         }
     }
     
@@ -2078,6 +2085,93 @@
                 }
             }, 300);
         }, 4000);
+    }
+    
+    // ==================== DISPLAY UPDATE FUNCTIONS ====================
+    
+    function updateReportsDisplay(reports) {
+        console.log('Updating reports display with:', reports);
+        const reportsGrid = document.getElementById('reportsGrid');
+        
+        if (!reportsGrid) {
+            console.warn('Reports grid element not found');
+            return;
+        }
+        
+        if (!reports || reports.length === 0) {
+            reportsGrid.innerHTML = '<div class="no-results">No hay reportes disponibles</div>';
+            return;
+        }
+        
+        reportsGrid.innerHTML = reports.map(report => `
+            <div class="report-card" data-report-id="${report.id}">
+                <div class="report-header">
+                    <div class="report-title">${report.title}</div>
+                    <div class="report-status status-${report.status}">${report.status}</div>
+                </div>
+                <div class="report-meta">
+                    <span class="report-date">${report.date}</span>
+                    <span class="report-type">${report.type}</span>
+                    ${report.risk_level ? `<span class="risk-badge risk-${report.risk_level}">${report.risk_level.toUpperCase()}</span>` : ''}
+                </div>
+                <div class="report-stats">
+                    ${report.articles_analyzed ? `<span>📰 ${report.articles_analyzed} artículos</span>` : ''}
+                    ${report.confidence ? `<span>🎯 ${report.confidence}% confianza</span>` : ''}
+                </div>
+                <div class="report-actions">
+                    <button onclick="viewReport('${report.id}')" class="btn-action">Ver</button>
+                    <button onclick="downloadReport('${report.id}', 'pdf')" class="btn-action">Descargar</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function updateConfigurationDisplay(config) {
+        console.log('Updating configuration display with:', config);
+        
+        // Update auto generation settings
+        if (config.auto_generation) {
+            const autoGenCheckbox = document.getElementById('autoGeneration');
+            if (autoGenCheckbox) {
+                autoGenCheckbox.checked = config.auto_generation.enabled;
+            }
+        }
+        
+        // Update notification settings
+        if (config.notification_settings) {
+            const emailCheckbox = document.getElementById('emailEnabled');
+            if (emailCheckbox) {
+                emailCheckbox.checked = config.notification_settings.email_enabled;
+            }
+            
+            const slackCheckbox = document.getElementById('slackEnabled');
+            if (slackCheckbox) {
+                slackCheckbox.checked = config.notification_settings.slack_enabled;
+            }
+        }
+        
+        // Update data sources info
+        if (config.data_sources) {
+            const sourcesInfo = document.getElementById('sourcesInfo');
+            if (sourcesInfo) {
+                sourcesInfo.innerHTML = `
+                    <div>Total de Artículos: ${config.data_sources.total_articles}</div>
+                    <div>Fuentes Activas: ${config.data_sources.active_sources}</div>
+                    <div>Última Actualización: ${new Date(config.data_sources.last_update).toLocaleString()}</div>
+                `;
+            }
+        }
+        
+        // Update risk thresholds
+        if (config.risk_thresholds) {
+            const lowThreshold = document.getElementById('lowThreshold');
+            const mediumThreshold = document.getElementById('mediumThreshold');
+            const highThreshold = document.getElementById('highThreshold');
+            
+            if (lowThreshold) lowThreshold.value = config.risk_thresholds.low;
+            if (mediumThreshold) mediumThreshold.value = config.risk_thresholds.medium;
+            if (highThreshold) highThreshold.value = config.risk_thresholds.high;
+        }
     }
     
     // Initialize when page loads

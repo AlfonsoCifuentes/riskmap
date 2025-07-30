@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  riskmap-app:
+    build: .
+    container_name: riskmap-intelligence
+    ports:
+      - "5000:5000"  # Dashboard
+      - "5001:5001"  # API
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+      - ./config:/app/config
+    environment:
+      - FLASK_ENV=production
+      - PYTHONPATH=/app/src
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: python main.py --schedule
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  riskmap-dashboard:
+    build: .
+    container_name: riskmap-dashboard
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    environment:
+      - FLASK_ENV=production
+      - PYTHONPATH=/app/src
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: python src/dashboard/app.py
+    depends_on:
+      - riskmap-app
+
+  riskmap-api:
+    build: .
+    container_name: riskmap-api
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - FLASK_ENV=production
+      - PYTHONPATH=/app/src
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: python src/api/rest_api.py
+    depends_on:
+      - riskmap-app
+
+  riskmap-chatbot:
+    build: .
+    container_name: riskmap-chatbot
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PYTHONPATH=/app/src
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: python src/chatbot/chatbot_app.py
+    depends_on:
+      - riskmap-app
+
+volumes:
+  riskmap_data:
+  riskmap_logs:
+  riskmap_reports:
+
+networks:
+  default:
+    name: riskmap-network

@@ -1,0 +1,15 @@
+# Dependencias de desarrollo y testing para Riskmap
+pytest
+pytest-cov
+flake8
+black
+isort
+mypy
+requests-mock
+coverage
+httpx
+fastapi
+uvicorn
+Jinja2
+plotly
+pandas

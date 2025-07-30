@@ -30,7 +30,11 @@ def fetch_gdelt_events(days: int = 1) -> List[Dict[str, Any]]:
     try:
         r = requests.get(base_url, params=params, timeout=20)
         r.raise_for_status()
-        data = r.json()
+        try:
+            data = r.json()
+        except ValueError as ve:
+            logger.warning(f"GDELT returned invalid JSON: {ve}")
+            return []
         results = []
         for art in data.get("articles", []):
             results.append({
@@ -44,6 +48,9 @@ def fetch_gdelt_events(days: int = 1) -> List[Dict[str, Any]]:
                 "type": art.get("domain", "news")
             })
         return results
+    except requests.exceptions.HTTPError as he:
+        logger.warning(f"Error fetching GDELT events (HTTP): {he}")
+        return []
     except Exception as e:
         logger.error(f"Error fetching GDELT events: {e}")
         return []
@@ -86,7 +93,18 @@ def fetch_emsc_earthquakes() -> List[Dict[str, Any]]:
     try:
         r = requests.get(url, timeout=20)
         r.raise_for_status()
+    except requests.exceptions.HTTPError as he:
+        # Bad requests are logged as warning and skipped
+        logger.warning(f"Error fetching EMSC earthquakes (HTTP): {he}")
+        return []
+    except Exception as e:
+        logger.error(f"Error fetching EMSC earthquakes: {e}")
+        return []
+    try:
         data = r.json()
+    except ValueError as ve:
+        logger.warning(f"EMSC returned invalid JSON: {ve}")
+        return []
         results = []
         for feat in data.get("features", []):
             prop = feat["properties"]

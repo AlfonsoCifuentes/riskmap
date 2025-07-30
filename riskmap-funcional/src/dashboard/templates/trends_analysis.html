@@ -1,0 +1,836 @@
+{% extends "base_navigation.html" %}
+
+{% block title %}Análisis de Tendencias - Stratosight{% endblock %}
+
+{% block extra_css %}
+<style>
+    .trends-dashboard {
+        padding: 30px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+        color: #fff;
+    }
+    
+    .page-title {
+        font-family: 'Orbitron', monospace;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .page-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 30px;
+    }
+    
+    .prediction-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+    
+    .prediction-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 25px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+    
+    .prediction-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+    
+    .prediction-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+    
+    .prediction-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .prediction-period {
+        padding: 4px 8px;
+        background: rgba(102, 126, 234, 0.2);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 4px;
+        font-size: 0.75rem;
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .prediction-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 10px;
+        font-family: 'Orbitron', monospace;
+    }
+    
+    .prediction-change {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
+    
+    .change-positive {
+        color: #22c55e;
+    }
+    
+    .change-negative {
+        color: #ef4444;
+    }
+    
+    .change-neutral {
+        color: #f59e0b;
+    }
+    
+    .prediction-description {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+    
+    .analysis-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .chart-section {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 25px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-control {
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .btn-control:hover {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: rgba(102, 126, 234, 0.4);
+        color: #fff;
+    }
+    
+    .chart-container {
+        height: 400px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 8px;
+        position: relative;
+    }
+    
+    .sentiment-global {
+        text-align: center;
+    }
+    
+    .sentiment-gauge {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 20px;
+        position: relative;
+        background: conic-gradient(
+            from 0deg,
+            #ef4444 0deg 120deg,
+            #f59e0b 120deg 240deg,
+            #22c55e 240deg 360deg
+        );
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .sentiment-gauge::before {
+        content: '';
+        width: 160px;
+        height: 160px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        position: absolute;
+    }
+    
+    .sentiment-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #fff;
+        z-index: 1;
+        font-family: 'Orbitron', monospace;
+    }
+    
+    .sentiment-label {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 20px;
+    }
+    
+    .sentiment-breakdown {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .sentiment-item {
+        text-align: center;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+    }
+    
+    .sentiment-item-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        font-family: 'Orbitron', monospace;
+    }
+    
+    .sentiment-item-label {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+    }
+    
+    .models-section {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 25px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .models-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    
+    .model-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .model-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+    
+    .model-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+    
+    .model-name {
+        font-weight: 600;
+        color: #fff;
+        font-size: 1rem;
+    }
+    
+    .model-status {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-active {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    
+    .status-training {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    
+    .model-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .model-metric {
+        text-align: center;
+    }
+    
+    .metric-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 2px;
+        font-family: 'Orbitron', monospace;
+    }
+    
+    .metric-label {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+    }
+    
+    .patterns-section {
+        grid-column: 1 / -1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 25px;
+        backdrop-filter: blur(10px);
+        margin-top: 30px;
+    }
+    
+    .patterns-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .pattern-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .pattern-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+    
+    .pattern-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .pattern-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+    }
+    
+    .pattern-title {
+        font-weight: 600;
+        color: #fff;
+        font-size: 1.1rem;
+    }
+    
+    .pattern-description {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 15px;
+    }
+    
+    .pattern-confidence {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .confidence-label {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .confidence-value {
+        font-weight: 700;
+        color: #22c55e;
+        font-family: 'Orbitron', monospace;
+    }
+    
+    @media (max-width: 768px) {
+        .analysis-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .prediction-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .trends-dashboard {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="trends-dashboard">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">📊 Análisis de Tendencias</h1>
+        <p class="page-subtitle">
+            Predicciones IA para 30-90 días, análisis de sentimiento global y detección de patrones
+        </p>
+    </div>
+    
+    <!-- AI Predictions -->
+    <div class="prediction-cards">
+        <div class="prediction-card">
+            <div class="prediction-header">
+                <div class="prediction-title">
+                    <i class="fas fa-chart-line"></i>
+                    Escalada de Tensiones
+                </div>
+                <div class="prediction-period">30 días</div>
+            </div>
+            <div class="prediction-value">78%</div>
+            <div class="prediction-change change-negative">
+                <i class="fas fa-arrow-up"></i>
+                <span>+12% vs mes anterior</span>
+            </div>
+            <div class="prediction-description">
+                Probabilidad de escalada en conflictos activos basada en análisis de patrones históricos y eventos recientes.
+            </div>
+        </div>
+        
+        <div class="prediction-card">
+            <div class="prediction-header">
+                <div class="prediction-title">
+                    <i class="fas fa-globe"></i>
+                    Estabilidad Regional
+                </div>
+                <div class="prediction-period">60 días</div>
+            </div>
+            <div class="prediction-value">42%</div>
+            <div class="prediction-change change-negative">
+                <i class="fas fa-arrow-down"></i>
+                <span>-8% vs mes anterior</span>
+            </div>
+            <div class="prediction-description">
+                Índice de estabilidad geopolítica global considerando factores económicos, sociales y políticos.
+            </div>
+        </div>
+        
+        <div class="prediction-card">
+            <div class="prediction-header">
+                <div class="prediction-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Nuevos Conflictos
+                </div>
+                <div class="prediction-period">90 días</div>
+            </div>
+            <div class="prediction-value">3-5</div>
+            <div class="prediction-change change-neutral">
+                <i class="fas fa-equals"></i>
+                <span>Similar al trimestre anterior</span>
+            </div>
+            <div class="prediction-description">
+                Número estimado de nuevos focos de conflicto basado en indicadores tempranos y análisis predictivo.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Analysis Grid -->
+    <div class="analysis-grid">
+        <!-- Trends Chart -->
+        <div class="chart-section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-area"></i>
+                    Tendencias Temporales
+                </h3>
+                <div class="section-controls">
+                    <button class="btn-control">
+                        <i class="fas fa-calendar-week"></i> 7D
+                    </button>
+                    <button class="btn-control">
+                        <i class="fas fa-calendar-alt"></i> 30D
+                    </button>
+                    <button class="btn-control">
+                        <i class="fas fa-calendar"></i> 90D
+                    </button>
+                </div>
+            </div>
+            <div class="chart-container" id="trendsChart"></div>
+        </div>
+        
+        <!-- Global Sentiment -->
+        <div class="chart-section sentiment-global">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-heart-pulse"></i>
+                    Sentimiento Global
+                </h3>
+                <div class="section-controls">
+                    <button class="btn-control">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sentiment-gauge">
+                <div class="sentiment-value">-2.3</div>
+            </div>
+            <div class="sentiment-label">Sentimiento Negativo</div>
+            
+            <div class="sentiment-breakdown">
+                <div class="sentiment-item">
+                    <div class="sentiment-item-value" style="color: #ef4444;">35%</div>
+                    <div class="sentiment-item-label">Negativo</div>
+                </div>
+                <div class="sentiment-item">
+                    <div class="sentiment-item-value" style="color: #f59e0b;">42%</div>
+                    <div class="sentiment-item-label">Neutral</div>
+                </div>
+                <div class="sentiment-item">
+                    <div class="sentiment-item-value" style="color: #22c55e;">23%</div>
+                    <div class="sentiment-item-label">Positivo</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ML Models Section -->
+    <div class="models-section">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-brain"></i>
+                Modelos de Machine Learning Activos
+            </h3>
+            <div class="section-controls">
+                <button class="btn-control">
+                    <i class="fas fa-cog"></i> Configurar
+                </button>
+                <button class="btn-control">
+                    <i class="fas fa-download"></i> Exportar
+                </button>
+            </div>
+        </div>
+        
+        <div class="models-grid">
+            <div class="model-card">
+                <div class="model-header">
+                    <div class="model-name">LSTM Predictor</div>
+                    <div class="model-status status-active">Activo</div>
+                </div>
+                <div class="model-metrics">
+                    <div class="model-metric">
+                        <div class="metric-value">94.2%</div>
+                        <div class="metric-label">Precisión</div>
+                    </div>
+                    <div class="model-metric">
+                        <div class="metric-value">0.89</div>
+                        <div class="metric-label">F1-Score</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="model-card">
+                <div class="model-header">
+                    <div class="model-name">Prophet Forecaster</div>
+                    <div class="model-status status-active">Activo</div>
+                </div>
+                <div class="model-metrics">
+                    <div class="model-metric">
+                        <div class="metric-value">91.7%</div>
+                        <div class="metric-label">Precisión</div>
+                    </div>
+                    <div class="model-metric">
+                        <div class="metric-value">0.85</div>
+                        <div class="metric-label">F1-Score</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="model-card">
+                <div class="model-header">
+                    <div class="model-name">DBSCAN Clustering</div>
+                    <div class="model-status status-active">Activo</div>
+                </div>
+                <div class="model-metrics">
+                    <div class="model-metric">
+                        <div class="metric-value">87.3%</div>
+                        <div class="metric-label">Precisión</div>
+                    </div>
+                    <div class="model-metric">
+                        <div class="metric-value">0.82</div>
+                        <div class="metric-label">Silhouette</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="model-card">
+                <div class="model-header">
+                    <div class="model-name">Anomaly Detector</div>
+                    <div class="model-status status-training">Entrenando</div>
+                </div>
+                <div class="model-metrics">
+                    <div class="model-metric">
+                        <div class="metric-value">89.1%</div>
+                        <div class="metric-label">Precisión</div>
+                    </div>
+                    <div class="model-metric">
+                        <div class="metric-value">0.76</div>
+                        <div class="metric-label">Recall</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Patterns and Anomalies -->
+    <div class="patterns-section">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-search"></i>
+                Patrones y Anomalías Detectadas
+            </h3>
+            <div class="section-controls">
+                <button class="btn-control">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+                <button class="btn-control">
+                    <i class="fas fa-bell"></i> Alertas
+                </button>
+            </div>
+        </div>
+        
+        <div class="patterns-grid">
+            <div class="pattern-card">
+                <div class="pattern-header">
+                    <div class="pattern-icon">
+                        <i class="fas fa-trending-up"></i>
+                    </div>
+                    <div class="pattern-title">Escalada Gradual</div>
+                </div>
+                <div class="pattern-description">
+                    Incremento sostenido en la intensidad de conflictos en Europa Oriental durante las últimas 4 semanas.
+                </div>
+                <div class="pattern-confidence">
+                    <span class="confidence-label">Confianza:</span>
+                    <span class="confidence-value">92%</span>
+                </div>
+            </div>
+            
+            <div class="pattern-card">
+                <div class="pattern-header">
+                    <div class="pattern-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="pattern-title">Nuevo Actor Emergente</div>
+                </div>
+                <div class="pattern-description">
+                    Detección de un nuevo grupo armado con actividad significativa en África Occidental.
+                </div>
+                <div class="pattern-confidence">
+                    <span class="confidence-label">Confianza:</span>
+                    <span class="confidence-value">78%</span>
+                </div>
+            </div>
+            
+            <div class="pattern-card">
+                <div class="pattern-header">
+                    <div class="pattern-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="pattern-title">Anomalía Temporal</div>
+                </div>
+                <div class="pattern-description">
+                    Pico inusual de actividad diplomática en Medio Oriente, desviándose de patrones históricos.
+                </div>
+                <div class="pattern-confidence">
+                    <span class="confidence-label">Confianza:</span>
+                    <span class="confidence-value">85%</span>
+                </div>
+            </div>
+            
+            <div class="pattern-card">
+                <div class="pattern-header">
+                    <div class="pattern-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="pattern-title">Correlación Económica</div>
+                </div>
+                <div class="pattern-description">
+                    Fuerte correlación entre fluctuaciones del precio del petróleo y tensiones en regiones productoras.
+                </div>
+                <div class="pattern-confidence">
+                    <span class="confidence-label">Confianza:</span>
+                    <span class="confidence-value">96%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Trends Chart
+    function initTrendsChart() {
+        const trace1 = {
+            x: ['2024-01-01', '2024-01-08', '2024-01-15', '2024-01-22', '2024-01-29'],
+            y: [65, 72, 68, 78, 85],
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Tensión Global',
+            line: { color: '#ef4444', width: 3 },
+            marker: { size: 8 }
+        };
+        
+        const trace2 = {
+            x: ['2024-01-01', '2024-01-08', '2024-01-15', '2024-01-22', '2024-01-29'],
+            y: [45, 42, 48, 38, 35],
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Estabilidad',
+            line: { color: '#22c55e', width: 3 },
+            marker: { size: 8 }
+        };
+        
+        const trace3 = {
+            x: ['2024-01-01', '2024-01-08', '2024-01-15', '2024-01-22', '2024-01-29'],
+            y: [-2.1, -1.8, -2.3, -2.7, -2.3],
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Sentimiento',
+            line: { color: '#f59e0b', width: 3 },
+            marker: { size: 8 },
+            yaxis: 'y2'
+        };
+        
+        const layout = {
+            title: {
+                text: 'Tendencias Geopolíticas',
+                font: { color: '#fff', size: 16 }
+            },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#fff' },
+            xaxis: {
+                gridcolor: 'rgba(255,255,255,0.1)',
+                zerolinecolor: 'rgba(255,255,255,0.1)'
+            },
+            yaxis: {
+                title: 'Índice de Riesgo',
+                gridcolor: 'rgba(255,255,255,0.1)',
+                zerolinecolor: 'rgba(255,255,255,0.1)'
+            },
+            yaxis2: {
+                title: 'Sentimiento',
+                overlaying: 'y',
+                side: 'right',
+                gridcolor: 'rgba(255,255,255,0.1)',
+                zerolinecolor: 'rgba(255,255,255,0.1)'
+            },
+            legend: {
+                x: 0,
+                y: 1,
+                bgcolor: 'rgba(0,0,0,0.5)'
+            },
+            margin: { t: 50, r: 50, b: 50, l: 50 }
+        };
+        
+        Plotly.newPlot('trendsChart', [trace1, trace2, trace3], layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+    }
+    
+    // Load trends data
+    function loadTrendsData() {
+        // Simulate loading real-time trends data
+        fetch('/api/trends/predictions')
+            .then(response => response.json())
+            .then(data => {
+                updatePredictions(data);
+            })
+            .catch(error => {
+                console.log('Using simulated trends data');
+                updatePredictions({
+                    escalation: { value: 78, change: 12 },
+                    stability: { value: 42, change: -8 },
+                    newConflicts: { value: '3-5', change: 0 }
+                });
+            });
+    }
+    
+    function updatePredictions(data) {
+        // Update prediction cards with real data
+        console.log('Updating predictions with:', data);
+    }
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initTrendsChart();
+        loadTrendsData();
+    });
+</script>
+{% endblock %}

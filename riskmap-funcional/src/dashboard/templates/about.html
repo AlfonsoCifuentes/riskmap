@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}About - Geopolitical Intelligence{% endblock %}
+
+{% block content %}
+<style>
+    .about-section {
+        background: var(--card-gradient);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(20px);
+    }
+
+    .about-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem 0;
+        background: var(--primary-gradient);
+        border-radius: 15px;
+        color: white;
+    }
+
+    .feature-card {
+        background: rgba(22, 27, 34, 0.9);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: var(--transition);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .ai-model-badge {
+        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin: 0.2rem;
+        display: inline-block;
+    }
+
+    .tech-stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .tech-item {
+        background: rgba(102, 126, 234, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="about-header">
+        <h1><i class="fas fa-info-circle me-3"></i>Acerca de RISKMAP</h1>
+        <p class="lead">Sistema de Inteligencia Geopolítica impulsado por IA</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Visión General -->
+            <div class="about-section">
+                <h2><i class="fas fa-eye me-2"></i>Visión General</h2>
+                <p>RISKMAP es una plataforma avanzada de inteligencia geopolítica que utiliza múltiples modelos de IA para analizar eventos globales en tiempo real. Nuestro sistema recopila, procesa y analiza noticias de fuentes confiables en múltiples idiomas para proporcionar insights accionables sobre riesgos geopolíticos.</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-globe-americas fa-3x text-primary mb-3"></i>
+                        <h5>Cobertura Global</h5>
+                        <p>Monitoreo de eventos en más de 190 países</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-language fa-3x text-primary mb-3"></i>
+                        <h5>Multilingüe</h5>
+                        <p>Análisis en 9+ idiomas principales</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                        <h5>IA Avanzada</h5>
+                        <p>Múltiples modelos de ML y NLP</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen de Implementaciones -->
+            <div class="about-section">
+                <h2><i class="fas fa-check-circle me-2"></i>Resumen de Implementaciones</h2>
+                <ul class="list-disc ml-6 space-y-2">
+                    <li>Internacionalización y selector de idioma: <span class="text-green-600">✅</span></li>
+                    <li>Conectores de datos reales (GDELT, USGS, EMSC, OpenWeather, GDACS, Copernicus, HealthMap, cámaras): <span class="text-green-600">✅</span></li>
+                    <li>Análisis de imágenes satelitales (OpenCV + NASA API): <span class="text-green-600">✅</span></li>
+                    <li>Heatmap interactivo con Leaflet y <code>/events.geojson</code>: <span class="text-green-600">✅</span></li>
+                    <li>Sistema de alertas (Email, Telegram, Slack) con scheduler APScheduler: <span class="text-green-600">✅</span></li>
+                    <li>API de chat con IA en <code>/api/chat</code>: <span class="text-green-600">✅</span></li>
+                    <li>CI/CD configurado (flake8, black, mypy, GitHub Actions): <span class="text-green-600">✅</span></li>
+                    <li>Geoparsing y clasificación NLP avanzado: <span class="text-red-600">❌ Pendiente</span></li>
+                    <li>Pipelines de datasets derivados y modelos predictivos (ARIMA/LSTM): <span class="text-red-600">❌ Pendiente</span></li>
+                    <li>Documentación de despliegue y limpieza final: <span class="text-red-600">❌ Pendiente</span></li>
+                </ul>
+            </div>
+
+            <!-- Modelos de IA -->
+            <div class="about-section">
+                <h2><i class="fas fa-robot me-2"></i>Modelos de IA Utilizados</h2>
+                <p>Nuestro sistema emplea una arquitectura de IA híbrida con múltiples modelos especializados:</p>
+
+                <div class="feature-card">
+                    <h4><i class="fas fa-chart-line me-2"></i>Análisis de Contenido</h4>
+                    <p>Para el análisis geopolítico y generación de insights:</p>
+                    <div>
+                        <span class="ai-model-badge">Groq (Llama 3.1)</span>
+                        <span class="ai-model-badge">DeepSeek-Chat</span>
+                        <span class="ai-model-badge">OpenAI GPT-3.5</span>
+                        <span class="ai-model-badge">HuggingFace Transformers</span>
+                    </div>
+                    <p class="mt-2"><small>Sistema con fallback automático que garantiza disponibilidad 24/7</small></p>
+                </div>
+
+                <div class="feature-card">
+                    <h4><i class="fas fa-image me-2"></i>Generación de Imágenes</h4>
+                    <p>Para crear visualizaciones contextualmente relevantes:</p>
+                    <div>
+                        <span class="ai-model-badge">Pollinations AI</span>
+                        <span class="ai-model-badge">Stable Diffusion</span>
+                    </div>
+                    <p class="mt-2"><small>Generación automática de prompts por IA + creación de imágenes gratuita</small></p>
+                </div>
+
+                <div class="feature-card">
+                    <h4><i class="fas fa-map-marked-alt me-2"></i>Análisis Geográfico</h4>
+                    <p>Para identificación de regiones y mapeo de riesgos:</p>
+                    <div>
+                        <span class="ai-model-badge">spaCy NER</span>
+                        <span class="ai-model-badge">BERT Geolocation</span>
+                        <span class="ai-model-badge">Custom ML Models</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h4><i class="fas fa-comments me-2"></i>Chat IA Interactivo</h4>
+                    <p>Chatbot especializado en análisis geopolítico:</p>
+                    <div>
+                        <span class="ai-model-badge">Open Source LLM</span>
+                        <span class="ai-model-badge">RAG (Retrieval-Augmented Generation)</span>
+                    </div>
+                    <p class="mt-2"><small>Modelo completamente gratuito y open-source para conversaciones sobre geopolítica</small></p>
+                </div>
+            </div>
+
+            <!-- Arquitectura Técnica -->
+            <div class="about-section">
+                <h2><i class="fas fa-cogs me-2"></i>Arquitectura Técnica</h2>
+                
+                <div class="feature-card">
+                    <h4><i class="fas fa-database me-2"></i>Recopilación de Datos</h4>
+                    <ul>
+                        <li><strong>RSS Feeds:</strong> Monitoreo automático de 50+ fuentes de noticias confiables</li>
+                        <li><strong>Web Scraping:</strong> Extracción inteligente de contenido con BeautifulSoup</li>
+                        <li><strong>APIs de Noticias:</strong> Integración con servicios premium de noticias</li>
+                        <li><strong>Filtrado por Relevancia:</strong> Algoritmos ML para identificar contenido geopolítico</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4><i class="fas fa-brain me-2"></i>Procesamiento NLP</h4>
+                    <ul>
+                        <li><strong>Detección de Idioma:</strong> Clasificación automática en 9+ idiomas</li>
+                        <li><strong>Análisis de Sentimiento:</strong> VADER Sentiment + modelos BERT</li>
+                        <li><strong>Extracción de Entidades:</strong> Reconocimiento de países, organizaciones, personas</li>
+                        <li><strong>Clasificación de Conflictos:</strong> Categorización automática por tipo de evento</li>
+                        <li><strong>Evaluación de Riesgo:</strong> Scoring ML basado en múltiples factores</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4><i class="fas fa-chart-area me-2"></i>Visualización y Dashboard</h4>
+                    <ul>
+                        <li><strong>Heatmaps Interactivos:</strong> Plotly.js para mapas de riesgo en tiempo real</li>
+                        <li><strong>Dashboards Responsivos:</strong> Bootstrap 5 + CSS custom</li>
+                        <li><strong>Gráficos Dinámicos:</strong> Visualizaciones que se actualizan automáticamente</li>
+                        <li><strong>Filtros Avanzados:</strong> Por riesgo, fuente, idioma, región, tipo de conflicto</li>
+                    </ul>
+                </div>
+
+                <h4>Stack Tecnológico:</h4>
+                <div class="tech-stack">
+                    <span class="tech-item"><i class="fab fa-python"></i> Python 3.11</span>
+                    <span class="tech-item"><i class="fas fa-server"></i> Flask</span>
+                    <span class="tech-item"><i class="fas fa-database"></i> SQLite</span>
+                    <span class="tech-item"><i class="fab fa-js-square"></i> JavaScript ES6+</span>
+                    <span class="tech-item"><i class="fab fa-bootstrap"></i> Bootstrap 5</span>
+                    <span class="tech-item"><i class="fas fa-chart-line"></i> Plotly.js</span>
+                    <span class="tech-item"><i class="fas fa-robot"></i> Transformers</span>
+                    <span class="tech-item"><i class="fas fa-language"></i> spaCy</span>
+                    <span class="tech-item"><i class="fas fa-cloud"></i> Docker</span>
+                </div>
+            </div>
+
+            <!-- Metodología -->
+            <div class="about-section">
+                <h2><i class="fas fa-microscope me-2"></i>Metodología</h2>
+                
+                <div class="feature-card">
+                    <h4><i class="fas fa-sync-alt me-2"></i>Pipeline de Procesamiento</h4>
+                    <ol>
+                        <li><strong>Recopilación:</strong> Scraping automático cada 15 minutos</li>
+                        <li><strong>Filtrado:</strong> Eliminación de duplicados y contenido irrelevante</li>
+                        <li><strong>Procesamiento NLP:</strong> Análisis de idioma, sentimiento y entidades</li>
+                        <li><strong>Clasificación:</strong> Asignación de categorías y niveles de riesgo</li>
+                        <li><strong>Enriquecimiento:</strong> Extracción de imágenes y metadatos</li>
+                        <li><strong>Análisis IA:</strong> Generación de insights con múltiples modelos</li>
+                        <li><strong>Visualización:</strong> Actualización de dashboards y mapas</li>
+                    </ol>
+                </div>
+
+                <div class="feature-card">
+                    <h4><i class="fas fa-shield-alt me-2"></i>Evaluación de Riesgo</h4>
+                    <p>Nuestro sistema de scoring combina múltiples factores:</p>
+                    <ul>
+                        <li><strong>Análisis de Sentimiento:</strong> Negatividad del contenido (-1 a +1)</li>
+                        <li><strong>Palabras Clave:</strong> Presencia de términos relacionados con conflictos</li>
+                        <li><strong>Contexto Geográfico:</strong> Historial de inestabilidad regional</li>
+                        <li><strong>Fuente de Credibilidad:</strong> Reputación y confiabilidad del medio</li>
+                        <li><strong>Frecuencia de Eventos:</strong> Concentración temporal de noticias similares</li>
+                    </ul>
+                    
+                    <div class="mt-3">
+                        <span class="badge bg-danger">CRÍTICO</span> Riesgo inmediato de escalada
+                        <span class="badge bg-warning">ALTO</span> Situación volátil que requiere monitoreo
+                        <span class="badge bg-info">MEDIO</span> Tensiones moderadas
+                        <span class="badge bg-success">BAJO</span> Situación estable
+                    </div>
+                </div>
+            </div>
+
+            <!-- Datos y Transparencia -->
+            <div class="about-section">
+                <h2><i class="fas fa-eye me-2"></i>Transparencia y Datos</h2>
+                <div class="feature-card">
+                    <h4><i class="fas fa-newspaper me-2"></i>Fuentes de Datos</h4>
+                    <p>Monitoreamos fuentes de noticias confiables incluyendo:</p>
+                    <ul>
+                        <li>Reuters, Associated Press, BBC, CNN, Al Jazeera</li>
+                        <li>Medios regionales especializados en cada continente</li>
+                        <li>Fuentes gubernamentales y organizaciones internacionales</li>
+                        <li>Think tanks y centros de investigación geopolítica</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4><i class="fas fa-balance-scale me-2"></i>Limitaciones y Consideraciones</h4>
+                    <ul>
+                        <li>Los análisis se basan en fuentes públicas disponibles</li>
+                        <li>La IA puede tener sesgos inherentes de los datos de entrenamiento</li>
+                        <li>Los niveles de riesgo son estimaciones, no predicciones garantizadas</li>
+                        <li>Recomendamos verificar información crítica con múltiples fuentes</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Contacto -->
+            <div class="about-section text-center">
+                <h2><i class="fas fa-envelope me-2"></i>Contacto</h2>
+                <p>¿Preguntas sobre el sistema o sugerencias de mejora?</p>
+                <p><strong>Email:</strong> info@riskmap-geopolitical.com</p>
+                <p><strong>GitHub:</strong> github.com/riskmap-project</p>
+                
+                <div class="mt-4">
+                    <small class="text-muted">
+                        Última actualización: Julio 2025 | Versión 2.1.0<br>
+                        Sistema desarrollado con fines educativos y de investigación
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -13,23 +13,21 @@
             </h2>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-lg-8">
+            <div class="row g-4">
+                <div class="col-12 col-lg-8">
                     <div class="mb-4">
-                        <label for="analysis-input" class="form-label">Texto para Análisis</label>
                         <textarea 
                             id="analysis-input" 
                             class="form-control" 
                             rows="8" 
-                            placeholder="Ingresa el texto de noticias para análisis geopolítico...">
-                        </textarea>
+                            placeholder="Ingresa el texto de noticias para análisis geopolítico..."></textarea>
                     </div>
-                    <button id="analysis-button" class="btn btn-primary">
+                    <button id="analysis-button" class="btn btn-primary w-100 w-lg-auto">
                         <i class="fas fa-brain me-2"></i>
                         Analizar Contenido
                     </button>
                 </div>
-                <div class="col-lg-4">
+                <div class="col-12 col-lg-4">
                     <div class="glass-card">
                         <div class="card-body">
                             <h5 class="card-title">
@@ -71,11 +69,11 @@
             </h2>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-lg-9">
-                    <div id="global-heatmap" style="height: 500px; border-radius: 15px; overflow: hidden;"></div>
+                <div class="row g-4">
+                <div class="col-12 col-lg-9">
+                    <div id="global-heatmap" style="height: 500px !important; width: 100%; background-color: #1f2937; border-radius: 15px; overflow: hidden; position: relative; z-index: 1;"></div>
                 </div>
-                <div class="col-lg-3">
+                <div class="col-12 col-lg-3">
                     <div class="glass-card">
                         <div class="card-body">
                             <h6 class="card-title">Leyenda de Riesgos</h6>
@@ -158,87 +156,168 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
+<style>
+/* Risk indicators for the legend */
+.risk-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.risk-critical {
+    background-color: #dc2626;
+}
+
+.risk-high {
+    background-color: #ef4444;
+}
+
+.risk-medium {
+    background-color: #f59e0b;
+}
+
+.risk-low {
+    background-color: #10b981;
+}
+
+/* Ensure map container has proper styling */
+#global-heatmap {
+    background-color: #1f2937;
+    border-radius: 15px;
+    width: 100%;
+    height: 500px !important;
+    min-height: 500px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Fix for mobile responsiveness */
+@media (max-width: 991px) {
+    #global-heatmap {
+        height: 300px !important;
+        min-height: 300px;
+    }
+}
+
+/* Leaflet specific fixes */
+.leaflet-container {
+    background: #1f2937 !important;
+    border-radius: 15px;
+}
+
+.leaflet-control-container .leaflet-top.leaflet-left {
+    top: 10px;
+    left: 10px;
+}
+
+.leaflet-control-container .leaflet-top.leaflet-right {
+    top: 10px;
+    right: 10px;
+}
+
+/* Popup styling */
+.leaflet-popup-content-wrapper {
+    background-color: #374151 !important;
+    color: #f3f4f6 !important;
+    border-radius: 8px !important;
+}
+
+.leaflet-popup-tip {
+    background-color: #374151 !important;
+}
+
+.popup-content {
+    color: #f3f4f6;
+    font-size: 0.9rem;
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    initializeGlobalHeatmap();
-    loadRecentAnalysis();
+    console.log('DOM loaded, initializing components...');
+    
+    // Wait for page layout to complete before initializing map
+    setTimeout(() => {
+        // Initialize components with error handling
+        try {
+            initializeGlobalHeatmap();
+        } catch (error) {
+            console.error('Error initializing heatmap:', error);
+        }
+        
+        try {
+            loadRecentAnalysis();
+        } catch (error) {
+            console.error('Error loading recent analysis:', error);
+        }
+    }, 250);
     
     // Analysis button functionality
-    document.getElementById('analysis-button').addEventListener('click', performAnalysis);
+    const analysisButton = document.getElementById('analysis-button');
+    if (analysisButton) {
+        analysisButton.addEventListener('click', performAnalysis);
+    }
 });
 
 function initializeGlobalHeatmap() {
-    // Initialize Leaflet map
-    const map = L.map('global-heatmap').setView([20, 0], 2);
+    const mapContainer = document.getElementById('global-heatmap');
+    if (!mapContainer) {
+        console.error('Map container not found');
+        return;
+    }
+
+    // Log container dimensions for debugging
+    const { offsetWidth, offsetHeight } = mapContainer;
+    console.log(`Map container dimensions: ${offsetWidth}px x ${offsetHeight}px`);
+
+    if (offsetWidth === 0 || offsetHeight === 0) {
+        console.error('Map container has invalid dimensions');
+        return;
+    }
+
+    console.log('Initializing map...');
+    
+    // Clear any existing map instance
+    if (window.globalMap) {
+        window.globalMap.remove();
+    }
+
+    // Initialize Leaflet map with specific options
+    const map = L.map('global-heatmap', {
+        center: [20, 0],
+        zoom: 2,
+        zoomControl: true,
+        attributionControl: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
+        boxZoom: true,
+        keyboard: true,
+        dragging: true,
+        touchZoom: true
+    });
+    
+    // Store map reference globally
+    window.globalMap = map;
+    
+    console.log('Map created, adding tile layer...');
     
     // Add tile layer with dark theme
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
         maxZoom: 19
-    }).addTo(map);
-    
-    // Sample heat map data (replace with real data)
-    const heatmapData = [
-        [51.505, -0.09, 0.8], // London
-        [48.8566, 2.3522, 0.9], // Paris
-        [40.7128, -74.0060, 0.7], // New York
-        [35.6762, 139.6503, 0.6], // Tokyo
-        [55.7558, 37.6176, 0.9], // Moscow
-        [39.9042, 116.4074, 0.8], // Beijing
-        [28.6139, 77.2090, 0.7], // Delhi
-        [-23.5505, -46.6333, 0.5], // São Paulo
-        [30.0444, 31.2357, 0.8], // Cairo
-        [33.6844, 73.0479, 0.9], // Islamabad
-        [31.2304, 121.4737, 0.6], // Shanghai
-        [19.4326, -99.1332, 0.5], // Mexico City
-        [6.5244, 3.3792, 0.7], // Lagos
-        [1.3521, 103.8198, 0.4], // Singapore
-        [25.2048, 55.2708, 0.6], // Dubai
-        [41.9028, 12.4964, 0.5], // Rome
-        [52.5200, 13.4050, 0.4], // Berlin
-        [59.9311, 10.7579, 0.3], // Oslo
-        [37.7749, -122.4194, 0.5], // San Francisco
-        [34.0522, -118.2437, 0.4], // Los Angeles
-    ];
-    
-    // Add heat layer
-    const heat = L.heatLayer(heatmapData, {
-        radius: 25,
-        blur: 15,
-        maxZoom: 17,
-        gradient: {
-            0.0: '#10b981',
-            0.3: '#fbbf24', 
-            0.6: '#f59e0b',
-            0.8: '#ef4444',
-            1.0: '#dc2626'
-        }
-    }).addTo(map);
-    
-    // Add markers for high-risk areas
-    heatmapData.forEach(point => {
-        if (point[2] > 0.7) {
-            const marker = L.circleMarker([point[0], point[1]], {
-                radius: 8,
-                fillColor: point[2] > 0.8 ? '#dc2626' : '#f59e0b',
-                color: '#fff',
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.8
-            }).addTo(map);
-            
-            marker.bindPopup(`
-                <div class="popup-content">
-                    <strong>Nivel de Riesgo: ${(point[2] * 10).toFixed(1)}/10</strong><br>
-                    <small>Coordenadas: ${point[0].toFixed(2)}, ${point[1].toFixed(2)}</small>
-                </div>
-            `);
-        }
     });
     
-    // Update stats periodically
-    updateHeatmapStats();
+    tileLayer.addTo(map);
+
+    // Force map size recalculation
+    setTimeout(() => {
+        map.invalidateSize();
+        console.log('Map size invalidated after initialization');
+    }, 100);
+
+    console.log('Heatmap initialization complete');
 }
 
 function updateHeatmapStats() {
@@ -253,13 +332,24 @@ function updateHeatmapStats() {
 }
 
 function performAnalysis() {
-    const input = document.getElementById('analysis-input').value.trim();
+    const input = document.getElementById('analysis-input');
     if (!input) {
-        showToast('Por favor ingresa texto para analizar', 'warning');
+        console.error('Analysis input not found');
+        return;
+    }
+    
+    const inputValue = input.value.trim();
+    if (!inputValue) {
+        console.warn('Please enter text to analyze');
         return;
     }
     
     const button = document.getElementById('analysis-button');
+    if (!button) {
+        console.error('Analysis button not found');
+        return;
+    }
+    
     const originalText = button.innerHTML;
     
     // Show loading state
@@ -268,14 +358,14 @@ function performAnalysis() {
     
     // Simulate API call
     setTimeout(() => {
-        const results = generateMockAnalysis(input);
+        const results = generateMockAnalysis(inputValue);
         displayAnalysisResults(results);
         
         // Reset button
         button.innerHTML = originalText;
         button.disabled = false;
         
-        showToast('Análisis completado exitosamente', 'success');
+        console.log('Analysis completed successfully');
     }, 2000);
 }
 
@@ -297,6 +387,11 @@ function generateMockAnalysis(text) {
 function displayAnalysisResults(results) {
     const outputDiv = document.getElementById('analysis-output');
     const resultsDiv = document.getElementById('analysis-results');
+    
+    if (!outputDiv || !resultsDiv) {
+        console.error('Analysis output containers not found');
+        return;
+    }
     
     const sentimentClass = results.sentiment > 0.1 ? 'success' : results.sentiment < -0.1 ? 'danger' : 'warning';
     const riskClass = results.riskLevel > 7 ? 'danger' : results.riskLevel > 4 ? 'warning' : 'success';
@@ -344,6 +439,11 @@ function displayAnalysisResults(results) {
 
 function loadRecentAnalysis() {
     const tableBody = document.getElementById('recent-analysis-table');
+    
+    if (!tableBody) {
+        console.error('Recent analysis table not found');
+        return;
+    }
     
     // Mock data for recent analysis
     const recentData = [

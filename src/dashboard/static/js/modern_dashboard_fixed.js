@@ -48,27 +48,23 @@ class GeopoliticalDashboard {
         try {
             console.log('🗺️ Initializing map...');
             
-            // Check if Leaflet is available
             if (typeof L === 'undefined') {
                 console.warn('⚠️ Leaflet library not loaded, skipping map initialization');
                 this.showMapPlaceholder();
                 return;
             }
             
-            // Check if map container exists
-            const mapContainer = document.getElementById('main-map');
+            const mapContainer = document.getElementById('map');
             if (!mapContainer) {
-                console.warn('⚠️ Map container not found, skipping map initialization');
+                console.warn('⚠️ Map container #map not found, skipping map initialization');
                 return;
             }
             
-            // Clear any existing map
             if (this.map) {
                 this.map.remove();
             }
             
-            // Initialize main map
-            this.map = L.map('main-map', {
+            this.map = L.map('map', {
                 center: [20, 0],
                 zoom: 2,
                 minZoom: 1,

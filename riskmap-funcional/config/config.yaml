@@ -1,0 +1,49 @@
+# --- Configuración Principal de la Aplicación ---
+app:
+  name: "Geopolitical Intelligence System"
+  version: "1.0.1" # Versión actualizada
+  debug: true
+
+# --- Claves de API ---
+# Las claves se cargan desde variables de entorno (ej: ${NEWSAPI_KEY})
+# o se dejan en blanco si no se usan.
+api_keys:
+  newsapi: "${NEWSAPI_KEY}"
+  openai: "${OPENAI_API_KEY}"
+  google_translate: "${GOOGLE_TRANSLATE_KEY}"
+  groq: "${GROQ_API_KEY}"
+  deepseek: "${DEEPSEEK_API_KEY}"
+  huggingface: "${HUGGINGFACE_TOKEN}"
+
+# --- Configuración de la Base de Datos ---
+database:
+  type: "sqlite"
+  path: "data/geopolitical_intel.db"
+
+# --- Configuración de Logging ---
+logging:
+  level: "INFO" # Niveles: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s"
+  file: "logs/geopolitical_intel.log"
+  max_size_mb: 10 # Tamaño máximo del archivo de log en MB antes de rotar
+  backup_count: 5 # Número de archivos de log de respaldo a conservar
+
+# --- Configuración de Procesamiento de Lenguaje Natural (NLP) ---
+nlp:
+  classification_model: "joeddav/xlm-roberta-large-xnli"
+  sentiment_model: "cardiffnlp/twitter-xlm-roberta-base-sentiment"
+  summarization_model: "facebook/bart-large-cnn"
+  translation_service: "google" # Puede ser 'google', 'deepl', etc.
+
+# --- Idiomas Soportados ---
+# Lista de códigos de idioma ISO 639-1.
+# Obligatorios: es, en, ru, zh, ar
+languages:
+  - "es"
+  - "en"
+  - "ru"
+  - "zh"
+  - "ar"
+  - "fr"
+  - "de"
+  - "pt"

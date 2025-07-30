@@ -1,0 +1,3835 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Geopolitical Intelligence{% endblock %}
+
+{% block content %}
+<!-- 3D Earth Wireframe Background -->
+<div id="earth-wireframe">
+    <div class="earth-container">
+        <div class="earth-sphere">
+            <!-- Latitude lines -->
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            <div class="wireframe-line lat-line"></div>
+            
+            <!-- Longitude lines -->
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            <div class="wireframe-line lon-line"></div>
+            
+            <!-- Orbital rings -->
+            <div class="orbital-ring"></div>
+            <div class="orbital-ring"></div>
+            
+            <!-- Data points representing global monitoring stations -->
+            <div class="data-point" style="top: 25%; left: 15%;"></div>
+            <div class="data-point" style="top: 35%; left: 45%;"></div>
+            <div class="data-point" style="top: 45%; left: 75%;"></div>
+            <div class="data-point" style="top: 55%; left: 25%;"></div>
+            <div class="data-point" style="top: 65%; left: 65%;"></div>
+            <div class="data-point" style="top: 30%; left: 85%;"></div>
+            <div class="data-point" style="top: 70%; left: 35%;"></div>
+            <div class="data-point" style="top: 40%; left: 55%;"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --dark-gradient: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+        --card-gradient: linear-gradient(145deg, rgba(22, 27, 34, 0.95) 0%, rgba(22, 27, 34, 0.8) 100%);
+        --primary-color: #667eea;
+        --secondary-color: #764ba2;
+        --accent-color: #f093fb;
+        --danger-color: #ff4757;
+        --success-color: #2ed573;
+        --warning-color: #ffa502;
+        --info-color: #3742fa;
+        --dark-bg: #0c0c0c;
+        --card-bg: rgba(22, 27, 34, 0.9);
+        --border-color: rgba(102, 126, 234, 0.2);
+        --text-primary: #ffffff;
+        --text-secondary: #b8bcc8;
+        --text-muted: #6c7293;
+        --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4);
+        --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.6);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        background: var(--dark-gradient);
+        color: var(--text-primary);
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    /* 3D Earth Wireframe Background */
+    #earth-wireframe {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background: linear-gradient(
+            135deg, 
+            rgba(13, 25, 43, 0.95) 0%, 
+            rgba(27, 39, 53, 0.95) 25%,
+            rgba(15, 32, 46, 0.95) 50%,
+            rgba(8, 22, 36, 0.95) 75%,
+            rgba(11, 19, 32, 0.95) 100%
+        );
+        background-attachment: fixed;
+        overflow: hidden;
+    }
+
+    .earth-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 800px;
+        height: 800px;
+        perspective: 1000px;
+    }
+
+    .earth-sphere {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        animation: earthRotation 60s linear infinite;
+    }
+
+    @keyframes earthRotation {
+        0% { transform: rotateY(0deg) rotateX(15deg); }
+        100% { transform: rotateY(360deg) rotateX(15deg); }
+    }
+
+    .wireframe-line {
+        position: absolute;
+        background: linear-gradient(90deg, transparent, #00ffff, transparent);
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        opacity: 0.6;
+    }
+
+    /* Latitude lines */
+    .lat-line {
+        width: 100%;
+        height: 2px;
+        border-radius: 1px;
+        left: 0;
+        animation: wireframePulse 4s ease-in-out infinite;
+    }
+
+    .lat-line:nth-child(1) { top: 10%; transform: scaleX(0.3); }
+    .lat-line:nth-child(2) { top: 20%; transform: scaleX(0.6); }
+    .lat-line:nth-child(3) { top: 30%; transform: scaleX(0.8); }
+    .lat-line:nth-child(4) { top: 40%; transform: scaleX(0.95); }
+    .lat-line:nth-child(5) { top: 50%; transform: scaleX(1); }
+    .lat-line:nth-child(6) { top: 60%; transform: scaleX(0.95); }
+    .lat-line:nth-child(7) { top: 70%; transform: scaleX(0.8); }
+    .lat-line:nth-child(8) { top: 80%; transform: scaleX(0.6); }
+    .lat-line:nth-child(9) { top: 90%; transform: scaleX(0.3); }
+
+    /* Longitude lines */
+    .lon-line {
+        width: 2px;
+        height: 100%;
+        border-radius: 1px;
+        top: 0;
+        animation: wireframePulse 4s ease-in-out infinite;
+        animation-delay: 2s;
+    }
+
+    .lon-line:nth-child(10) { left: 10%; }
+    .lon-line:nth-child(11) { left: 20%; }
+    .lon-line:nth-child(12) { left: 30%; }
+    .lon-line:nth-child(13) { left: 40%; }
+    .lon-line:nth-child(14) { left: 50%; }
+    .lon-line:nth-child(15) { left: 60%; }
+    .lon-line:nth-child(16) { left: 70%; }
+    .lon-line:nth-child(17) { left: 80%; }
+    .lon-line:nth-child(18) { left: 90%; }
+
+    @keyframes wireframePulse {
+        0%, 100% { 
+            opacity: 0.4; 
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        50% { 
+            opacity: 0.8; 
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+        }
+    }
+
+    /* Orbital rings */
+    .orbital-ring {
+        position: absolute;
+        border: 2px solid rgba(0, 255, 255, 0.3);
+        border-radius: 50%;
+        animation: orbitalRotation 30s linear infinite;
+    }
+
+    .orbital-ring:nth-child(19) {
+        width: 120%;
+        height: 120%;
+        top: -10%;
+        left: -10%;
+        transform: rotateX(60deg);
+    }
+
+    .orbital-ring:nth-child(20) {
+        width: 140%;
+        height: 140%;
+        top: -20%;
+        left: -20%;
+        transform: rotateX(30deg);
+        animation-direction: reverse;
+        animation-duration: 45s;
+    }
+
+    @keyframes orbitalRotation {
+        0% { transform: rotateX(60deg) rotateZ(0deg); }
+        100% { transform: rotateX(60deg) rotateZ(360deg); }
+    }
+
+    /* Data points on Earth */
+    .data-point {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #00ffff;
+        border-radius: 50%;
+        box-shadow: 0 0 8px rgba(0, 255, 255, 0.8);
+        animation: dataPointPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes dataPointPulse {
+        0%, 100% { 
+            transform: scale(1);
+            opacity: 0.8;
+        }
+        50% { 
+            transform: scale(1.5);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+        .earth-container {
+            width: 600px;
+            height: 600px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .earth-container {
+            width: 400px;
+            height: 400px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .earth-container {
+            width: 300px;
+            height: 300px;
+        }
+    }
+
+    /* Enhanced glass morphism for geopolitical theme */ Glass morphism cards */
+    .glass-card {
+        background: var(--card-gradient);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        box-shadow: var(--shadow-lg);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glass-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        opacity: 0.5;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--primary-color);
+    }
+
+    /* Header */
+    .hero-section {
+        background: var(--primary-gradient);
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="1000,100 1000,0 0,100"/></svg>');
+        background-size: cover;
+    }
+
+    .hero-title {
+        font-size: 3rem;
+        font-weight: 700;
+        color: white;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 0;
+    }
+
+    /* Stats cards */
+    .stat-card {
+        background: var(--card-gradient);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+        margin: 0.5rem 0;
+        min-height: 140px;
+        height: 140px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--primary-gradient);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary) !important;
+        margin-bottom: 0.5rem;
+        display: block;
+        line-height: 1.1;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+    }
+
+    .stat-number.risk-high {
+        color: var(--danger-color) !important;
+    }
+
+    .stat-number.risk-medium {
+        color: var(--warning-color) !important;
+    }
+
+    .stat-number.risk-low {
+        color: var(--success-color) !important;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+    /* Article of the day */
+    .article-of-day {
+        background: var(--card-gradient);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(20px);
+        margin-bottom: 2rem;
+    }
+
+    .article-hero-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        filter: brightness(0.8);
+        transition: var(--transition);
+    }
+
+    .article-of-day:hover .article-hero-image {
+        filter: brightness(1);
+        transform: scale(1.05);
+    }
+
+    .article-content {
+        padding: 2rem;
+        position: relative;
+    }
+
+    .risk-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(10px);
+        background: rgba(0, 0, 0, 0.7);
+        border: 2px solid transparent;
+    }
+
+    .risk-critical {
+        color: #ff3333;
+        border-color: #ff3333;
+        background: rgba(255, 51, 51, 0.1);
+        text-shadow: 0 0 10px rgba(255, 51, 51, 0.8);
+    }
+
+    .risk-high {
+        color: #ff4757;
+        border-color: #ff4757;
+        background: rgba(255, 71, 87, 0.1);
+        text-shadow: 0 0 8px rgba(255, 71, 87, 0.6);
+    }
+
+    .risk-medium {
+        color: #ffa502;
+        border-color: #ffa502;
+        background: rgba(255, 165, 2, 0.1);
+        text-shadow: 0 0 8px rgba(255, 165, 2, 0.6);
+    }
+
+    .risk-low {
+        color: #2ed573;
+        border-color: #2ed573;
+        background: rgba(46, 213, 115, 0.1);
+        text-shadow: 0 0 8px rgba(46, 213, 115, 0.6);
+    }
+
+    /* Table styling */
+    .modern-table {
+        background: var(--card-gradient);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        backdrop-filter: blur(20px);
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .table-responsive {
+        border-radius: 20px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        max-height: 600px;
+        margin-bottom: 0;
+    }
+
+    .modern-table th {
+        background: rgba(102, 126, 234, 0.1);
+        border: none;
+        color: var(--text-primary);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        padding: 1.5rem 1rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+
+    .modern-table td {
+        border: none;
+        color: var(--text-secondary);
+        padding: 1.5rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        background: transparent !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+    .modern-table td.article-title {
+        max-width: 300px;
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.4;
+    }
+
+    .modern-table tbody tr:hover {
+        background: rgba(102, 126, 234, 0.1) !important;
+        transform: scale(1.01);
+        transition: var(--transition);
+    }
+
+    /* Article table specific styles */
+    .article-image {
+        width: 60px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 1rem;
+    }
+
+    .article-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .source-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .source-link:hover {
+        color: var(--accent-color);
+        text-decoration: underline;
+    }
+
+    /* Fix margins and spacing */
+    .container {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .glass-card .card-header {
+        background: transparent !important;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem 2rem;
+    }
+
+    .glass-card .card-body {
+        padding: 2rem;
+    }
+
+    /* Language badges with flags */
+    .language-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(10px);
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 45px;
+        height: 30px;
+    }
+
+    /* Flag emojis for languages */
+    .lang-es::before { content: "🇪🇸"; margin-right: 4px; }
+    .lang-en::before { content: "🇺🇸"; margin-right: 4px; }
+    .lang-fr::before { content: "🇫🇷"; margin-right: 4px; }
+    .lang-de::before { content: "🇩🇪"; margin-right: 4px; }
+    .lang-it::before { content: "🇮🇹"; margin-right: 4px; }
+    .lang-ru::before { content: "🇷🇺"; margin-right: 4px; }
+    .lang-zh::before { content: "🇨🇳"; margin-right: 4px; }
+    .lang-ja::before { content: "🇯🇵"; margin-right: 4px; }
+    .lang-ko::before { content: "🇰🇷"; margin-right: 4px; }
+    .lang-ar::before { content: "🇸🇦"; margin-right: 4px; }
+    .lang-pt::before { content: "🇵🇹"; margin-right: 4px; }
+    .lang-nl::before { content: "🇳🇱"; margin-right: 4px; }
+    .lang-unknown::before { content: "🌐"; margin-right: 4px; }
+
+    .lang-es {
+        background: linear-gradient(45deg, #ff9a9e, #fecfef);
+        color: #4a4a4a;
+    }
+
+    .lang-en {
+        background: linear-gradient(45deg, #a8edea, #fed6e3);
+        color: #4a4a4a;
+    }
+
+    .lang-fr {
+        background: linear-gradient(45deg, #ffecd2, #fcb69f);
+        color: #4a4a4a;
+    }
+
+    .lang-de {
+        background: linear-gradient(45deg, #fbc2eb, #a6c1ee);
+        color: #4a4a4a;
+    }
+
+    .lang-it {
+        background: linear-gradient(45deg, #ffecd2, #fcb69f);
+        color: #4a4a4a;
+    }
+
+    .lang-ru {
+        background: linear-gradient(45deg, #ffeaa7, #fab1a0);
+        color: #4a4a4a;
+    }
+
+    .lang-zh {
+        background: linear-gradient(45deg, #fd79a8, #fdcb6e);
+        color: #4a4a4a;
+    }
+
+    .lang-ja {
+        background: linear-gradient(45deg, #e17055, #fab1a0);
+        color: #fff;
+    }
+
+    .lang-ko {
+        background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+        color: #fff;
+    }
+
+    .lang-ar {
+        background: linear-gradient(45deg, #00b894, #00cec9);
+        color: #fff;
+    }
+
+    .lang-pt {
+        background: linear-gradient(45deg, #fdcb6e, #e17055);
+        color: #4a4a4a;
+    }
+
+    .lang-nl {
+        background: linear-gradient(45deg, #fd79a8, #a29bfe);
+        color: #fff;
+    }
+
+    .lang-unknown {
+        background: linear-gradient(45deg, #b2bec3, #ddd);
+        color: #4a4a4a;
+    }
+
+    /* Clickable article titles */
+    .article-title-link {
+        color: var(--primary-color) !important;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .article-title-link:hover {
+        color: #06b6d4 !important;
+        text-decoration: underline;
+        transform: translateX(2px);
+    }
+
+    /* Progress bars */
+    .custom-progress {
+        height: 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .custom-progress-bar {
+        height: 100%;
+        border-radius: 10px;
+        background: var(--primary-gradient);
+        transition: width 0.8s ease;
+        position: relative;
+    }
+
+    .custom-progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    /* Loading states */
+    .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(102, 126, 234, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary-color);
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Animations */
+    .fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive */
+    /* Advanced Mode Styling */
+    body.advanced-mode {
+        background: linear-gradient(135deg, #0c1618 0%, #1a2f35 100%);
+    }
+    
+    body.advanced-mode .stat-card {
+        background: linear-gradient(145deg, #1e3a42 0%, #0f2027 100%);
+        border: 1px solid #00ff41;
+        box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+    }
+    
+    body.advanced-mode .btn-outline-primary {
+        border-color: #00ff41;
+        color: #00ff41;
+    }
+    
+    body.advanced-mode .btn-outline-primary:hover {
+        background-color: #00ff41;
+        color: #000;
+    }
+    
+    body.advanced-mode .navbar {
+        background: linear-gradient(90deg, #1a2f35 0%, #0f2027 100%) !important;
+        border-bottom: 2px solid #00ff41;
+    }
+    
+    body.advanced-mode .table-dark {
+        background-color: rgba(26, 47, 53, 0.8);
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+        
+        .article-hero-image {
+            height: 200px;
+        }
+        
+        .article-content {
+            padding: 1.5rem;
+        }
+        
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .stat-card {
+            padding: 1.5rem;
+            margin: 0.25rem 0;
+        }
+        
+        .glass-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .glass-card .card-header {
+            padding: 1rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stat-number {
+            font-size: 1.8rem;
+        }
+        
+        .stat-card {
+            padding: 1rem;
+        }
+        
+        .container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+    
+    /* Alert Cards Styles */
+    .alert-card {
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid;
+        transition: var(--transition);
+        background: var(--card-bg);
+    }
+
+    .alert-critical {
+        border-color: #dc2626;
+        background: rgba(220, 38, 38, 0.1);
+    }
+
+    .alert-high {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .alert-medium {
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+    }
+
+    .alert-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .alert-icon {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        opacity: 0.8;
+    }
+
+    /* AI Analysis Article Styles */
+    .ai-analysis-article {
+        background: var(--card-gradient);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(20px);
+    }
+
+    .article-headline {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+
+    .article-subtitle {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--secondary-color);
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .article-paragraph {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin: 1rem 0;
+    }
+
+    .article-list {
+        margin: 1rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .article-list li {
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    /* Table styling */
+    .modern-table {
+        background: var(--card-gradient);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        backdrop-filter: blur(20px);
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .table-responsive {
+        border-radius: 20px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        max-height: 600px;
+        margin-bottom: 0;
+    }
+
+    .modern-table th {
+        background: rgba(102, 126, 234, 0.1);
+        border: none;
+        color: var(--text-primary);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        padding: 1.5rem 1rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+
+    .modern-table td {
+        border: none;
+        color: var(--text-secondary);
+        padding: 1.5rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        background: transparent !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+    .modern-table td.article-title {
+        max-width: 300px;
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.4;
+    }
+
+    .modern-table tbody tr:hover {
+        background: rgba(102, 126, 234, 0.1) !important;
+        transform: scale(1.01);
+        transition: var(--transition);
+    }
+
+    /* Article table specific styles */
+    .article-image {
+        width: 60px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 1rem;
+    }
+
+    .article-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .source-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .source-link:hover {
+        color: var(--accent-color);
+        text-decoration: underline;
+    }
+
+    /* Fix margins and spacing */
+    .container {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .glass-card .card-header {
+        background: transparent !important;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem 2rem;
+    }
+
+    .glass-card .card-body {
+        padding: 2rem;
+    }
+
+    /* Language badges with flags */
+    .language-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(10px);
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 45px;
+        height: 30px;
+    }
+
+    /* Flag emojis for languages */
+    .lang-es::before { content: "🇪🇸"; margin-right: 4px; }
+    .lang-en::before { content: "🇺🇸"; margin-right: 4px; }
+    .lang-fr::before { content: "🇫🇷"; margin-right: 4px; }
+    .lang-de::before { content: "🇩🇪"; margin-right: 4px; }
+    .lang-it::before { content: "🇮🇹"; margin-right: 4px; }
+    .lang-ru::before { content: "🇷🇺"; margin-right: 4px; }
+    .lang-zh::before { content: "🇨🇳"; margin-right: 4px; }
+    .lang-ja::before { content: "🇯🇵"; margin-right: 4px; }
+    .lang-ko::before { content: "🇰🇷"; margin-right: 4px; }
+    .lang-ar::before { content: "🇸🇦"; margin-right: 4px; }
+    .lang-pt::before { content: "🇵🇹"; margin-right: 4px; }
+    .lang-nl::before { content: "🇳🇱"; margin-right: 4px; }
+    .lang-unknown::before { content: "🌐"; margin-right: 4px; }
+
+    .lang-es {
+        background: linear-gradient(45deg, #ff9a9e, #fecfef);
+        color: #4a4a4a;
+    }
+
+    .lang-en {
+        background: linear-gradient(45deg, #a8edea, #fed6e3);
+        color: #4a4a4a;
+    }
+
+    .lang-fr {
+        background: linear-gradient(45deg, #ffecd2, #fcb69f);
+        color: #4a4a4a;
+    }
+
+    .lang-de {
+        background: linear-gradient(45deg, #fbc2eb, #a6c1ee);
+        color: #4a4a4a;
+    }
+
+    .lang-it {
+        background: linear-gradient(45deg, #ffecd2, #fcb69f);
+        color: #4a4a4a;
+    }
+
+    .lang-ru {
+        background: linear-gradient(45deg, #ffeaa7, #fab1a0);
+        color: #4a4a4a;
+    }
+
+    .lang-zh {
+        background: linear-gradient(45deg, #fd79a8, #fdcb6e);
+        color: #4a4a4a;
+    }
+
+    .lang-ja {
+        background: linear-gradient(45deg, #e17055, #fab1a0);
+        color: #fff;
+    }
+
+    .lang-ko {
+        background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+        color: #fff;
+    }
+
+    .lang-ar {
+        background: linear-gradient(45deg, #00b894, #00cec9);
+        color: #fff;
+    }
+
+    .lang-pt {
+        background: linear-gradient(45deg, #fdcb6e, #e17055);
+        color: #4a4a4a;
+    }
+
+    .lang-nl {
+        background: linear-gradient(45deg, #fd79a8, #a29bfe);
+        color: #fff;
+    }
+
+    .lang-unknown {
+        background: linear-gradient(45deg, #b2bec3, #ddd);
+        color: #4a4a4a;
+    }
+
+    /* Clickable article titles */
+    .article-title-link {
+        color: var(--primary-color) !important;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .article-title-link:hover {
+        color: #06b6d4 !important;
+        text-decoration: underline;
+        transform: translateX(2px);
+    }
+
+    /* Progress bars */
+    .custom-progress {
+        height: 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .custom-progress-bar {
+        height: 100%;
+        border-radius: 10px;
+        background: var(--primary-gradient);
+        transition: width 0.8s ease;
+        position: relative;
+    }
+
+    .custom-progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    /* Loading states */
+    .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(102, 126, 234, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary-color);
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Animations */
+    .fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive */
+    /* Advanced Mode Styling */
+    body.advanced-mode {
+        background: linear-gradient(135deg, #0c1618 0%, #1a2f35 100%);
+    }
+    
+    body.advanced-mode .stat-card {
+        background: linear-gradient(145deg, #1e3a42 0%, #0f2027 100%);
+        border: 1px solid #00ff41;
+        box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+    }
+    
+    body.advanced-mode .btn-outline-primary {
+        border-color: #00ff41;
+        color: #00ff41;
+    }
+    
+    body.advanced-mode .btn-outline-primary:hover {
+        background-color: #00ff41;
+        color: #000;
+    }
+    
+    body.advanced-mode .navbar {
+        background: linear-gradient(90deg, #1a2f35 0%, #0f2027 100%) !important;
+        border-bottom: 2px solid #00ff41;
+    }
+    
+    body.advanced-mode .table-dark {
+        background-color: rgba(26, 47, 53, 0.8);
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+        
+        .article-hero-image {
+            height: 200px;
+        }
+        
+        .article-content {
+            padding: 1.5rem;
+        }
+        
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .stat-card {
+            padding: 1.5rem;
+            margin: 0.25rem 0;
+        }
+        
+        .glass-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .glass-card .card-header {
+            padding: 1rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stat-number {
+            font-size: 1.8rem;
+        }
+        
+        .stat-card {
+            padding: 1rem;
+        }
+        
+        .container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+    
+    /* Alert Cards Styles */
+    .alert-card {
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid;
+        transition: var(--transition);
+        background: var(--card-bg);
+    }
+
+    .alert-critical {
+        border-color: #dc2626;
+        background: rgba(220, 38, 38, 0.1);
+    }
+
+    .alert-high {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .alert-medium {
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+    }
+
+    .alert-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .alert-icon {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        opacity: 0.8;
+    }
+
+    /* AI Analysis Article Styles */
+    .ai-analysis-article {
+        background: var(--card-gradient);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(20px);
+    }
+
+    .article-headline {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+
+    .article-subtitle {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--secondary-color);
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .article-paragraph {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin: 1rem 0;
+    }
+
+    .article-list {
+        margin: 1rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .article-list li {
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    /* Table styling */
+    .modern-table {
+        background: var(--card-gradient);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        backdrop-filter: blur(20px);
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .table-responsive {
+        border-radius: 20px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        max-height: 600px;
+        margin-bottom: 0;
+    }
+
+    .modern-table th {
+        background: rgba(102, 126, 234, 0.1);
+        border: none;
+        color: var(--text-primary);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        padding: 1.5rem 1rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+
+    .modern-table td {
+        border: none;
+        color: var(--text-secondary);
+        padding: 1.5rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        background: transparent !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+    .modern-table td.article-title {
+        max-width: 300px;
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.4;
+    }
+
+    .modern-table tbody tr:hover {
+        background: rgba(102, 126, 234, 0.1) !important;
+        transform: scale(1.01);
+        transition: var(--transition);
+    }
+
+    /* Article table specific styles */
+    .article-image {
+        width: 60px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 1rem;
+    }
+
+    .article-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .source-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .source-link:hover {
+        color: var(--accent-color);
+        text-decoration: underline;
+    }
+
+    /* Fix margins and spacing */
+    .container {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .glass-card .card-header {
+        background: transparent !important;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem 2rem;
+    }
+
+    .glass-card .card-body {
+        padding: 2rem;
+    }
+
+    /* Language badges with flags */
+    .language-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(10px);
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 45px;
+        height: 30px;
+    }
+
+    /* Flag emojis for languages */
+    .lang-es::before { content: "🇪🇸"; margin-right: 4px; }
+    .lang-en::before { content: "🇺🇸"; margin-right: 4px; }
+    .lang-fr::before { content: "🇫🇷"; margin-right: 4px; }
+    .lang-de::before { content: "🇩🇪"; margin-right: 4px; }
+    .lang-it::before { content: "🇮🇹"; margin-right: 4px; }
+    .lang-ru::before { content: "🇷🇺"; margin-right: 4px; }
+    .lang-zh::before { content: "🇨🇳"; margin-right: 4px; }
+    .lang-ja::before { content: "🇯🇵"; margin-right: 4px; }
+    .lang-ko::before { content: "🇰🇷"; margin-right: 4px; }
+    .lang-ar::before { content: "🇸🇦"; margin-right: 4px; }
+    .lang-pt::before { content: "🇵🇹"; margin-right: 4px; }
+    .lang-nl::before { content: "🇳🇱"; margin-right: 4px; }
+    .lang-unknown::before { content: "🌐"; margin-right: 4px; }
+
+    .lang-es {
+        background: linear-gradient(45deg, #ff9a9e, #fecfef);
+        color: #4a4a4a;
+    }
+
+    .lang-en {
+        background: linear-gradient(45deg, #a8edea, #fed6e3);
+        color: #4a4a4a;
+    }
+
+    .lang-fr {
+        background: linear-gradient(45deg, #ffecd2, #fcb69f);
+        color: #4a4a4a;
+    }
+
+    .lang-de {
+        background: linear-gradient(45deg, #fbc2eb, #a6c1ee);
+        color: #4a4a4a;
+    }
+
+    .lang-it {
+        background: linear-gradient(45deg, #ffecd2, #fcb69f);
+        color: #4a4a4a;
+    }
+
+    .lang-ru {
+        background: linear-gradient(45deg, #ffeaa7, #fab1a0);
+        color: #4a4a4a;
+    }
+
+    .lang-zh {
+        background: linear-gradient(45deg, #fd79a8, #fdcb6e);
+        color: #4a4a4a;
+    }
+
+    .lang-ja {
+        background: linear-gradient(45deg, #e17055, #fab1a0);
+        color: #fff;
+    }
+
+    .lang-ko {
+        background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+        color: #fff;
+    }
+
+    .lang-ar {
+        background: linear-gradient(45deg, #00b894, #00cec9);
+        color: #fff;
+    }
+
+    .lang-pt {
+        background: linear-gradient(45deg, #fdcb6e, #e17055);
+        color: #4a4a4a;
+    }
+
+    .lang-nl {
+        background: linear-gradient(45deg, #fd79a8, #a29bfe);
+        color: #fff;
+    }
+
+    .lang-unknown {
+        background: linear-gradient(45deg, #b2bec3, #ddd);
+        color: #4a4a4a;
+    }
+
+    /* Clickable article titles */
+    .article-title-link {
+        color: var(--primary-color) !important;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .article-title-link:hover {
+        color: #06b6d4 !important;
+        text-decoration: underline;
+        transform: translateX(2px);
+    }
+
+    /* Progress bars */
+    .custom-progress {
+        height: 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .custom-progress-bar {
+        height: 100%;
+        border-radius: 10px;
+        background: var(--primary-gradient);
+        transition: width 0.8s ease;
+        position: relative;
+    }
+
+    .custom-progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    /* Loading states */
+    .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(102, 126, 234, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary-color);
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Animations */
+    .fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive */
+    /* Advanced Mode Styling */
+    body.advanced-mode {
+        background: linear-gradient(135deg, #0c1618 0%, #1a2f35 100%);
+    }
+    
+    body.advanced-mode .stat-card {
+        background: linear-gradient(145deg, #1e3a42 0%, #0f2027 100%);
+        border: 1px solid #00ff41;
+        box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+    }
+    
+    body.advanced-mode .btn-outline-primary {
+        border-color: #00ff41;
+        color: #00ff41;
+    }
+    
+    body.advanced-mode .btn-outline-primary:hover {
+        background-color: #00ff41;
+        color: #000;
+    }
+    
+    body.advanced-mode .navbar {
+        background: linear-gradient(90deg, #1a2f35 0%, #0f2027 100%) !important;
+        border-bottom: 2px solid #00ff41;
+    }
+    
+    body.advanced-mode .table-dark {
+        background-color: rgba(26, 47, 53, 0.8);
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+        
+        .article-hero-image {
+            height: 200px;
+        }
+        
+        .article-content {
+            padding: 1.5rem;
+        }
+        
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .stat-card {
+            padding: 1.5rem;
+            margin: 0.25rem 0;
+        }
+        
+        .glass-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .glass-card .card-header {
+            padding: 1rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stat-number {
+            font-size: 1.8rem;
+        }
+        
+        .stat-card {
+            padding: 1rem;
+        }
+        
+        .container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+    
+    /* Alert Cards Styles */
+    .alert-card {
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid;
+        transition: var(--transition);
+        background: var(--card-bg);
+    }
+
+    .alert-critical {
+        border-color: #dc2626;
+        background: rgba(220, 38, 38, 0.1);
+    }
+
+    .alert-high {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .alert-medium {
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+    }
+
+    .alert-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .alert-icon {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        opacity: 0.8;
+    }
+
+    /* AI Analysis Article Styles */
+    .ai-analysis-article {
+        background: var(--card-gradient);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(20px);
+    }
+
+    .article-headline {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+
+    .article-subtitle {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--secondary-color);
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .article-paragraph {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin: 1rem 0;
+    }
+
+    .article-list {
+        margin: 1rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .article-list li {
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    /* Table styling */
+    .modern-table {
+        background: var(--card-gradient);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        backdrop-filter: blur(20px);
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .table-responsive {
+        border-radius: 20px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        max-height: 600px;
+        margin-bottom: 0;
+    }
+
+    .modern-table th {
+        background: rgba(102, 126, 234, 0.1);
+        border: none;
+        color: var(--text-primary);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        padding: 1.5rem 1rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+
+    .modern-table td {
+        border: none;
+        color: var(--text-secondary);
+        padding: 1.5rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        background: transparent !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+    .modern-table td.article-title {
+        max-width: 300px;
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.4;
+    }
+
+    .modern-table tbody tr:hover {
+        background: rgba(102, 126, 234, 0.1) !important;
+        transform: scale(1.01);
+        transition: var(--transition);
+    }
+
+    /* Article table specific styles */
+    .article-image {
+        width: 60px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 1rem;
+    }
+
+    .article-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .source-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .source-link:hover {
+        color: var(--accent-color);
+        text-decoration: underline;
+    }
+
+    /* Fix margins and spacing */
+    .container {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .glass-card .card-header {
+        background: transparent !important;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem 2rem;
+    }
+
+    .glass-card .card-body {
+        padding: 2rem;
+    }
+
+    /* Language badges with flags */
+    .language-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(10px);
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 45px;
+        height: 30px;
+    }
+
+    /* Flag emojis for languages */
+    .lang-es::before { content: "🇪🇸"; margin-right: 4px; }
+    .lang-en::before { content: "🇺🇸"; margin-right: 4px; }
+    .lang-fr::before { content: "🇫🇷"; margin-right: 4px; }
+    .lang-de::before { content: "🇩🇪"; margin-right: 4px; }
+    .lang-it::before { content: "🇮🇹"; margin-right: 4px; }
+    .lang-ru::before { content: "🇷🇺"; margin-right: 4px; }
+    .lang-zh::before { content: "🇨🇳"; margin-right: 4px; }
+    .lang-ja::before { content: "🇯🇵"; margin-right: 4px; }
+    .lang-ko::before { content: "🇰🇷"; margin-right: 4px; }
+    .lang-ar::before { content: "🇸🇦"; margin-right: 4px; }
+    .lang-pt::before { content: "🇵🇹"; margin-right: 4px; }
+    .lang-nl::before { content: "🇳🇱"; margin-right: 4px; }
+    .lang-unknown::before { content: "🌐"; margin-right: 4px; }
+
+    .lang-es {
+        background: linear-gradient(45deg, #ff9a9e, #fecfef);
+        color: #4a4a4a;
+    }
+
+    .lang-en {
+        background: linear-gradient(45deg, #a8edea, #fed6e3);
+        color: #4a4a4a;
+    }
+
+    .lang-fr {
+        background: linear-gradient(45deg, #ffecd2, #fcb69f);
+        color: #4a4a4a;
+    }
+
+    .lang-de {
+        background: linear-gradient(45deg, #fbc2eb, #a6c1ee);
+        color: #4a4a4a;
+    }
+
+    .lang-it {
+        background: linear-gradient(45deg, #ffecd2, #fcb69f);
+        color: #4a4a4a;
+    }
+
+    .lang-ru {
+        background: linear-gradient(45deg, #ffeaa7, #fab1a0);
+        color: #4a4a4a;
+    }
+
+    .lang-zh {
+        background: linear-gradient(45deg, #fd79a8, #fdcb6e);
+        color: #4a4a4a;
+    }
+
+    .lang-ja {
+        background: linear-gradient(45deg, #e17055, #fab1a0);
+        color: #fff;
+    }
+
+    .lang-ko {
+        background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+        color: #fff;
+    }
+
+    .lang-ar {
+        background: linear-gradient(45deg, #00b894, #00cec9);
+        color: #fff;
+    }
+
+    .lang-pt {
+        background: linear-gradient(45deg, #fdcb6e, #e17055);
+        color: #4a4a4a;
+    }
+
+    .lang-nl {
+        background: linear-gradient(45deg, #fd79a8, #a29bfe);
+        color: #fff;
+    }
+
+    .lang-unknown {
+        background: linear-gradient(45deg, #b2bec3, #ddd);
+        color: #4a4a4a;
+    }
+
+    /* Clickable article titles */
+    .article-title-link {
+        color: var(--primary-color) !important;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .article-title-link:hover {
+        color: #06b6d4 !important;
+        text-decoration: underline;
+        transform: translateX(2px);
+    }
+
+    /* Progress bars */
+    .custom-progress {
+        height: 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .custom-progress-bar {
+        height: 100%;
+        border-radius: 10px;
+        background: var(--primary-gradient);
+        transition: width 0.8s ease;
+        position: relative;
+    }
+
+    .custom-progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    /* Loading states */
+    .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(102, 126, 234, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary-color);
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Animations */
+    .fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive */
+    /* Advanced Mode Styling */
+    body.advanced-mode {
+        background: linear-gradient(135deg, #0c1618 0%, #1a2f35 100%);
+    }
+    
+    body.advanced-mode .stat-card {
+        background: linear-gradient(145deg, #1e3a42 0%, #0f2027 100%);
+        border: 1px solid #00ff41;
+        box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+    }
+    
+    body.advanced-mode .btn-outline-primary {
+        border-color: #00ff41;
+        color: #00ff41;
+    }
+    
+    body.advanced-mode .btn-outline-primary:hover {
+        background-color: #00ff41;
+        color: #000;
+    }
+    
+    body.advanced-mode .navbar {
+        background: linear-gradient(90deg, #1a2f35 0%, #0f2027 100%) !important;
+        border-bottom: 2px solid #00ff41;
+    }
+    
+    body.advanced-mode .table-dark {
+        background-color: rgba(26, 47, 53, 0.8);
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+        
+        .article-hero-image {
+            height: 200px;
+        }
+        
+        .article-content {
+            padding: 1.5rem;
+        }
+        
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .stat-card {
+            padding: 1.5rem;
+            margin: 0.25rem 0;
+        }
+        
+        .glass-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .glass-card .card-header {
+            padding: 1rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stat-number {
+            font-size: 1.8rem;
+        }
+        
+        .stat-card {
+            padding: 1rem;
+        }
+        
+        .container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+    
+    /* Alert Cards Styles */
+    .alert-card {
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border-color);
+    }
+ 
+    /* Section Headers with Dot Matrix Icons */
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 2rem 0;
+        border-bottom: 2px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .section-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        opacity: 0.1;
+        z-index: 0;
+    }
+
+    .dot-matrix-icon {
+        width: 80px;
+        height: 80px;
+        margin-right: 2rem;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        backdrop-filter: blur(20px);
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    .dot-matrix-icon::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 20% 20%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 40% 20%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 60% 20%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 80% 20%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 20% 40%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 40% 40%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 60% 40%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 80% 40%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 20% 60%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 40% 60%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 60% 60%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 80% 60%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 20% 80%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 40% 80%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 60% 80%, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 80% 80%, currentColor 2px, transparent 2px);
+        background-size: 20px 20px;
+        opacity: 0.3;
+        animation: dotMatrixPulse 3s ease-in-out infinite;
+    }
+
+    .dot-matrix-icon i {
+        font-size: 2.5rem;
+        z-index: 2;
+        position: relative;
+        text-shadow: 0 0 20px currentColor;
+    }
+
+    @keyframes dotMatrixPulse {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.05); }
+    }
+
+    .section-title {
+        z-index: 1;
+        position: relative;
+    }
+
+    .section-title h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        background: linear-gradient(135deg, var(--text-primary), var(--primary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .section-title p {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin: 0.5rem 0 0 0;
+        line-height: 1.4;
+    }
+
+    /* Color variations for different sections */
+    .section-header.news-analysis .dot-matrix-icon {
+        color: #667eea;
+        background: linear-gradient(145deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.1));
+        border: 1px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .section-header.satellite-analysis .dot-matrix-icon {
+        color: #00ffff;
+        background: linear-gradient(145deg, rgba(0, 255, 255, 0.2), rgba(0, 153, 204, 0.1));
+        border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+
+    .section-header.video-surveillance .dot-matrix-icon {
+        color: #ff0000;
+        background: linear-gradient(145deg, rgba(255, 0, 0, 0.2), rgba(204, 0, 0, 0.1));
+        border: 1px solid rgba(255, 0, 0, 0.3);
+    }
+
+    .section-header.historical-analysis .dot-matrix-icon {
+        color: #8b4513;
+        background: linear-gradient(145deg, rgba(139, 69, 19, 0.2), rgba(160, 82, 45, 0.1));
+        border: 1px solid rgba(139, 69, 19, 0.3);
+    }
+
+    /* Ensure all sections have proper glass card styling */
+    .section-container {
+        background: var(--card-gradient);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        box-shadow: var(--shadow-lg);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .section-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        opacity: 0.5;
+    }
+
+    .section-container:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--primary-color);
+    }
+
+    .section-content {
+        padding: 2rem;
+    }
+
+    /* Responsive adjustments for section headers */
+    @media (max-width: 768px) {
+        .section-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.5rem 0;
+        }
+
+        .dot-matrix-icon {
+            margin-right: 0;
+            margin-bottom: 1rem;
+            width: 60px;
+            height: 60px;
+        }
+
+        .dot-matrix-icon i {
+            font-size: 2rem;
+        }
+
+        .section-title h2 {
+            font-size: 2rem;
+        }
+
+        .section-title p {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .section-header {
+            padding: 1rem 0;
+        }
+
+        .dot-matrix-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .dot-matrix-icon i {
+            font-size: 1.5rem;
+        }
+
+        .section-title h2 {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+    <script>
+    // Pre-rendered data from server (NO AJAX NEEDED!)
+    const heatmapData = {{ data.heatmap_data | tojson | safe }};
+    const aiAnalysis = {{ data.ai_analysis | tojson | safe }};
+    const articlesData = {{ data.articles_data | tojson | safe }};
+    const highRiskArticles = {{ data.high_risk_articles | tojson | safe }};
+    
+    console.log('✅ Dashboard loaded with pre-rendered data!');
+    console.log('� Heatmap points:', heatmapData.length);
+    console.log('📰 Articles loaded:', articlesData.length);
+    console.log('🔥 High-risk articles:', highRiskArticles.length);
+    
+    // Now render the data directly
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Rendering pre-loaded dashboard data...');
+        
+        // Update AI analysis section if it exists
+        if (aiAnalysis && aiAnalysis.key_insights) {
+            const aiSection = document.querySelector('.ai-analysis');
+            if (aiSection) {
+                const insightsList = document.createElement('div');
+                insightsList.innerHTML = '<h3>AI Analysis</h3><ul>' + 
+                    aiAnalysis.key_insights.map(insight => '<li>' + insight + '</li>').join('') + 
+                    '</ul>';
+                aiSection.appendChild(insightsList);
+            }
+        }
+        
+        // Update articles table if it exists
+        if (articlesData && articlesData.length > 0) {
+            const articlesTable = document.querySelector('#articles-table');
+            if (articlesTable) {
+                const tbody = articlesTable.querySelector('tbody') || document.createElement('tbody');
+                tbody.innerHTML = articlesData.slice(0, 20).map(article => `
+                    <tr>
+                        <td>${article.title || 'No title'}</td>
+                        <td>${article.location || 'Unknown'}</td>
+                        <td><span class="risk-badge risk-${article.risk_score >= 7 ? 'high' : article.risk_score >= 5 ? 'medium' : 'low'}">${article.risk_score ? article.risk_score.toFixed(1) : 'N/A'}</span></td>
+                        <td>${article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Unknown'}</td>
+                    </tr>
+                `).join('');
+                if (!articlesTable.querySelector('tbody')) {
+                    articlesTable.appendChild(tbody);
+                }
+                console.log('✅ Articles table updated with', articlesData.length, 'articles');
+            }
+        }
+        
+        // Update high-risk articles if it exists
+        if (highRiskArticles && highRiskArticles.length > 0) {
+            const highRiskSection = document.querySelector('.high-risk-articles');
+            if (highRiskSection) {
+                const articlesList = document.createElement('div');
+                articlesList.innerHTML = '<h3>High-Risk Articles (' + highRiskArticles.length + ')</h3>' +
+                    '<div class="articles-grid">' + 
+                    highRiskArticles.slice(0, 6).map(article => `
+                        <div class="article-card high-risk">
+                            <h4>${article.title || 'No title'}</h4>
+                            <p>${article.summary || 'No summary available'}</p>
+                            <div class="article-meta">
+                                <span class="location">${article.location || 'Unknown'}</span>
+                                <span class="risk-score">Risk: ${article.risk_score ? article.risk_score.toFixed(1) : 'N/A'}</span>
+                            </div>
+                        </div>
+                    `).join('') +
+                    '</div>';
+                highRiskSection.appendChild(articlesList);
+            }
+        }
+        
+        console.log('🎉 Dashboard rendering complete!');
+    });
+
+// Global variables
+let currentLanguage = localStorage.getItem('selectedLanguage') || 'en';
+let translations = {};
+
+// Enhanced source detection function using AI/Groq
+function getEnhancedSourceName(article) {
+    // If we already have a good source, use it
+    if (article.source && 
+        article.source.toLowerCase() !== 'agencia internacional' && 
+        article.source.toLowerCase() !== 'fuente desconocida' &&
+        article.source.toLowerCase() !== 'rss feed' &&
+        article.source.toLowerCase() !== 'feed' &&
+        article.source.toLowerCase() !== 'rss') {
+        return article.source;
+    }
+    
+    // Try to detect from URL
+    if (article.url) {
+        const detectedFromUrl = detectSourceFromUrl(article.url);
+        if (detectedFromUrl) {
+            return detectedFromUrl;
+        }
+    }
+    
+    // Try to detect from content
+    if (article.title || article.content) {
+        const detectedFromContent = detectSourceFromContent(article.title, article.content);
+        if (detectedFromContent) {
+            return detectedFromContent;
+        }
+    }
+    
+    // Fallback to original source or default
+    return article.source || 'Fuente Internacional';
+}
+
+// Detect source from URL
+function detectSourceFromUrl(url) {
+    if (!url) return null;
+    
+    try {
+        const domain = new URL(url).hostname.toLowerCase().replace('www.', '');
+        
+        const knownSources = {
+            'elpais.com': 'El País',
+            'elmundo.es': 'El Mundo',
+            'abc.es': 'ABC',
+            'lavanguardia.com': 'La Vanguardia',
+            'elconfidencial.com': 'El Confidencial',
+            'publico.es': 'Público',
+            'rtve.es': 'RTVE',
+            'reuters.com': 'Reuters',
+            'bbc.com': 'BBC News',
+            'bbc.co.uk': 'BBC News',
+            'cnn.com': 'CNN',
+            'nytimes.com': 'The New York Times',
+            'washingtonpost.com': 'The Washington Post',
+            'theguardian.com': 'The Guardian',
+            'ft.com': 'Financial Times',
+            'wsj.com': 'Wall Street Journal',
+            'bloomberg.com': 'Bloomberg',
+            'ap.org': 'Associated Press',
+            'apnews.com': 'Associated Press',
+            'lemonde.fr': 'Le Monde',
+            'lefigaro.fr': 'Le Figaro',
+            'liberation.fr': 'Libération',
+            'spiegel.de': 'Der Spiegel',
+            'zeit.de': 'Die Zeit',
+            'faz.net': 'Frankfurter Allgemeine',
+            'corriere.it': 'Corriere della Sera',
+            'repubblica.it': 'La Repubblica',
+            'aljazeera.com': 'Al Jazeera',
+            'alarabiya.net': 'Al Arabiya',
+            'haaretz.com': 'Haaretz',
+            'scmp.com': 'South China Morning Post',
+            'japantimes.co.jp': 'The Japan Times',
+            'straitstimes.com': 'The Straits Times',
+            'rt.com': 'RT News',
+            'sputniknews.com': 'Sputnik News',
+            'tass.com': 'TASS',
+            'pravda.ru': 'Pravda',
+            'clarin.com': 'Clarín',
+            'lanacion.com.ar': 'La Nación',
+            'folha.uol.com.br': 'Folha de S.Paulo',
+            'globo.com': 'O Globo',
+            'milenio.com': 'Milenio',
+            'excelsior.com.mx': 'Excélsior',
+            'xinhuanet.com': 'Xinhua News',
+            'efe.com': 'Agencia EFE',
+            'afp.com': 'AFP',
+            'dpa.com': 'DPA',
+            'ansa.it': 'ANSA'
+        };
+        
+        return knownSources[domain] || null;
+    } catch (e) {
+        return null;
+    }
+}
+
+// Detect source from content using keywords
+function detectSourceFromContent(title, content) {
+    if (!title && !content) return null;
+    
+    const text = ((title || '') + ' ' + (content || '')).toLowerCase();
+    
+    const sourcePatterns = {
+        'Reuters': ['reuters', 'thomson reuters'],
+        'BBC News': ['bbc', 'british broadcasting corporation'],
+        'CNN': ['cnn', 'cable news network'],
+        'Associated Press': ['associated press', 'ap news'],
+        'Bloomberg': ['bloomberg'],
+        'Financial Times': ['financial times', 'ft.com'],
+        'The Guardian': ['guardian', 'theguardian'],
+        'El País': ['el país', 'elpais'],
+        'Le Monde': ['le monde'],
+        'Der Spiegel': ['der spiegel', 'spiegel'],
+        'Al Jazeera': ['al jazeera', 'aljazeera'],
+        'Xinhua News': ['xinhua'],
+        'TASS': ['tass'],
+        'RT News': ['russia today', 'rt news'],
+        'Agencia EFE': ['agencia efe', 'efe'],
+        'AFP': ['agence france-presse', 'afp'],
+        'DPA': ['deutsche presse-agentur', 'dpa'],
+        'ANSA': ['agenzia nazionale stampa associata', 'ansa']
+    };
+    
+    for (const [source, patterns] of Object.entries(sourcePatterns)) {
+        if (patterns.some(pattern => text.includes(pattern))) {
+            return source;
+        }
+    }
+    
+    return null;
+}
+
+// Article of the Day JavaScript Functions
+function updateArticleOfDay() {
+    const tbody = document.getElementById('articles-table-body');
+    if (!tbody) {
+        console.error('❌ articles-table-body element not found');
+        return;
+    }
+    
+    if (articlesData.length === 0) {
+        console.log('⚠️ No articles to display');
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="color: var(--text-color-secondary);">No articles found.</td></tr>';
+        return;
+    }
+
+    const html = articlesData.slice(0, 10).map(article => {
+        // Función para obtener el color del riesgo
+        const getRiskColor = (risk) => {
+            switch(risk?.toLowerCase()) {
+                case 'critical': return '#ff3333';
+                case 'high': return '#ff4757';
+                case 'medium': return '#ffa502';
+                case 'low': return '#2ed573';
+                default: return '#6c7293';
+            }
+        };
+
+        // Función para abrir artículo
+        const articleUrl = article.url || '#';
+        const titleClick = articleUrl !== '#' ? `onclick="window.open('${articleUrl}', '_blank')"` : '';
+
+        return `
+        <tr>
+            <td>
+                <div style="max-width: 300px;">
+                    <div class="fw-semibold article-title-link mb-1" style="font-size: 0.9rem; line-height: 1.3; cursor: pointer;" ${titleClick}>
+                        ${article.title && article.title.length > 80 ? article.title.substring(0, 80) + '...' : (article.title || 'Sin título')}
+                    </div>
+                    ${article.content ? `<small style="color: #87ceeb;">${article.content.substring(0, 100)}...</small>` : ''}
+                </div>
+            </td>
+            <td>
+                <span class="text-secondary">${getEnhancedSourceName(article)}</span>
+            </td>
+            <td>
+                <span class="language-badge lang-${article.language || 'unknown'}"></span>
+            </td>
+            <td>
+                <span style="color: ${getRiskColor(article.risk_level)}; font-weight: 600; font-size: 0.85rem;">
+                    ${article.risk_level || 'N/A'}
+                </span>
+            </td>
+            <td>
+                <span style="color: var(--text-secondary); font-size: 0.85rem;">
+                    ${article.conflict_type || 'N/A'}
+                </span>
+            </td>
+            <td>
+                <small class="text-muted">${article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Sin fecha'}</small>
+            </td>
+        </tr>
+        `;
+    }).join('');
+
+    tbody.innerHTML = html;
+    console.log('✅ Articles table updated successfully with', articlesData.slice(0, 10).length, 'rows');
+}
+
+// Variables para filtrado y ordenamiento
+let filteredArticlesData = [];
+
+// Filtrar y ordenar artículos
+function filterAndSortArticles() {
+    const riskFilter = document.getElementById('risk-filter').value;
+    const sourceFilter = document.getElementById('source-filter').value;
+    const sortFilter = document.getElementById('sort-filter').value;
+    
+    // Filtrar datos
+    filteredArticlesData = articlesData.filter(article => {
+        let passRiskFilter = !riskFilter || (article.risk_level && article.risk_level.toLowerCase() === riskFilter);
+        let passSourceFilter = !sourceFilter || (article.source && article.source.toLowerCase().includes(sourceFilter.toLowerCase()));
+        return passRiskFilter && passSourceFilter;
+    });
+    
+    // Ordenar datos
+    filteredArticlesData.sort((a, b) => {
+        switch(sortFilter) {
+            case 'published_at_desc':
+                return new Date(b.published_at || b.created_at) - new Date(a.published_at || a.created_at);
+            case 'published_at_asc':
+                return new Date(a.published_at || a.created_at) - new Date(b.published_at || b.created_at);
+            case 'risk_desc':
+                const riskOrder = {'high': 3, 'medium': 2, 'low': 1};
+                return (riskOrder[b.risk_level?.toLowerCase()] || 0) - (riskOrder[a.risk_level?.toLowerCase()] || 0);
+            case 'risk_asc':
+                const riskOrderAsc = {'high': 3, 'medium': 2, 'low': 1};
+                return (riskOrderAsc[a.risk_level?.toLowerCase()] || 0) - (riskOrderAsc[b.risk_level?.toLowerCase()] || 0);
+            case 'source_asc':
+                return (a.source || '').localeCompare(b.source || '');
+            case 'source_desc':
+                return (b.source || '').localeCompare(a.source || '');
+            default:
+                return 0;
+        }
+    });
+    
+    // Actualizar tabla con datos filtrados
+    updateFilteredArticlesTable();
+}
+
+// Actualizar tabla con datos filtrados
+function updateFilteredArticlesTable() {
+    const tbody = document.getElementById('articles-table-body');
+    if (!tbody) return;
+
+    if (filteredArticlesData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No se encontraron artículos con los filtros aplicados</td></tr>';
+        return;
+    }
+
+    const html = filteredArticlesData.slice(0, 20).map(article => {
+        const summary = article.ai_summary || article.summary || 'No summary available';
+        const shortSummary = summary.length > 100 ? summary.substring(0, 100) + '...' : summary;
+        const riskLevel = article.risk_level || 'unknown';
+        const conflictType = article.conflict_type || 'General';
+        const publishedDate = article.published_at || article.created_at;
+        const formattedDate = publishedDate ? new Date(publishedDate).toLocaleDateString('es-ES') : 'N/A';
+        
+        let riskBadgeClass = '';
+        let riskText = '';
+        switch(riskLevel.toLowerCase()) {
+            case 'high':
+                riskBadgeClass = 'danger';
+                riskText = 'Alto';
+                break;
+            case 'medium':
+                riskBadgeClass = 'warning';
+                riskText = 'Medio';
+                break;
+            case 'low':
+                riskBadgeClass = 'success';
+                riskText = 'Bajo';
+                break;
+            default:
+                riskBadgeClass = 'secondary';
+                riskText = 'N/A';
+        }
+
+        // Función para abrir artículo
+        const articleUrl = article.url || '#';
+        const titleClick = articleUrl !== '#' ? `onclick="window.open('${articleUrl}', '_blank')"` : '';
+
+        return `
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <td>
+                <div class="d-flex align-items-center">
+                    <div>
+                        <div class="fw-semibold article-title-link mb-1" style="font-size: 0.9rem; line-height: 1.2; cursor: pointer;" ${titleClick}>
+                            ${article.title.substring(0, 80)}${article.title.length > 80 ? '...' : ''}
+                        </div>
+                        <div class="text-muted small" style="color: #b3c5ff !important; font-size: 0.8rem;">
+                            ${shortSummary}
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td style="color: var(--text-color); font-size: 0.85rem;">${article.source || 'Unknown'}</td>
+            <td style="color: var(--text-color); font-size: 0.85rem;"><span class="language-badge lang-${article.language || 'unknown'}"></span></td>
+            <td>
+                <span class="badge bg-${riskBadgeClass}" style="font-size: 0.75rem;">${riskText}</span>
+            </td>
+            <td style="color: var(--text-color); font-size: 0.85rem;">${conflictType}</td>
+            <td style="color: var(--text-color); font-size: 0.85rem;">${formattedDate}</td>
+        </tr>
+        `;
+    }).join('');
+
+    tbody.innerHTML = html;
+    console.log('✅ Filtered articles table updated with', filteredArticlesData.slice(0, 20).length, 'rows');
+}
+
+// Poblar filtro de fuentes
+function populateSourceFilter() {
+    const sourceFilter = document.getElementById('source-filter');
+    if (!sourceFilter || !articlesData) return;
+    
+    const sources = [...new Set(articlesData.map(article => article.source).filter(Boolean))].sort();
+    
+    // Limpiar opciones existentes (excepto "Todas las Fuentes")
+    sourceFilter.innerHTML = '<option value="">Todas las Fuentes</option>';
+    
+    sources.forEach(source => {
+        const option = document.createElement('option');
+        option.value = source;
+        option.textContent = source;
+        sourceFilter.appendChild(option);
+    });
+}
+
+// Configurar event listeners para filtros
+function setupFilterListeners() {
+    const riskFilter = document.getElementById('risk-filter');
+    const sourceFilter = document.getElementById('source-filter');
+    const sortFilter = document.getElementById('sort-filter');
+    
+    if (riskFilter) riskFilter.addEventListener('change', filterAndSortArticles);
+    if (sourceFilter) sourceFilter.addEventListener('change', filterAndSortArticles);
+    if (sortFilter) sortFilter.addEventListener('change', filterAndSortArticles);
+}
+
+// Refresh articles
+function refreshArticles() {
+    fetchRecentArticles();
+}
+
+// View article
+function viewArticle(url) {
+    if (url) {
+        window.open(url, '_blank');
+    }
+}
+
+// Enhanced Intelligence Dashboard for new API endpoints
+class IntelligenceDashboard {
+    constructor() {
+        this.refreshInterval = 30000;
+        this.setupEventListeners();
+        this.loadAllData();
+    }
+
+    setupEventListeners() {
+        // Map type selector
+        const mapSelectors = document.querySelectorAll('input[name="mapType"]');
+        if (mapSelectors) {
+            mapSelectors.forEach(radio => {
+                radio.addEventListener('change', () => this.updateHeatmap());
+            });
+        }
+    }
+
+    async loadAllData() {
+        try {
+            await Promise.all([
+                this.loadCriticalAlerts(),
+                this.loadTrendsAnalysis(),
+                this.loadHeatmapData()
+            ]);
+        } catch (error) {
+            console.error('Error loading enhanced dashboard data:', error);
+        }
+    }
+
+    async loadCriticalAlerts() {
+        try {
+            const response = await fetch('/api/alerts');
+            const data = await response.json();
+            this.renderCriticalAlerts(data);
+        } catch (error) {
+            console.error('Error loading alerts:', error);
+            this.renderEmptyAlerts();
+        }
+    }
+
+    async loadTrendsAnalysis() {
+        try {
+            const response = await fetch('/api/trends');
+            const data = await response.json();
+            this.renderTrendsAnalysis(data);
+        } catch (error) {
+            console.error('Error loading trends:', error);
+            this.renderEmptyTrends();
+        }
+    }
+
+    async loadHeatmapData() {
+        try {
+            const response = await fetch(`/api/heatmap?lang=${currentLanguage}`);
+            const data = await response.json();
+            this.renderHeatmap(data);
+        } catch (error) {
+            console.error('Error loading heatmap:', error);
+            this.renderEmptyHeatmap();
+        }
+    }
+
+    renderCriticalAlerts(data) {
+        const container = document.getElementById('critical-alerts-container');
+        
+        if (!container) return;
+        
+        if (!data.alerts || !data.alerts.length) {
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-shield-check text-success mb-3" style="font-size: 3rem; opacity: 0.5;"></i>
+                    <p class="text-muted mb-0">No hay alertas críticas</p>
+                    <small class="text-muted">Sistema monitoreando continuamente</small>
+                </div>
+            `;
+            return;
+        }
+
+        // Update global alerts count
+        const alertsCountEl = document.getElementById('critical-alerts-count');
+        if (alertsCountEl) {
+            alertsCountEl.textContent = data.high_priority || data.alerts.length;
+        }
+
+        const alertsHtml = data.alerts.slice(0, 5).map(alert => {
+            const alertClass = `alert-${alert.level}`;
+            const iconColor = alert.level === 'high' ? 'text-danger' : alert.level === 'medium' ? 'text-warning' : 'text-info';
+            
+            return `
+                <div class="alert-card ${alertClass} mb-3">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-${alert.icon} alert-icon ${iconColor}"></i>
+                        <div class="flex-grow-1">
+                            <h6 class="text-white mb-1">${alert.title}</h6>
+                            <p class="text-muted small mb-2">${alert.description}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-dark text-light">${alert.source}</span>
+                                <span class="text-info small">${alert.probability || 85}% confianza</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = alertsHtml;
+    }
+
+    renderTrendsAnalysis(data) {
+        // Update global risk index
+        const riskIndexEl = document.getElementById('global-risk-index');
+        if (data.global_risk_index && riskIndexEl) {
+            riskIndexEl.textContent = data.global_risk_index.toFixed(1);
+        }
+
+        // Update ML confidence
+        const mlConfidenceEl = document.getElementById('ml-confidence');
+        if (data.ai_predictions && mlConfidenceEl) {
+            mlConfidenceEl.textContent = `${data.ai_predictions.confidence || 87}%`;
+        }
+
+        // Render AI insights
+        const insightsContainer = document.getElementById('ai-insights');
+        if (insightsContainer && data.ai_predictions) {
+            insightsContainer.innerHTML = `
+                <div class="row g-2">
+                    <div class="col-12">
+                        <strong>Predicción próximos 7 días:</strong> 
+                        <span class="text-warning">${data.ai_predictions.next_7_days_risk || 55}% riesgo</span>
+                        <span class="text-muted ms-2">(${data.ai_predictions.confidence || 87}% confianza)</span>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <small class="text-muted">
+                            Factores clave: ${(data.ai_predictions.key_factors || ['Patrones militares', 'Indicadores económicos']).join(', ')}
+                        </small>
+                    </div>
+                    ${data.ml_insights ? `
+                        <div class="col-12 mt-2">
+                            <div class="d-flex gap-2 flex-wrap">
+                                ${data.ml_insights.pattern_recognition ? '<span class="badge bg-success">Reconocimiento de Patrones</span>' : ''}
+                                ${data.ml_insights.sentiment_analysis ? '<span class="badge bg-info">Análisis de Sentimientos</span>' : ''}
+                                ${data.ml_insights.predictive_modeling ? '<span class="badge bg-warning">Modelado Predictivo</span>' : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Update chart placeholders
+        this.updateTrendCharts(data);
+    }
+
+    renderHeatmap(data) {
+        const summaryContainer = document.getElementById('heatmap-summary');
+        
+        if (summaryContainer && data && typeof data.high_risk_regions !== 'undefined') {
+            summaryContainer.innerHTML = `
+                <div class="col-3">
+                    <div class="text-danger fw-bold">${data.high_risk_regions || 0}</div>
+                    <small class="text-muted">Alto Riesgo</small>
+                </div>
+                <div class="col-3">
+                    <div class="text-warning fw-bold">${data.medium_risk_regions || 0}</div>
+                    <small class="text-muted">Medio Riesgo</small>
+                </div>
+                <div class="col-3">
+                    <div class="text-success fw-bold">${data.low_risk_regions || 0}</div>
+                    <small class="text-muted">Bajo Riesgo</small>
+                </div>
+                <div class="col-3">
+                    <div class="text-info fw-bold">${data.total_regions || 0}</div>
+                    <small class="text-muted">Total Regiones</small>
+                </div>
+            `;
+        }
+    }
+
+    updateTrendCharts(data) {
+        const timelineChart = document.getElementById('risk-timeline-chart');
+        const distributionChart = document.getElementById('risk-distribution-chart');
+        
+        if (timelineChart) {
+            if (data.risk_timeline && data.risk_timeline.length) {
+                const latestRisk = data.risk_timeline[data.risk_timeline.length - 1];
+                timelineChart.innerHTML = `
+                    <div class="text-center p-4">
+                        <div class="h2 text-warning mb-2">${latestRisk.risk_index}%</div>
+                        <div class="text-muted">Índice Actual</div>
+                        <small class="text-muted d-block mt-2">${latestRisk.events} eventos detectados</small>
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between text-xs">
+                                ${data.risk_timeline.slice(-5).map(point => `
+                                    <div class="text-center">
+                                        <div class="text-warning small">${point.risk_index}%</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">${point.date.split('-')[2]}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                timelineChart.innerHTML = '<div class="text-center text-muted p-4">Sin datos de tendencia</div>';
+            }
+        }
+        
+        if (distributionChart) {
+            if (data.language_trends) {
+                const languages = Object.keys(data.language_trends);
+                distributionChart.innerHTML = `
+                    <div class="text-center p-4">
+                        <div class="h4 text-info mb-2">${languages.length}</div>
+                        <div class="text-muted">Idiomas Activos</div>
+                        <small class="text-muted d-block mt-2">${languages.join(', ').toUpperCase()}</small>
+                        <div class="mt-3">
+                            ${languages.slice(0, 4).map(lang => `
+                                <span class="badge bg-primary me-1 mb-1">${lang.toUpperCase()}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                distributionChart.innerHTML = '<div class="text-center text-muted p-4">Sin datos de distribución</div>';
+            }
+        }
+    }
+
+    renderEmptyAlerts() {
+        const container = document.getElementById('critical-alerts-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 2rem; opacity: 0.5;"></i>
+                    <p class="text-muted mb-0">Error cargando alertas</p>
+                </div>
+            `;
+        }
+    }
+
+    renderEmptyTrends() {
+        const insightsContainer = document.getElementById('ai-insights');
+        if (insightsContainer) {
+            insightsContainer.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-chart-line text-muted me-2"></i>
+                    <span class="text-muted">Error cargando análisis de tendencias</span>
+                </div>
+            `;
+        }
+    }
+
+    renderEmptyHeatmap() {
+        const summaryContainer = document.getElementById('heatmap-summary');
+        if (summaryContainer) {
+            summaryContainer.innerHTML = `
+                <div class="col-12 text-center">
+                    <span class="text-muted">Error cargando mapa de calor</span>
+                </div>
+            `;
+        }
+    }
+
+    updateHeatmap() {
+        // Reload heatmap data when filter changes
+        this.loadHeatmapData();
+    }
+}
+
+// Simple working event listener
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Dashboard JavaScript is loading...');
+    
+    // Initialize heatmap
+    setTimeout(() => {
+        console.log('🗺️ Initializing heatmap...');
+        createHeatmap();
+    }, 2000);
+    
+    // Initialize articles table
+    setTimeout(() => {
+        console.log('📰 Initializing articles table...');
+        updateArticleOfDay();
+        populateSourceFilter();
+        setupFilterListeners();
+    }, 1000);
+    
+    // Test basic endpoint calls
+    setTimeout(async () => {
+        console.log('🧪 Testing API calls...');
+        
+        try {
+            // Test AI Analysis
+            const aiResponse = await fetch('/api/ai_analysis');
+            console.log('✅ AI Analysis response:', aiResponse.status);
+            
+            // Test Heatmap
+            const heatmapResponse = await fetch('/api/heatmap');
+            console.log('✅ Heatmap response:', heatmapResponse.status);
+            
+            // Test Articles
+            const articlesResponse = await fetch('/api/articles');
+            console.log('✅ Articles response:', articlesResponse.status);
+            
+        } catch (error) {
+            console.error('❌ API test failed:', error);
+        }
+    }, 3000);
+});
+
+function fetchRecentArticles(sortBy = 'published_at', sortOrder = 'desc') {
+        const url = `/api/articles?limit=20&sort_by=${sortBy}&sort_order=${sortOrder}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const articlesTableBody = document.getElementById('articles-table-body');
+                articlesTableBody.innerHTML = '';
+                if (data.length === 0) {
+                    articlesTableBody.innerHTML = '<tr><td colspan="4" class="text-center" style="color: var(--text-color-secondary);">No articles found.</td></tr>';
+                    return;
+                }
+                data.forEach(article => {
+                    const row = document.createElement('tr');
+                    row.style.cursor = 'pointer';
+                    row.onclick = () => window.open(article.url, '_blank');
+                    
+                    const riskColor = getRiskColor(article.risk_level);
+
+                    row.innerHTML = `
+                        <td>
+                            <div class="article-title-cell">${article.title}</div>
+                            <div class="article-source-cell">${article.source} - ${new Date(article.published_at).toLocaleDateString()}</div>
+                        </td>
+                        <td><span class="risk-badge-table" style="background-color:${riskColor};">${article.risk_level || 'N/A'}</span></td>
+                        <td><span class="conflict-type-badge">${article.conflict_type || 'N/A'}</span></td>
+                        <td>${article.country || 'Global'}<br><small class="text-muted">${article.region || ''}</small></td>
+                    `;
+                    articlesTableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching recent articles:', error);
+                const articlesTableBody = document.getElementById('articles-table-body');
+                articlesTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Failed to load articles.</td></tr>';
+            });
+    }
+
+    function fetchAiAnalysis() {
+        fetch(`/api/ai_analysis?lang=${currentLanguage}`)
+            .then(response => response.json())
+            .then(data => {
+                const aiAnalysisContent = document.getElementById('ai-analysis-content');
+                
+                if (data.analysis_html) {
+                    // Usar HTML profesional generado por el backend
+                    aiAnalysisContent.innerHTML = data.analysis_html;
+                } else if (data.analysis) {
+                    // New journalistic format display
+                    const imageUrl = data.image_url || 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
+                    const publishedDate = data.published_date || new Date().toLocaleDateString('es-ES');
+                    const wordCount = data.word_count || 0;
+                    const headline = data.headline || 'Análisis Geopolítico Global';
+                    const analysisType = data.analysis_type || 'Análisis de IA';
+                    const hasNlp = data.nlp_enhanced || false;
+                    
+                    aiAnalysisContent.innerHTML = `
+                        <div class="journalistic-analysis">
+                            <!-- Header Section -->
+                            <div class="analysis-header p-4 border-bottom">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="rounded-circle bg-primary bg-opacity-20 p-2 me-3">
+                                                <i class="fas fa-newspaper text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold text-primary">${analysisType}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>${publishedDate}
+                                                    ${wordCount > 0 ? `<span class="ms-2"><i class="fas fa-font me-1"></i>${wordCount} palabras</span>` : ''}
+                                                    ${hasNlp ? '<span class="ms-2 badge bg-success">NLP Enhanced</span>' : ''}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <h4 class="headline mb-0 fw-bold" style="color: var(--text-color); line-height: 1.3;">
+                                            ${headline}
+                                        </h4>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <span class="risk-badge risk-${data.risk_level?.toLowerCase()}" 
+                                              style="padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600;">
+                                            ${data.risk_level || 'MEDIUM'} RISK
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Main Content -->
+                            <div class="analysis-body p-4">
+                                <div class="row">
+                                    <div class="col-md-9">
+                                        <div class="article-content" style="color: var(--text-color); line-height: 1.8; font-size: 1rem;">
+                                            ${data.analysis.replace(/\n\n/g, '</p><p class="mb-3">').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="sidebar-info">
+                                            <div class="info-card mb-3 p-3" style="background: var(--card-bg); border-radius: 12px;">
+                                                <h6 class="fw-bold mb-2" style="color: var(--text-color);">
+                                                    <i class="fas fa-lightbulb me-2"></i>Insights Clave
+                                                </h6>
+                                                <ul class="list-unstyled mb-0" style="font-size: 0.85rem;">
+                                                    ${(data.key_insights || []).map(insight => 
+                                                        `<li class="mb-2" style="color: var(--text-color-secondary);"><i class="fas fa-check-circle text-success me-2" style="font-size: 0.7rem;"></i>${insight}</li>`
+                                                    ).join('')}
+                                                </ul>
+                                            </div>
+                                            
+                                            <div class="info-card p-3" style="background: var(--card-bg); border-radius: 12px;">
+                                                <h6 class="fw-bold mb-2" style="color: var(--text-color);">
+                                                    <i class="fas fa-tasks me-2"></i>Recomendaciones
+                                                </h6>
+                                                <ul class="list-unstyled mb-0" style="font-size: 0.85rem;">
+                                                    ${(data.recommendations || []).map(rec => 
+                                                        `<li class="mb-2" style="color: var(--text-color-secondary);"><i class="fas fa-arrow-right text-primary me-2" style="font-size: 0.7rem;"></i>${rec}</li>`
+                                                    ).join('')}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer Actions -->
+                            <div class="analysis-footer p-3 border-top d-flex justify-content-between align-items-center">
+                                <div class="analysis-meta">
+                                    <small class="text-muted">
+                                        <i class="fas fa-brain me-1"></i>Análisis generado con IA avanzada
+                                        ${hasNlp ? '<span class="ms-2"><i class="fas fa-atom me-1"></i>Procesamiento NLP</span>' : ''}
+                                    </small>
+                                </div>
+                                <div class="actions">
+                                    <button class="btn btn-sm btn-outline-primary me-2" onclick="fetchAiAnalysis()">
+                                        <i class="fas fa-redo me-1"></i>Actualizar
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success" onclick="shareAnalysis()">
+                                        <i class="fas fa-share me-1"></i>Compartir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <style>
+                        .journalistic-analysis {
+                            background: var(--card-gradient);
+                            border-radius: 16px;
+                            overflow: hidden;
+                            box-shadow: var(--shadow-lg);
+                        }
+                        
+                        .headline {
+                            font-family: 'Georgia', serif;
+                        }
+                        
+                        .article-content {
+                            text-align: justify;
+                        }
+                        
+                        .article-content p {
+                            margin-bottom: 1rem;
+                        }
+                        
+                        .risk-badge.risk-critical {
+                            background: #dc3545;
+                            color: white;
+                        }
+                        
+                        .risk-badge.risk-high {
+                            background: #fd7e14;
+                            color: white;
+                        }
+                        
+                        .risk-badge.risk-medium {
+                            background: #ffc107;
+                            color: #000;
+                        }
+                        
+                        .risk-badge.risk-low {
+                            background: #198754;
+                            color: white;
+                        }
+                        
+                        .info-card {
+                            transition: transform 0.2s ease;
+                        }
+                        
+                        .info-card:hover {
+                            transform: translateY(-2px);
+                        }
+                        
+                        .sidebar-info {
+                            position: sticky;
+                            top: 20px;
+                        }
+                        </style>
+                    `;
+                } else {
+                    aiAnalysisContent.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 2rem;"></i>
+                            <p class="text-danger mb-2">No se pudo generar el análisis de IA</p>
+                            <p class="text-muted small">${data.error || 'Error desconocido'}</p>
+                            <button class="btn btn-sm btn-outline-primary" onclick="fetchAiAnalysis()">
+                                <i class="fas fa-redo me-1"></i>Reintentar
+                            </button>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching AI analysis:', error);
+                document.getElementById('ai-analysis-content').innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-wifi-slash text-danger mb-3" style="font-size: 2rem;"></i>
+                        <p class="text-danger mb-2">Error de conexión con el endpoint de análisis de IA</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="fetchAiAnalysis()">
+                            <i class="fas fa-redo me-1"></i>Reintentar
+                        </button>
+                    </div>
+                `;
+            });
+    }
+
+    function shareAnalysis() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Análisis Geopolítico - Sistema de Inteligencia',
+                text: 'Consulta el último análisis geopolítico generado por IA',
+                url: window.location.href
+            });
+        } else {
+            // Fallback for browsers that don't support Web Share API
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('Enlace copiado al portapapeles');
+            });
+        }
+    }
+
+    function createHeatmap(conflictType = 'all') {
+        const container = document.getElementById('heatmap-container');
+        if (!container) {
+            console.warn('Heatmap container not found');
+            return;
+        }
+
+        console.log('🗺️ Creating heatmap with conflict type:', conflictType);
+
+        // Use pre-loaded heatmap data if available
+        if (typeof heatmapData !== 'undefined' && heatmapData.length > 0) {
+            console.log('📊 Using pre-loaded heatmap data:', heatmapData.length, 'points');
+            renderHeatmapWithData(heatmapData);
+        } else {
+            // Fallback to API call
+            console.log('🔄 Fetching heatmap data from API...');
+            fetch(`/api/heatmap?conflict_type=${conflictType}&lang=${currentLanguage}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('✅ Heatmap data received:', data.length, 'points');
+                    renderHeatmapWithData(data);
+                })
+                .catch(error => {
+                    console.error('❌ Error fetching heatmap data:', error);
+                    renderFallbackHeatmap();
+                });
+        }
+    }
+
+    function renderHeatmapWithData(data) {
+        const container = document.getElementById('heatmap-container');
+        if (!container) return;
+
+        if (typeof Plotly === 'undefined') {
+            console.error('Plotly not loaded');
+            container.innerHTML = '<div class="text-center text-warning">Plotly library not loaded</div>';
+            return;
+        }
+
+        try {
+            const plotData = [{
+                type: 'scattermapbox',
+                lon: data.map(p => p.lon || p.longitude || 0),
+                lat: data.map(p => p.lat || p.latitude || 0),
+                mode: 'markers',
+                marker: {
+                    size: data.map(p => (p.intensity || p.risk_score || 0.5) * 25 + 5),
+                    color: data.map(p => p.intensity || p.risk_score || 0.5),
+                    colorscale: [
+                        [0, '#2ed573'],    // Green for low risk
+                        [0.5, '#ffa502'],  // Orange for medium risk
+                        [1, '#ff4757']     // Red for high risk
+                    ],
+                    showscale: true,
+                    colorbar: {
+                        title: 'Nivel de Riesgo',
+                        titlefont: { color: '#ffffff' },
+                        tickfont: { color: '#ffffff' }
+                    },
+                    opacity: 0.8
+                },
+                text: data.map(p => `${p.name || p.location || 'Ubicación'}<br>Riesgo: ${((p.intensity || p.risk_score || 0) * 100).toFixed(0)}%`),
+                hoverinfo: 'text',
+                hovertemplate: '%{text}<extra></extra>'
+            }];
+
+            const layout = {
+                mapbox: {
+                    style: 'carto-darkmatter',
+                    center: { lon: 10, lat: 30 },
+                    zoom: 1.5
+                },
+                margin: { r: 0, t: 0, b: 0, l: 0 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#ffffff' }
+            };
+
+            Plotly.newPlot('heatmap-container', plotData, layout, {
+                responsive: true,
+                displayModeBar: false
+            });
+
+            console.log('✅ Heatmap rendered successfully');
+        } catch (error) {
+            console.error('❌ Error rendering heatmap:', error);
+            renderFallbackHeatmap();
+        }
+    }
+
+    function renderFallbackHeatmap() {
+        const container = document.getElementById('heatmap-container');
+        if (!container) return;
+
+        // Sample data for demonstration
+        const sampleData = [
+            {lat: 40.7128, lon: -74.0060, intensity: 0.8, name: 'Nueva York'},
+            {lat: 51.5074, lon: -0.1278, intensity: 0.6, name: 'Londres'},
+            {lat: 35.6762, lon: 139.6503, intensity: 0.4, name: 'Tokio'},
+            {lat: 48.8566, lon: 2.3522, intensity: 0.7, name: 'París'},
+            {lat: -33.8688, lon: 151.2093, intensity: 0.3, name: 'Sídney'},
+            {lat: 55.7558, lon: 37.6176, intensity: 0.9, name: 'Moscú'},
+            {lat: 39.9042, lon: 116.4074, intensity: 0.5, name: 'Pekín'},
+            {lat: 28.6139, lon: 77.2090, intensity: 0.6, name: 'Nueva Delhi'}
+        ];
+
+        console.log('🔄 Rendering fallback heatmap with sample data');
+        renderHeatmapWithData(sampleData);
+    }
+
+    // Helper functions
+    function getRiskColor(riskLevel) {
+        switch(riskLevel) {
+            case 'HIGH': return '#ff4757';
+            case 'MEDIUM': return '#ffa502';
+            case 'LOW': return '#2ed573';
+            default: return '#6c7293';
+        }
+    }
+
+    // Initialize geopolitical themed particles background
+    function initParticles() {
+    console.log('🌌 Initializing enhanced interconnected particles...');
+    
+    // Remove existing particles container if any
+    const existingContainer = document.getElementById('particles-js');
+    if (existingContainer) {
+    existingContainer.innerHTML = '';
+    }
+    
+    // Create canvas
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas properties
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.zIndex = '-1';
+    canvas.style.pointerEvents = 'none';
+    
+    // Create gradient background with dawn effect
+    canvas.style.background = `
+    linear-gradient(
+    180deg,
+    #0a1a2e 0%,
+    #16213e 25%,
+    #0f3460 50%,
+    #16537e 75%,
+    #06b6d4 100%
+    )
+    `;
+    
+    // Insert canvas into particles container
+    const particlesContainer = document.getElementById('particles-js');
+    if (particlesContainer) {
+    particlesContainer.appendChild(canvas);
+    } else {
+    document.body.appendChild(canvas);
+    }
+    
+    // Resize canvas
+    function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    }
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Particle system configuration
+    const config = {
+    particleCount: 80,
+    connectionDistance: 120,
+    maxConnections: 3,
+    mouseInfluenceRadius: 150,
+    mouseInfluenceStrength: 0.3,
+    colors: [
+    '#06b6d4', // Cyan
+    '#3b82f6', // Blue
+    '#10b981', // Green
+    '#0ea5e9', // Sky blue
+    '#14b8a6'  // Teal
+    ]
+    };
+    
+    // Mouse tracking
+    let mouse = {
+    x: 0,
+    y: 0,
+    isMoving: false
+    };
+    
+    // Track mouse movement
+    document.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.isMoving = true;
+    
+    // Reset moving flag after a delay
+    clearTimeout(mouse.timeout);
+    mouse.timeout = setTimeout(() => {
+    mouse.isMoving = false;
+    }, 100);
+    });
+    
+    // Particle class
+    class EnhancedParticle {
+    constructor() {
+    this.reset();
+    this.baseSpeed = 0.3 + Math.random() * 0.7;
+    this.pulsePhase = Math.random() * Math.PI * 2;
+    this.pulseSpeed = 0.02 + Math.random() * 0.03;
+    }
+    
+    reset() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.vx = (Math.random() - 0.5) * this.baseSpeed;
+    this.vy = (Math.random() - 0.5) * this.baseSpeed;
+    this.radius = 1.5 + Math.random() * 2;
+    this.baseOpacity = 0.4 + Math.random() * 0.4;
+    this.color = config.colors[Math.floor(Math.random() * config.colors.length)];
+    this.connections = [];
+    }
+    
+    update() {
+    // Mouse influence
+    if (mouse.isMoving) {
+    const dx = mouse.x - this.x;
+    const dy = mouse.y - this.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < config.mouseInfluenceRadius) {
+    const force = (config.mouseInfluenceRadius - distance) / config.mouseInfluenceRadius;
+    const angle = Math.atan2(dy, dx);
+    
+    this.vx += Math.cos(angle) * force * config.mouseInfluenceStrength * 0.1;
+    this.vy += Math.sin(angle) * force * config.mouseInfluenceStrength * 0.1;
+    }
+    }
+    
+    // Apply velocity with damping
+    this.x += this.vx;
+    this.y += this.vy;
+    
+    // Velocity damping
+    this.vx *= 0.99;
+    this.vy *= 0.99;
+    
+    // Boundary wrapping
+    if (this.x < -this.radius) this.x = canvas.width + this.radius;
+    if (this.x > canvas.width + this.radius) this.x = -this.radius;
+    if (this.y < -this.radius) this.y = canvas.height + this.radius;
+    if (this.y > canvas.height + this.radius) this.y = -this.radius;
+    
+    // Update pulse phase
+    this.pulsePhase += this.pulseSpeed;
+    }
+    
+    draw() {
+    // Calculate pulsing opacity
+    const pulseOpacity = this.baseOpacity + Math.sin(this.pulsePhase) * 0.2;
+    
+    // Draw particle with glow effect
+    ctx.save();
+    
+    // Outer glow
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius * 3, 0, Math.PI * 2);
+    const gradient = ctx.createRadialGradient(
+    this.x, this.y, 0,
+    this.x, this.y, this.radius * 3
+    );
+    gradient.addColorStop(0, this.color + '40');
+    gradient.addColorStop(1, this.color + '00');
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    // Main particle
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = this.color + Math.floor(pulseOpacity * 255).toString(16).padStart(2, '0');
+    ctx.fill();
+    
+    // Inner bright core
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff' + Math.floor(pulseOpacity * 128).toString(16).padStart(2, '0');
+    ctx.fill();
+    
+    ctx.restore();
+    }
+    
+    findConnections(particles) {
+    this.connections = [];
+    let connectionCount = 0;
+    
+    for (let other of particles) {
+    if (other === this || connectionCount >= config.maxConnections) continue;
+    
+    const dx = this.x - other.x;
+    const dy = this.y - other.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < config.connectionDistance) {
+    this.connections.push({
+    particle: other,
+    distance: distance,
+    opacity: (config.connectionDistance - distance) / config.connectionDistance
+    });
+    connectionCount++;
+    }
+    }
+    }
+    
+    drawConnections() {
+    for (let connection of this.connections) {
+    const other = connection.particle;
+    const opacity = connection.opacity * 0.3;
+    
+    // Create gradient line
+    const gradient = ctx.createLinearGradient(
+    this.x, this.y,
+    other.x, other.y
+    );
+    gradient.addColorStop(0, this.color + Math.floor(opacity * 255).toString(16).padStart(2, '0'));
+    gradient.addColorStop(0.5, '#ffffff' + Math.floor(opacity * 128).toString(16).padStart(2, '0'));
+    gradient.addColorStop(1, other.color + Math.floor(opacity * 255).toString(16).padStart(2, '0'));
+    
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(other.x, other.y);
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = 1 + opacity;
+    ctx.stroke();
+    
+    // Add subtle glow to connection
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(other.x, other.y);
+    ctx.strokeStyle = '#ffffff' + Math.floor(opacity * 64).toString(16).padStart(2, '0');
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    }
+    }
+    }
+    
+    // Initialize particles
+    const particles = [];
+    for (let i = 0; i < config.particleCount; i++) {
+    particles.push(new EnhancedParticle());
+    }
+    
+    // Animation loop
+    function animate() {
+    // Clear canvas with slight trail effect
+    ctx.fillStyle = 'rgba(10, 26, 46, 0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Update particles and find connections
+    particles.forEach(particle => {
+    particle.update();
+    particle.findConnections(particles);
+    });
+    
+    // Draw connections first (behind particles)
+    particles.forEach(particle => {
+    particle.drawConnections();
+    });
+    
+    // Draw particles on top
+    particles.forEach(particle => {
+    particle.draw();
+    });
+    
+    requestAnimationFrame(animate);
+    }
+    
+    // Start animation
+    animate();
+    
+    console.log('✨ Enhanced particles initialized successfully');
+    }
+
+    // Create heatmap with Plotly
+    
+
+    // AI Analysis function
+    function fetchAiAnalysis() {
+        const container = document.getElementById('ai-analysis-content');
+        if (!container) return;
+        
+        fetch(`/api/ai_analysis?lang=${currentLanguage}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.analysis_html) {
+                    container.innerHTML = data.analysis_html;
+                } else if (data.error) {
+                    container.innerHTML = `<div class="alert alert-warning">No se pudo generar el análisis de IA<br>${data.error}</div>`;
+                } else {
+                    container.innerHTML = `<div class="alert alert-warning">No se pudo generar el análisis de IA</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching AI analysis:', error);
+                container.innerHTML = '<p class="text-danger">Error loading AI analysis.</p>';
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const languageSelector = document.getElementById('language-selector');
+        if (languageSelector) {
+            languageSelector.addEventListener('change', function() {
+                changeLanguage(this.value);
+            });
+        }
+        
+        // Load initial translations
+        loadTranslations('en');
+        
+        // Load high risk articles on page load
+        fetchHighRiskArticles();
+    });
+
+    // Simple language change function
+    async function changeLanguage(lang) {
+        currentLanguage = lang;
+        console.log(`Changing language to: ${lang}`);
+        try {
+            await fetchHighRiskArticles();
+            console.log(`✅ Language changed to ${lang}`);
+        } catch (error) {
+            console.error('Error changing language:', error);
+        }
+    }
+
+    // Fetch high risk articles
+    async function fetchHighRiskArticles() {
+        try {
+            const response = await fetch(`/api/high_risk_articles?limit=20&lang=${currentLanguage}`);
+            const data = await response.json();
+            
+            const tableBody = document.getElementById('high-risk-table-body');
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = '';
+            
+            if (!data.articles || data.articles.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No articles found.</td></tr>';
+                return;
+            }
+            
+            data.articles.forEach(article => {
+                const row = document.createElement('tr');
+                row.style.cursor = 'pointer';
+                row.onclick = () => window.open(article.url, '_blank');
+                
+                const riskScore = article.risk_score || 0;
+                const riskColor = riskScore >= 7 ? '#dc2626' : riskScore >= 5 ? '#ea580c' : '#059669';
+                
+                row.innerHTML = `
+                    <td>
+                        <div style="font-weight: 500;">${article.title}</div>
+                        <div style="font-size: 0.85em; color: #666; margin-top: 4px;">${article.description ? article.description.substring(0, 100) + '...' : ''}</div>
+                    </td>
+                    <td>${article.source_name || 'Unknown'}</td>
+                    <td>${article.location || 'Global'}</td>
+                    <td><span style="background: ${riskColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em;">${riskScore.toFixed(1)}</span></td>
+                    <td>${new Date(article.published_at).toLocaleDateString()}</td>
+                    <td><span class="language-badge">${article.language || '?'}</span></td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error fetching articles:', error);
+        }
+    }
+
+</script>
+</style>
+
+{% endblock %}
