@@ -13,6 +13,8 @@ feedparser
 APScheduler>=3.9.0
 opencv-python>=4.12.0,<5
 openai
+torch
+spacy
 transformers
 groq
 aiohttp

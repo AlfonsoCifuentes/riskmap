@@ -56,7 +56,9 @@ try:
 except:
     pass
 
-templates = Jinja2Templates(directory=str(Path(__file__).parent))
+# Apuntar al directorio donde está modern_dashboard_updated.html
+templates_dir = str(Path(__file__).parent.parent.parent / "src" / "dashboard" / "templates")
+templates = Jinja2Templates(directory=templates_dir)
 app.mount('/static', StaticFiles(directory=str(Path(__file__).parent/'static')), name='static')
 
 # Utilidad para cargar traducciones
@@ -295,7 +297,7 @@ def dashboard(request: Request, lang: str = "en"):
     quality = data_validator.get_quality_report(days=7)
     translations = load_translations(lang)
     return templates.TemplateResponse(
-        "dashboard.html",
+        "modern_dashboard_updated.html",
         {
             "request": request,
             "status": status,

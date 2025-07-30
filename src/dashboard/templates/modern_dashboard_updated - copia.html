@@ -648,6 +648,7 @@
         font-size: 0.95rem;
         margin-bottom: 8px;
         -webkit-line-clamp: 2;
+        line-clamp: 2;
     }
     
     .mosaic-article.size-mini-wide .mosaic-title,
@@ -1500,8 +1501,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Set up event listeners
     setupEventListeners();
-    setupMapControls();
-    setupMapControls();
     
     console.log('✅ Dashboard inicializado completamente');
 });
@@ -1509,48 +1508,211 @@ document.addEventListener('DOMContentLoaded', function() {
 // Socket.IO connection for real-time updates
 function initializeSocketConnection() {
     try {
-        window.dashboardSocket = io();
+        const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+        socket.on('connect', function() {
+            console.log('🔌 Conectado a Socket.IO');
+        });
+
+        socket.on('new_articles', function(data) {
+            console.log('📰 Nuevos artículos recibidos:', data.articles.length);
+            showNotification(`Nuevos artículos recibidos: ${data.articles.length}`, 'info');
+            
+            // Update article data and refresh displays
+            articlesData = data.articles;
+            updateStatistics();
+            
+            // Update all sections
+            updateLatestArticlesList(data.articles);
+            const highRiskArticles = data.articles.filter(a => a.risk_level === 'high');
+            if (highRiskArticles.length > 0) {
+                updateHighRiskArticlesGrid(highRiskArticles);
+            }
+            
+            // Refresh mosaic with new articles
+            loadNewsMosaic();
+        });
+
+        
+        window.dashboardSocket = socket;
     } catch (error) {
-        console.error('Socket connection initialization failed:', error);
+        console.warn('⚠️ Socket.IO no disponible:', error.message);
     }
 }
 
 // News Mosaic Functions - Hybrid: Real data with Mock fallback
 async function loadNewsMosaic() {
+    console.log('🎨 Cargando mosaico de noticias...');
     const container = document.querySelector('.news-mosaic-container');
+    
     if (!container) {
-        console.error('Container not found for news mosaic');
+        console.error('❌ Container .news-mosaic-container no encontrado!');
         return;
     }
-    container.innerHTML = '<p>Cargando noticias...</p>';
-    const mockArticles = [];
+    
+    // Show loading state
+    container.innerHTML = `
+        <div class="mosaic-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando mosaico de noticias...</p>
+        </div>
+    `;
+    
+    // Mock data for fallback
+    const mockArticles = [
+        {
+            id: 1,
+            title: "Crisis diplomática se intensifica en Europa Oriental",
+            description: "Las tensiones entre países vecinos alcanzan un punto crítico tras nuevas disputas territoriales.",
+            location: "Ucrania",
+            risk_level: "high",
+            published_date: new Date().toISOString(),
+            source_url: "https://example.com/news1",
+            image_url: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=600&fit=crop"
+        },
+        {
+            id: 2,
+            title: "Negociaciones comerciales entre potencias mundiales",
+            description: "Se inician conversaciones sobre nuevos acuerdos comerciales que podrían remodelar la economía global.",
+            location: "Estados Unidos",
+            risk_level: "medium",
+            published_date: new Date(Date.now() - 2*60*60*1000).toISOString(),
+            source_url: "https://example.com/news2",
+            image_url: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&h=600&fit=crop"
+        },
+        {
+            id: 3,
+            title: "Tensiones geopolíticas en el Mar del Sur de China",
+            description: "Nuevos incidentes navales elevan la preocupación por la estabilidad regional.",
+            location: "China",
+            risk_level: "high",
+            published_date: new Date(Date.now() - 1*60*60*1000).toISOString(),
+            source_url: "https://example.com/news3",
+            image_url: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=800&h=600&fit=crop"
+        },
+        {
+            id: 4,
+            title: "Cumbre de líderes regionales aborda seguridad",
+            description: "Representantes de múltiples naciones se reúnen para discutir estrategias de seguridad regional.",
+            location: "Medio Oriente",
+            risk_level: "medium",
+            published_date: new Date(Date.now() - 3*60*60*1000).toISOString(),
+            source_url: "https://example.com/news4",
+            image_url: "https://images.unsplash.com/photo-1541336032412-2048a678540d?w=800&h=600&fit=crop"
+        },
+        {
+            id: 5,
+            title: "Ejercicios militares conjuntos preocupan a vecinos",
+            description: "Maniobras militares a gran escala generan tensión en la región.",
+            location: "Corea del Norte",
+            risk_level: "high",
+            published_date: new Date(Date.now() - 4*60*60*1000).toISOString(),
+            source_url: "https://example.com/news5",
+            image_url: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&h=600&fit=crop"
+        },
+        {
+            id: 6,
+            title: "Acuerdo energético estratégico entre naciones",
+            description: "Nuevo tratado de cooperación energética promete estabilizar el mercado regional.",
+            location: "Rusia",
+            risk_level: "low",
+            published_date: new Date(Date.now() - 6*60*60*1000).toISOString(),
+            source_url: "https://example.com/news6",
+            image_url: "https://images.unsplash.com/photo-1473649085228-583485e6e4d7?w=800&h=600&fit=crop"
+        },
+        {
+            id: 7,
+            title: "Migración masiva causa tensiones fronterizas",
+            description: "El flujo migratorio sin precedentes pone a prueba las políticas fronterizas europeas.",
+            location: "Europa",
+            risk_level: "medium",
+            published_date: new Date(Date.now() - 8*60*60*1000).toISOString(),
+            source_url: "https://example.com/news7",
+            image_url: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&h=600&fit=crop"
+        },
+        {
+            id: 8,
+            title: "Disputa territorial escalada en zona fronteriza",
+            description: "Las tensiones fronterizas alcanzan un nuevo nivel tras incidentes recientes.",
+            location: "India",
+            risk_level: "high",
+            published_date: new Date(Date.now() - 5*60*60*1000).toISOString(),
+            source_url: "https://example.com/news8",
+            image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+        }
+    ];
+    
     try {
-        const response = await fetch('/api/articles');
+        console.log('🔄 Intentando cargar artículos reales...');
+        
+        // Try to fetch real data with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const response = await fetch('/api/articles?limit=15', {
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (response.ok) {
             const data = await response.json();
-            renderMosaic(data);
-            updateStatistics();
-            return;
+            console.log('✅ Datos reales recibidos:', data);
+            
+            let articles = [];
+            if (Array.isArray(data)) {
+                articles = data;
+            } else if (data.articles && Array.isArray(data.articles)) {
+                articles = data.articles;
+            } else if (data.data && Array.isArray(data.data)) {
+                articles = data.data;
+            }
+            
+            if (articles.length > 0) {
+                console.log(`📰 Usando ${articles.length} artículos reales`);
+                articlesData = articles;
+                setTimeout(() => renderMosaic(articles), 500);
+                updateStatistics();
+                return;
+            }
         }
+        
         throw new Error('No hay artículos reales disponibles');
+        
     } catch (error) {
-        console.warn('Carga de datos reales falló:', error.message);
-        console.log('Usando datos de demostración');
-        renderMosaic(mockArticles);
-        updateStatistics();
+        console.warn('⚠️ Carga de datos reales falló:', error.message);
+        console.log('🎭 Usando datos de demostración...');
+        
+        setTimeout(() => {
+            console.log('🎨 Renderizando mosaico con datos demo...');
+            articlesData = mockArticles;
+            renderMosaic(mockArticles);
+            updateStatistics();
+        }, 1000);
     }
 }
 
+// Enhanced mosaic renderer with importance-based sizing
 function renderMosaic(articles) {
     const container = document.querySelector('.news-mosaic-container');
+    console.log('🎨 Renderizando mosaico con', articles.length, 'artículos');
+    
     if (!container) {
-        console.error('Container no encontrado para renderizado!');
+        console.error('❌ Container no encontrado para renderizado!');
         return;
     }
+    
     if (!articles || articles.length === 0) {
-        container.innerHTML = '<p>No hay artículos disponibles</p>';
+        container.innerHTML = `
+            <div class="mosaic-loading">
+                <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>
+                <p>No hay artículos disponibles para el mosaico</p>
+            </div>
+        `;
         return;
     }
+    
     // Calculate importance for each article and assign sizes
     const articlesWithSizes = articles.map((article, index) => {
         const importance = calculateArticleImportance(article);
@@ -1884,35 +2046,6 @@ function setupEventListeners() {
     }
 }
 
-// Map controllers for heatmap events
-function setupMapControls() {
-    const buttons = document.querySelectorAll('.section-controls button[data-map-type]');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            buttons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const type = btn.dataset.mapType;
-            showNotification(`Cargando mapa: ${type}`, 'info');
-            showMapLoading();
-            fetchHeatmap(type);
-        });
-    });
-}
-
-async function fetchHeatmap(type) {
-    try {
-        const response = await fetch(`/api/events/heatmap?type=${type}`);
-        if (!response.ok) throw new Error(response.status);
-        const data = await response.json();
-        updateMapWithHeatmap(data, type);
-    } catch (error) {
-        console.error(`Error loading ${type} map:`, error);
-        showMapError(`Error al cargar el mapa de ${type}`);
-    } finally {
-        hideMapLoading();
-    }
-}
-
 // Notification system
 function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
@@ -1942,14 +2075,1049 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Expose functions globally for debugging (single export)
+}
+
+// Expose functions globally for debugging
 window.dashboardFunctions = {
-    initializeSocketConnection,
     loadNewsMosaic,
-    renderMosaic,
+    updateStatistics,
+    showNotification,
+    openArticleModal
+console.log('📱 Sistema de dashboard cargado completamente');
+</script>
+
+<script>
+// Event maps functionality
+const url = `/api/events/heatmap?type=${mapType}`;
+
+fetch(url)= `/api/events/heatmap?type=${mapType}`;
+    
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(`${mapType} map data:`, data);
+            updateMapWithHeatmap(data, mapType);
+            hideMapLoading();
+        })
+        .catch(error => {
+            console.error(`Error loading ${mapType} map:`, error);
+            showMapError(`Error al cargar el mapa de ${mapType}`);
+            hideMapLoading();
+        });
+}
+
+function updateMapWithHeatmap(data, mapType = 'general') {
+    console.log(`Updating map with heatmap data for ${mapType}:`, data);
+    
+    const mapContainer = document.getElementById('main-map');
+    const typeColors = {
+        'general': '#3498db',
+        'conflict_risk': '#e74c3c',
+        'historical_conflicts': '#8b0000',
+        'oil': '#f39c12',
+        'energy': '#f1c40f',
+        'supplies': '#2ecc71',
+        'internet_cables': '#9b59b6',
+        'military_bases': '#34495e',
+        'trade_routes': '#16a085'
+    };
+    
+    const typeIcons = {
+        'general': 'fas fa-globe',
+        'conflict_risk': 'fas fa-exclamation-triangle',
+        'historical_conflicts': 'fas fa-history',
+        'oil': 'fas fa-oil-can',
+        'energy': 'fas fa-bolt',
+        'supplies': 'fas fa-shipping-fast',
+        'internet_cables': 'fas fa-network-wired',
+        'military_bases': 'fas fa-shield-alt',
+        'trade_routes': 'fas fa-route'
+    };
+    
+    const color = typeColors[mapType] || '#3498db';
+    const icon = typeIcons[mapType] || 'fas fa-globe';
+    
+    mapContainer.innerHTML = `
+        <i class="${icon}" style="font-size: 3rem; opacity: 0.6; color: ${color};"></i>
+        <p style="margin-top: 1rem; opacity: 0.8;">Mapa actualizado con ${data.length || 0} puntos</p>
+        <div style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.7;">
+            Tipo: ${mapType.replace('_', ' ').toUpperCase()}
+        </div>
+    `;
+    
+    showNotification(`Mapa de ${mapType.replace('_', ' ')} actualizado`, 'success');
+}
+
+function showMapError(message) {
+    const mapContainer = document.getElementById('main-map');
+    mapContainer.innerHTML = `
+        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; opacity: 0.6; color: #e74c3c;"></i>
+        <p style="margin-top: 1rem; opacity: 0.8; color: #e74c3c;">${message}</p>
+        <div style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.7;">
+            Intenta seleccionar otro tipo de mapa
+        </div>
+    `;
+}
+
+function updateMapWithMarkers(events) {
+    console.log('Updating map with markers:', events);
+    const mapContainer = document.getElementById('main-map');
+    mapContainer.innerHTML = `
+        <i class="fas fa-map-marker-alt" style="font-size: 3rem; opacity: 0.6; color: #46ead7;"></i>
+        <p style="margin-top: 1rem; opacity: 0.8;">Marcadores actualizados con ${events?.length || 0} eventos</p>
+    `;
+    showNotification('Marcadores actualizados', 'success');
+}
+
+function showMapLoading() {
+    const mapContainer = document.getElementById('main-map');
+    if (mapContainer) {
+        mapContainer.innerHTML = `
+            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; opacity: 0.6;"></i>
+            <p style="margin-top: 1rem; opacity: 0.6;">Cargando...</p>
+        `;
+    }
+}
+
+function hideMapLoading() {
+    // Map loading is handled by the update functions
+}
+
+function refreshHighRiskArticles() {
+    console.log('Refreshing high risk articles...');
+    showNotification('Actualizando artículos de alto riesgo...', 'info');
+    
+    fetch('/api/articles/high-risk?limit=10')
+        .then(response => response.json())
+        .then(articles => {
+            updateHighRiskArticlesGrid(articles);
+            showNotification('Artículos de alto riesgo actualizados', 'success');
+        })
+        .catch(error => {
+            console.error('Error refreshing high risk articles:', error);
+            showNotification('Error al actualizar artículos', 'error');
+        });
+}
+
+function filterHighRiskArticles() {
+    const filterOptions = ['high', 'medium', 'all'];
+    const filter = prompt(`Filtrar por nivel de riesgo:\n- high (solo alto riesgo)\n- medium (medio y alto)\n- all (todos)\n\nIngrese su opción:`);
+    
+    if (filter && filterOptions.includes(filter.toLowerCase())) {
+        console.log(`Filtering high risk articles by: ${filter}`);
+        
+        const articles = document.querySelectorAll('#highRiskArticlesGrid .high-risk-card');
+        articles.forEach(article => {
+            const riskLevel = article.dataset.riskLevel;
+            
+            if (filter === 'all' || 
+                (filter === 'high' && riskLevel === 'high') ||
+                (filter === 'medium' && (riskLevel === 'high' || riskLevel === 'medium'))) {
+                article.style.display = 'block';
+            } else {
+                article.style.display = 'none';
+            }
+        });
+        
+        showNotification(`Filtro aplicado: ${filter}`, 'success');
+    }
+}
+
+function refreshLatestArticles() {
+    console.log('Refreshing latest articles...');
+    showNotification('Actualizando últimos artículos...', 'info');
+    
+    fetch('/api/articles/latest?limit=15')
+        .then(response => response.json())
+        .then(articles => {
+            updateLatestArticlesList(articles);
+            showNotification('Últimos artículos actualizados', 'success');
+        })
+        .catch(error => {
+            console.error('Error refreshing latest articles:', error);
+            showNotification('Error al actualizar artículos', 'error');
+        });
+}
+
+function filterLatestArticles() {
+    const languages = ['es', 'en', 'fr', 'de', 'ru', 'zh', 'ar'];
+    const language = prompt(`Filtrar por idioma:\n${languages.join(', ')}\n\nIngrese el código de idioma o 'all' para todos:`);
+    
+    if (language) {
+        console.log(`Filtering latest articles by language: ${language}`);
+        
+        const articles = document.querySelectorAll('#latestArticlesList .latest-article-card');
+        articles.forEach(article => {
+            const articleLang = article.dataset.language;
+            
+            if (language === 'all' || articleLang === language) {
+                article.style.display = 'flex';
+            } else {
+                article.style.display = 'none';
+            }
+        });
+        
+        showNotification(`Filtro de idioma aplicado: ${language}`, 'success');
+    }
+}
+
+function showFeaturedAnalysis() {
+    console.log('Showing featured article analysis...');
+    
+    // Get featured article data
+    fetch('/api/articles/featured')
+        .then(response => response.json())
+        .then(article => {
+            if (article && article.id !== 0) {
+                openAnalysisWindow(article);
+            } else {
+                showNotification('No hay artículo destacado disponible', 'warning');
+            }
+        })
+        .catch(error => {
+            console.error('Error getting featured article:', error);
+            showNotification('Error al obtener análisis del artículo', 'error');
+        });
+}
+
+function openAnalysisWindow(article) {
+    const analysisWindow = window.open('', '_blank', 'width=800,height=600');
+    analysisWindow.document.write(`
+        <html>
+        <head>
+            <title>Análisis: ${article.title}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a2e; color: #fff; }
+                .header { border-bottom: 2px solid #667eea; padding-bottom: 15px; margin-bottom: 20px; }
+                .title { color: #46ead7; font-size: 1.5rem; margin-bottom: 10px; }
+                .meta { color: #aaa; font-size: 0.9rem; }
+                .content { line-height: 1.6; }
+                .section { margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1 class="title">${article.title}</h1>
+                <div class="meta">
+                    <strong>Ubicación:</strong> ${article.location || article.country || 'Global'} | 
+                    <strong>Nivel de Riesgo:</strong> ${article.risk_level || 'N/A'} | 
+                    <strong>Fuente:</strong> ${article.source || 'Desconocida'}
+                </div>
+            </div>
+            <div class="section">
+                <h3>Descripción</h3>
+                <p>${article.content || article.summary || 'No hay descripción disponible'}</p>
+            </div>
+            <div class="section">
+                <h3>Análisis de Riesgo</h3>
+                <p>Este artículo ha sido clasificado como <strong>${article.risk_level || 'N/A'}</strong> basado en el análisis automático de contenido y factores geopolíticos.</p>
+            </div>
+            <div class="section">
+                <h3>Enlace Original</h3>
+                <a href="${article.url || article.source_url || '#'}" target="_blank" style="color: #46ead7;">${article.url || article.source_url || 'No disponible'}</a>
+            </div>
+        </body>
+        </html>
+    `);
+}
+
+// Enhanced functions for styling
+function updateHighRiskArticlesGrid(articles) {
+    const grid = document.getElementById('highRiskArticlesGrid');
+    if (!grid) return;
+    
+    if (!Array.isArray(articles)) {
+        console.error('updateHighRiskArticlesGrid: articles is not an array:', articles);
+        grid.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 2rem; grid-column: 1 / -1;">No hay artículos de alto riesgo disponibles</p>';
+        return;
+    }
+    
+    if (articles.length === 0) {
+        grid.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 2rem; grid-column: 1 / -1;">No hay artículos de alto riesgo disponibles</p>';
+        return;
+    }
+    
+    const highRiskArticles = articles.filter(a => a.risk_level === 'high').slice(0, 6);
+    
+    if (highRiskArticles.length === 0) {
+        grid.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 2rem; grid-column: 1 / -1;">No hay artículos de alto riesgo disponibles</p>';
+        return;
+    }
+    
+    grid.innerHTML = highRiskArticles.map(article => `
+        <div class="high-risk-card" data-risk-level="${article.risk_level || 'high'}">
+            <h4 class="high-risk-title">${(article.title || 'Sin título').substring(0, 80)}${(article.title || '').length > 80 ? '...' : ''}</h4>
+            <p class="high-risk-description">${(article.content || article.summary || 'Sin descripción disponible').substring(0, 120)}${(article.content || article.summary || '').length > 120 ? '...' : ''}</p>
+            <div class="high-risk-meta">
+                <div class="high-risk-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${article.country || article.location || 'Global'}</span>
+                </div>
+                <div class="high-risk-badge">ALTO RIESGO</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateLatestArticlesList(articles) {
+    const list = document.getElementById('latestArticlesList');
+    if (!list) return;
+    
+    if (!Array.isArray(articles)) {
+        console.error('updateLatestArticlesList: articles is not an array:', articles);
+        list.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 2rem;">No hay artículos disponibles</p>';
+        return;
+    }
+    
+    if (articles.length === 0) {
+        list.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 2rem;">No hay artículos disponibles</p>';
+        return;
+    }
+    
+    const latestArticles = articles.slice(0, 10);
+    
+    list.innerHTML = latestArticles.map(article => `
+        <div class="latest-article-card" data-language="${article.language || 'es'}" data-risk-level="${article.risk_level || 'medium'}">
+            <div class="latest-article-content">
+                <h5 class="latest-article-title">${article.title || 'Sin título'}</h5>
+                <p class="latest-article-description">${(article.content || article.summary || 'Sin descripción disponible').substring(0, 200)}${(article.content || article.summary || '').length > 200 ? '...' : ''}</p>
+                <div class="latest-article-meta">
+                    <div class="latest-article-meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${article.country || article.location || 'Global'}</span>
+                    </div>
+                    <div class="latest-article-meta-item">
+                        <i class="fas fa-clock"></i>
+                        <span>${article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Fecha no disponible'}</span>
+                    </div>
+                    <div class="latest-article-meta-item">
+                        <i class="fas fa-globe"></i>
+                        <span>${article.source || 'Fuente desconocida'}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="latest-article-sidebar">
+                <span class="latest-risk-badge ${article.risk_level || 'medium'}">${(article.risk_level || 'medium').toUpperCase()}</span>
+                ${article.source_url || article.url ? `<a href="${article.source_url || article.url}" target="_blank" style="color: #46ead7; text-decoration: none; font-size: 0.8rem;"><i class="fas fa-external-link-alt"></i> Ver fuente</a>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Load and display featured article
+function loadFeaturedArticle() {
+    console.log('Loading featured article...');
+    
+    fetch('/api/articles/featured')
+        .then(response => response.json())
+        .then(article => {
+            console.log('Featured article response:', article);
+            if (article && article.id !== 0) {
+                updateFeaturedArticle(article);
+            } else {
+                console.log('No featured article found, trying high-risk articles...');
+                // Try to get the highest risk article
+                return fetch('/api/articles/high-risk?limit=1')
+                    .then(response => response.json())
+                    .then(articles => {
+                        console.log('High-risk articles response:', articles);
+                        if (articles && articles.length > 0) {
+                            updateFeaturedArticle(articles[0]);
+                        } else {
+                            console.log('No high-risk articles found, trying latest articles...');
+                            // Fallback to latest articles
+                            return fetch('/api/articles?limit=1')
+                                .then(response => response.json())
+                                .then(latestArticles => {
+                                    console.log('Latest articles response:', latestArticles);
+                                    if (latestArticles && latestArticles.length > 0) {
+                                        updateFeaturedArticle(latestArticles[0]);
+                                    } else {
+                                        console.log('No articles found at all');
+                                        showNotification('No hay artículos disponibles', 'warning');
+                                    }
+                                });
+                        }
+                    });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading featured article:', error);
+            showNotification('Error al cargar artículo destacado', 'error');
+        });
+}
+
+function updateFeaturedArticle(article) {
+    console.log('Updating featured article:', article);
+    
+    // Update image with better error handling
+    const featuredImage = document.getElementById('featuredImage');
+    if (featuredImage) {
+        // Try different image sources with extensive logging
+        const imageUrl = article.image_url || article.image || article.thumbnail_url || 
+                        article.urlToImage || article.image_link || article.media_url ||
+                        article.thumbnail || article.picture_url || article.photo_url;
+        
+        console.log('Image URL candidates:', {
+            image_url: article.image_url,
+            image: article.image,
+            thumbnail_url: article.thumbnail_url,
+            urlToImage: article.urlToImage,
+            image_link: article.image_link,
+            media_url: article.media_url,
+            thumbnail: article.thumbnail,
+            picture_url: article.picture_url,
+            photo_url: article.photo_url,
+            selected: imageUrl
+        });
+        
+        if (imageUrl && imageUrl !== '' && imageUrl !== 'null' && imageUrl !== null) {
+            console.log('Loading image from:', imageUrl);
+            
+            // Show loading state
+            featuredImage.style.opacity = '0.5';
+            featuredImage.parentElement.style.background = 'linear-gradient(135deg, rgba(26, 32, 64, 0.8) 0%, rgba(26, 32, 64, 0.9) 100%)';
+            
+            // Clear any previous fallback divs
+            const existingFallback = featuredImage.parentElement.querySelector('.image-fallback');
+            if (existingFallback) {
+                existingFallback.remove();
+            }
+            
+            featuredImage.style.display = 'block';
+            featuredImage.src = imageUrl;
+            featuredImage.alt = article.title || 'Imagen del artículo';
+            
+            // Add error handling for failed image loads
+            featuredImage.onerror = function() {
+                console.log('Failed to load image from:', imageUrl, 'using default');
+                this.src = '/static/img/default-news.svg';
+                this.alt = 'Imagen por defecto';
+                this.style.opacity = '1';
+                
+                // If even the default SVG fails, create a CSS-based fallback
+                this.onerror = function() {
+                    console.log('Default SVG also failed, using CSS fallback');
+                    this.style.display = 'none';
+                    const fallbackDiv = document.createElement('div');
+                    fallbackDiv.className = 'image-fallback';
+                    fallbackDiv.innerHTML = `
+                        <div class="fallback-content">
+                            <i class="fas fa-newspaper" style="font-size: 2rem; color: #46ead7; margin-bottom: 8px;"></i>
+                            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.8); font-weight: 600;">Imagen no disponible</div>
+                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Fuente sin imagen</div>
+                        </div>
+                    `;
+                    this.parentElement.appendChild(fallbackDiv);
+                    this.onerror = null;
+                };
+            };
+            
+            // Add success handling
+            featuredImage.onload = function() {
+                console.log('Image loaded successfully from:', imageUrl);
+                this.style.opacity = '1';
+            };
+        } else {
+            console.log('No valid image URL available, using default. Article data:', article);
+            
+            // Clear any previous fallback divs
+            const existingFallback = featuredImage.parentElement.querySelector('.image-fallback');
+            if (existingFallback) {
+                existingFallback.remove();
+            }
+            
+            featuredImage.style.display = 'block';
+            featuredImage.src = '/static/img/default-news.svg';
+            featuredImage.alt = 'Imagen por defecto';
+            featuredImage.style.opacity = '1';
+            
+            // Set up fallback for the default image as well
+            featuredImage.onerror = function() {
+                console.log('Default SVG failed to load, using CSS fallback');
+                this.style.display = 'none';
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.className = 'image-fallback';
+                fallbackDiv.innerHTML = `
+                    <div class="fallback-content">
+                        <i class="fas fa-newspaper" style="font-size: 2rem; color: #46ead7; margin-bottom: 8px;"></i>
+                        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.8); font-weight: 600;">Imagen no disponible</div>
+                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Fuente sin imagen</div>
+                    </div>
+                `;
+                this.parentElement.appendChild(fallbackDiv);
+                this.onerror = null;
+            };
+        }
+    }
+    
+    // Update risk badge
+    const riskBadge = document.getElementById('featuredRiskBadge');
+    if (riskBadge) {
+        const riskLevel = (article.risk_level || 'medium').toLowerCase();
+        
+        if (riskLevel === 'high') {
+            riskBadge.textContent = 'ALTO RIESGO';
+            riskBadge.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+            riskBadge.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
+        } else if (riskLevel === 'medium') {
+            riskBadge.textContent = 'RIESGO MEDIO';
+            riskBadge.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+            riskBadge.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.4)';
+        } else {
+            riskBadge.textContent = 'BAJO RIESGO';
+            riskBadge.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            riskBadge.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+        }
+    }
+    
+    // Update text content with null checks
+    const featuredTitle = document.getElementById('featuredTitle');
+    if (featuredTitle) {
+        featuredTitle.textContent = article.title || 'Sin título';
+    }
+    
+    const featuredDate = document.getElementById('featuredDate');
+    if (featuredDate) {
+        featuredDate.textContent = article.created_at ? 
+            new Date(article.created_at).toLocaleDateString('es-ES') : 
+            'Fecha no disponible';
+    }
+    
+    const featuredLocation = document.getElementById('featuredLocation');
+    if (featuredLocation) {
+        featuredLocation.textContent = article.country || article.location || 'Global';
+    }
+    
+    // Update time
+    const featuredTime = document.getElementById('featuredTime');
+    if (featuredTime) {
+        if (article.created_at) {
+            const time = new Date(article.created_at).toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            featuredTime.textContent = time;
+        } else {
+            featuredTime.textContent = '--:--';
+        }
+    }
+    
+    const featuredDescription = document.getElementById('featuredDescription');
+    if (featuredDescription) {
+        featuredDescription.textContent = article.content || article.summary || 
+                                          article.description || 'Sin descripción disponible';
+    }
+    
+    // Update read more button
+    const readMoreBtn = document.getElementById('featuredReadMore');
+    if (readMoreBtn) {
+        const sourceUrl = article.source_url || article.url || article.link;
+        if (sourceUrl && sourceUrl !== '') {
+            readMoreBtn.href = sourceUrl;
+            readMoreBtn.target = '_blank';
+            readMoreBtn.onclick = null;
+        } else {
+            readMoreBtn.href = '#';
+            readMoreBtn.onclick = (e) => {
+                e.preventDefault();
+                showNotification('No hay enlace disponible para este artículo', 'warning');
+            };
+        }
+    }
+    
+    console.log('Featured article updated successfully');
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Add styles
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// AI Geopolitical Analysis Functions
+async function loadAIGeopoliticalAnalysis() {
+    const container = document.getElementById('aiAnalysisContent');
+    if (!container) return;
+    
+    // Show loading state
+    container.innerHTML = `
+        <div class="ai-loading-state">
+            <i class="fas fa-edit" style="font-size: 2rem; margin-bottom: 15px; opacity: 0.6; color: #46ead7;"></i>
+            <h4 style="margin-bottom: 10px; color: #fff;">Generando análisis geopolítico...</h4>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Nuestro periodista de IA está preparando un resumen exhaustivo de la actualidad mundial</p>
+            <div class="loading-spinner" style="margin-top: 20px;">
+                <i class="fas fa-spinner fa-spin" style="color: #46ead7; font-size: 1.5rem;"></i>
+            </div>
+        </div>
+    `;
+    
+    try {
+        // Get recent articles for context
+        const articlesResponse = await fetch('/api/articles?limit=20');
+        const articles = await articlesResponse.json();
+        
+        // Call the AI analysis endpoint
+        const response = await fetch('/api/ai/geopolitical-analysis', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                articles: articles,
+                analysis_type: 'journalistic_analysis'
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const analysisData = await response.json();
+        displayAIAnalysis(analysisData.analysis);
+        
+    } catch (error) {
+        console.error('Error loading AI analysis:', error);
+        container.innerHTML = `
+            <div class="ai-loading-state">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px; opacity: 0.6; color: #ef4444;"></i>
+                <h4 style="margin-bottom: 10px; color: #fff;">Error al generar análisis</h4>
+                <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">No se pudo conectar con el servicio de análisis. Inténtalo de nuevo.</p>
+                <button onclick="loadAIGeopoliticalAnalysis()" style="margin-top: 15px; padding: 8px 16px; background: #46ead7; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    <i class="fas fa-redo"></i> Reintentar
+                </button>
+            </div>
+        `;
+        showNotification('Error al generar análisis geopolítico', 'error');
+    }
+}
+
+function displayAIAnalysis(analysisText) {
+    const container = document.getElementById('aiAnalysisContent');
+    if (!container || !analysisText) return;
+    
+    const currentDate = new Date().toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    const currentTime = new Date().toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    // Process the analysis text to add proper structure
+    const processedAnalysis = processAnalysisText(analysisText);
+    
+    container.innerHTML = `
+        <div class="ai-article-content">
+            <div class="ai-article-header">
+                <h2 class="ai-article-title">Panorama Geopolítico Global</h2>
+                <h3 class="ai-article-subtitle">Un análisis en profundidad de los acontecimientos que moldean el mundo</h3>
+                <div class="ai-article-meta">
+                    <div class="ai-meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>${currentDate}</span>
+                    </div>
+                    <div class="ai-meta-item">
+                        <i class="fas fa-clock"></i>
+                        <span>${currentTime}</span>
+                    </div>
+                    <div class="ai-meta-item">
+                        <i class="fas fa-robot"></i>
+                        <span>Análisis generado por IA</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ai-article-body">
+                ${processedAnalysis}
+            </div>
+            
+            <div class="ai-article-footer">
+                <p class="ai-byline">
+                    <i class="fas fa-info-circle"></i>
+                    Este análisis ha sido generado por inteligencia artificial basándose en las últimas noticias geopolíticas disponibles. 
+                    La perspectiva refleja una posición favorable a la paz mundial y la sostenibilidad ambiental.
+                </p>
+            </div>
+        </div>
+    `;
+    
+    showNotification('Análisis geopolítico generado exitosamente', 'success');
+}
+
+function processAnalysisText(text) {
+    // Clean and structure the text
+    let processed = text.replace(/\n\n/g, '</p><p class="ai-article-paragraph">');
+    processed = processed.replace(/\n/g, '<br>');
+    
+    // Add paragraph tags at the beginning and end
+    processed = '<p class="ai-article-paragraph">' + processed + '</p>';
+    
+    // Highlight important terms (countries, leaders, organizations)
+    const importantTerms = [
+        'Estados Unidos', 'China', 'Rusia', 'Ucrania', 'Europa', 'OTAN', 'ONU', 'FMI',
+        'Biden', 'Xi Jinping', 'Putin', 'Zelensky', 'Trump',
+        'Gaza', 'Israel', 'Palestina', 'Oriente Medio', 'Taiwán', 'Corea del Norte',
+        'cambio climático', 'energía renovable', 'petróleo', 'gas natural',
+        'inflación', 'economía global', 'cadenas de suministro'
+    ];
+    
+    importantTerms.forEach(term => {
+        const regex = new RegExp(`\\b${term}\\b`, 'gi');
+        processed = processed.replace(regex, `<span class="ai-highlight">${term}</span>`);
+    });
+    
+    // Add sections for better structure
+    if (processed.length > 1000) {
+        const sections = processed.split('</p><p class="ai-article-paragraph">');
+        if (sections.length > 3) {
+            const sectionTitles = [
+                'Panorama Político Global',
+                'Tensiones Económicas y Energéticas',
+                'Conflictos y Diplomacia',
+                'Perspectivas y Desafíos'
+            ];
+            
+            let structuredContent = '';
+            for (let i = 0; i < sections.length; i++) {
+                if (i < sectionTitles.length && i > 0) {
+                    structuredContent += `
+                        <div class="ai-article-section">
+                            <h4 class="ai-section-title">${sectionTitles[i]}</h4>
+                            ${sections[i]}
+                        </div>
+                    `;
+                } else {
+                    structuredContent += sections[i];
+                    if (i < sections.length - 1) {
+                        structuredContent += '</p><p class="ai-article-paragraph">';
+                    }
+                }
+            }
+            return structuredContent;
+        }
+    }
+    
+    return processed;
+}
+
+function exportAIArticle() {
+    const articleContent = document.querySelector('.ai-article-content');
+    if (!articleContent) {
+        showNotification('No hay artículo para exportar', 'warning');
+        return;
+    }
+    
+    const title = document.querySelector('.ai-article-title')?.textContent || 'Análisis Geopolítico';
+    const content = articleContent.innerHTML;
+    
+    // Create a clean HTML document
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title}</title>
+        <style>
+            body { 
+                font-family: 'Georgia', serif; 
+                max-width: 800px; 
+                margin: 0 auto; 
+                padding: 20px; 
+                background: #1a1a2e; 
+                color: #e8eaed; 
+                line-height: 1.6; 
+            }
+            .ai-article-content { 
+                background: rgba(255, 255, 255, 0.05); 
+                padding: 30px; 
+                border-radius: 8px; 
+            }
+            .ai-article-title { 
+                color: #46ead7; 
+                font-size: 2rem; 
+                margin-bottom: 10px; 
+            }
+            .ai-article-subtitle { 
+                color: rgba(255, 255, 255, 0.8); 
+                font-style: italic; 
+                margin-bottom: 20px; 
+            }
+            .ai-highlight { 
+                background: rgba(102, 126, 234, 0.3); 
+                padding: 2px 4px; 
+                border-radius: 3px; 
+            }
+            .ai-section-title { 
+                color: #46ead7; 
+                border-left: 3px solid #46ead7; 
+                padding-left: 15px; 
+                margin: 25px 0 15px 0; 
+            }
+            .ai-article-paragraph { 
+                margin-bottom: 15px; 
+                text-align: justify; 
+            }
+            .ai-article-footer { 
+                margin-top: 30px; 
+                padding-top: 20px; 
+                border-top: 1px solid rgba(255, 255, 255, 0.2); 
+                font-size: 0.9rem; 
+                color: rgba(255, 255, 255, 0.7); 
+            }
+        </style>
+    </head>
+    <body>
+        ${content}
+    </body>
+    </html>
+    `;
+    
+    // Create and download the file
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analisis-geopolitico-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('Artículo exportado exitosamente', 'success');
+}
+        
+        // Array of irregular size classes for true collage effect
+        const sizeClasses = [
+            'size-hero',
+            'size-large-wide', 'size-large-tall',
+            'size-medium-wide', 'size-medium-square', 'size-medium-tall',
+            'size-small-wide', 'size-small-square', 'size-small-tall',
+            'size-mini-wide', 'size-mini-square',
+            'size-tiny'
+        ];
+        
+        // Size class weights for irregular distribution
+        const sizeWeights = {
+            'size-hero': 48,      // 8×6 = 48 grid units
+            'size-large-wide': 28, // 7×4 = 28 grid units
+            'size-large-tall': 25, // 5×5 = 25 grid units
+            'size-medium-wide': 18, // 6×3 = 18 grid units
+            'size-medium-square': 16, // 4×4 = 16 grid units
+            'size-medium-tall': 15, // 3×5 = 15 grid units
+            'size-small-wide': 10, // 5×2 = 10 grid units
+            'size-small-square': 9, // 3×3 = 9 grid units
+            'size-small-tall': 8, // 2×4 = 8 grid units
+            'size-mini-wide': 8, // 4×2 = 8 grid units
+            'size-mini-square': 4, // 2×2 = 4 grid units
+            'size-tiny': 3        // 3×1 = 3 grid units
+        };
+        
+        // AI-powered importance calculation using real NLP models
+        async function calculateArticleImportance(article) {
+            try {
+                // Call our AI endpoint for real importance calculation
+                const response = await fetch('/api/calculate-importance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: article.title,
+                        content: article.content || article.summary || article.description,
+                        location: article.location || article.country,
+                        risk_level: article.risk_level,
+                        published_date: article.published_date || article.date_published || article.pubDate,
+                        source: article.source || article.source_url
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    return result.importance_score;
+                } else {
+                    console.warn('AI importance calculation failed, using fallback');
+                    return calculateFallbackImportance(article);
+                }
+            } catch (error) {
+                console.warn('AI service unavailable, using fallback:', error);
+                return calculateFallbackImportance(article);
+            }
+        }
+        
+        // Fallback importance calculation if AI service is unavailable
+        function calculateFallbackImportance(article) {
+            let score = 0;
+            
+            // Risk level weight (40% of importance)
+            const riskWeights = {
+                'high': 100,
+                'medium': 60,
+                'low': 30
+            };
+            score += (riskWeights[article.risk_level] || 50) * 0.4;
+            
+            // Recency weight (30% of importance)
+            const publishedDate = new Date(article.published_date || article.date_published || article.pubDate || Date.now());
+            const now = new Date();
+            const hoursOld = (now - publishedDate) / (1000 * 60 * 60);
+            const recencyScore = Math.max(0, 100 - (hoursOld / 24) * 10); // Decreases over days
+            score += recencyScore * 0.3;
+            
+            // Content keywords weight (20% of importance)
+            const highImpactKeywords = [
+                'guerra', 'conflicto', 'crisis', 'emergencia', 'ataque', 'bomba',
+                'muerte', 'muertos', 'víctimas', 'evacuación', 'desastre',
+                'terremoto', 'tsunami', 'huracán', 'incendio', 'explosión'
+            ];
+            const title = (article.title || '').toLowerCase();
+            const content = (article.content || article.summary || article.description || '').toLowerCase();
+            const keywordMatches = highImpactKeywords.filter(keyword => 
+                title.includes(keyword) || content.includes(keyword)
+            ).length;
+            score += Math.min(keywordMatches * 15, 60) * 0.2;
+            
+            // Location importance (10% of importance)
+            const highRiskLocations = [
+                'ucrania', 'gaza', 'israel', 'siria', 'afganistán', 'yemen',
+                'somalia', 'sudán', 'myanmar', 'venezuela'
+            ];
+            const location = (article.location || article.country || '').toLowerCase();
+            const isHighRiskLocation = highRiskLocations.some(loc => location.includes(loc));
+            score += (isHighRiskLocation ? 80 : 40) * 0.1;
+            
+            return Math.min(Math.max(score, 0), 100);
+        }
+        
+        // Assign size class based on importance score with irregularity
+        function assignSizeClass(importance, index, totalArticles) {
+            // Add randomness for irregular layout
+            const randomFactor = (Math.sin(index * 7.3) + Math.cos(index * 3.7)) * 10;
+            const adjustedImportance = Math.max(0, Math.min(100, importance + randomFactor));
+            
+            // Ensure distribution variety - prevent too many of the same size
+            const positionFactor = (index / totalArticles) * 20;
+            const finalScore = adjustedImportance - positionFactor;
+            
+            if (finalScore >= 85) return 'size-hero';
+            if (finalScore >= 75) return Math.random() > 0.5 ? 'size-large-wide' : 'size-large-tall';
+            if (finalScore >= 65) {
+                const mediumSizes = ['size-medium-wide', 'size-medium-square', 'size-medium-tall'];
+                return mediumSizes[index % mediumSizes.length];
+            }
+            if (finalScore >= 45) {
+                const smallSizes = ['size-small-wide', 'size-small-square', 'size-small-tall'];
+                return smallSizes[index % smallSizes.length];
+            }
+            if (finalScore >= 25) {
+                const miniSizes = ['size-mini-wide', 'size-mini-square'];
+                return miniSizes[index % miniSizes.length];
+            }
+            return 'size-tiny';
+        }
+        
+        // Enhanced article rendering with AI importance and irregular layout
+        async function renderMosaicArticles(articles) {
+            const container = document.querySelector('.news-mosaic-container');
+            if (!articles || articles.length === 0) {
+                container.innerHTML = `
+                    <div class="mosaic-loading">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>No hay artículos disponibles</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="mosaic-loading">
+                    <i class="fas fa-brain"></i>
+                    <span>Analizando importancia con IA...</span>
+                </div>
+            `;
+            
+            // Calculate importance for all articles using AI
+            const articlesWithImportance = await Promise.all(
+                articles.map(async (article, index) => ({
+                    ...article,
+                    importance: await calculateArticleImportance(article),
+                    originalIndex: index
+                }))
+            );
+            
+            // Sort by importance but then shuffle for irregular layout
+            articlesWithImportance.sort((a, b) => b.importance - a.importance);
+            
+            // Create irregularly shuffled array while maintaining some importance clustering
+            const shuffledArticles = [];
+            const highImportance = articlesWithImportance.filter(a => a.importance >= 70);
+            const mediumImportance = articlesWithImportance.filter(a => a.importance >= 40 && a.importance < 70);
+            const lowImportance = articlesWithImportance.filter(a => a.importance < 40);
+        }
+    } catch (error) {
+        console.error('Error in renderMosaicArticles:', error);
+    }
+}
+
+// Expose functions globally for debugging
+window.dashboardFunctions = {
+    loadNewsMosaic,
     updateStatistics,
     showNotification,
     openArticleModal
 };
+
+console.log('📱 Sistema de dashboard cargado completamente');
 </script>
 {% endblock %}
