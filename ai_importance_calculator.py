@@ -3,6 +3,14 @@ AI-powered importance calculator for news articles using Transformers and Groq
 """
 
 import os
+import torch
+import logging
+try:
+    from peft import PeftModel
+    PEFT_AVAILABLE = True
+except ImportError:
+    PEFT_AVAILABLE = False
+    logging.warning("PEFT not available, loading LORA adapter will fail")
 from datetime import datetime, timezone
 import re
 import logging
@@ -12,6 +20,7 @@ import json
 # AI/ML imports
 try:
     from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
+    from transformers import pipeline as hf_pipeline_helper
     TRANSFORMERS_AVAILABLE = True
 except ImportError:
     TRANSFORMERS_AVAILABLE = False
@@ -29,6 +38,8 @@ class AIImportanceCalculator:
         self.groq_client = None
         self.sentiment_analyzer = None
         self.risk_classifier = None
+        self.fine_tuned_model = None
+        self.fine_tuned_tokenizer = None
         
         # Initialize Groq client if available and API key is set
         if GROQ_AVAILABLE and os.getenv('GROQ_API_KEY'):
@@ -40,6 +51,47 @@ class AIImportanceCalculator:
         
         # Initialize Transformers models if available
         if TRANSFORMERS_AVAILABLE:
+            # Direct load of base-head model
+            try:
+                self.base_tokenizer = AutoTokenizer.from_pretrained(
+                    "leroyrr/bert-base-head"
+                )
+                self.base_model = AutoModelForSequenceClassification.from_pretrained(
+                    "leroyrr/bert-base-head"
+                )
+                logging.info("Loaded HF base-head model directly")
+            except Exception as e:
+                logging.warning(f"Failed to load HF base-head model: {e}")
+                self.base_tokenizer = None
+                self.base_model = None
+            # Load base-head model and apply LORA adapter
+            self.base_tokenizer = AutoTokenizer.from_pretrained("leroyrr/bert-base-head")
+            base = AutoModelForSequenceClassification.from_pretrained("leroyrr/bert-base-head")
+            if PEFT_AVAILABLE:
+                try:
+                    self.lora_model = PeftModel.from_pretrained(
+                        base,
+                        "leroyrr/bert-for-political-news-sentiment-analysis-lora"
+                    )
+                    logging.info("Loaded LORA adapter model successfully")
+                except Exception as e:
+                    logging.warning(f"Failed to load LORA adapter: {e}")
+                    self.lora_model = base
+            else:
+                self.lora_model = base
+                logging.warning("PEFT unavailable, using base model only")
+            # Setup high-level HF pipeline for importance classification
+            try:
+                self.hf_pipeline = hf_pipeline_helper(
+                    "text-classification",
+                    model="leroyrr/bert-for-political-news-sentiment-analysis-lora"
+                )
+                logging.info("HF text-classification pipeline loaded for importance")
+            except Exception as e:
+                logging.warning(f"Failed to init HF pipeline: {e}")
+                self.hf_pipeline = None
+            
+            # Fallback to default pipelines
             try:
                 # Load sentiment analysis model
                 self.sentiment_analyzer = pipeline(
@@ -81,7 +133,33 @@ class AIImportanceCalculator:
             # Start with base importance score
             importance_score = 0.0
             
-            # 1. Use Groq for advanced semantic analysis (40% weight)
+            # 1. Use HF pipeline if available (100% weight)
+            if hasattr(self, 'hf_pipeline') and self.hf_pipeline:
+                try:
+                    results = self.hf_pipeline(text_for_analysis)
+                    # results: list of {'label', 'score'}
+                    neg = next((r['score'] for r in results if r['label'].lower()=='negative'), None)
+                    score = neg if neg is not None else results[0]['score']
+                    importance = max(0, min(100, score * 100))
+                    logging.info(f"HF pipeline importance: {importance:.2f}")
+                    return importance
+                except Exception as e:
+                    logging.warning(f"HF pipeline inference failed: {e}")
+            # 1. Use LORA-adapted model for inference (if loaded)
+            if getattr(self, 'lora_model', None) and getattr(self, 'base_tokenizer', None):
+                try:
+                    inputs = self.base_tokenizer(
+                        text_for_analysis, truncation=True, padding=True, return_tensors='pt'
+                    )
+                    outputs = self.lora_model(**inputs)
+                    logits = outputs.logits.squeeze()
+                    probs = torch.softmax(logits, dim=-1).tolist()
+                    importance = max(0, min(100, probs[0] * 100))
+                    logging.info(f"LORA model importance: {importance:.2f}")
+                    return importance
+                except Exception as e:
+                    logging.warning(f"LORA model inference failed: {e}")
+            # 2. Use Groq for advanced semantic analysis (40% weight)
             groq_score = self._analyze_with_groq(text_for_analysis, location)
             importance_score += groq_score * 0.4
             
