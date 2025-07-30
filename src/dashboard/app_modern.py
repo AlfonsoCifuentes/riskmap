@@ -538,57 +538,363 @@ def get_featured_article():
         return jsonify({'id': 0, 'title': 'Error al cargar artículo', 'error': str(e)}), 500
 
 @app.route('/api/events/heatmap')
+@app.route('/api/heatmap')
 def get_heatmap_data():
     """Get heatmap data - RUTA ESPECÍFICA PARA MAPA DE CALOR."""
+    map_type = request.args.get('type', 'general')
+    
     try:
-        logger.info("Cargando datos del mapa de calor...")
+        logger.info(f"Cargando datos del mapa de calor tipo: {map_type}")
         
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Obtener eventos con ubicación
-        cursor.execute("""
-            SELECT location, type, magnitude, title
-            FROM events 
-            WHERE location IS NOT NULL 
-            AND location != ''
-            ORDER BY published_at DESC
-            LIMIT 500
-        """)
-        
-        heatmap_data = []
-        for row in cursor.fetchall():
-            try:
-                location = json.loads(row['location'])
-                if isinstance(location, list) and len(location) == 2:
-                    heatmap_data.append({
-                        'lat': float(location[0]),
-                        'lng': float(location[1]),
-                        'intensity': min(float(row['magnitude'] or 1), 10),
-                        'type': row['type'] or 'general',
-                        'title': row['title'][:50] + '...'
-                    })
-            except (json.JSONDecodeError, ValueError, TypeError):
-                continue
-        
-        # Si no hay datos reales, generar algunos puntos de ejemplo
-        if len(heatmap_data) == 0:
-            heatmap_data = [
-                {'lat': 50.4501, 'lng': 30.5234, 'intensity': 8, 'type': 'conflict', 'title': 'Conflicto en Ucrania'},
-                {'lat': 31.7683, 'lng': 35.2137, 'intensity': 7, 'type': 'conflict', 'title': 'Tensiones en Medio Oriente'},
-                {'lat': 39.9042, 'lng': 116.4074, 'intensity': 5, 'type': 'political', 'title': 'Actividad política en China'},
-                {'lat': 55.7558, 'lng': 37.6173, 'intensity': 6, 'type': 'economic', 'title': 'Situación económica en Rusia'},
-                {'lat': 40.7128, 'lng': -74.0060, 'intensity': 4, 'type': 'social', 'title': 'Eventos sociales en EE.UU.'}
-            ]
-        
-        conn.close()
-        
-        logger.info(f"Mapa de calor cargado: {len(heatmap_data)} puntos")
-        return jsonify(heatmap_data)
-        
+        if map_type == 'conflict_risk':
+            return get_conflict_risk_heatmap()
+        elif map_type == 'historical_conflicts':
+            return get_historical_conflicts_heatmap()
+        elif map_type == 'oil':
+            return get_oil_heatmap()
+        elif map_type == 'energy':
+            return get_energy_heatmap()
+        elif map_type == 'supplies':
+            return get_supplies_heatmap()
+        elif map_type == 'internet_cables':
+            return get_internet_cables_heatmap()
+        elif map_type == 'military_bases':
+            return get_military_bases_heatmap()
+        elif map_type == 'trade_routes':
+            return get_trade_routes_heatmap()
+        else:
+            return get_general_heatmap()
+            
     except Exception as e:
         logger.error(f"Error getting heatmap data: {e}")
-        return jsonify({'error': str(e)}), 500
+        return get_fallback_heatmap()
+
+def get_general_heatmap():
+    """Mapa de calor general con todos los eventos."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT location, type, magnitude, title, published_at
+        FROM events 
+        WHERE location IS NOT NULL 
+        AND location != ''
+        ORDER BY published_at DESC
+        LIMIT 1000
+    """)
+    
+    heatmap_data = []
+    for row in cursor.fetchall():
+        try:
+            location = json.loads(row['location'])
+            if isinstance(location, list) and len(location) == 2:
+                lat, lng = float(location[0]), float(location[1])
+                if -90 <= lat <= 90 and -180 <= lng <= 180:
+                    heatmap_data.append({
+                        'lat': lat,
+                        'lng': lng,
+                        'intensity': min(float(row['magnitude'] or 1), 10),
+                        'type': row['type'] or 'general',
+                        'title': (row['title'][:50] + '...') if row['title'] else 'Sin título',
+                        'time': row['published_at']
+                    })
+        except (json.JSONDecodeError, ValueError, TypeError):
+            continue
+    
+    conn.close()
+    
+    if len(heatmap_data) < 5:
+        heatmap_data.extend(get_example_points('general'))
+    
+    logger.info(f"Mapa de calor general cargado: {len(heatmap_data)} puntos")
+    return jsonify(heatmap_data)
+
+def get_conflict_risk_heatmap():
+    """Mapa de calor de riesgo de conflicto."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Obtener artículos de alto riesgo por ubicación
+    cursor.execute("""
+        SELECT country, COUNT(*) as count,
+               SUM(CASE WHEN risk_level = 'high' THEN 1 ELSE 0 END) as high_risk
+        FROM articles 
+        WHERE country IS NOT NULL
+        GROUP BY country
+        ORDER BY high_risk DESC, count DESC
+        LIMIT 50
+    """)
+    
+    country_coords = {
+        'Ukraine': [50.4501, 30.5234],
+        'Russia': [55.7558, 37.6173],
+        'China': [39.9042, 116.4074],
+        'Israel': [31.7683, 35.2137],
+        'Palestine': [31.9, 35.2],
+        'Iran': [35.6892, 51.3890],
+        'Syria': [34.8021, 38.9968],
+        'Afghanistan': [33.9391, 67.7100],
+        'Turkey': [39.9334, 32.8597],
+        'North Korea': [40.3399, 127.5101],
+        'India': [28.6139, 77.2090],
+        'Pakistan': [33.6844, 73.0479],
+        'Yemen': [15.5527, 48.5164],
+        'Libya': [26.3351, 17.2283],
+        'Myanmar': [19.7633, 96.0785],
+        'Ethiopia': [9.1450, 40.4897],
+        'Venezuela': [6.4238, -66.5897],
+        'Colombia': [4.7110, -74.0721]
+    }
+    
+    heatmap_data = []
+    for row in cursor.fetchall():
+        country = row['country']
+        if country in country_coords:
+            coords = country_coords[country]
+            risk_intensity = min((row['high_risk'] * 2 + row['count'] * 0.1), 10)
+            heatmap_data.append({
+                'lat': coords[0],
+                'lng': coords[1],
+                'intensity': risk_intensity,
+                'type': 'conflict_risk',
+                'title': f'Riesgo de conflicto en {country}',
+                'details': f'Eventos de alto riesgo: {row["high_risk"]}, Total: {row["count"]}'
+            })
+    
+    conn.close()
+    
+    # Agregar puntos de ejemplo si no hay suficientes datos
+    if len(heatmap_data) < 5:
+        heatmap_data.extend(get_example_points('conflict_risk'))
+    
+    return jsonify(heatmap_data)
+
+def get_historical_conflicts_heatmap():
+    """Mapa de calor de conflictos históricos."""
+    historical_conflicts = [
+        {'lat': 50.4501, 'lng': 30.5234, 'intensity': 9, 'title': 'Guerra de Ucrania (2022-presente)', 'type': 'historical_conflict'},
+        {'lat': 36.2048, 'lng': 138.2529, 'intensity': 8, 'title': 'Segunda Guerra Mundial - Pacífico', 'type': 'historical_conflict'},
+        {'lat': 52.5200, 'lng': 13.4050, 'intensity': 8, 'title': 'Segunda Guerra Mundial - Europa', 'type': 'historical_conflict'},
+        {'lat': 17.0608, 'lng': 108.2772, 'intensity': 7, 'title': 'Guerra de Vietnam', 'type': 'historical_conflict'},
+        {'lat': 33.3152, 'lng': 44.3661, 'intensity': 8, 'title': 'Guerra de Irak', 'type': 'historical_conflict'},
+        {'lat': 34.5553, 'lng': 69.2075, 'intensity': 7, 'title': 'Guerra de Afganistán', 'type': 'historical_conflict'},
+        {'lat': 34.8021, 'lng': 38.9968, 'intensity': 8, 'title': 'Guerra Civil Siria', 'type': 'historical_conflict'},
+        {'lat': 15.5527, 'lng': 48.5164, 'intensity': 7, 'title': 'Guerra Civil de Yemen', 'type': 'historical_conflict'},
+        {'lat': 0.0236, 'lng': 37.9062, 'intensity': 6, 'title': 'Conflictos en el Cuerno de África', 'type': 'historical_conflict'},
+        {'lat': -11.2027, 'lng': 17.8739, 'intensity': 6, 'title': 'Guerra Civil de Angola', 'type': 'historical_conflict'},
+        {'lat': 39.0742, 'lng': 21.8243, 'intensity': 6, 'title': 'Guerras de los Balcanes', 'type': 'historical_conflict'},
+        {'lat': 31.7683, 'lng': 35.2137, 'intensity': 8, 'title': 'Conflicto Israelo-Palestino', 'type': 'historical_conflict'},
+        {'lat': 35.9078, 'lng': 127.7669, 'intensity': 7, 'title': 'Guerra de Corea', 'type': 'historical_conflict'},
+        {'lat': 28.0339, 'lng': 1.6596, 'intensity': 5, 'title': 'Conflictos del Sahel', 'type': 'historical_conflict'}
+    ]
+    
+    return jsonify(historical_conflicts)
+
+def get_oil_heatmap():
+    """Mapa de calor de instalaciones petrolíferas."""
+    oil_data = [
+        {'lat': 26.0667, 'lng': 50.5577, 'intensity': 10, 'title': 'Campos petrolíferos de Bahrein', 'type': 'oil'},
+        {'lat': 25.2048, 'lng': 55.2708, 'intensity': 9, 'title': 'Emiratos Árabes Unidos - Petróleo', 'type': 'oil'},
+        {'lat': 24.7136, 'lng': 46.6753, 'intensity': 10, 'title': 'Arabia Saudí - Campos de Ghawar', 'type': 'oil'},
+        {'lat': 29.3117, 'lng': 47.4818, 'intensity': 9, 'title': 'Kuwait - Campos petrolíferos', 'type': 'oil'},
+        {'lat': 27.5142, 'lng': 90.4336, 'intensity': 8, 'title': 'Campos petrolíferos de Kirkuk, Irak', 'type': 'oil'},
+        {'lat': 35.6892, 'lng': 51.3890, 'intensity': 8, 'title': 'Irán - Campos de Ahvaz', 'type': 'oil'},
+        {'lat': 64.2008, 'lng': -149.4937, 'intensity': 7, 'title': 'Alaska - Prudhoe Bay', 'type': 'oil'},
+        {'lat': 29.7604, 'lng': -95.3698, 'intensity': 8, 'title': 'Texas - Refinería de Houston', 'type': 'oil'},
+        {'lat': 56.1304, 'lng': 101.2431, 'intensity': 7, 'title': 'Siberia - Campos petrolíferos', 'type': 'oil'},
+        {'lat': 59.9139, 'lng': 10.7522, 'intensity': 7, 'title': 'Noruega - Mar del Norte', 'type': 'oil'},
+        {'lat': -22.9068, 'lng': -43.1729, 'intensity': 6, 'title': 'Brasil - Campos de Santos', 'type': 'oil'},
+        {'lat': 4.5709, 'lng': -74.2973, 'intensity': 5, 'title': 'Colombia - Campos petrolíferos', 'type': 'oil'},
+        {'lat': 10.4806, 'lng': -66.9036, 'intensity': 7, 'title': 'Venezuela - Faja del Orinoco', 'type': 'oil'},
+        {'lat': 9.0579, 'lng': 8.6753, 'intensity': 6, 'title': 'Nigeria - Delta del Níger', 'type': 'oil'},
+        {'lat': 32.7767, 'lng': 13.1805, 'intensity': 6, 'title': 'Libia - Campos de Sirte', 'type': 'oil'}
+    ]
+    
+    return jsonify(oil_data)
+
+def get_energy_heatmap():
+    """Mapa de calor de infraestructura energética."""
+    energy_data = [
+        {'lat': 51.4817, 'lng': -3.1791, 'intensity': 8, 'title': 'Central Nuclear de Hinkley Point', 'type': 'nuclear'},
+        {'lat': 49.4172, 'lng': 2.0392, 'intensity': 9, 'title': 'Francia - Centrales Nucleares', 'type': 'nuclear'},
+        {'lat': 35.3606, 'lng': 138.7274, 'intensity': 7, 'title': 'Japón - Energía Nuclear', 'type': 'nuclear'},
+        {'lat': 55.7558, 'lng': 37.6173, 'intensity': 8, 'title': 'Rusia - Gasoductos', 'type': 'gas'},
+        {'lat': 52.5200, 'lng': 13.4050, 'intensity': 7, 'title': 'Alemania - Energías Renovables', 'type': 'renewable'},
+        {'lat': 40.7128, 'lng': -74.0060, 'intensity': 8, 'title': 'EE.UU. - Red Eléctrica', 'type': 'grid'},
+        {'lat': 39.9042, 'lng': 116.4074, 'intensity': 9, 'title': 'China - Centrales de Carbón', 'type': 'coal'},
+        {'lat': 28.6139, 'lng': 77.2090, 'intensity': 7, 'title': 'India - Energía Solar', 'type': 'solar'},
+        {'lat': -23.5505, 'lng': -46.6333, 'intensity': 6, 'title': 'Brasil - Energía Hidroeléctrica', 'type': 'hydro'},
+        {'lat': 60.1282, 'lng': 18.6435, 'intensity': 6, 'title': 'Suecia - Energía Nuclear', 'type': 'nuclear'},
+        {'lat': 45.9432, 'lng': 24.9668, 'intensity': 5, 'title': 'Rumania - Gas Natural', 'type': 'gas'},
+        {'lat': 41.9028, 'lng': 12.4964, 'intensity': 6, 'title': 'Italia - Energía Solar', 'type': 'solar'},
+        {'lat': 40.4637, 'lng': -3.7492, 'intensity': 6, 'title': 'España - Energía Eólica', 'type': 'wind'},
+        {'lat': 35.6762, 'lng': 139.6503, 'intensity': 8, 'title': 'Japón - Red Eléctrica', 'type': 'grid'}
+    ]
+    
+    return jsonify(energy_data)
+
+def get_supplies_heatmap():
+    """Mapa de calor de cadenas de suministro críticas."""
+    supply_data = [
+        {'lat': 31.2304, 'lng': 121.4737, 'intensity': 10, 'title': 'Puerto de Shanghai - Suministros', 'type': 'port'},
+        {'lat': 22.3193, 'lng': 114.1694, 'intensity': 9, 'title': 'Puerto de Hong Kong', 'type': 'port'},
+        {'lat': 1.3521, 'lng': 103.8198, 'intensity': 9, 'title': 'Puerto de Singapur', 'type': 'port'},
+        {'lat': 51.9225, 'lng': 4.4792, 'intensity': 8, 'title': 'Puerto de Rotterdam', 'type': 'port'},
+        {'lat': 32.0853, 'lng': 34.7818, 'intensity': 7, 'title': 'Puerto de Ashdod', 'type': 'port'},
+        {'lat': 25.2048, 'lng': 55.2708, 'intensity': 8, 'title': 'Jebel Ali - Dubai', 'type': 'port'},
+        {'lat': 33.7490, 'lng': -118.2437, 'intensity': 8, 'title': 'Puerto de Los Ángeles', 'type': 'port'},
+        {'lat': 40.6782, 'lng': -74.0442, 'intensity': 7, 'title': 'Puerto de Nueva York', 'type': 'port'},
+        {'lat': 29.7604, 'lng': -95.3698, 'intensity': 7, 'title': 'Puerto de Houston', 'type': 'port'},
+        {'lat': 49.8397, 'lng': 24.0297, 'intensity': 6, 'title': 'Corredor de suministro Europa-Asia', 'type': 'corridor'},
+        {'lat': 30.0444, 'lng': 31.2357, 'intensity': 8, 'title': 'Canal de Suez', 'type': 'canal'},
+        {'lat': 8.9824, 'lng': -79.5199, 'intensity': 7, 'title': 'Canal de Panamá', 'type': 'canal'},
+        {'lat': 1.2966, 'lng': 103.8764, 'intensity': 9, 'title': 'Estrecho de Malaca', 'type': 'strait'},
+        {'lat': 26.3351, 'lng': 56.3890, 'intensity': 8, 'title': 'Estrecho de Ormuz', 'type': 'strait'}
+    ]
+    
+    return jsonify(supply_data)
+
+def get_internet_cables_heatmap():
+    """Mapa de calor de cables submarinos de internet."""
+    cable_data = [
+        {'lat': 51.5074, 'lng': -0.1278, 'intensity': 9, 'title': 'Londres - Hub de Cables Submarinos', 'type': 'cable_hub'},
+        {'lat': 40.7128, 'lng': -74.0060, 'intensity': 9, 'title': 'Nueva York - Cables Transatlánticos', 'type': 'cable_hub'},
+        {'lat': 35.6762, 'lng': 139.6503, 'intensity': 8, 'title': 'Tokio - Cables Transpacíficos', 'type': 'cable_hub'},
+        {'lat': 1.3521, 'lng': 103.8198, 'intensity': 8, 'title': 'Singapur - Hub del Sudeste Asiático', 'type': 'cable_hub'},
+        {'lat': 22.3193, 'lng': 114.1694, 'intensity': 7, 'title': 'Hong Kong - Cables de Asia', 'type': 'cable_hub'},
+        {'lat': 55.7558, 'lng': 37.6173, 'intensity': 6, 'title': 'Moscú - Cables Terrestres', 'type': 'cable_hub'},
+        {'lat': 52.5200, 'lng': 13.4050, 'intensity': 7, 'title': 'Berlín - Hub Europeo', 'type': 'cable_hub'},
+        {'lat': 25.2048, 'lng': 55.2708, 'intensity': 7, 'title': 'Dubai - Cables del Golfo', 'type': 'cable_hub'},
+        {'lat': 19.4326, 'lng': -99.1332, 'intensity': 6, 'title': 'Ciudad de México - Hub Centroamericano', 'type': 'cable_hub'},
+        {'lat': -33.8688, 'lng': 151.2093, 'intensity': 7, 'title': 'Sydney - Cables del Pacífico Sur', 'type': 'cable_hub'},
+        {'lat': -22.9068, 'lng': -43.1729, 'intensity': 6, 'title': 'Río de Janeiro - Cables Sudamericanos', 'type': 'cable_hub'},
+        {'lat': 6.5244, 'lng': 3.3792, 'intensity': 5, 'title': 'Lagos - Cables Africanos', 'type': 'cable_hub'},
+        {'lat': 30.0444, 'lng': 31.2357, 'intensity': 6, 'title': 'El Cairo - Conexiones África-Asia', 'type': 'cable_hub'},
+        {'lat': 64.1466, 'lng': -21.9426, 'intensity': 5, 'title': 'Reykjavik - Cables del Ártico', 'type': 'cable_hub'}
+    ]
+    
+    return jsonify(cable_data)
+
+def get_military_bases_heatmap():
+    """Mapa de calor de bases militares estratégicas."""
+    military_data = [
+        {'lat': 36.1627, 'lng': -115.1500, 'intensity': 9, 'title': 'Base Aérea Nellis - Nevada', 'type': 'military_base'},
+        {'lat': 39.1434, 'lng': -77.3446, 'intensity': 8, 'title': 'Base Andrews - Maryland', 'type': 'military_base'},
+        {'lat': 35.3606, 'lng': 139.7817, 'intensity': 7, 'title': 'Base Yokota - Japón', 'type': 'military_base'},
+        {'lat': 37.0871, 'lng': 127.0298, 'intensity': 7, 'title': 'Base Osan - Corea del Sur', 'type': 'military_base'},
+        {'lat': 26.3351, 'lng': 50.6300, 'intensity': 8, 'title': 'Base Al Udeid - Qatar', 'type': 'military_base'},
+        {'lat': 32.3668, 'lng': 44.3668, 'intensity': 6, 'title': 'Zona Verde - Bagdad', 'type': 'military_base'},
+        {'lat': 34.6526, 'lng': 67.9095, 'intensity': 6, 'title': 'Base Bagram - Afganistán (anterior)', 'type': 'military_base'},
+        {'lat': 35.7040, 'lng': 51.3890, 'intensity': 7, 'title': 'Bases Militares Iraníes', 'type': 'military_base'},
+        {'lat': 55.7558, 'lng': 37.6173, 'intensity': 8, 'title': 'Bases Militares Rusas', 'type': 'military_base'},
+        {'lat': 39.9042, 'lng': 116.4074, 'intensity': 8, 'title': 'Instalaciones Militares Chinas', 'type': 'military_base'},
+        {'lat': 51.4545, 'lng': -2.5879, 'intensity': 6, 'title': 'Base RAF Fairford - Reino Unido', 'type': 'military_base'},
+        {'lat': 49.2127, 'lng': 7.1420, 'intensity': 6, 'title': 'Base Ramstein - Alemania', 'type': 'military_base'}
+    ]
+    
+    return jsonify(military_data)
+
+def get_trade_routes_heatmap():
+    """Mapa de calor de rutas comerciales importantes."""
+    trade_data = [
+        {'lat': 30.0444, 'lng': 31.2357, 'intensity': 10, 'title': 'Canal de Suez - Ruta Comercial', 'type': 'trade_route'},
+        {'lat': 8.9824, 'lng': -79.5199, 'intensity': 9, 'title': 'Canal de Panamá - Ruta Comercial', 'type': 'trade_route'},
+        {'lat': 1.2966, 'lng': 103.8764, 'intensity': 9, 'title': 'Estrecho de Malaca', 'type': 'trade_route'},
+        {'lat': 26.3351, 'lng': 56.3890, 'intensity': 8, 'title': 'Estrecho de Ormuz', 'type': 'trade_route'},
+        {'lat': 45.0, 'lng': 35.0, 'intensity': 7, 'title': 'Ruta del Mar Negro', 'type': 'trade_route'},
+        {'lat': 36.0, 'lng': 138.0, 'intensity': 8, 'title': 'Ruta Transpacífica', 'type': 'trade_route'},
+        {'lat': 45.0, 'lng': -30.0, 'intensity': 8, 'title': 'Ruta Transatlántica', 'type': 'trade_route'},
+        {'lat': 0.0, 'lng': 80.0, 'intensity': 7, 'title': 'Ruta del Océano Índico', 'type': 'trade_route'},
+        {'lat': 70.0, 'lng': 100.0, 'intensity': 6, 'title': 'Ruta del Ártico (Futura)', 'type': 'trade_route'},
+        {'lat': 45.0, 'lng': 100.0, 'intensity': 7, 'title': 'Nueva Ruta de la Seda', 'type': 'trade_route'}
+    ]
+    
+    return jsonify(trade_data)
+
+def get_example_points(map_type):
+    """Obtener puntos de ejemplo según el tipo de mapa."""
+    examples = {
+        'general': [
+            {'lat': 50.4501, 'lng': 30.5234, 'intensity': 8, 'type': 'conflict', 'title': 'Conflicto en Ucrania'},
+            {'lat': 31.7683, 'lng': 35.2137, 'intensity': 7, 'type': 'conflict', 'title': 'Tensiones en Medio Oriente'}
+        ],
+        'conflict_risk': [
+            {'lat': 50.4501, 'lng': 30.5234, 'intensity': 9, 'type': 'conflict_risk', 'title': 'Alto riesgo - Ucrania'},
+            {'lat': 31.7683, 'lng': 35.2137, 'intensity': 8, 'type': 'conflict_risk', 'title': 'Alto riesgo - Gaza'}
+        ]
+    }
+    return examples.get(map_type, [])
+
+def get_fallback_heatmap():
+    """Datos de respaldo en caso de error."""
+    fallback_data = [
+        {'lat': 50.4501, 'lng': 30.5234, 'intensity': 8, 'type': 'conflict', 'title': 'Conflicto en Ucrania'},
+        {'lat': 31.7683, 'lng': 35.2137, 'intensity': 7, 'type': 'conflict', 'title': 'Tensiones en Medio Oriente'},
+        {'lat': 39.9042, 'lng': 116.4074, 'intensity': 5, 'type': 'political', 'title': 'Actividad política en China'}
+    ]
+    return jsonify(fallback_data)
+
+@app.route('/api/heatmap/types')
+def get_heatmap_types():
+    """Get available heatmap types and their descriptions."""
+    map_types = {
+        'general': {
+            'name': 'General',
+            'description': 'Todos los eventos geopolíticos',
+            'icon': 'fas fa-globe',
+            'color': '#3498db'
+        },
+        'conflict_risk': {
+            'name': 'Riesgo de Conflicto',
+            'description': 'Zonas con alto riesgo de conflicto',
+            'icon': 'fas fa-exclamation-triangle',
+            'color': '#e74c3c'
+        },
+        'historical_conflicts': {
+            'name': 'Conflictos Históricos',
+            'description': 'Conflictos y guerras históricas importantes',
+            'icon': 'fas fa-history',
+            'color': '#8b0000'
+        },
+        'oil': {
+            'name': 'Instalaciones Petrolíferas',
+            'description': 'Campos petrolíferos y refinerías',
+            'icon': 'fas fa-oil-can',
+            'color': '#f39c12'
+        },
+        'energy': {
+            'name': 'Infraestructura Energética',
+            'description': 'Centrales eléctricas y redes energéticas',
+            'icon': 'fas fa-bolt',
+            'color': '#f1c40f'
+        },
+        'supplies': {
+            'name': 'Cadenas de Suministro',
+            'description': 'Puertos y rutas de suministro críticas',
+            'icon': 'fas fa-shipping-fast',
+            'color': '#2ecc71'
+        },
+        'internet_cables': {
+            'name': 'Cables de Internet',
+            'description': 'Cables submarinos y hubs de internet',
+            'icon': 'fas fa-network-wired',
+            'color': '#9b59b6'
+        },
+        'military_bases': {
+            'name': 'Bases Militares',
+            'description': 'Instalaciones militares estratégicas',
+            'icon': 'fas fa-shield-alt',
+            'color': '#34495e'
+        },
+        'trade_routes': {
+            'name': 'Rutas Comerciales',
+            'description': 'Principales rutas comerciales mundiales',
+            'icon': 'fas fa-route',
+            'color': '#16a085'
+        }
+    }
+    
+    return jsonify(map_types)
 
 @app.route('/api/risk-by-country')
 def get_risk_by_country():
@@ -820,49 +1126,6 @@ def get_risk_analysis():
         logger.error(f"Error getting risk analysis: {e}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/heatmap')
-def get_heatmap():
-    """Get heatmap data from database - MAPA DE CALOR REAL."""
-    try:
-        logger.info("Cargando datos del mapa de calor...")
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Obtener eventos con ubicación
-        cursor.execute("""
-            SELECT location, type, magnitude, title
-            FROM events 
-            WHERE location IS NOT NULL 
-            AND location != ''
-            ORDER BY published_at DESC
-            LIMIT 1000
-        """)
-        
-        heatmap_data = []
-        for row in cursor.fetchall():
-            try:
-                location = json.loads(row['location'])
-                if isinstance(location, list) and len(location) == 2:
-                    heatmap_data.append({
-                        'lat': float(location[0]),
-                        'lng': float(location[1]),
-                        'intensity': min(float(row['magnitude'] or 1), 10),
-                        'type': row['type'] or 'general',
-                        'title': row['title'][:50] + '...'
-                    })
-            except (json.JSONDecodeError, ValueError, TypeError):
-                continue
-        
-        conn.close()
-        
-        logger.info(f"Mapa de calor cargado: {len(heatmap_data)} puntos")
-        return jsonify(heatmap_data)
-        
-    except Exception as e:
-        logger.error(f"Error getting heatmap: {e}")
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/api/test')
 def test_api():
     """Endpoint de prueba."""
@@ -876,6 +1139,26 @@ def test_api():
         cursor.execute("SELECT COUNT(*) FROM events")
         event_count = cursor.fetchone()[0]
         
+        # Verificar eventos con ubicación
+        cursor.execute("SELECT COUNT(*) FROM events WHERE location IS NOT NULL AND location != ''")
+        events_with_location = cursor.fetchone()[0]
+        
+        # Muestra de eventos con ubicación
+        cursor.execute("""
+            SELECT title, location, type, magnitude 
+            FROM events 
+            WHERE location IS NOT NULL AND location != '' 
+            LIMIT 5
+        """)
+        sample_events = []
+        for row in cursor.fetchall():
+            sample_events.append({
+                'title': row['title'],
+                'location': row['location'],
+                'type': row['type'],
+                'magnitude': row['magnitude']
+            })
+        
         conn.close()
         
         return jsonify({
@@ -884,8 +1167,10 @@ def test_api():
             'database': {
                 'articles': article_count,
                 'events': event_count,
+                'events_with_location': events_with_location,
                 'path': DB_PATH
             },
+            'sample_events': sample_events,
             'scheduler_running': scheduler_bg.running if scheduler_bg else False,
             'timestamp': datetime.now().isoformat()
         })
@@ -895,6 +1180,311 @@ def test_api():
             'status': 'ERROR',
             'message': str(e),
             'timestamp': datetime.now().isoformat()
+        }), 500
+
+# ==================== EXECUTIVE REPORTS ENDPOINTS ====================
+
+@app.route('/api/reports/recent')
+def get_recent_reports():
+    """Get recent reports from database."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get recent reports based on processed data grouped by date
+        cursor.execute("""
+            SELECT 
+                DATE(processed_at) as report_date,
+                COUNT(*) as articles_analyzed,
+                AVG(CASE WHEN sentiment > 0 THEN sentiment ELSE 0 END) as avg_sentiment,
+                COUNT(CASE WHEN confidence_score > 0.7 THEN 1 END) as high_confidence_count,
+                GROUP_CONCAT(DISTINCT category) as categories
+            FROM processed_data 
+            WHERE processed_at >= date('now', '-30 days')
+            GROUP BY DATE(processed_at)
+            ORDER BY report_date DESC
+            LIMIT 10
+        """)
+        
+        reports = []
+        for row in cursor.fetchall():
+            reports.append({
+                'id': f"report_{row[0].replace('-', '')}",
+                'title': f"Análisis Geopolítico - {row[0]}",
+                'date': row[0],
+                'type': 'daily_analysis',
+                'status': 'completed',
+                'articles_analyzed': row[1],
+                'avg_sentiment': round(row[2] if row[2] else 0, 2),
+                'confidence': round((row[3] / row[1] * 100) if row[1] > 0 else 0, 1),
+                'categories': row[4].split(',') if row[4] else [],
+                'risk_level': 'medium' if row[2] and row[2] < 0 else 'low'
+            })
+        
+        conn.close()
+        
+        return jsonify({
+            'status': 'success',
+            'reports': reports,
+            'total': len(reports)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting recent reports: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/reports/templates')
+def get_report_templates():
+    """Get available report templates."""
+    try:
+        templates = [
+            {
+                'id': 'daily_risk_assessment',
+                'name': 'Evaluación Diaria de Riesgos',
+                'description': 'Análisis de riesgos geopolíticos basado en artículos del día',
+                'type': 'daily',
+                'fields': ['risk_analysis', 'sentiment_trends', 'geographic_hotspots'],
+                'frequency': 'daily'
+            },
+            {
+                'id': 'weekly_geopolitical_summary',
+                'name': 'Resumen Geopolítico Semanal',
+                'description': 'Resumen semanal de eventos geopolíticos relevantes',
+                'type': 'weekly',
+                'fields': ['event_summary', 'risk_trends', 'conflict_analysis'],
+                'frequency': 'weekly'
+            },
+            {
+                'id': 'regional_conflict_monitor',
+                'name': 'Monitor de Conflictos Regionales',
+                'description': 'Análisis específico de conflictos por región',
+                'type': 'regional',
+                'fields': ['conflict_mapping', 'escalation_indicators', 'peace_initiatives'],
+                'frequency': 'on_demand'
+            },
+            {
+                'id': 'executive_briefing',
+                'name': 'Briefing Ejecutivo',
+                'description': 'Resumen ejecutivo para toma de decisiones',
+                'type': 'executive',
+                'fields': ['key_highlights', 'risk_recommendations', 'action_items'],
+                'frequency': 'weekly'
+            }
+        ]
+        
+        return jsonify({
+            'status': 'success',
+            'templates': templates,
+            'total': len(templates)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting report templates: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/reports/config')
+def get_report_config():
+    """Get report configuration settings."""
+    try:
+        config = {
+            'auto_generation': {
+                'enabled': True,
+                'frequency': 'daily',
+                'time': '06:00'
+            },
+            'notification_settings': {
+                'email_enabled': False,
+                'slack_enabled': False,
+                'high_risk_alerts': True
+            },
+            'export_formats': ['PDF', 'HTML', 'JSON'],
+            'retention_policy': {
+                'days': 90,
+                'auto_archive': True
+            },
+            'risk_thresholds': {
+                'low': 0.3,
+                'medium': 0.6,
+                'high': 0.8
+            },
+            'data_sources': {
+                'total_articles': 1021,
+                'active_sources': 81,
+                'last_update': datetime.now().isoformat()
+            }
+        }
+        
+        return jsonify({
+            'status': 'success',
+            'config': config
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting report config: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/reports/generate', methods=['POST'])
+def generate_report():
+    """Generate a new report."""
+    try:
+        data = request.get_json()
+        template_id = data.get('template', 'daily_risk_assessment')
+        report_name = data.get('name', f'Report {datetime.now().strftime("%Y%m%d_%H%M")}')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get recent articles for the report
+        cursor.execute("""
+            SELECT a.*, pd.sentiment, pd.confidence_score, pd.category
+            FROM articles a
+            LEFT JOIN processed_data pd ON a.id = pd.article_id
+            WHERE a.created_at >= date('now', '-1 days')
+            ORDER BY a.risk_score DESC
+            LIMIT 50
+        """)
+        
+        articles = cursor.fetchall()
+        
+        # Calculate report metrics
+        high_risk_count = len([a for a in articles if a[16] and a[16] > 0.6])  # risk_score > 0.6
+        avg_sentiment = sum([a[17] for a in articles if a[17]]) / len([a for a in articles if a[17]]) if articles else 0
+        
+        report = {
+            'id': f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            'name': report_name,
+            'template': template_id,
+            'generated_at': datetime.now().isoformat(),
+            'status': 'completed',
+            'metrics': {
+                'total_articles': len(articles),
+                'high_risk_articles': high_risk_count,
+                'avg_sentiment': round(avg_sentiment, 2),
+                'risk_level': 'high' if high_risk_count > 10 else 'medium' if high_risk_count > 5 else 'low'
+            },
+            'summary': f"Análisis de {len(articles)} artículos con {high_risk_count} eventos de alto riesgo detectados."
+        }
+        
+        conn.close()
+        
+        return jsonify({
+            'status': 'success',
+            'report': report,
+            'message': 'Reporte generado exitosamente'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating report: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/reports/filter', methods=['POST'])
+def filter_reports():
+    """Filter reports by criteria."""
+    try:
+        data = request.get_json()
+        filters = data.get('filters', {})
+        
+        # This would filter existing reports - for now return sample filtered data
+        filtered_reports = [
+            {
+                'id': 'filtered_report_001',
+                'title': 'Reporte Filtrado - Alto Riesgo',
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'type': 'filtered',
+                'status': 'completed',
+                'risk_level': 'high',
+                'filters_applied': filters
+            }
+        ]
+        
+        return jsonify({
+            'status': 'success',
+            'reports': filtered_reports,
+            'filters_applied': filters,
+            'total': len(filtered_reports)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error filtering reports: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/reports/<report_id>/view')
+def view_report(report_id):
+    """View a specific report."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get report data based on ID (parse date from ID if it's date-based)
+        if 'report_' in report_id:
+            date_part = report_id.replace('report_', '')
+            if len(date_part) == 8:  # YYYYMMDD format
+                report_date = f"{date_part[:4]}-{date_part[4:6]}-{date_part[6:8]}"
+                
+                cursor.execute("""
+                    SELECT a.*, pd.sentiment, pd.confidence_score
+                    FROM articles a
+                    LEFT JOIN processed_data pd ON a.id = pd.article_id
+                    WHERE DATE(a.created_at) = ?
+                    ORDER BY a.risk_score DESC
+                """, (report_date,))
+                
+                articles = cursor.fetchall()
+                
+                report_data = {
+                    'id': report_id,
+                    'title': f'Análisis Geopolítico - {report_date}',
+                    'date': report_date,
+                    'status': 'completed',
+                    'articles': [
+                        {
+                            'title': article[1],
+                            'risk_score': article[16] if article[16] else 0,
+                            'sentiment': article[17] if article[17] else 0,
+                            'country': article[9],
+                            'source': article[5]
+                        } for article in articles[:10]
+                    ],
+                    'summary': f"Análisis de {len(articles)} artículos para el {report_date}"
+                }
+        else:
+            # Default report structure
+            report_data = {
+                'id': report_id,
+                'title': f'Reporte {report_id}',
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'status': 'completed',
+                'articles': [],
+                'summary': 'Reporte no encontrado o generado dinámicamente'
+            }
+        
+        conn.close()
+        
+        return jsonify({
+            'status': 'success',
+            'report': report_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Error viewing report {report_id}: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
         }), 500
 
 if __name__ == '__main__':

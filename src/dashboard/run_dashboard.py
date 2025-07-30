@@ -56,7 +56,7 @@ try:
 except:
     pass
 
-templates = Jinja2Templates(directory=str(Path(__file__).parent))
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 app.mount('/static', StaticFiles(directory=str(Path(__file__).parent/'static')), name='static')
 
 # Utilidad para cargar traducciones

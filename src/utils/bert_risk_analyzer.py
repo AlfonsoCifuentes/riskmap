@@ -11,9 +11,21 @@ from pathlib import Path
 import sys
 import numpy as np
 
+# Suppress transformer model initialization warnings
+import warnings
+warnings.filterwarnings("ignore", "Some weights of .* were not initialized.*", UserWarning)
+warnings.filterwarnings("ignore", "You should probably TRAIN this model .*", UserWarning)
+
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
+import logging as _logging
+_logging.getLogger("transformers").setLevel(_logging.ERROR)
+try:
+    from transformers import logging as _transformers_logging
+    _transformers_logging.set_verbosity_error()
+except ImportError:
+    pass
 from utils.config import config
 
 logger = logging.getLogger(__name__)

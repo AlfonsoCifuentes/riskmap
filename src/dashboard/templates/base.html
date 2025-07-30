@@ -10,7 +10,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <!-- Enhanced Custom Styles -->
-    <link href="{{ url_for('static', filename='css/enhanced_styles.css') }}" rel="stylesheet">
+    <link href="/static/css/enhanced_styles.css" rel="stylesheet">
     
     <!-- Plotly for charts -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -47,23 +47,7 @@
             overflow-x: hidden;
         }
 
-        /* Enhanced Particles Background */
-        #particles-js {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: linear-gradient(
-                180deg,
-                #0a1a2e 0%,
-                #16213e 25%,
-                #0f3460 50%,
-                #16537e 75%,
-                #06b6d4 100%
-            );
-        }
+        /* Remove particles background - using gradient body background instead */
 
         .navbar {
             background: rgba(13, 17, 23, 0.95) !important;
@@ -243,9 +227,6 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Enhanced Particles Background -->
-    <div id="particles-js"></div>
-    
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container-fluid">
@@ -302,10 +283,6 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Enhanced Particles Background -->
-    <script src="{{ url_for('static', filename='js/enhanced_particles.js') }}"></script>
-    
     <!-- Common JavaScript -->
     <script>
         // Utility functions

@@ -8,7 +8,7 @@
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modern_dashboard.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/rtl.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/effects.css') }}">
+    <!-- Efectos visuales eliminados: se quitó effects.css -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/articles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/scroll_fix.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -31,16 +31,31 @@
             backdrop-filter: blur(10px);
         }
         
+        /* Main Navigation - Mobile First Approach */
+        .main-navigation {
+            background: linear-gradient(135deg, rgba(26, 32, 64, 0.8) 0%, rgba(26, 32, 64, 0.9) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 80px;
+        }
+        
         .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 20px;
+            max-width: 100%;
+            margin: 0;
+            padding: 0 25px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 70px;
+            height: 80px;
+            width: 100%;
         }
         
+        /* Logo/Brand - Always left aligned */
         .nav-brand {
             display: flex;
             align-items: center;
@@ -48,68 +63,104 @@
             color: #fff;
             font-family: 'Orbitron', monospace;
             font-weight: 700;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            margin-left: 0;
         }
         
         .nav-brand .brand-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 12px;
-            font-size: 1.2rem;
+            margin-right: 10px;
+            font-size: 1.1rem;
         }
         
+        /* Mobile First - Hidden menu by default */
         .nav-menu {
+            position: fixed;
+            top: 80px;
+            left: -100%;
+            width: 100%;
+            height: calc(100vh - 80px);
+            background: linear-gradient(135deg, rgba(26, 32, 64, 0.95) 0%, rgba(26, 32, 64, 0.98) 100%);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 20px;
+            gap: 8px;
+            transition: left 0.3s ease;
+            overflow-y: auto;
             list-style: none;
             margin: 0;
-            padding: 0;
-            gap: 8px;
+        }
+        
+        .nav-menu.active {
+            left: 0;
         }
         
         .nav-item {
+            width: 100%;
             position: relative;
         }
         
         .nav-link {
             display: flex;
             align-items: center;
-            padding: 12px 20px;
+            padding: 10px 20px;
             color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: 16px;
             transition: all 0.3s ease;
             font-weight: 500;
             font-size: 0.95rem;
+            width: 100%;
+            justify-content: flex-start;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
+            line-height: 1.2;
         }
         
         .nav-link:hover {
             color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            transform: translateX(4px);
         }
         
         .nav-link.active {
             color: #fff;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
         }
         
         .nav-link i {
-            margin-right: 8px;
-            font-size: 1.1rem;
+            margin-right: 12px;
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            color: #00d4ff;
         }
         
+        .nav-link.active i {
+            color: #fff;
+        }
+        
+        /* Right side controls */
         .nav-controls {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex-shrink: 0;
+            margin-right: 0;
         }
         
         .nav-control-btn {
@@ -118,7 +169,7 @@
             border: none;
             background: rgba(255, 255, 255, 0.1);
             color: rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -127,60 +178,276 @@
         }
         
         .nav-control-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 212, 255, 0.15);
             color: #fff;
             transform: translateY(-2px);
         }
         
-        /* Mobile Navigation */
+        /* Mobile Navigation Toggle - Visible by default */
         .mobile-nav-toggle {
-            display: none;
+            display: flex;
             width: 40px;
             height: 40px;
             border: none;
             background: rgba(255, 255, 255, 0.1);
             color: #fff;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 1.2rem;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
         }
         
-        @media (max-width: 768px) {
-            .nav-menu {
-                position: fixed;
-                top: 70px;
-                left: -100%;
-                width: 100%;
-                height: calc(100vh - 70px);
-                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-                flex-direction: column;
-                padding: 20px;
-                transition: left 0.3s ease;
-                backdrop-filter: blur(10px);
+        .mobile-nav-toggle:hover {
+            background: rgba(0, 212, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        /* Tablet Design */
+        @media (min-width: 768px) {
+            .nav-container {
+                padding: 0 25px;
             }
             
-            .nav-menu.active {
-                left: 0;
+            .nav-menu {
+                width: 300px;
+            }
+            
+            .nav-controls {
+                gap: 8px;
+            }
+        }
+        
+        /* Desktop Design - Horizontal layout with equidistant, smaller nav buttons */
+        @media (min-width: 1024px) {
+            .nav-container {
+                padding: 0 25px;
+                justify-content: space-between;
+            }
+            
+            .nav-menu {
+                position: static;
+                width: auto;
+                height: auto;
+                background: none;
+                backdrop-filter: none;
+                border: none;
+                flex-direction: row;
+                align-items: center;
+                padding: 0;
+                gap: 10px;
+                transition: none;
+                overflow: visible;
+                margin-left: auto;
+                margin-right: 0;
+            }
+            
+            .nav-item {
+                width: auto;
             }
             
             .nav-link {
-                width: 100%;
-                justify-content: flex-start;
-                padding: 16px 20px;
-                margin-bottom: 8px;
+                padding: 6px 16px;
+                font-size: 0.8rem;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                min-width: 120px;
+                max-width: 120px;
+                justify-content: center;
+                text-align: center;
+                flex: 0 0 120px;
+                border-radius: 16px;
+                line-height: 1.2;
+            }
+            
+            .nav-link:hover {
+                transform: translateY(-2px);
+            }
+            
+            .nav-link i {
+                margin-right: 6px;
+                width: auto;
+                font-size: 0.85rem;
             }
             
             .mobile-nav-toggle {
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                display: none;
+            }
+            
+            .nav-controls {
+                gap: 10px;
+            }
+        }
+        
+        /* Large Desktop - More spacing and larger equal-width buttons */
+        @media (min-width: 1200px) {
+            .nav-container {
+                padding: 0 35px;
+            }
+            
+            .nav-menu {
+                gap: 12px;
+            }
+            
+            .nav-link {
+                padding: 7px 18px;
+                font-size: 0.85rem;
+                min-width: 140px;
+                max-width: 140px;
+                flex: 0 0 140px;
+                border-radius: 16px;
+                line-height: 1.2;
+            }
+            
+            .nav-link i {
+                margin-right: 7px;
+                font-size: 0.9rem;
+            }
+            
+            .nav-controls {
+                gap: 12px;
+            }
+            
+            .nav-control-btn {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* Extra Large Desktop - Maximum edge alignment */
+        @media (min-width: 1400px) {
+            .nav-container {
+                padding: 0 45px;
+                max-width: none;
+            }
+            
+            .nav-brand {
+                margin-left: 0;
+            }
+            
+            .nav-controls {
+                margin-right: 0;
+            }
+        }
+
+        /* Notifications - Always below navbar */
+        .notification,
+        .alert,
+        .toast,
+        .flash-message,
+        .success-message,
+        .error-message,
+        .info-message,
+        .warning-message {
+            position: fixed !important;
+            top: 85px !important; /* 5px below the 80px navbar */
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 9999 !important; /* Higher than navbar but below modals */
+            max-width: 500px !important;
+            width: auto !important;
+            margin: 0 20px !important;
+            padding: 12px 20px !important;
+            background: rgba(26, 32, 64, 0.95) !important;
+            backdrop-filter: blur(15px) !important;
+            border: 1px solid rgba(70, 234, 215, 0.3) !important;
+            border-radius: 12px !important;
+            color: #fff !important;
+            font-size: 0.9rem !important;
+            font-weight: 500 !important;
+            text-align: center !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+            animation: slideDownFade 0.3s ease-out !important;
+        }
+
+        .notification.success,
+        .success-message {
+            border-color: rgba(34, 197, 94, 0.5) !important;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        .notification.error,
+        .error-message {
+            border-color: rgba(239, 68, 68, 0.5) !important;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        .notification.warning,
+        .warning-message {
+            border-color: rgba(245, 158, 11, 0.5) !important;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        .notification.info,
+        .info-message {
+            border-color: rgba(59, 130, 246, 0.5) !important;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        @keyframes slideDownFade {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Responsive notifications */
+        @media (max-width: 768px) {
+            .notification,
+            .alert,
+            .toast,
+            .flash-message,
+            .success-message,
+            .error-message,
+            .info-message,
+            .warning-message {
+                top: 85px !important;
+                left: 10px !important;
+                right: 10px !important;
+                transform: none !important;
+                max-width: none !important;
+                margin: 0 !important;
             }
         }
         
         /* Page Content */
         .page-content {
-            min-height: calc(100vh - 70px);
+            min-height: calc(100vh - 80px);
             background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            padding-top: 80px;
+        }
+
+        /* Ensure any dynamically added content respects navbar */
+        .page-content > *:first-child {
+            margin-top: 10px;
+        }
+
+        /* Common notification library classes */
+        .swal2-container,
+        .toastr-container,
+        .noty_layout,
+        .humane,
+        .growl-container {
+            z-index: 9999 !important;
+        }
+
+        .swal2-popup {
+            margin-top: 90px !important;
+        }
+
+        /* Toastr specific positioning */
+        #toast-container {
+            top: 90px !important;
+        }
+
+        /* Noty specific positioning */
+        .noty_layout.topCenter {
+            top: 90px !important;
         }
         
         /* Breadcrumb */
@@ -234,8 +501,6 @@
     </style>
 </head>
 <body>
-    <!-- Geopolitical Particles Background -->
-    <div id="particles-js"></div>
     
     <!-- Main Navigation -->
     <nav class="main-navigation">
@@ -257,7 +522,7 @@
                 <li class="nav-item">
                     <a href="/conflict-monitoring" class="nav-link {% if request.endpoint == 'conflict_monitoring' %}active{% endif %}">
                         <i class="fas fa-shield-alt"></i>
-                        Monitoreo de Conflictos
+                        Monitor de conflictos
                     </a>
                 </li>
                 <li class="nav-item">
@@ -299,21 +564,6 @@
             </ul>
             
             <div class="nav-controls">
-                <!-- Language Selector -->
-                <button class="nav-control-btn" id="languageBtn" title="Idioma">
-                    <i class="fas fa-language"></i>
-                </button>
-                
-                <!-- Theme Toggle -->
-                <button class="nav-control-btn" id="themeToggle" title="Tema">
-                    <i class="fas fa-moon"></i>
-                </button>
-                
-                <!-- Notifications -->
-                <button class="nav-control-btn" id="notificationBtn" title="Notificaciones">
-                    <i class="fas fa-bell"></i>
-                </button>
-                
                 <!-- Mobile Menu Toggle -->
                 <button class="mobile-nav-toggle" id="mobileNavToggle">
                     <i class="fas fa-bars"></i>
@@ -365,17 +615,142 @@
     {% block extra_js %}{% endblock %}
     
     <script>
-        // Mobile Navigation Toggle
-        document.getElementById('mobileNavToggle').addEventListener('click', function() {
+        // Mobile Navigation Toggle with improved functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileNavToggle = document.getElementById('mobileNavToggle');
             const navMenu = document.getElementById('navMenu');
-            navMenu.classList.toggle('active');
-        });
-        
-        // Close mobile menu when clicking on a link
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', () => {
-                document.getElementById('navMenu').classList.remove('active');
+            const body = document.body;
+            
+            if (mobileNavToggle && navMenu) {
+                // Toggle mobile menu
+                mobileNavToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    navMenu.classList.toggle('active');
+                    
+                    // Update hamburger icon
+                    const icon = mobileNavToggle.querySelector('i');
+                    if (navMenu.classList.contains('active')) {
+                        icon.className = 'fas fa-times';
+                        body.style.overflow = 'hidden'; // Prevent body scroll when menu is open
+                    } else {
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+                
+                // Close mobile menu when clicking on a link
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    });
+                });
+                
+                // Close mobile menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!navMenu.contains(e.target) && !mobileNavToggle.contains(e.target)) {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+                
+                // Close mobile menu on escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+                
+                // Handle window resize
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth >= 1024) {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+            }
+
+            // Auto-adjust notifications positioning
+            function adjustNotificationsPosition() {
+                const navbarHeight = 80;
+                const offset = 5;
+                const totalOffset = navbarHeight + offset;
+
+                // Common notification selectors
+                const notificationSelectors = [
+                    '.notification', '.alert', '.toast', '.flash-message',
+                    '.success-message', '.error-message', '.info-message', '.warning-message',
+                    '.swal2-container', '.toastr-container', '.noty_layout', '.humane', '.growl-container',
+                    '#toast-container', '.noty_layout.topCenter'
+                ];
+
+                notificationSelectors.forEach(selector => {
+                    const elements = document.querySelectorAll(selector);
+                    elements.forEach(element => {
+                        if (element.style.position === 'fixed' || window.getComputedStyle(element).position === 'fixed') {
+                            const currentTop = parseInt(element.style.top) || 0;
+                            if (currentTop < totalOffset) {
+                                element.style.top = totalOffset + 'px';
+                                element.style.zIndex = '9999';
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Initial adjustment
+            adjustNotificationsPosition();
+
+            // Observer for dynamically added notifications
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.nodeType === 1) { // Element node
+                                // Check if the added node is a notification
+                                const isNotification = [
+                                    'notification', 'alert', 'toast', 'flash-message',
+                                    'success-message', 'error-message', 'info-message', 'warning-message'
+                                ].some(className => node.classList && node.classList.contains(className));
+
+                                if (isNotification) {
+                                    setTimeout(adjustNotificationsPosition, 10);
+                                }
+
+                                // Also check child notifications
+                                const childNotifications = node.querySelectorAll && node.querySelectorAll([
+                                    '.notification', '.alert', '.toast', '.flash-message',
+                                    '.success-message', '.error-message', '.info-message', '.warning-message'
+                                ].join(','));
+
+                                if (childNotifications && childNotifications.length > 0) {
+                                    setTimeout(adjustNotificationsPosition, 10);
+                                }
+                            }
+                        });
+                    }
+                });
             });
+
+            // Start observing
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+
+            // Adjust on window resize
+            window.addEventListener('resize', adjustNotificationsPosition);
         });
     </script>
 </body>

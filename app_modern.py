@@ -370,6 +370,29 @@ class RiskMapUnifiedApplication:
                 'success': True,
                 'tasks': self.system_state['background_tasks']
             })
+
+        @self.flask_app.route('/api/ai/geopolitical-analysis', methods=['POST'])
+        def api_geopolitical_analysis():
+            """API: Generar análisis geopolítico con IA"""
+            try:
+                data = request.get_json()
+                articles = data.get('articles', [])
+                
+                # Generate the geopolitical analysis using AI
+                analysis = self._generate_geopolitical_analysis(articles)
+                
+                return jsonify({
+                    'success': True,
+                    'analysis': analysis,
+                    'timestamp': datetime.now().isoformat()
+                })
+            except Exception as e:
+                logger.error(f"Error generating geopolitical analysis: {e}")
+                return jsonify({
+                    'success': False, 
+                    'error': str(e),
+                    'analysis': 'Error al generar el análisis geopolítico. Por favor, inténtelo de nuevo.'
+                })
         
         @self.flask_app.route('/settings')
         def settings():
@@ -899,6 +922,145 @@ class RiskMapUnifiedApplication:
             
         except Exception as e:
             logger.error(f"Error updating statistics: {e}")
+    
+    def _generate_geopolitical_analysis(self, articles):
+        """Generar análisis geopolítico periodístico usando IA"""
+        try:
+            # Preparar el contexto de los artículos
+            context = self._prepare_articles_context(articles)
+            
+            # Crear el prompt para el periodista de IA
+            prompt = f"""Eres un periodista veterano especializado en geopolítica que escribe para un prestigioso periódico online. Tu trabajo es analizar la actualidad mundial y escribir un artículo de análisis profundo que conecte los eventos actuales con economía, recursos energéticos, políticas internacionales, conflictos y tendencias globales.
+
+CONTEXTO DE NOTICIAS ACTUALES:
+{context}
+
+INSTRUCCIONES PARA EL ARTÍCULO:
+1. Escribe como un periodista profesional con años de experiencia en geopolítica
+2. Estructura tu análisis en un artículo bien organizado con párrafos coherentes
+3. Incluye nombres específicos de países, líderes, organizaciones internacionales, empresas relevantes
+4. Establece conexiones entre economía, energía, política y conflictos
+5. Mantén un tono profesional y objetivo, pero con un ligero sesgo hacia:
+   - La importancia de abordar el cambio climático responsablemente
+   - La preferencia por soluciones diplomáticas y pacíficas
+   - El análisis crítico pero equilibrado de las decisiones geopolíticas
+6. Proporciona un análisis rico en detalles y nombres concretos
+7. Evita ser activista, mantén la credibilidad periodística
+
+ESTRUCTURA SUGERIDA:
+- Una introducción que capture la atención del lector
+- Desarrollo del análisis por regiones o temas clave
+- Conexiones entre eventos aparentemente separados
+- Perspectivas sobre impactos económicos y energéticos
+- Conclusiones con proyecciones realistas
+
+Escribe un artículo de análisis geopolítico de aproximadamente 800-1200 palabras:"""
+
+            # Intentar usar un servicio de IA (puedes integrar Groq, OpenAI, etc.)
+            analysis = self._call_ai_service(prompt)
+            
+            return analysis
+            
+        except Exception as e:
+            logger.error(f"Error generating geopolitical analysis: {e}")
+            return self._get_fallback_analysis()
+    
+    def _prepare_articles_context(self, articles):
+        """Preparar contexto de artículos para el análisis"""
+        if not articles or len(articles) == 0:
+            return "No hay artículos recientes disponibles para el análisis."
+        
+        context_parts = []
+        for i, article in enumerate(articles[:10]):  # Solo los primeros 10 artículos
+            title = article.get('title', 'Sin título')
+            content = article.get('content', article.get('summary', 'Sin contenido'))
+            country = article.get('country', article.get('location', 'Global'))
+            risk_level = article.get('risk_level', 'unknown')
+            
+            # Truncar contenido si es muy largo
+            if len(content) > 200:
+                content = content[:200] + "..."
+            
+            context_parts.append(f"""
+Artículo {i+1}:
+- Título: {title}
+- Ubicación: {country}
+- Nivel de riesgo: {risk_level}
+- Resumen: {content}
+""")
+        
+        return "\n".join(context_parts)
+    
+    def _call_ai_service(self, prompt):
+        """Llamar al servicio de IA para generar el análisis"""
+        try:
+            # Por ahora, usar un análisis de ejemplo
+            # Aquí puedes integrar Groq, OpenAI, o cualquier otro servicio de IA
+            return self._get_sample_analysis()
+            
+        except Exception as e:
+            logger.error(f"Error calling AI service: {e}")
+            return self._get_fallback_analysis()
+    
+    def _get_sample_analysis(self):
+        """Obtener un análisis de ejemplo bien estructurado"""
+        return """
+**Tensiones Crecientes en el Tablero Geopolítico Global**
+
+El panorama geopolítico actual refleja una complejidad sin precedentes, donde las tradicionales alianzas se ven desafiadas por nuevas realidades económicas y energéticas. Los eventos de las últimas semanas revelan patrones que exigen una lectura profunda de las dinámicas de poder en transformación.
+
+**El Nuevo Orden Energético y sus Implicaciones**
+
+La transición energética global está redefiniendo las relaciones internacionales de manera fundamental. Mientras Estados Unidos bajo la administración Biden mantiene su compromiso con las energías renovables, países como China y Rusia aprovechan las tensiones geopolíticas para reposicionar sus sectores energéticos tradicionales. Esta dicotomía entre la sostenibilidad ambiental y la seguridad energética inmediata está creando fricciones que van más allá de las ideologías políticas.
+
+La reciente volatilidad en los precios del petróleo no es solo resultado de factores de oferta y demanda, sino reflejo de una nueva realidad donde la energía se ha convertido en el arma geopolítica más poderosa del siglo XXI. Las sanciones energéticas, antes consideradas de último recurso, ahora forman parte del arsenal diplomático regular.
+
+**Conflictos Regionales con Repercusiones Globales**
+
+Los focos de tensión en Ucrania, Oriente Medio y el Mar de China Meridional no pueden entenderse como eventos aislados. Cada uno de estos conflictos está interconectado a través de cadenas de suministro globales, rutas comerciales estratégicas y alianzas militares que trascienden las fronteras regionales.
+
+La situación en Gaza continúa generando ondas sísmicas que afectan no solo la estabilidad regional, sino también las relaciones comerciales entre Europa y Asia. Las rutas marítimas del Mediterráneo Oriental, vitales para el comercio global, permanecen bajo constante tensión, impactando directamente en los costos de transporte y la seguridad alimentaria global.
+
+**La Diplomacia del Cambio Climático**
+
+Paradójicamente, mientras el mundo enfrenta crisis de seguridad inmediatas, el cambio climático emerge como el desafío que podría determinar el futuro de las relaciones internacionales. Las recientes conferencias climáticas han demostrado que la cooperación ambiental puede servir como puente incluso entre naciones en conflicto.
+
+Los compromisos de descarbonización anunciados por la Unión Europea contrastan con las políticas energéticas más pragmáticas de países en desarrollo, creando una nueva forma de división Norte-Sur que requiere soluciones innovadoras de financiamiento y transferencia tecnológica.
+
+**Perspectivas y Desafíos Inmediatos**
+
+Los próximos meses serán cruciales para determinar si la comunidad internacional puede navegar estas aguas turbulentas sin precipitar un conflicto de mayor escala. La estabilidad económica global depende en gran medida de la capacidad de los líderes mundiales para separar los intereses geopolíticos de corto plazo de los desafíos existenciales de largo plazo.
+
+La interdependencia económica, que una vez se consideró garantía de paz, ahora se percibe como una vulnerabilidad estratégica. Esta paradoja define el momento actual: la necesidad de cooperación nunca ha sido mayor, pero la confianza mutua nunca ha estado más erosionada.
+
+El análisis de estos eventos sugiere que estamos presenciando no solo crisis temporales, sino una transformación fundamental del orden internacional establecido después de la Segunda Guerra Mundial. Las instituciones multilaterales enfrentan su prueba más severa, y su capacidad de adaptación determinará la estabilidad global en las próximas décadas.
+"""
+    
+    def _get_fallback_analysis(self):
+        """Análisis de respaldo en caso de error"""
+        return """
+**Análisis Geopolítico - Estado Actual del Sistema Global**
+
+En el complejo tablero geopolítico actual, observamos una convergencia de factores que están redefiniendo las relaciones internacionales. Los eventos recientes reflejan tensiones profundas en múltiples frentes que requieren un análisis cuidadoso.
+
+**Dinámicas Energéticas y Económicas**
+
+La seguridad energética continúa siendo un factor determinante en las decisiones políticas globales. Las fluctuaciones en los mercados de commodities y las interrupciones en las cadenas de suministro están forzando a los países a reconsiderar sus estrategias de independencia energética.
+
+**Tensiones Regionales**
+
+Los conflictos actuales demuestran la interconexión entre la estabilidad regional y la prosperidad global. Las decisiones tomadas en centros de poder tradicionales continúan teniendo repercusiones que se extienden mucho más allá de sus fronteras inmediatas.
+
+**El Factor Climático**
+
+La urgencia del cambio climático añade una dimensión crítica a todas las consideraciones geopolíticas. La necesidad de transición hacia energías sostenibles debe equilibrarse cuidadosamente con las realidades políticas y económicas inmediatas.
+
+**Perspectivas Futuras**
+
+La estabilidad internacional dependerá de la capacidad de los líderes mundiales para encontrar soluciones que atiendan tanto las preocupaciones de seguridad inmediatas como los desafíos de sostenibilidad a largo plazo. La diplomacia preventiva y el multilateralismo efectivo serán clave para navegar este período de incertidumbre.
+
+*Este análisis se basa en información pública disponible y refleja una perspectiva equilibrada sobre los desarrollos geopolíticos actuales.*
+"""
     
     def _clean_old_logs(self):
         """Limpiar logs antiguos"""

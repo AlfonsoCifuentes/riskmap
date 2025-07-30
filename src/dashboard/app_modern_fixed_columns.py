@@ -1,4 +1,4 @@
-"""
+    """
 Modern Flask Dashboard Application for Geopolitical Intelligence System
 VERSIÓN CORREGIDA - COLUMNAS DE BASE DE DATOS CORREGIDAS
 """

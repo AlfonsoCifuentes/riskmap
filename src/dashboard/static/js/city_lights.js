@@ -320,41 +320,10 @@ function initializeCircuitPattern() {
     document.body.appendChild(pattern);
 }
 
-// Mouse interaction effects
+// Mouse interaction effects - DISABLED
 function initializeMouseEffects() {
-    let mouseX = 0;
-    let mouseY = 0;
-    
-    document.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        
-        // Create ripple effect
-        createRipple(mouseX, mouseY);
-    });
-    
-    function createRipple(x, y) {
-        const ripple = document.createElement('div');
-        ripple.style.position = 'fixed';
-        ripple.style.left = x + 'px';
-        ripple.style.top = y + 'px';
-        ripple.style.width = '10px';
-        ripple.style.height = '10px';
-        ripple.style.background = 'rgba(0, 212, 255, 0.3)';
-        ripple.style.borderRadius = '50%';
-        ripple.style.transform = 'translate(-50%, -50%)';
-        ripple.style.pointerEvents = 'none';
-        ripple.style.zIndex = '1000';
-        ripple.style.animation = 'ripple 1s ease-out forwards';
-        
-        document.body.appendChild(ripple);
-        
-        setTimeout(() => {
-            if (ripple.parentNode) {
-                ripple.parentNode.removeChild(ripple);
-            }
-        }, 1000);
-    }
+    // Mouse effects completely disabled to eliminate trail effect
+    console.log('Mouse effects disabled');
 }
 
 // Performance monitoring
@@ -402,28 +371,28 @@ function reduceEffects() {
 
 // Initialize all effects
 function initializeAllEffects() {
-    // Add CSS animations
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes ripple {
-            0% {
-                width: 10px;
-                height: 10px;
-                opacity: 1;
-            }
-            100% {
-                width: 100px;
-                height: 100px;
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
+    // CSS animations for ripple effect - DISABLED
+    // const style = document.createElement('style');
+    // style.textContent = `
+    //     @keyframes ripple {
+    //         0% {
+    //             width: 10px;
+    //             height: 10px;
+    //             opacity: 1;
+    //         }
+    //         100% {
+    //             width: 100px;
+    //             height: 100px;
+    //             opacity: 0;
+    //         }
+    //     }
+    // `;
+    // document.head.appendChild(style);
     
     // Initialize effects with delay to prevent performance issues
     setTimeout(() => initializeMatrixRain(), 1000);
     setTimeout(() => initializeCircuitPattern(), 2000);
-    setTimeout(() => initializeMouseEffects(), 3000);
+    // Mouse effects disabled - setTimeout(() => initializeMouseEffects(), 3000);
     setTimeout(() => monitorPerformance(), 4000);
 }
 

@@ -61,8 +61,9 @@ function initializeEnhancedParticles() {
         particleCount: 80,
         connectionDistance: 120,
         maxConnections: 3,
-        mouseInfluenceRadius: 150,
-        mouseInfluenceStrength: 0.3,
+        mouseInfluenceRadius: 0, // Completely disabled
+        // Mouse trail effect completely disabled
+        mouseInfluenceStrength: 0,
         colors: [
             '#06b6d4', // Cyan
             '#3b82f6', // Blue
@@ -72,25 +73,25 @@ function initializeEnhancedParticles() {
         ]
     };
     
-    // Mouse tracking
+    // Mouse tracking - COMPLETELY DISABLED
     let mouse = {
         x: 0,
         y: 0,
         isMoving: false
     };
     
-    // Track mouse movement
-    document.addEventListener('mousemove', (e) => {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
-        mouse.isMoving = true;
-        
-        // Reset moving flag after a delay
-        clearTimeout(mouse.timeout);
-        mouse.timeout = setTimeout(() => {
-            mouse.isMoving = false;
-        }, 100);
-    });
+    // Mouse movement tracking disabled to eliminate all trail effects
+    // document.addEventListener('mousemove', (e) => {
+    //     mouse.x = e.clientX;
+    //     mouse.y = e.clientY;
+    //     mouse.isMoving = true;
+    //     
+    //     // Reset moving flag after a delay
+    //     clearTimeout(mouse.timeout);
+    //     mouse.timeout = setTimeout(() => {
+    //         mouse.isMoving = false;
+    //     }, 100);
+    // });
     
     // Particle class
     class EnhancedParticle {
@@ -242,9 +243,8 @@ function initializeEnhancedParticles() {
     
     // Animation loop
     function animate() {
-        // Clear canvas with slight trail effect
-        ctx.fillStyle = 'rgba(10, 26, 46, 0.05)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Clear canvas completely (no trail effect)
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // Update particles and find connections
         particles.forEach(particle => {

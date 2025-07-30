@@ -1,0 +1,2088 @@
+{% extends "base_navigation.html" %}
+
+{% block title %}Reportes Ejecutivos - Stratosight{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reports-dashboard {
+        padding: 30px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+        color: #fff;
+    }
+    
+    .page-title {
+        font-family: 'Orbitron', monospace;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .page-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 30px;
+    }
+    
+    .reports-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .action-group {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .btn-action {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+    
+    .reports-grid {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .reports-main {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 25px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-control {
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .btn-control:hover {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: rgba(102, 126, 234, 0.4);
+        color: #fff;
+    }
+    
+    .reports-list {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    .report-item {
+        padding: 20px;
+        margin-bottom: 15px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .report-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(102, 126, 234, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .report-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    
+    .report-title {
+        font-weight: 600;
+        color: #fff;
+        font-size: 1.1rem;
+    }
+    
+    .report-date {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .report-description {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 15px;
+    }
+    
+    .report-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.8rem;
+    }
+    
+    .report-type {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+    }
+    
+    .type-weekly {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    
+    .type-monthly {
+        background: rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    
+    .type-special {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    
+    .report-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn-report-action {
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-size: 0.75rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .btn-report-action:hover {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: rgba(102, 126, 234, 0.4);
+        color: #fff;
+    }
+    
+    .templates-panel {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 25px;
+        backdrop-filter: blur(10px);
+        margin-bottom: 20px;
+    }
+    
+    .templates-grid {
+        display: grid;
+        gap: 15px;
+    }
+    
+    .template-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .template-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+    
+    .template-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .template-icon {
+        width: 35px;
+        height: 35px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 0.9rem;
+    }
+    
+    .template-name {
+        font-weight: 600;
+        color: #fff;
+        font-size: 1rem;
+    }
+    
+    .template-description {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        line-height: 1.4;
+        margin-bottom: 10px;
+    }
+    
+    .template-format {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .scheduler-panel {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 25px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .schedule-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+    }
+    
+    .schedule-info {
+        flex: 1;
+    }
+    
+    .schedule-name {
+        font-weight: 600;
+        color: #fff;
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+    }
+    
+    .schedule-frequency {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .schedule-status {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-active {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    
+    .status-paused {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    
+    .search-panel {
+        grid-column: 1 / -1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 25px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .search-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr auto;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .form-label {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .form-input,
+    .form-select {
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        color: #fff;
+        font-size: 0.9rem;
+    }
+    
+    .form-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .form-input:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: rgba(102, 126, 234, 0.5);
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    }
+    
+    .search-results {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .result-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .result-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(102, 126, 234, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .result-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    
+    .result-title {
+        font-weight: 600;
+        color: #fff;
+        font-size: 1rem;
+    }
+    
+    .result-score {
+        padding: 4px 8px;
+        background: rgba(102, 126, 234, 0.2);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 4px;
+        font-size: 0.75rem;
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .result-excerpt {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        line-height: 1.4;
+        margin-bottom: 10px;
+    }
+    
+    .result-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    @media (max-width: 768px) {
+        .reports-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .search-form {
+            grid-template-columns: 1fr;
+        }
+        
+        .reports-actions {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .reports-dashboard {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reports-dashboard">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">📄 Reportes Ejecutivos</h1>
+        <p class="page-subtitle">
+            Generación automática de reportes, múltiples plantillas y programación automática
+        </p>
+    </div>
+    
+    <!-- Reports Actions -->
+    <div class="reports-actions">
+        <div class="action-group">
+            <button class="btn-action btn-primary" id="generateReport">
+                <i class="fas fa-plus"></i>
+                Generar Nuevo Reporte
+            </button>
+            <button class="btn-action btn-secondary" id="scheduleReport">
+                <i class="fas fa-calendar-plus"></i>
+                Programar Reporte
+            </button>
+        </div>
+        <div class="action-group">
+            <button class="btn-action btn-secondary" id="exportAll">
+                <i class="fas fa-download"></i>
+                Exportar Todo
+            </button>
+            <button class="btn-action btn-secondary" id="settings">
+                <i class="fas fa-cog"></i>
+                Configuración
+            </button>
+        </div>
+    </div>
+    
+    <!-- Reports Grid -->
+    <div class="reports-grid">
+        <!-- Recent Reports -->
+        <div class="reports-main">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-file-alt"></i>
+                    Reportes Recientes
+                </h3>
+                <div class="section-controls">
+                    <button class="btn-control">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <button class="btn-control">
+                        <i class="fas fa-sort"></i> Ordenar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="reports-list" id="reportsList">
+                <div class="report-item">
+                    <div class="report-header">
+                        <div class="report-title">Análisis Geopolítico Semanal</div>
+                        <div class="report-date">25 Ene 2024</div>
+                    </div>
+                    <div class="report-description">
+                        Resumen ejecutivo de eventos geopolíticos clave, análisis de tendencias y proyecciones para la próxima semana. Incluye evaluación de riesgos por región.
+                    </div>
+                    <div class="report-meta">
+                        <div class="report-type type-weekly">Semanal</div>
+                        <div class="report-actions">
+                            <button class="btn-report-action">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            <button class="btn-report-action">
+                                <i class="fas fa-download"></i> PDF
+                            </button>
+                            <button class="btn-report-action">
+                                <i class="fas fa-share"></i> Compartir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-item">
+                    <div class="report-header">
+                        <div class="report-title">Reporte Mensual de Conflictos</div>
+                        <div class="report-date">20 Ene 2024</div>
+                    </div>
+                    <div class="report-description">
+                        Análisis detallado de conflictos activos, evolución de actores involucrados y impacto humanitario. Incluye mapas de calor y proyecciones.
+                    </div>
+                    <div class="report-meta">
+                        <div class="report-type type-monthly">Mensual</div>
+                        <div class="report-actions">
+                            <button class="btn-report-action">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            <button class="btn-report-action">
+                                <i class="fas fa-download"></i> PDF
+                            </button>
+                            <button class="btn-report-action">
+                                <i class="fas fa-share"></i> Compartir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-item">
+                    <div class="report-header">
+                        <div class="report-title">Alerta Especial: Escalada en Europa Oriental</div>
+                        <div class="report-date">18 Ene 2024</div>
+                    </div>
+                    <div class="report-description">
+                        Reporte especial sobre el incremento de tensiones en Europa Oriental. Análisis de factores desencadenantes y posibles escenarios.
+                    </div>
+                    <div class="report-meta">
+                        <div class="report-type type-special">Especial</div>
+                        <div class="report-actions">
+                            <button class="btn-report-action">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            <button class="btn-report-action">
+                                <i class="fas fa-download"></i> PDF
+                            </button>
+                            <button class="btn-report-action">
+                                <i class="fas fa-share"></i> Compartir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-item">
+                    <div class="report-header">
+                        <div class="report-title">Análisis de Sentimiento Global</div>
+                        <div class="report-date">15 Ene 2024</div>
+                    </div>
+                    <div class="report-description">
+                        Evaluación del sentimiento global basado en análisis de medios internacionales. Incluye tendencias por región y predicciones.
+                    </div>
+                    <div class="report-meta">
+                        <div class="report-type type-weekly">Semanal</div>
+                        <div class="report-actions">
+                            <button class="btn-report-action">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            <button class="btn-report-action">
+                                <i class="fas fa-download"></i> PDF
+                            </button>
+                            <button class="btn-report-action">
+                                <i class="fas fa-share"></i> Compartir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-item">
+                    <div class="report-header">
+                        <div class="report-title">Reporte de Alertas Tempranas</div>
+                        <div class="report-date">12 Ene 2024</div>
+                    </div>
+                    <div class="report-description">
+                        Compilación de alertas tempranas generadas por el sistema IA. Incluye análisis de patrones y recomendaciones de monitoreo.
+                    </div>
+                    <div class="report-meta">
+                        <div class="report-type type-weekly">Semanal</div>
+                        <div class="report-actions">
+                            <button class="btn-report-action">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            <button class="btn-report-action">
+                                <i class="fas fa-download"></i> PDF
+                            </button>
+                            <button class="btn-report-action">
+                                <i class="fas fa-share"></i> Compartir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Templates Panel -->
+        <div>
+            <div class="templates-panel">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-file-contract"></i>
+                        Plantillas
+                    </h3>
+                </div>
+                
+                <div class="templates-grid">
+                    <div class="template-card">
+                        <div class="template-header">
+                            <div class="template-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="template-name">Ejecutivo Semanal</div>
+                        </div>
+                        <div class="template-description">
+                            Resumen ejecutivo con métricas clave y tendencias semanales.
+                        </div>
+                        <div class="template-format">PDF, HTML, DOCX</div>
+                    </div>
+                    
+                    <div class="template-card">
+                        <div class="template-header">
+                            <div class="template-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="template-name">Análisis de Conflictos</div>
+                        </div>
+                        <div class="template-description">
+                            Reporte detallado de conflictos activos y análisis de actores.
+                        </div>
+                        <div class="template-format">PDF, HTML</div>
+                    </div>
+                    
+                    <div class="template-card">
+                        <div class="template-header">
+                            <div class="template-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="template-name">Alertas Especiales</div>
+                        </div>
+                        <div class="template-description">
+                            Reporte de emergencia para eventos críticos.
+                        </div>
+                        <div class="template-format">PDF, EMAIL</div>
+                    </div>
+                    
+                    <div class="template-card">
+                        <div class="template-header">
+                            <div class="template-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="template-name">Análisis IA</div>
+                        </div>
+                        <div class="template-description">
+                            Insights generados por modelos de machine learning.
+                        </div>
+                        <div class="template-format">PDF, JSON</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scheduler Panel -->
+            <div class="scheduler-panel">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        Programación
+                    </h3>
+                </div>
+                
+                <div class="schedule-item">
+                    <div class="schedule-info">
+                        <div class="schedule-name">Reporte Semanal</div>
+                        <div class="schedule-frequency">Cada lunes a las 08:00</div>
+                    </div>
+                    <div class="schedule-status status-active">Activo</div>
+                </div>
+                
+                <div class="schedule-item">
+                    <div class="schedule-info">
+                        <div class="schedule-name">Análisis Mensual</div>
+                        <div class="schedule-frequency">Primer día del mes a las 09:00</div>
+                    </div>
+                    <div class="schedule-status status-active">Activo</div>
+                </div>
+                
+                <div class="schedule-item">
+                    <div class="schedule-info">
+                        <div class="schedule-name">Alertas Críticas</div>
+                        <div class="schedule-frequency">Inmediato cuando se detecta</div>
+                    </div>
+                    <div class="schedule-status status-active">Activo</div>
+                </div>
+                
+                <div class="schedule-item">
+                    <div class="schedule-info">
+                        <div class="schedule-name">Resumen Trimestral</div>
+                        <div class="schedule-frequency">Cada 3 meses</div>
+                    </div>
+                    <div class="schedule-status status-paused">Pausado</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Panel -->
+    <div class="search-panel">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-search"></i>
+                Biblioteca de Reportes con Búsqueda Semántica
+            </h3>
+        </div>
+        
+        <div class="search-form">
+            <div class="form-group">
+                <label class="form-label">Búsqueda</label>
+                <input type="text" class="form-input" placeholder="Buscar en reportes..." id="searchInput">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Rango Temporal</label>
+                <select class="form-select" id="timeRange">
+                    <option value="all">Todo el tiempo</option>
+                    <option value="week">Última semana</option>
+                    <option value="month">Último mes</option>
+                    <option value="quarter">Último trimestre</option>
+                    <option value="year">Último año</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tipo de Reporte</label>
+                <select class="form-select" id="reportType">
+                    <option value="all">Todos los tipos</option>
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensual</option>
+                    <option value="special">Especial</option>
+                    <option value="alert">Alerta</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">&nbsp;</label>
+                <button class="btn-action btn-primary" id="searchBtn">
+                    <i class="fas fa-search"></i>
+                    Buscar
+                </button>
+            </div>
+        </div>
+        
+        <div class="search-results" id="searchResults">
+            <div class="result-card">
+                <div class="result-header">
+                    <div class="result-title">Escalada en Conflictos Europeos</div>
+                    <div class="result-score">95%</div>
+                </div>
+                <div class="result-excerpt">
+                    Análisis detallado sobre el incremento de tensiones en Europa Oriental, incluyendo factores desencadenantes y proyecciones...
+                </div>
+                <div class="result-meta">
+                    <span>18 Ene 2024</span>
+                    <span>Reporte Especial</span>
+                </div>
+            </div>
+            
+            <div class="result-card">
+                <div class="result-header">
+                    <div class="result-title">Análisis de Actores en Medio Oriente</div>
+                    <div class="result-score">89%</div>
+                </div>
+                <div class="result-excerpt">
+                    Evaluación comprehensiva de los principales actores involucrados en conflictos de Medio Oriente y sus interacciones...
+                </div>
+                <div class="result-meta">
+                    <span>15 Ene 2024</span>
+                    <span>Reporte Mensual</span>
+                </div>
+            </div>
+            
+            <div class="result-card">
+                <div class="result-header">
+                    <div class="result-title">Impacto Humanitario Global</div>
+                    <div class="result-score">82%</div>
+                </div>
+                <div class="result-excerpt">
+                    Reporte sobre el impacto humanitario de conflictos activos, incluyendo desplazamientos y necesidades de asistencia...
+                </div>
+                <div class="result-meta">
+                    <span>12 Ene 2024</span>
+                    <span>Reporte Semanal</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Global variables for reports system
+    let currentReports = [];
+    let currentFilters = {
+        risk_level: 'all',
+        date_range: 'all',
+        type: 'all'
+    };
+    let currentSort = {
+        sort_by: 'date',
+        order: 'desc'
+    };
+
+    // Reports functionality
+    function initReportsSystem() {
+        setupEventListeners();
+        loadReportsData();
+        setupSearch();
+        loadTemplates();
+        loadConfiguration();
+    }
+    
+    function setupEventListeners() {
+        // Generate new report
+        document.getElementById('generateReport').addEventListener('click', function() {
+            showReportGenerationModal();
+        });
+        
+        // Schedule report
+        document.getElementById('scheduleReport').addEventListener('click', function() {
+            showScheduleModal();
+        });
+        
+        // Export all
+        document.getElementById('exportAll').addEventListener('click', function() {
+            exportAllReports();
+        });
+        
+        // Settings
+        document.getElementById('settings').addEventListener('click', function() {
+            showSettingsModal();
+        });
+        
+        // Filter and sort buttons
+        document.querySelector('.section-controls .btn-control:first-child').addEventListener('click', function() {
+            showFilterModal();
+        });
+        
+        document.querySelector('.section-controls .btn-control:last-child').addEventListener('click', function() {
+            showSortModal();
+        });
+        
+        // Template cards
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const templateName = this.querySelector('.template-name').textContent;
+                generateReportFromTemplate(templateName);
+            });
+        });
+        
+        // Report items - delegate event handling
+        document.getElementById('reportsList').addEventListener('click', function(e) {
+            const reportItem = e.target.closest('.report-item');
+            if (reportItem) {
+                const reportTitle = reportItem.querySelector('.report-title').textContent;
+                const reportId = reportItem.dataset.reportId || Math.floor(Math.random() * 1000);
+                
+                if (e.target.closest('.btn-report-action')) {
+                    const action = e.target.closest('.btn-report-action');
+                    if (action.textContent.includes('Ver')) {
+                        viewReport(reportId, reportTitle);
+                    } else if (action.textContent.includes('PDF')) {
+                        downloadReport(reportId, 'pdf');
+                    } else if (action.textContent.includes('Compartir')) {
+                        shareReport(reportId, reportTitle);
+                    }
+                } else {
+                    viewReport(reportId, reportTitle);
+                }
+            }
+        });
+        
+        // Search functionality
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            performSearch();
+        });
+        
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Search results delegation
+        document.getElementById('searchResults').addEventListener('click', function(e) {
+            const resultCard = e.target.closest('.result-card');
+            if (resultCard) {
+                const title = resultCard.querySelector('.result-title').textContent;
+                viewReport(Math.floor(Math.random() * 1000), title);
+            }
+        });
+    }
+    
+    function showReportGenerationModal() {
+        // Create modal for report generation
+        const modal = createModal('Generar Nuevo Reporte', `
+            <div class="form-group mb-3">
+                <label class="form-label">Tipo de Reporte</label>
+                <select class="form-select" id="reportTypeSelect">
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensual</option>
+                    <option value="special">Especial</option>
+                    <option value="ai_insights">Análisis IA</option>
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label">Plantilla</label>
+                <select class="form-select" id="templateSelect">
+                    <option value="executive">Ejecutivo</option>
+                    <option value="conflict_analysis">Análisis de Conflictos</option>
+                    <option value="special_alert">Alerta Especial</option>
+                    <option value="ai_insights">Insights IA</option>
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label">Formatos</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="formatPDF" checked>
+                    <label class="form-check-label" for="formatPDF">PDF</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="formatHTML" checked>
+                    <label class="form-check-label" for="formatHTML">HTML</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="formatDOCX">
+                    <label class="form-check-label" for="formatDOCX">DOCX</label>
+                </div>
+            </div>
+        `, [
+            {
+                text: 'Cancelar',
+                class: 'btn-secondary',
+                action: () => closeModal()
+            },
+            {
+                text: 'Generar Reporte',
+                class: 'btn-primary',
+                action: () => generateReport()
+            }
+        ]);
+        
+        showModal(modal);
+    }
+    
+    async function generateReport() {
+        const reportType = document.getElementById('reportTypeSelect').value;
+        const template = document.getElementById('templateSelect').value;
+        
+        try {
+            closeModal();
+            showNotification('Generando reporte...', 'info');
+            
+            const response = await fetch('/api/reports/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: reportType,
+                    template: template
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification(result.message, 'success');
+                addNewReportToList(result);
+                loadReportsData(); // Refresh the list
+            } else {
+                showNotification('Error generando reporte: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showNotification('Error de conexión al generar reporte', 'error');
+        }
+    }
+    
+    function showScheduleModal() {
+        const modal = createModal('Programar Reporte', `
+            <div class="form-group mb-3">
+                <label class="form-label">Tipo de Reporte</label>
+                <select class="form-select" id="scheduleReportType">
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensual</option>
+                    <option value="daily">Diario</option>
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label">Frecuencia</label>
+                <select class="form-select" id="scheduleFrequency">
+                    <option value="daily">Diario</option>
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensual</option>
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label">Hora</label>
+                <input type="time" class="form-input" id="scheduleTime" value="08:00">
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label">Plantilla</label>
+                <select class="form-select" id="scheduleTemplate">
+                    <option value="executive">Ejecutivo</option>
+                    <option value="conflict_analysis">Análisis de Conflictos</option>
+                    <option value="ai_insights">Insights IA</option>
+                </select>
+            </div>
+        `, [
+            {
+                text: 'Cancelar',
+                class: 'btn-secondary',
+                action: () => closeModal()
+            },
+            {
+                text: 'Programar',
+                class: 'btn-primary',
+                action: () => scheduleReport()
+            }
+        ]);
+        
+        showModal(modal);
+    }
+    
+    async function scheduleReport() {
+        const reportType = document.getElementById('scheduleReportType').value;
+        const frequency = document.getElementById('scheduleFrequency').value;
+        const time = document.getElementById('scheduleTime').value;
+        const template = document.getElementById('scheduleTemplate').value;
+        
+        try {
+            closeModal();
+            showNotification('Programando reporte...', 'info');
+            
+            const response = await fetch('/api/reports/schedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: reportType,
+                    frequency: frequency,
+                    time: time,
+                    template: template
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification(result.message, 'success');
+            } else {
+                showNotification('Error programando reporte: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showNotification('Error de conexión al programar reporte', 'error');
+        }
+    }
+    
+    async function exportAllReports() {
+        try {
+            showNotification('Iniciando exportación de todos los reportes...', 'info');
+            
+            const response = await fetch('/api/reports/export-all', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    format: 'zip',
+                    include_formats: ['pdf', 'html'],
+                    date_range: 'last_30_days'
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification('Exportación iniciada. ID: ' + result.export_id, 'success');
+                
+                // Poll for export status
+                pollExportStatus(result.export_id);
+            } else {
+                showNotification('Error en exportación: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showNotification('Error de conexión en exportación', 'error');
+        }
+    }
+    
+    async function pollExportStatus(exportId) {
+        try {
+            const response = await fetch(`/api/reports/export-status/${exportId}`);
+            const result = await response.json();
+            
+            if (result.status === 'completed') {
+                showNotification('Exportación completada. Descargando...', 'success');
+                window.open(result.download_url, '_blank');
+            } else if (result.status === 'processing') {
+                showNotification(`Exportación en progreso: ${result.progress}%`, 'info');
+                setTimeout(() => pollExportStatus(exportId), 2000);
+            } else {
+                showNotification('Error en exportación', 'error');
+            }
+        } catch (error) {
+            showNotification('Error verificando estado de exportación', 'error');
+        }
+    }
+    
+    function showFilterModal() {
+        const modal = createModal('Filtrar Reportes', `
+            <div class="form-group mb-3">
+                <label class="form-label">Nivel de Riesgo</label>
+                <select class="form-select" id="filterRiskLevel">
+                    <option value="all">Todos los niveles</option>
+                    <option value="critical">Crítico</option>
+                    <option value="high">Alto</option>
+                    <option value="medium">Medio</option>
+                    <option value="low">Bajo</option>
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label">Rango Temporal</label>
+                <select class="form-select" id="filterDateRange">
+                    <option value="all">Todo el tiempo</option>
+                    <option value="today">Hoy</option>
+                    <option value="week">Última semana</option>
+                    <option value="month">Último mes</option>
+                    <option value="quarter">Último trimestre</option>
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label">Tipo de Reporte</label>
+                <select class="form-select" id="filterReportType">
+                    <option value="all">Todos los tipos</option>
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensual</option>
+                    <option value="special">Especial</option>
+                    <option value="ai_insights">Análisis IA</option>
+                </select>
+            </div>
+        `, [
+            {
+                text: 'Limpiar Filtros',
+                class: 'btn-secondary',
+                action: () => clearFilters()
+            },
+            {
+                text: 'Aplicar Filtros',
+                class: 'btn-primary',
+                action: () => applyFilters()
+            }
+        ]);
+        
+        // Set current filter values
+        setTimeout(() => {
+            document.getElementById('filterRiskLevel').value = currentFilters.risk_level;
+            document.getElementById('filterDateRange').value = currentFilters.date_range;
+            document.getElementById('filterReportType').value = currentFilters.type;
+        }, 100);
+        
+        showModal(modal);
+    }
+    
+    async function applyFilters() {
+        currentFilters = {
+            risk_level: document.getElementById('filterRiskLevel').value,
+            date_range: document.getElementById('filterDateRange').value,
+            type: document.getElementById('filterReportType').value
+        };
+        
+        try {
+            closeModal();
+            showNotification('Aplicando filtros...', 'info');
+            
+            const response = await fetch('/api/reports/filter', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(currentFilters)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                updateReportsList(result.reports);
+                showNotification(`Filtros aplicados. ${result.total} reportes encontrados.`, 'success');
+            } else {
+                showNotification('Error aplicando filtros: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showNotification('Error de conexión al aplicar filtros', 'error');
+        }
+    }
+    
+    function clearFilters() {
+        currentFilters = {
+            risk_level: 'all',
+            date_range: 'all',
+            type: 'all'
+        };
+        
+        document.getElementById('filterRiskLevel').value = 'all';
+        document.getElementById('filterDateRange').value = 'all';
+        document.getElementById('filterReportType').value = 'all';
+        
+        applyFilters();
+    }
+    
+    function showSortModal() {
+        const modal = createModal('Ordenar Reportes', `
+            <div class="form-group mb-3">
+                <label class="form-label">Ordenar por</label>
+                <select class="form-select" id="sortBy">
+                    <option value="date">Fecha</option>
+                    <option value="priority">Prioridad</option>
+                    <option value="type">Tipo</option>
+                    <option value="title">Título</option>
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label">Orden</label>
+                <select class="form-select" id="sortOrder">
+                    <option value="desc">Descendente</option>
+                    <option value="asc">Ascendente</option>
+                </select>
+            </div>
+        `, [
+            {
+                text: 'Cancelar',
+                class: 'btn-secondary',
+                action: () => closeModal()
+            },
+            {
+                text: 'Aplicar Orden',
+                class: 'btn-primary',
+                action: () => applySorting()
+            }
+        ]);
+        
+        // Set current sort values
+        setTimeout(() => {
+            document.getElementById('sortBy').value = currentSort.sort_by;
+            document.getElementById('sortOrder').value = currentSort.order;
+        }, 100);
+        
+        showModal(modal);
+    }
+    
+    async function applySorting() {
+        currentSort = {
+            sort_by: document.getElementById('sortBy').value,
+            order: document.getElementById('sortOrder').value
+        };
+        
+        try {
+            closeModal();
+            showNotification('Aplicando ordenamiento...', 'info');
+            
+            const response = await fetch('/api/reports/sort', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(currentSort)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                updateReportsList(result.reports);
+                showNotification('Ordenamiento aplicado exitosamente', 'success');
+            } else {
+                showNotification('Error aplicando ordenamiento: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showNotification('Error de conexión al aplicar ordenamiento', 'error');
+        }
+    }
+    
+    async function viewReport(reportId, reportTitle) {
+        try {
+            showNotification(`Cargando reporte: ${reportTitle}`, 'info');
+            
+            const response = await fetch(`/api/reports/${reportId}/view`);
+            const result = await response.json();
+            
+            if (result.success) {
+                showReportModal(result.report);
+            } else {
+                showNotification('Error cargando reporte: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showNotification('Error de conexión al cargar reporte', 'error');
+        }
+    }
+    
+    function showReportModal(report) {
+        const modal = createModal(report.title, `
+            <div class="report-viewer">
+                <div class="report-metadata mb-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Tipo:</strong> ${report.type}<br>
+                            <strong>Generado:</strong> ${new Date(report.generated_at).toLocaleDateString('es-ES')}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Fuentes:</strong> ${report.metadata.sources}<br>
+                            <strong>Confianza:</strong> ${report.metadata.confidence_score}%
+                        </div>
+                    </div>
+                </div>
+                <div class="report-content">
+                    <h4>Resumen Ejecutivo</h4>
+                    <p>${report.content.executive_summary}</p>
+                    
+                    <h4>Evaluación de Riesgos</h4>
+                    <p>${report.content.risk_assessment}</p>
+                    
+                    <h4>Hallazgos Clave</h4>
+                    <ul>
+                        ${report.content.key_findings.map(finding => `<li>${finding}</li>`).join('')}
+                    </ul>
+                    
+                    <h4>Recomendaciones</h4>
+                    <ul>
+                        ${report.content.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        `, [
+            {
+                text: 'Cerrar',
+                class: 'btn-secondary',
+                action: () => closeModal()
+            },
+            {
+                text: 'Descargar PDF',
+                class: 'btn-primary',
+                action: () => {
+                    closeModal();
+                    downloadReport(report.id, 'pdf');
+                }
+            }
+        ], 'modal-lg');
+        
+        showModal(modal);
+    }
+    
+    async function downloadReport(reportId, format) {
+        try {
+            showNotification(`Preparando descarga en formato ${format.toUpperCase()}...`, 'info');
+            
+            const response = await fetch(`/api/reports/${reportId}/download/${format}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification('Descarga iniciada', 'success');
+                // In a real implementation, this would trigger the actual download
+                window.open(result.download_url, '_blank');
+            } else {
+                showNotification('Error en descarga: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showNotification('Error de conexión en descarga', 'error');
+        }
+    }
+    
+    async function shareReport(reportId, reportTitle) {
+        const modal = createModal(`Compartir: ${reportTitle}`, `
+            <div class="form-group mb-3">
+                <label class="form-label">Método de Compartición</label>
+                <select class="form-select" id="shareMethod">
+                    <option value="link">Enlace Compartible</option>
+                    <option value="email">Enviar por Email</option>
+                </select>
+            </div>
+            <div id="emailFields" style="display: none;">
+                <div class="form-group mb-3">
+                    <label class="form-label">Destinatarios (separados por coma)</label>
+                    <input type="email" class="form-input" id="shareEmails" placeholder="email1@example.com, email2@example.com">
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Mensaje (opcional)</label>
+                    <textarea class="form-input" id="shareMessage" rows="3" placeholder="Mensaje personalizado..."></textarea>
+                </div>
+            </div>
+        `, [
+            {
+                text: 'Cancelar',
+                class: 'btn-secondary',
+                action: () => closeModal()
+            },
+            {
+                text: 'Compartir',
+                class: 'btn-primary',
+                action: () => executeShare(reportId)
+            }
+        ]);
+        
+        showModal(modal);
+        
+        // Show/hide email fields based on method
+        document.getElementById('shareMethod').addEventListener('change', function() {
+            const emailFields = document.getElementById('emailFields');
+            emailFields.style.display = this.value === 'email' ? 'block' : 'none';
+        });
+    }
+    
+    async function executeShare(reportId) {
+        const method = document.getElementById('shareMethod').value;
+        const shareData = { method };
+        
+        if (method === 'email') {
+            const emails = document.getElementById('shareEmails').value;
+            const message = document.getElementById('shareMessage').value;
+            
+            if (!emails.trim()) {
+                showNotification('Por favor ingrese al menos un email', 'error');
+                return;
+            }
+            
+            shareData.recipients = emails.split(',').map(email => email.trim());
+            shareData.message = message;
+        }
+        
+        try {
+            closeModal();
+            showNotification('Compartiendo reporte...', 'info');
+            
+            const response = await fetch(`/api/reports/${reportId}/share`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(shareData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                if (result.method === 'link') {
+                    // Copy link to clipboard
+                    navigator.clipboard.writeText(window.location.origin + result.share_url);
+                    showNotification('Enlace copiado al portapapeles', 'success');
+                } else {
+                    showNotification(result.message, 'success');
+                }
+            } else {
+                showNotification('Error compartiendo reporte: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showNotification('Error de conexión al compartir reporte', 'error');
+        }
+    }
+    
+    function showSettingsModal() {
+        const modal = createModal('Configuración de Reportes', `
+            <div class="settings-tabs">
+                <div class="tab-buttons mb-3">
+                    <button class="btn btn-sm btn-outline-primary active" data-tab="general">General</button>
+                    <button class="btn btn-sm btn-outline-primary" data-tab="distribution">Distribución</button>
+                    <button class="btn btn-sm btn-outline-primary" data-tab="security">Seguridad</button>
+                    <button class="btn btn-sm btn-outline-primary" data-tab="ai">IA</button>
+                </div>
+                
+                <div class="tab-content">
+                    <div class="tab-pane active" id="general">
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="autoGeneration" checked>
+                                <label class="form-check-label" for="autoGeneration">Generación Automática</label>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label">Formato por Defecto</label>
+                            <select class="form-select" id="defaultFormat">
+                                <option value="pdf">PDF</option>
+                                <option value="html">HTML</option>
+                                <option value="docx">DOCX</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane" id="distribution" style="display: none;">
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="emailEnabled" checked>
+                                <label class="form-check-label" for="emailEnabled">Distribución por Email</label>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label">Destinatarios por Defecto</label>
+                            <input type="email" class="form-input" id="defaultRecipients" placeholder="emails separados por coma">
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane" id="security" style="display: none;">
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="passwordProtect">
+                                <label class="form-check-label" for="passwordProtect">Proteger con Contraseña</label>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="watermark" checked>
+                                <label class="form-check-label" for="watermark">Marca de Agua</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane" id="ai" style="display: none;">
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="includePredictions" checked>
+                                <label class="form-check-label" for="includePredictions">Incluir Predicciones IA</label>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label">Umbral de Confianza</label>
+                            <input type="range" class="form-range" id="confidenceThreshold" min="0.5" max="1" step="0.1" value="0.8">
+                            <small class="text-muted">80%</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `, [
+            {
+                text: 'Cancelar',
+                class: 'btn-secondary',
+                action: () => closeModal()
+            },
+            {
+                text: 'Guardar Configuración',
+                class: 'btn-primary',
+                action: () => saveConfiguration()
+            }
+        ], 'modal-lg');
+        
+        showModal(modal);
+        
+        // Setup tab switching
+        setTimeout(() => {
+            document.querySelectorAll('[data-tab]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    
+                    // Update button states
+                    document.querySelectorAll('[data-tab]').forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update tab content
+                    document.querySelectorAll('.tab-pane').forEach(pane => pane.style.display = 'none');
+                    document.getElementById(tabId).style.display = 'block';
+                });
+            });
+        }, 100);
+        
+        loadConfiguration();
+    }
+    
+    async function loadConfiguration() {
+        try {
+            const response = await fetch('/api/reports/config');
+            const result = await response.json();
+            
+            if (result.success) {
+                // Populate form fields with current configuration
+                const config = result.configuration;
+                
+                // General tab
+                if (document.getElementById('autoGeneration')) {
+                    document.getElementById('autoGeneration').checked = config.auto_generation.enabled;
+                }
+                if (document.getElementById('defaultFormat')) {
+                    document.getElementById('defaultFormat').value = config.formats.default_format.toLowerCase();
+                }
+                
+                // Distribution tab
+                if (document.getElementById('emailEnabled')) {
+                    document.getElementById('emailEnabled').checked = config.distribution.email_enabled;
+                }
+                if (document.getElementById('defaultRecipients')) {
+                    document.getElementById('defaultRecipients').value = config.distribution.email_recipients.join(', ');
+                }
+                
+                // Security tab
+                if (document.getElementById('passwordProtect')) {
+                    document.getElementById('passwordProtect').checked = config.security.password_protect;
+                }
+                if (document.getElementById('watermark')) {
+                    document.getElementById('watermark').checked = config.security.watermark;
+                }
+                
+                // AI tab
+                if (document.getElementById('includePredictions')) {
+                    document.getElementById('includePredictions').checked = config.ai_settings.include_predictions;
+                }
+                if (document.getElementById('confidenceThreshold')) {
+                    document.getElementById('confidenceThreshold').value = config.ai_settings.confidence_threshold;
+                }
+            }
+        } catch (error) {
+            console.log('Using default configuration');
+        }
+    }
+    
+    async function saveConfiguration() {
+        const config = {
+            auto_generation: {
+                enabled: document.getElementById('autoGeneration')?.checked || true
+            },
+            formats: {
+                default_format: document.getElementById('defaultFormat')?.value || 'pdf'
+            },
+            distribution: {
+                email_enabled: document.getElementById('emailEnabled')?.checked || true,
+                email_recipients: document.getElementById('defaultRecipients')?.value.split(',').map(email => email.trim()) || []
+            },
+            security: {
+                password_protect: document.getElementById('passwordProtect')?.checked || false,
+                watermark: document.getElementById('watermark')?.checked || true
+            },
+            ai_settings: {
+                include_predictions: document.getElementById('includePredictions')?.checked || true,
+                confidence_threshold: parseFloat(document.getElementById('confidenceThreshold')?.value) || 0.8
+            }
+        };
+        
+        try {
+            closeModal();
+            showNotification('Guardando configuración...', 'info');
+            
+            const response = await fetch('/api/reports/config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(config)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification('Configuración guardada exitosamente', 'success');
+            } else {
+                showNotification('Error guardando configuración: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showNotification('Error de conexión al guardar configuración', 'error');
+        }
+    }
+    
+    function addNewReportToList(reportData) {
+        const reportsList = document.getElementById('reportsList');
+        const newReport = document.createElement('div');
+        newReport.className = 'report-item';
+        newReport.dataset.reportId = reportData.report_id;
+        newReport.style.opacity = '0';
+        newReport.style.transform = 'translateY(-20px)';
+        
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+        
+        newReport.innerHTML = `
+            <div class="report-header">
+                <div class="report-title">${reportData.type} - ${reportData.template}</div>
+                <div class="report-date">${dateStr}</div>
+            </div>
+            <div class="report-description">
+                Reporte generado automáticamente por el sistema de IA. Incluye análisis actualizado basado en los datos más recientes.
+            </div>
+            <div class="report-meta">
+                <div class="report-type type-weekly">Nuevo</div>
+                <div class="report-actions">
+                    <button class="btn-report-action">
+                        <i class="fas fa-eye"></i> Ver
+                    </button>
+                    <button class="btn-report-action">
+                        <i class="fas fa-download"></i> PDF
+                    </button>
+                    <button class="btn-report-action">
+                        <i class="fas fa-share"></i> Compartir
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        reportsList.insertBefore(newReport, reportsList.firstChild);
+        
+        // Animate in
+        setTimeout(() => {
+            newReport.style.transition = 'all 0.3s ease';
+            newReport.style.opacity = '1';
+            newReport.style.transform = 'translateY(0)';
+        }, 100);
+    }
+    
+    function updateReportsList(reports) {
+        const reportsList = document.getElementById('reportsList');
+        reportsList.innerHTML = '';
+        
+        reports.forEach(report => {
+            const reportItem = document.createElement('div');
+            reportItem.className = 'report-item';
+            reportItem.dataset.reportId = report.id;
+            
+            const typeClass = `type-${report.type}`;
+            
+            reportItem.innerHTML = `
+                <div class="report-header">
+                    <div class="report-title">${report.title}</div>
+                    <div class="report-date">${report.date}</div>
+                </div>
+                <div class="report-description">
+                    ${report.description || 'Reporte generado automáticamente por el sistema.'}
+                </div>
+                <div class="report-meta">
+                    <div class="report-type ${typeClass}">${report.type}</div>
+                    <div class="report-actions">
+                        <button class="btn-report-action">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                        <button class="btn-report-action">
+                            <i class="fas fa-download"></i> PDF
+                        </button>
+                        <button class="btn-report-action">
+                            <i class="fas fa-share"></i> Compartir
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            reportsList.appendChild(reportItem);
+        });
+    }
+    
+    async function generateReportFromTemplate(templateName) {
+        try {
+            showNotification(`Generando reporte usando plantilla "${templateName}"...`, 'info');
+            
+            const response = await fetch('/api/reports/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: 'template',
+                    template: templateName.toLowerCase().replace(/\s+/g, '_')
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                addNewReportToList(result);
+                showNotification(`Reporte "${templateName}" generado exitosamente`, 'success');
+            } else {
+                showNotification('Error generando reporte: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showNotification('Error de conexión al generar reporte', 'error');
+        }
+    }
+    
+    function setupSearch() {
+        // Initialize search functionality
+        window.searchResults = [];
+    }
+    
+    async function performSearch() {
+        const query = document.getElementById('searchInput').value;
+        const timeRange = document.getElementById('timeRange').value;
+        const reportType = document.getElementById('reportType').value;
+        
+        if (!query.trim()) {
+            showNotification('Por favor ingrese un término de búsqueda', 'error');
+            return;
+        }
+        
+        try {
+            const searchBtn = document.getElementById('searchBtn');
+            const originalText = searchBtn.innerHTML;
+            searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
+            searchBtn.disabled = true;
+            
+            const response = await fetch('/api/reports/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    query: query,
+                    time_range: timeRange,
+                    type: reportType
+                })
+            });
+            
+            const result = await response.json();
+            
+            searchBtn.innerHTML = originalText;
+            searchBtn.disabled = false;
+            
+            if (result.success) {
+                displaySearchResults(result.results);
+                showNotification(`Búsqueda completada. ${result.total_results} resultados encontrados en ${result.search_time}.`, 'success');
+            } else {
+                showNotification('Error en búsqueda: ' + result.error, 'error');
+            }
+        } catch (error) {
+            showNotification('Error de conexión en búsqueda', 'error');
+            document.getElementById('searchBtn').disabled = false;
+        }
+    }
+    
+    function displaySearchResults(results) {
+        const searchResults = document.getElementById('searchResults');
+        searchResults.innerHTML = '';
+        
+        if (results.length === 0) {
+            searchResults.innerHTML = '<div class="text-center text-muted py-4">No se encontraron resultados</div>';
+            return;
+        }
+        
+        results.forEach(result => {
+            const resultCard = document.createElement('div');
+            resultCard.className = 'result-card';
+            resultCard.dataset.reportId = result.id;
+            
+            resultCard.innerHTML = `
+                <div class="result-header">
+                    <div class="result-title">${result.title}</div>
+                    <div class="result-score">${result.relevance_score}%</div>
+                </div>
+                <div class="result-excerpt">
+                    ${result.excerpt}
+                </div>
+                <div class="result-meta">
+                    <span>${result.date}</span>
+                    <span>${result.type}</span>
+                </div>
+                ${result.highlights ? `<div class="result-highlights">
+                    <small class="text-muted">Términos relevantes: ${result.highlights.join(', ')}</small>
+                </div>` : ''}
+            `;
+            
+            searchResults.appendChild(resultCard);
+        });
+    }
+    
+    async function loadReportsData() {
+        try {
+            const response = await fetch('/api/reports/recent');
+            const data = await response.json();
+            updateReportsStats(data);
+        } catch (error) {
+            console.log('Using simulated reports data');
+            updateReportsStats({
+                totalReports: 156,
+                weeklyReports: 24,
+                monthlyReports: 6,
+                specialReports: 12
+            });
+        }
+    }
+    
+    async function loadTemplates() {
+        try {
+            const response = await fetch('/api/reports/templates');
+            const result = await response.json();
+            
+            if (result.success) {
+                updateTemplatesDisplay(result.templates);
+            }
+        } catch (error) {
+            console.log('Using default templates');
+        }
+    }
+    
+    function updateTemplatesDisplay(templates) {
+        // Update template cards with real data if needed
+        console.log('Templates loaded:', templates);
+    }
+    
+    function updateReportsStats(data) {
+        console.log('Updating reports stats with:', data);
+        // Update any stats displays if needed
+    }
+    
+    // Modal utilities
+    function createModal(title, content, buttons = [], size = '') {
+        return {
+            title: title,
+            content: content,
+            buttons: buttons,
+            size: size
+        };
+    }
+    
+    function showModal(modal) {
+        // Remove existing modal
+        const existingModal = document.getElementById('reportsModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        const modalHtml = `
+            <div class="modal fade" id="reportsModal" tabindex="-1">
+                <div class="modal-dialog ${modal.size}">
+                    <div class="modal-content" style="background: var(--card-gradient); border: 1px solid var(--border-color);">
+                        <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                            <h5 class="modal-title" style="color: var(--text-primary);">${modal.title}</h5>
+                            <button type="button" class="btn-close" onclick="closeModal()"></button>
+                        </div>
+                        <div class="modal-body" style="color: var(--text-secondary);">
+                            ${modal.content}
+                        </div>
+                        <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                            ${modal.buttons.map(button => 
+                                `<button type="button" class="btn ${button.class}" onclick="(${button.action})()">${button.text}</button>`
+                            ).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Show modal
+        const modalElement = document.getElementById('reportsModal');
+        modalElement.style.display = 'block';
+        modalElement.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        
+        // Add backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        backdrop.onclick = closeModal;
+        document.body.appendChild(backdrop);
+    }
+    
+    function closeModal() {
+        const modal = document.getElementById('reportsModal');
+        const backdrop = document.querySelector('.modal-backdrop');
+        
+        if (modal) {
+            modal.remove();
+        }
+        if (backdrop) {
+            backdrop.remove();
+        }
+        
+        document.body.style.overflow = '';
+    }
+    
+    function showNotification(message, type = 'info') {
+        // Simple notification system
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            color: white;
+            border-radius: 8px;
+            z-index: 10000;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            max-width: 400px;
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Remove after 4 seconds
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }, 4000);
+    }
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initReportsSystem();
+    });
+</script>
+{% endblock %}

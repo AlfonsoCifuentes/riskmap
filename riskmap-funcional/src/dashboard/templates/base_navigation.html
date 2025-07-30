@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Inteligencia Geopolítica{% endblock %}</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rtl.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/effects.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/articles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/scroll_fix.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        /* Navigation Styles */
+        .main-navigation {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+        }
+        
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .nav-brand .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 8px;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .nav-link.active {
+            color: #fff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .nav-link i {
+            margin-right: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .nav-control-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        
+        /* Mobile Navigation */
+        .mobile-nav-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 70px);
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                flex-direction: column;
+                padding: 20px;
+                transition: left 0.3s ease;
+                backdrop-filter: blur(10px);
+            }
+            
+            .nav-menu.active {
+                left: 0;
+            }
+            
+            .nav-link {
+                width: 100%;
+                justify-content: flex-start;
+                padding: 16px 20px;
+                margin-bottom: 8px;
+            }
+            
+            .mobile-nav-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+        
+        /* Page Content */
+        .page-content {
+            min-height: calc(100vh - 70px);
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .breadcrumb-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .breadcrumb-list {
+            display: flex;
+            align-items: center;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb-item:not(:last-child)::after {
+            content: '/';
+            margin: 0 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .breadcrumb-link {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .breadcrumb-link:hover {
+            color: #667eea;
+        }
+        
+        .breadcrumb-current {
+            color: #fff;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Geopolitical Particles Background -->
+    <div id="particles-js"></div>
+    
+    <!-- Main Navigation -->
+    <nav class="main-navigation">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <div class="brand-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <span>Stratosight</span>
+            </a>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="/news-analysis" class="nav-link {% if request.endpoint == 'news_analysis' or request.endpoint == 'index' %}active{% endif %}">
+                        <i class="fas fa-newspaper"></i>
+                        Análisis de Noticias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/conflict-monitoring" class="nav-link {% if request.endpoint == 'conflict_monitoring' %}active{% endif %}">
+                        <i class="fas fa-shield-alt"></i>
+                        Monitoreo de Conflictos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/trends-analysis" class="nav-link {% if request.endpoint == 'trends_analysis' %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i>
+                        Análisis de Tendencias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/early-warning" class="nav-link {% if request.endpoint == 'early_warning' %}active{% endif %}">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Alertas Tempranas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/executive-reports" class="nav-link {% if request.endpoint == 'executive_reports' %}active{% endif %}">
+                        <i class="fas fa-file-alt"></i>
+                        Reportes Ejecutivos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/satellite-analysis" class="nav-link {% if request.endpoint == 'satellite_analysis' %}active{% endif %}">
+                        <i class="fas fa-satellite"></i>
+                        Análisis Satelital
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/video-surveillance" class="nav-link {% if request.endpoint == 'video_surveillance' %}active{% endif %}">
+                        <i class="fas fa-video"></i>
+                        Video Vigilancia
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/historical-analysis" class="nav-link {% if request.endpoint == 'historical_analysis' %}active{% endif %}">
+                        <i class="fas fa-history"></i>
+                        Análisis Histórico
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="nav-controls">
+                <!-- Language Selector -->
+                <button class="nav-control-btn" id="languageBtn" title="Idioma">
+                    <i class="fas fa-language"></i>
+                </button>
+                
+                <!-- Theme Toggle -->
+                <button class="nav-control-btn" id="themeToggle" title="Tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+                
+                <!-- Notifications -->
+                <button class="nav-control-btn" id="notificationBtn" title="Notificaciones">
+                    <i class="fas fa-bell"></i>
+                </button>
+                
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-nav-toggle" id="mobileNavToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Breadcrumb -->
+    {% if show_breadcrumb %}
+    <div class="breadcrumb">
+        <div class="breadcrumb-container">
+            <ul class="breadcrumb-list">
+                <li class="breadcrumb-item">
+                    <a href="/" class="breadcrumb-link">
+                        <i class="fas fa-home"></i>
+                    </a>
+                </li>
+                {% for item in breadcrumb_items %}
+                <li class="breadcrumb-item">
+                    {% if item.url %}
+                        <a href="{{ item.url }}" class="breadcrumb-link">{{ item.name }}</a>
+                    {% else %}
+                        <span class="breadcrumb-current">{{ item.name }}</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Page Content -->
+    <div class="page-content">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.2/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="{{ url_for('static', filename='js/city_lights.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modern_dashboard_fixed.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/enhanced_dashboard_fixed.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Mobile Navigation Toggle
+        document.getElementById('mobileNavToggle').addEventListener('click', function() {
+            const navMenu = document.getElementById('navMenu');
+            navMenu.classList.toggle('active');
+        });
+        
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navMenu').classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -4,16 +4,17 @@ PyYAML
 Flask
 Flask-Cors
 pandas
-numpy
+numpy>=2.0,<3
 requests
 werkzeug
 Jinja2
 Flask-Babel
 feedparser
 APScheduler>=3.9.0
-opencv-python
+opencv-python>=4.12.0,<5
 openai
 transformers
 groq
 aiohttp
 schedule
+# Removed pysqlite3-binary as Windows uses built-in sqlite3
