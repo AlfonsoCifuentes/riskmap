@@ -3,6 +3,10 @@ Módulo de orquestación principal para el Sistema de Inteligencia Geopolítica.
 Contiene la clase GeopoliticalIntelligenceOrchestrator que coordina todas las operaciones.
 """
 
+import logging
+import json
+logger = logging.getLogger(__name__)
+
 from src.data_quality.validator import data_validator
 from src.monitoring.system_monitor import system_monitor
 from src.reporting.report_generator import AdvancedReportGenerator as ReportGenerator
