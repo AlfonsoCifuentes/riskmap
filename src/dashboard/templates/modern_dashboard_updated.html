@@ -10,8 +10,8 @@
         --bg-secondary: #141824;
         --text-primary: #e8eaed;
         --text-secondary: #b0b8c4;
-        --accent-cyan: #46ead7;
-        --accent-glow: 0 0 15px rgba(70, 234, 215, 0.4), 0 0 25px rgba(70, 234, 215, 0.2);
+        --accent-cyan: #00d4ff;
+        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
         --border-color: rgba(255, 255, 255, 0.1);
     }
 
@@ -100,23 +100,53 @@
 
     /* News Analysis Dashboard Styles - Responsive y Mobile-First */
     .news-dashboard {
-        padding: 20px;
-        max-width: 1400px;
-        margin: 0 auto;
+        padding: 0;
+        max-width: none;
+        margin: 0;
         position: relative;
         z-index: 1;
         display: flex;
         flex-direction: column;
-        min-height: 100vh;
+        min-height: calc(100vh - 80px);
         background: rgba(10, 15, 44, 0.08);
         backdrop-filter: blur(2px);
-        gap: 25px;
+        gap: 0;
+        width: 100vw;
+    }
+    
+    .dashboard-content {
+        max-width: 96%;
+        margin: 0 auto;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Header and Stats Container */
+    .header-stats-container {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        margin-bottom: -80px;
+        top: -80px;
+        z-index: 0;
+        background: transparent;
+        border-radius: 0;
     }
     
     .page-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin: 0;
         color: #fff;
+        padding: 180px 0 100px 0;
+        width: 100%;
+        position: relative;
+        background: linear-gradient(135deg, rgba(26, 32, 64, 0.75) 0%, rgba(16, 24, 48, 0.8) 50%, rgba(20, 28, 56, 0.75) 100%);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
     }
     
     .page-title {
@@ -124,7 +154,7 @@
         font-size: 2rem;
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #46ead7 0%, #2dd4bf 100%);
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -140,33 +170,70 @@
     .news-stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-bottom: 30px;
+        gap: 0;
+        margin: 0;
+        width: 100%;
+        position: relative;
     }
     
     .news-stat-card {
-        background: rgba(26, 32, 64, 0.7);
-        border: 1px solid rgba(70, 234, 215, 0.3);
-        border-radius: 12px;
+        background: transparent;
+        border: none;
+        border-radius: 0;
         padding: 20px;
         text-align: center;
         transition: all 0.3s ease;
-        backdrop-filter: blur(15px);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(3px);
+        box-shadow: none;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .news-stat-card:last-child {
+        border-right: none;
+    }
+    
+    .news-stat-card:nth-child(1) {
+        background: linear-gradient(135deg, rgba(0, 119, 255, 0.4) 0%, rgba(30, 144, 255, 0.35) 100%);
+    }
+    
+    .news-stat-card:nth-child(2) {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.45) 0%, rgba(239, 68, 68, 0.4) 100%);
+    }
+    
+    .news-stat-card:nth-child(3) {
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.4) 0%, rgba(45, 212, 191, 0.35) 100%);
+    }
+    
+    .news-stat-card:nth-child(4) {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(37, 99, 235, 0.35) 100%);
     }
     
     .news-stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(70, 234, 215, 0.2);
-        border-color: rgba(70, 234, 215, 0.4);
-        background: rgba(26, 32, 64, 0.85);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .news-stat-card:nth-child(1):hover {
+        background: linear-gradient(135deg, rgba(0, 119, 255, 0.6) 0%, rgba(30, 144, 255, 0.5) 100%);
+    }
+    
+    .news-stat-card:nth-child(2):hover {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.65) 0%, rgba(239, 68, 68, 0.55) 100%);
+    }
+    
+    .news-stat-card:nth-child(3):hover {
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.6) 0%, rgba(45, 212, 191, 0.5) 100%);
+    }
+    
+    .news-stat-card:nth-child(4):hover {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.6) 0%, rgba(37, 99, 235, 0.5) 100%);
     }
     
     .stat-icon {
         width: 50px;
         height: 50px;
         margin: 0 auto 15px;
-        background: linear-gradient(135deg, #46ead7 0%, #2dd4bf 100%);
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -410,11 +477,11 @@
     /* Featured Article */
     .featured-article-section {
         background: rgba(26, 32, 64, 0.7);
-        border: 1px solid rgba(70, 234, 215, 0.3);
-        border-radius: 12px;
+        border: none;
+        border-radius: 0;
         padding: 20px;
         backdrop-filter: blur(15px);
-        margin-bottom: 25px;
+        margin: 0;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
     
@@ -560,7 +627,7 @@
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, #46ead7 0%, #2dd4bf 100%);
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
         color: #fff;
         padding: 10px 20px;
         border: none;
@@ -576,7 +643,7 @@
     
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(70, 234, 215, 0.3);
+        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
     }
     
     .btn-secondary {
@@ -696,10 +763,10 @@
     .ai-section-title {
         font-size: 1.2rem;
         font-weight: 600;
-        color: #46ead7;
+        color: #00d4ff;
         margin-bottom: 12px;
         padding-left: 15px;
-        border-left: 3px solid #46ead7;
+        border-left: 3px solid #00d4ff;
     }
     
     .ai-article-paragraph {
@@ -716,10 +783,10 @@
     }
     
     .ai-quote {
-        border-left: 4px solid #46ead7;
+        border-left: 4px solid #00d4ff;
         padding: 15px 20px;
         margin: 20px 0;
-        background: rgba(70, 234, 215, 0.1);
+        background: rgba(0, 212, 255, 0.1);
         font-style: italic;
         color: rgba(255, 255, 255, 0.9);
     }
@@ -749,7 +816,11 @@
         }
         
         .news-dashboard {
-            padding: 30px;
+            padding: 0;
+        }
+        
+        .dashboard-content {
+            padding: 0 30px;
         }
         
         .featured-article-content {
@@ -773,7 +844,11 @@
         }
         
         .news-dashboard {
-            padding: 30px;
+            padding: 0;
+        }
+        
+        .dashboard-content {
+            padding: 0 30px;
         }
         
         .featured-article-content {
@@ -802,6 +877,7 @@
         
         .news-stats {
             grid-template-columns: repeat(4, 1fr);
+            gap: 0;
         }
         
         .stat-icon {
@@ -850,16 +926,30 @@
 
     @media (max-width: 480px) {
         .news-dashboard {
-            padding: 15px;
+            padding: 0;
+        }
+        
+        .dashboard-content {
+            padding: 0 15px;
         }
         
         .news-stats {
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            gap: 0;
         }
         
         .news-stat-card {
             padding: 15px;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .news-stat-card:nth-child(2n) {
+            border-right: none;
+        }
+        
+        .news-stat-card:nth-child(3), .news-stat-card:nth-child(4) {
+            border-bottom: none;
         }
         
         .stat-value {
@@ -888,8 +978,8 @@
 <!-- 3D Earth Wireframe Background -->
 <div id="earth-wireframe"></div>
 
-<!-- News Analysis Dashboard -->
-<div class="news-dashboard">
+<!-- Header and Stats Container -->
+<div class="header-stats-container">
     <!-- Page Header -->
     <div class="page-header">
         <h1 class="page-title">📰 Análisis de Noticias</h1>
@@ -897,7 +987,7 @@
             Monitoreo en tiempo real de noticias geopolíticas con análisis de riesgo y clasificación automática
         </p>
     </div>
-
+    
     <!-- News Statistics -->
     <div class="news-stats">
         <div class="news-stat-card">
@@ -932,6 +1022,11 @@
             <div class="stat-label">Regiones Activas</div>
         </div>
     </div>
+</div>
+
+<!-- News Analysis Dashboard -->
+<div class="news-dashboard">
+    <div class="dashboard-content">
 
     <!-- Featured Article Section -->
     <div class="featured-article-section">
@@ -1118,7 +1213,8 @@
             <!-- Latest articles will be loaded here as full width cards -->
         </div>
     </div>
-</div>
+    </div> <!-- close dashboard-content -->
+</div> <!-- close news-dashboard -->
 {% endblock %}
 
 {% block extra_js %}
@@ -1657,17 +1753,38 @@ function updateFeaturedArticle(article) {
     // Update image with better error handling
     const featuredImage = document.getElementById('featuredImage');
     if (featuredImage) {
-        // Try different image sources
+        // Try different image sources with extensive logging
         const imageUrl = article.image_url || article.image || article.thumbnail_url || 
-                        article.urlToImage || article.image_link || article.media_url;
+                        article.urlToImage || article.image_link || article.media_url ||
+                        article.thumbnail || article.picture_url || article.photo_url;
         
-        if (imageUrl && imageUrl !== '') {
+        console.log('Image URL candidates:', {
+            image_url: article.image_url,
+            image: article.image,
+            thumbnail_url: article.thumbnail_url,
+            urlToImage: article.urlToImage,
+            image_link: article.image_link,
+            media_url: article.media_url,
+            thumbnail: article.thumbnail,
+            picture_url: article.picture_url,
+            photo_url: article.photo_url,
+            selected: imageUrl
+        });
+        
+        if (imageUrl && imageUrl !== '' && imageUrl !== 'null' && imageUrl !== null) {
             console.log('Loading image from:', imageUrl);
             
             // Show loading state
             featuredImage.style.opacity = '0.5';
             featuredImage.parentElement.style.background = 'linear-gradient(135deg, rgba(26, 32, 64, 0.8) 0%, rgba(26, 32, 64, 0.9) 100%)';
             
+            // Clear any previous fallback divs
+            const existingFallback = featuredImage.parentElement.querySelector('.image-fallback');
+            if (existingFallback) {
+                existingFallback.remove();
+            }
+            
+            featuredImage.style.display = 'block';
             featuredImage.src = imageUrl;
             featuredImage.alt = article.title || 'Imagen del artículo';
             
@@ -1698,11 +1815,19 @@ function updateFeaturedArticle(article) {
             
             // Add success handling
             featuredImage.onload = function() {
-                console.log('Image loaded successfully');
+                console.log('Image loaded successfully from:', imageUrl);
                 this.style.opacity = '1';
             };
         } else {
-            console.log('No image URL available, using default');
+            console.log('No valid image URL available, using default. Article data:', article);
+            
+            // Clear any previous fallback divs
+            const existingFallback = featuredImage.parentElement.querySelector('.image-fallback');
+            if (existingFallback) {
+                existingFallback.remove();
+            }
+            
+            featuredImage.style.display = 'block';
             featuredImage.src = '/static/img/default-news.svg';
             featuredImage.alt = 'Imagen por defecto';
             featuredImage.style.opacity = '1';

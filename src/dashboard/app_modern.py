@@ -347,7 +347,7 @@ def get_articles():
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT title, content, created_at, country, risk_level, url, source, language
+            SELECT title, content, created_at, country, risk_level, url, source, language, image_url
             FROM articles 
             ORDER BY created_at DESC 
             LIMIT ?
@@ -366,7 +366,8 @@ def get_articles():
                 'source_url': row['url'],
                 'url': row['url'],
                 'source': row['source'] or 'Fuente desconocida',
-                'language': row['language'] or 'es'
+                'language': row['language'] or 'es',
+                'image_url': row['image_url'] if 'image_url' in row.keys() else None
             })
         
         conn.close()
@@ -390,7 +391,7 @@ def get_latest_articles():
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT title, content, created_at, country, risk_level, url, source, language
+            SELECT title, content, created_at, country, risk_level, url, source, language, image_url
             FROM articles 
             ORDER BY created_at DESC 
             LIMIT ?
@@ -409,7 +410,8 @@ def get_latest_articles():
                 'source_url': row['url'],
                 'url': row['url'],
                 'source': row['source'] or 'Fuente desconocida',
-                'language': row['language'] or 'es'
+                'language': row['language'] or 'es',
+                'image_url': row['image_url'] if 'image_url' in row.keys() else None
             })
         
         conn.close()
@@ -433,7 +435,7 @@ def get_high_risk_articles():
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT title, content, created_at, country, risk_level, url, source, language
+            SELECT title, content, created_at, country, risk_level, url, source, language, image_url
             FROM articles 
             WHERE risk_level = 'high'
             ORDER BY created_at DESC 
@@ -453,7 +455,8 @@ def get_high_risk_articles():
                 'source_url': row['url'],
                 'url': row['url'],
                 'source': row['source'] or 'Fuente desconocida',
-                'language': row['language'] or 'es'
+                'language': row['language'] or 'es',
+                'image_url': row['image_url'] if 'image_url' in row.keys() else None
             })
         
         conn.close()
@@ -476,7 +479,7 @@ def get_featured_article():
         
         # Buscar el artículo de mayor riesgo más reciente
         cursor.execute("""
-            SELECT title, content, created_at, country, risk_level, url, source, language
+            SELECT title, content, created_at, country, risk_level, url, source, language, image_url
             FROM articles 
             WHERE risk_level = 'high'
             ORDER BY created_at DESC 
@@ -498,12 +501,15 @@ def get_featured_article():
                 'source_url': row['url'],
                 'url': row['url'],
                 'source': row['source'] or 'Fuente desconocida',
-                'language': row['language'] or 'es'
+                'language': row['language'] or 'es',
+                'image_url': row['image_url'],
+                'image': row['image_url'],
+                'thumbnail_url': row['image_url']
             }
         else:
             # Si no hay artículos de alto riesgo, buscar cualquier artículo reciente
             cursor.execute("""
-                SELECT title, content, created_at, country, risk_level, url, source, language
+                SELECT title, content, created_at, country, risk_level, url, source, language, image_url
                 FROM articles 
                 ORDER BY created_at DESC 
                 LIMIT 1
@@ -523,7 +529,10 @@ def get_featured_article():
                     'source_url': row['url'],
                     'url': row['url'],
                     'source': row['source'] or 'Fuente desconocida',
-                    'language': row['language'] or 'es'
+                    'language': row['language'] or 'es',
+                    'image_url': row['image_url'],
+                    'image': row['image_url'],
+                    'thumbnail_url': row['image_url']
                 }
             else:
                 article = {'id': 0, 'title': 'No hay artículos disponibles'}
