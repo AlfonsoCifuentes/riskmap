@@ -3,6 +3,9 @@
 {% block title %}Análisis de Video Vigilancia - Sistema de Inteligencia Geopolítica{% endblock %}
 
 {% block extra_css %}
+<!-- Socket.IO Client -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
 <style>
     /* Video Surveillance Specific Styles */
     .surveillance-hero {
@@ -588,19 +591,19 @@
         <div class="card-body">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-number" id="active-cameras">247</div>
+                    <div class="stat-number" id="active-cameras">Cargando...</div>
                     <div class="stat-label">Cámaras Activas</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="detections-today">1,834</div>
+                    <div class="stat-number" id="detections-today">Cargando...</div>
                     <div class="stat-label">Detecciones Hoy</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="alerts-generated">23</div>
+                    <div class="stat-number" id="alerts-generated">Cargando...</div>
                     <div class="stat-label">Alertas Generadas</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="processing-fps">98.7%</div>
+                    <div class="stat-number" id="processing-fps">Cargando...</div>
                     <div class="stat-label">Eficiencia Procesamiento</div>
                 </div>
             </div>
@@ -642,38 +645,11 @@
                         Rendimiento de Modelos de IA
                     </h3>
                     
-                    <div class="model-performance">
-                        <div class="model-card">
-                            <h5 class="text-white">YOLOv8</h5>
-                            <div class="model-accuracy">97.2%</div>
-                            <p class="text-muted small">Detección de Objetos</p>
-                            <div class="confidence-meter">
-                                <div class="confidence-fill" style="width: 97.2%;"></div>
-                            </div>
-                        </div>
-                        <div class="model-card">
-                            <h5 class="text-white">EfficientDet</h5>
-                            <div class="model-accuracy">95.8%</div>
-                            <p class="text-muted small">Detección Eficiente</p>
-                            <div class="confidence-meter">
-                                <div class="confidence-fill" style="width: 95.8%;"></div>
-                            </div>
-                        </div>
-                        <div class="model-card">
-                            <h5 class="text-white">Vision Transformer</h5>
-                            <div class="model-accuracy">93.4%</div>
-                            <p class="text-muted small">Análisis Contextual</p>
-                            <div class="confidence-meter">
-                                <div class="confidence-fill" style="width: 93.4%;"></div>
-                            </div>
-                        </div>
-                        <div class="model-card">
-                            <h5 class="text-white">Object Tracking</h5>
-                            <div class="model-accuracy">91.6%</div>
-                            <p class="text-muted small">Seguimiento Multi-objeto</p>
-                            <div class="confidence-meter">
-                                <div class="confidence-fill" style="width: 91.6%;"></div>
-                            </div>
+                    <div class="model-performance" id="model-performance">
+                        <!-- Model performance metrics will be loaded from API -->
+                        <div class="text-center text-muted p-4">
+                            <i class="fas fa-brain fa-2x mb-3"></i>
+                            <p>Cargando métricas de rendimiento...</p>
                         </div>
                     </div>
                 </div>
@@ -858,6 +834,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCriticalAlerts();
     loadDetectionHistory();
     loadAnalysisTimeline();
+    loadModelPerformance();
     
     // Update confidence threshold display
     const confidenceSlider = document.getElementById('confidence-threshold');
@@ -877,172 +854,160 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+async function loadModelPerformance() {
+    const container = document.getElementById('model-performance');
+    
+    try {
+        const response = await fetch('/api/video-surveillance/model-performance');
+        const data = await response.json();
+        
+        if (data.success && data.models && data.models.length > 0) {
+            container.innerHTML = data.models.map(model => `
+                <div class="model-card">
+                    <h5 class="text-white">${model.name}</h5>
+                    <div class="model-accuracy">${model.accuracy}%</div>
+                    <p class="text-muted small">${model.task}</p>
+                    <div class="confidence-meter">
+                        <div class="confidence-fill" style="width: ${model.accuracy}%;"></div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-brain fa-2x mb-3"></i>
+                    <p>No hay métricas de modelos disponibles</p>
+                    <small>Conectando con sistema de análisis RSS...</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading model performance:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <p>Error al cargar métricas de modelos</p>
+                <small>Verificando conexión con base de datos RSS...</small>
+            </div>
+        `;
+    }
+}
+});
+
 function initializeVideoSurveillance() {
     console.log('📹 Initializing Video Surveillance System...');
     
-    // Simulate real-time statistics updates
-    setInterval(updateStatistics, 15000); // Update every 15 seconds
+    // Load real statistics from API
+    loadRealTimeStatistics();
     
-    // Initialize WebSocket connection for real-time updates (simulated)
-    simulateWebSocketConnection();
+    // Initialize WebSocket connection for real-time updates
+    initializeRealWebSocketConnection();
+    
+    // Refresh statistics every 5 minutes
+    setInterval(loadRealTimeStatistics, 300000);
 }
 
-function updateStatistics() {
-    // Simulate incrementing statistics
-    const detectionsToday = document.getElementById('detections-today');
-    const alertsGenerated = document.getElementById('alerts-generated');
-    
-    if (detectionsToday) {
-        const current = parseInt(detectionsToday.textContent.replace(',', ''));
-        detectionsToday.textContent = (current + Math.floor(Math.random() * 5) + 1).toLocaleString();
-    }
-    
-    if (alertsGenerated) {
-        const current = parseInt(alertsGenerated.textContent);
-        if (Math.random() > 0.8) { // 20% chance of new alert
-            alertsGenerated.textContent = current + 1;
+async function loadRealTimeStatistics() {
+    try {
+        const response = await fetch('/api/video-surveillance/statistics');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('active-cameras').textContent = data.stats.active_cameras.toLocaleString();
+            document.getElementById('detections-today').textContent = data.stats.detections_today.toLocaleString();
+            document.getElementById('alerts-generated').textContent = data.stats.alerts_generated;
+            document.getElementById('processing-fps').textContent = data.stats.processing_efficiency + '%';
         }
+    } catch (error) {
+        console.error('Error loading video surveillance statistics:', error);
+        // Show loading state instead of fake data
+        document.getElementById('active-cameras').textContent = 'Cargando...';
+        document.getElementById('detections-today').textContent = 'Cargando...';
+        document.getElementById('alerts-generated').textContent = 'Cargando...';
+        document.getElementById('processing-fps').textContent = 'Cargando...';
     }
 }
 
-function loadCameraFeeds() {
+async function loadCameraFeeds() {
     const container = document.getElementById('camera-feeds');
     
-    const cameras = [
-        {
-            id: 1,
-            name: 'Kiev Centro - Plaza Independencia',
-            location: 'Kiev, Ucrania',
-            coordinates: '50.4501°N, 30.5234°E',
-            type: 'urban',
-            status: 'live',
-            quality: 'hd',
-            stream_url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            detections: [
-                { type: 'crowd', confidence: 94.2, bbox: { x: 20, y: 30, w: 40, h: 25 } },
-                { type: 'military', confidence: 87.5, bbox: { x: 60, y: 15, w: 25, h: 20 } }
-            ]
-        },
-        {
-            id: 2,
-            name: 'Puerto de Beirut - Terminal Principal',
-            location: 'Beirut, Líbano',
-            coordinates: '33.9010°N, 35.5200°E',
-            type: 'infrastructure',
-            status: 'live',
-            quality: 'hd',
-            stream_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            detections: [
-                { type: 'traffic', confidence: 91.8, bbox: { x: 10, y: 40, w: 30, h: 15 } }
-            ]
-        },
-        {
-            id: 3,
-            name: 'Volcán Etna - Cráter Principal',
-            location: 'Sicilia, Italia',
-            coordinates: '37.7510°N, 14.9934°E',
-            type: 'environmental',
-            status: 'live',
-            quality: 'sd',
-            stream_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            detections: [
-                { type: 'disaster', confidence: 96.7, bbox: { x: 35, y: 20, w: 30, h: 40 } }
-            ]
-        },
-        {
-            id: 4,
-            name: 'Frontera Gaza - Punto de Control',
-            location: 'Gaza, Palestina',
-            coordinates: '31.3547°N, 34.3088°E',
-            type: 'border',
-            status: 'recording',
-            quality: 'hd',
-            stream_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            detections: [
-                { type: 'military', confidence: 98.3, bbox: { x: 45, y: 25, w: 35, h: 30 } },
-                { type: 'suspicious', confidence: 82.1, bbox: { x: 15, y: 60, w: 20, h: 15 } }
-            ]
-        },
-        {
-            id: 5,
-            name: 'Times Square - Cruce Principal',
-            location: 'Nueva York, EE.UU.',
-            coordinates: '40.7580°N, 73.9855°W',
-            type: 'urban',
-            status: 'live',
-            quality: 'hd',
-            stream_url: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            detections: [
-                { type: 'crowd', confidence: 89.4, bbox: { x: 25, y: 35, w: 50, h: 40 } }
-            ]
-        },
-        {
-            id: 6,
-            name: 'Aeropuerto Ben Gurion - Terminal 3',
-            location: 'Tel Aviv, Israel',
-            coordinates: '32.0114°N, 34.8867°E',
-            type: 'infrastructure',
-            status: 'live',
-            quality: 'hd',
-            stream_url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            detections: [
-                { type: 'traffic', confidence: 93.6, bbox: { x: 30, y: 20, w: 40, h: 25 } }
-            ]
+    try {
+        const response = await fetch('/api/video-surveillance/camera-feeds');
+        const data = await response.json();
+        
+        if (data.success && data.cameras && data.cameras.length > 0) {
+            container.innerHTML = data.cameras.map(camera => `
+                <div class="surveillance-card camera-feed-card" data-category="${camera.type}">
+                    <div class="camera-feed">
+                        <img src="${camera.stream_url}" alt="${camera.name}" class="camera-video" 
+                             onerror="this.style.display='none'; this.nextElementSibling.innerHTML='<div class=\\'text-center text-muted p-4\\'><i class=\\'fas fa-video-slash fa-2x mb-2\\'></i><p>Feed no disponible</p></div>'">
+                        <div class="camera-overlay"></div>
+                        
+                        <!-- Detection Boxes -->
+                        ${camera.detections ? camera.detections.map(detection => `
+                            <div class="detection-box" style="
+                                left: ${detection.bbox.x}%; 
+                                top: ${detection.bbox.y}%; 
+                                width: ${detection.bbox.w}%; 
+                                height: ${detection.bbox.h}%;
+                            ">
+                                <div class="detection-label">${getDetectionTypeLabel(detection.type)} ${detection.confidence}%</div>
+                            </div>
+                        `).join('') : ''}
+                        
+                        <!-- Camera Status -->
+                        <div class="camera-status">
+                            <div class="status-indicator status-${camera.status}"></div>
+                            <span class="text-white small">${camera.status.toUpperCase()}</span>
+                        </div>
+                        
+                        <!-- Camera Info -->
+                        <div class="camera-info">
+                            <div class="fw-bold">${camera.name}</div>
+                            <div class="small">${camera.location}</div>
+                            <div class="coordinates small">${camera.coordinates}</div>
+                            <div class="stream-quality">
+                                <div class="quality-indicator quality-${camera.quality}"></div>
+                                <span>${camera.quality.toUpperCase()}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3">
+                        <h6 class="text-white mb-2">${camera.name}</h6>
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            ${camera.detections ? camera.detections.map(detection => `
+                                <span class="detection-type-badge detection-${detection.type}">
+                                    ${getDetectionTypeLabel(detection.type)}
+                                </span>
+                            `).join('') : ''}
+                        </div>
+                        <div class="text-muted small">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            ${camera.location}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-video fa-2x mb-3"></i>
+                    <p>No hay feeds de cámaras disponibles</p>
+                    <small>Esperando conexión con fuentes de video en tiempo real</small>
+                </div>
+            `;
         }
-    ];
-    
-    container.innerHTML = cameras.map(camera => `
-        <div class="surveillance-card camera-feed-card" data-category="${camera.type}">
-            <div class="camera-feed">
-                <img src="${camera.stream_url}" alt="${camera.name}" class="camera-video">
-                <div class="camera-overlay"></div>
-                
-                <!-- Detection Boxes -->
-                ${camera.detections.map(detection => `
-                    <div class="detection-box" style="
-                        left: ${detection.bbox.x}%; 
-                        top: ${detection.bbox.y}%; 
-                        width: ${detection.bbox.w}%; 
-                        height: ${detection.bbox.h}%;
-                    ">
-                        <div class="detection-label">${getDetectionTypeLabel(detection.type)} ${detection.confidence}%</div>
-                    </div>
-                `).join('')}
-                
-                <!-- Camera Status -->
-                <div class="camera-status">
-                    <div class="status-indicator status-${camera.status}"></div>
-                    <span class="text-white small">${camera.status.toUpperCase()}</span>
-                </div>
-                
-                <!-- Camera Info -->
-                <div class="camera-info">
-                    <div class="fw-bold">${camera.name}</div>
-                    <div class="small">${camera.location}</div>
-                    <div class="coordinates small">${camera.coordinates}</div>
-                    <div class="stream-quality">
-                        <div class="quality-indicator quality-${camera.quality}"></div>
-                        <span>${camera.quality.toUpperCase()}</span>
-                    </div>
-                </div>
+    } catch (error) {
+        console.error('Error loading camera feeds:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <p>Error al cargar feeds de video</p>
+                <small>Verificando conexión con cámaras de vigilancia...</small>
             </div>
-            
-            <div class="p-3">
-                <h6 class="text-white mb-2">${camera.name}</h6>
-                <div class="d-flex flex-wrap gap-1 mb-2">
-                    ${camera.detections.map(detection => `
-                        <span class="detection-type-badge detection-${detection.type}">
-                            ${getDetectionTypeLabel(detection.type)}
-                        </span>
-                    `).join('')}
-                </div>
-                <div class="text-muted small">
-                    <i class="fas fa-map-marker-alt me-1"></i>
-                    ${camera.location}
-                </div>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }
 }
 
 function filterCameraFeeds(category) {
@@ -1060,7 +1025,7 @@ function startRealTimeDetections() {
     const feedContainer = document.getElementById('real-time-detections');
     
     function addDetectionItem(detection) {
-        const time = new Date().toLocaleTimeString('es-ES', { 
+        const time = new Date(detection.timestamp || new Date()).toLocaleTimeString('es-ES', { 
             hour: '2-digit', 
             minute: '2-digit',
             second: '2-digit'
@@ -1085,156 +1050,197 @@ function startRealTimeDetections() {
         }
     }
     
-    // Simulate real-time detections
-    const detectionMessages = [
-        { message: 'Multitud detectada en plaza principal', location: 'Kiev, Ucrania', confidence: 94.2 },
-        { message: 'Vehículo militar identificado', location: 'Frontera Gaza', confidence: 98.3 },
-        { message: 'Actividad volcánica aumentada', location: 'Etna, Italia', confidence: 96.7 },
-        { message: 'Congestión de tráfico anómala', location: 'Beirut, Líbano', confidence: 91.8 },
-        { message: 'Actividad sospechosa en zona restringida', location: 'Frontera Gaza', confidence: 82.1 },
-        { message: 'Manifestación pacífica detectada', location: 'Times Square, NY', confidence: 89.4 },
-        { message: 'Movimiento de aeronaves militares', location: 'Ben Gurion, Israel', confidence: 93.6 },
-        { message: 'Incendio forestal en desarrollo', location: 'California, EE.UU.', confidence: 87.9 },
-        { message: 'Embarcación no identificada', location: 'Estrecho de Hormuz', confidence: 85.3 },
-        { message: 'Explosión detectada en área industrial', location: 'Donbass, Ucrania', confidence: 92.1 }
-    ];
+    // Load real-time detections from API
+    loadRealTimeDetections();
     
-    let messageIndex = 0;
-    setInterval(() => {
-        addDetectionItem(detectionMessages[messageIndex % detectionMessages.length]);
-        messageIndex++;
-    }, 6000); // New detection every 6 seconds
+    // Refresh detections every 10 seconds
+    setInterval(loadRealTimeDetections, 10000);
     
-    // Add initial detections
-    addDetectionItem({ message: 'Sistema de video vigilancia iniciado', location: 'Global', confidence: 100 });
-    addDetectionItem({ message: 'Conectado a 247 feeds de video', location: 'Mundial', confidence: 100 });
-    addDetectionItem({ message: 'Modelos de IA cargados y operativos', location: 'Sistema', confidence: 100 });
+    // Add initial message
+    addDetectionItem({ 
+        message: 'Sistema de video vigilancia iniciado - Conectando cámaras...', 
+        location: 'Sistema', 
+        confidence: 100,
+        timestamp: new Date()
+    });
 }
 
-function loadCriticalAlerts() {
+async function loadRealTimeDetections() {
+    try {
+        const response = await fetch('/api/video-surveillance/real-time-detections');
+        const data = await response.json();
+        
+        if (data.success && data.detections && data.detections.length > 0) {
+            const feedContainer = document.getElementById('real-time-detections');
+            
+            data.detections.forEach(detection => {
+                const time = new Date(detection.timestamp).toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                const feedItem = document.createElement('div');
+                feedItem.className = 'feed-item';
+                feedItem.innerHTML = `
+                    <div class="feed-time">${time}</div>
+                    <div class="flex-grow-1">
+                        <div class="text-white small fw-bold">${detection.message}</div>
+                        <div class="text-muted small">${detection.location}</div>
+                        <div class="text-info small">Confianza: ${detection.confidence}%</div>
+                    </div>
+                `;
+                
+                feedContainer.insertBefore(feedItem, feedContainer.firstChild);
+            });
+            
+            // Keep only last 15 items
+            while (feedContainer.children.length > 15) {
+                feedContainer.removeChild(feedContainer.lastChild);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading real-time detections:', error);
+        const feedContainer = document.getElementById('real-time-detections');
+        if (feedContainer.children.length === 0) {
+            feedContainer.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-wifi fa-2x mb-2"></i>
+                    <p>Conectando con feeds de detección...</p>
+                </div>
+            `;
+        }
+    }
+}
+
+async function loadCriticalAlerts() {
     const container = document.getElementById('critical-alerts');
     
-    const alerts = [
-        {
-            level: 'critical',
-            message: 'Actividad militar intensificada en zona fronteriza',
-            location: 'Europa Oriental',
-            time: 'hace 8 min',
-            camera: 'Kiev Centro'
-        },
-        {
-            level: 'high',
-            message: 'Erupción volcánica en progreso',
-            location: 'Sicilia, Italia',
-            time: 'hace 23 min',
-            camera: 'Volcán Etna'
-        },
-        {
-            level: 'medium',
-            message: 'Manifestación masiva detectada',
-            location: 'Nueva York, EE.UU.',
-            time: 'hace 1 hora',
-            camera: 'Times Square'
-        }
-    ];
-    
-    container.innerHTML = alerts.map(alert => `
-        <div class="mb-3 p-2 rounded" style="background: rgba(255, 255, 255, 0.05);">
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1">
-                    <div class="text-white small fw-bold">${alert.message}</div>
-                    <div class="text-muted small">${alert.location}</div>
-                    <div class="text-info small">Cámara: ${alert.camera}</div>
+    try {
+        const response = await fetch('/api/video-surveillance/critical-alerts');
+        const data = await response.json();
+        
+        if (data.success && data.alerts && data.alerts.length > 0) {
+            container.innerHTML = data.alerts.map(alert => `
+                <div class="mb-3 p-2 rounded" style="background: rgba(255, 255, 255, 0.05);">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="text-white small fw-bold">${alert.message}</div>
+                            <div class="text-muted small">${alert.location}</div>
+                            <div class="text-info small">Cámara: ${alert.camera_name}</div>
+                        </div>
+                        <div class="text-muted small">${alert.time_ago}</div>
+                    </div>
                 </div>
-                <div class="text-muted small">${alert.time}</div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                    <p>No hay alertas críticas activas</p>
+                    <small>Sistema en monitoreo continuo</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading critical alerts:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Error al cargar alertas</p>
+                <small>Verificando sistemas de monitoreo...</small>
             </div>
-        </div>
-    `).join('');
+        `;
+    }
 }
 
-function loadDetectionHistory() {
+async function loadDetectionHistory() {
     const container = document.getElementById('detection-history');
     
-    const history = [
-        { time: '14:23:45', type: 'military', message: 'Convoy militar detectado', location: 'Kiev', confidence: 94.2 },
-        { time: '14:18:32', type: 'crowd', message: 'Multitud en plaza principal', location: 'Times Square', confidence: 89.4 },
-        { time: '14:15:18', type: 'disaster', message: 'Actividad volcánica', location: 'Etna', confidence: 96.7 },
-        { time: '14:12:07', type: 'suspicious', message: 'Actividad sospechosa', location: 'Gaza', confidence: 82.1 },
-        { time: '14:08:54', type: 'traffic', message: 'Anomalía de tráfico', location: 'Beirut', confidence: 91.8 },
-        { time: '14:05:41', type: 'military', message: 'Aeronave militar', location: 'Ben Gurion', confidence: 93.6 },
-        { time: '14:02:28', type: 'crowd', message: 'Concentración de personas', location: 'Kiev', confidence: 87.3 },
-        { time: '13:59:15', type: 'disaster', message: 'Humo detectado', location: 'California', confidence: 85.9 }
-    ];
-    
-    container.innerHTML = history.map(item => `
-        <div class="detection-item">
-            <div>
-                <div class="text-white small fw-bold">${item.message}</div>
-                <div class="text-muted small">${item.location} - ${item.time}</div>
+    try {
+        const response = await fetch('/api/video-surveillance/detection-history');
+        const data = await response.json();
+        
+        if (data.success && data.history && data.history.length > 0) {
+            container.innerHTML = data.history.map(item => `
+                <div class="detection-item">
+                    <div>
+                        <div class="text-white small fw-bold">${item.message}</div>
+                        <div class="text-muted small">${item.location} - ${item.time}</div>
+                    </div>
+                    <div class="text-end">
+                        <span class="detection-type-badge detection-${item.type}">
+                            ${getDetectionTypeLabel(item.type)}
+                        </span>
+                        <div class="text-info small">${item.confidence}%</div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-history fa-2x mb-2"></i>
+                    <p>No hay historial de detecciones</p>
+                    <small>Esperando análisis de video...</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading detection history:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Error al cargar historial</p>
+                <small>Verificando base de datos...</small>
             </div>
-            <div class="text-end">
-                <span class="detection-type-badge detection-${item.type}">
-                    ${getDetectionTypeLabel(item.type)}
-                </span>
-                <div class="text-info small">${item.confidence}%</div>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }
 }
 
-function loadAnalysisTimeline() {
+async function loadAnalysisTimeline() {
     const container = document.getElementById('analysis-timeline');
     
-    const timelineItems = [
-        {
-            time: '14:23',
-            event: 'Detección militar confirmada en Kiev',
-            status: 'completed',
-            confidence: 94.2
-        },
-        {
-            time: '14:18',
-            event: 'Análisis de multitudes en Times Square',
-            status: 'completed',
-            confidence: 89.4
-        },
-        {
-            time: '14:15',
-            event: 'Monitoreo volcánico Etna actualizado',
-            status: 'processing',
-            confidence: null
-        },
-        {
-            time: '14:12',
-            event: 'Validación de actividad sospechosa',
-            status: 'completed',
-            confidence: 82.1
-        },
-        {
-            time: '14:08',
-            event: 'Análisis de tráfico en Beirut',
-            status: 'completed',
-            confidence: 91.8
+    try {
+        const response = await fetch('/api/video-surveillance/analysis-timeline');
+        const data = await response.json();
+        
+        if (data.success && data.timeline_items && data.timeline_items.length > 0) {
+            container.innerHTML = data.timeline_items.map(item => `
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-white small">${item.event}</div>
+                            <div class="text-muted small">${item.time}</div>
+                        </div>
+                        <div class="mt-1 d-flex justify-content-between align-items-center">
+                            <span class="badge ${item.status === 'completed' ? 'bg-success' : 'bg-warning'}">
+                                ${item.status === 'completed' ? 'Completado' : 'En Proceso'}
+                            </span>
+                            ${item.confidence ? `<span class="text-info small">${item.confidence}%</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <p>No hay eventos recientes en el timeline</p>
+                    <small>Esperando análisis de video...</small>
+                </div>
+            `;
         }
-    ];
-    
-    container.innerHTML = timelineItems.map(item => `
-        <div class="timeline-item">
-            <div class="timeline-marker"></div>
-            <div class="timeline-content">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-white small">${item.event}</div>
-                    <div class="text-muted small">${item.time}</div>
-                </div>
-                <div class="mt-1 d-flex justify-content-between align-items-center">
-                    <span class="badge ${item.status === 'completed' ? 'bg-success' : 'bg-warning'}">
-                        ${item.status === 'completed' ? 'Completado' : 'En Proceso'}
-                    </span>
-                    ${item.confidence ? `<span class="text-info small">${item.confidence}%</span>` : ''}
-                </div>
+    } catch (error) {
+        console.error('Error loading analysis timeline:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Error al cargar timeline</p>
+                <small>Verificando sistemas de análisis...</small>
             </div>
-        </div>
-    `).join('');
+        `;
+    }
 }
 
 function getDetectionTypeLabel(type) {
@@ -1248,45 +1254,168 @@ function getDetectionTypeLabel(type) {
     return labels[type] || type;
 }
 
-function updateAnalysis() {
+async function updateAnalysis() {
     // Show loading state
     const button = event.target;
     const originalText = button.innerHTML;
     button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Actualizando...';
     button.disabled = true;
     
-    // Simulate analysis update
-    setTimeout(() => {
-        loadCameraFeeds();
-        loadCriticalAlerts();
-        loadDetectionHistory();
-        updateStatistics();
+    try {
+        // Refresh all data from APIs
+        await Promise.all([
+            loadCameraFeeds(),
+            loadCriticalAlerts(),
+            loadDetectionHistory(),
+            loadAnalysisTimeline(),
+            loadRealTimeStatistics(),
+            loadModelPerformance()
+        ]);
         
         // Reset button
         button.innerHTML = originalText;
         button.disabled = false;
         
         // Show success message
-        showNotification('Análisis de video actualizado correctamente', 'success');
-    }, 2000);
+        showNotification('Análisis de video actualizado desde APIs reales', 'success');
+    } catch (error) {
+        console.error('Error updating video analysis:', error);
+        
+        // Reset button
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Show error message
+        showNotification('Error al actualizar análisis - Verificando conexión con cámaras', 'error');
+    }
 }
 
-function simulateWebSocketConnection() {
-    // Simulate WebSocket messages for real-time updates
-    setInterval(() => {
-        if (Math.random() > 0.7) { // 30% chance
-            const events = [
-                'Nueva detección militar confirmada',
-                'Análisis de multitudes completado',
-                'Alerta de actividad sospechosa',
-                'Validación de evento natural',
-                'Actualización de modelo de IA'
-            ];
+function initializeRealWebSocketConnection() {
+    // Initialize real WebSocket connection using Socket.IO for video surveillance updates
+    try {
+        const socket = io();
+        
+        socket.on('connect', function() {
+            console.log('📹 Socket.IO connected to video surveillance stream');
+            showNotification('Conectado al sistema de video vigilancia en tiempo real', 'success');
             
-            const randomEvent = events[Math.floor(Math.random() * events.length)];
-            showNotification(randomEvent, 'info');
-        }
-    }, 12000); // Check every 12 seconds
+            // Request initial video updates
+            socket.emit('request_video_update');
+        });
+        
+        socket.on('video_surveillance_update', function(data) {
+            console.log('Video surveillance update received:', data);
+            
+            if (data.type === 'new_detection' || data.type === 'detection_update') {
+                showNotification(`Nueva detección: ${data.message}`, 'info');
+                
+                // Add to real-time feed
+                addDetectionToFeed({
+                    message: data.message,
+                    location: data.location,
+                    confidence: data.confidence,
+                    timestamp: data.timestamp || new Date().toISOString()
+                });
+                
+                // Refresh other components
+                loadCriticalAlerts();
+                loadDetectionHistory();
+                
+            } else if (data.type === 'camera_alert') {
+                showNotification(`Alerta de cámara: ${data.message}`, 'warning');
+                loadCriticalAlerts();
+                
+            } else if (data.type === 'statistics_update') {
+                loadRealTimeStatistics();
+                
+            } else if (data.type === 'camera_offline') {
+                showNotification(`Cámara fuera de línea: ${data.camera_name}`, 'warning');
+                loadCameraFeeds();
+            }
+        });
+        
+        socket.on('new_articles', function(data) {
+            console.log('New RSS articles received:', data);
+            
+            // Check if any are high-risk and might affect video surveillance
+            if (data.articles) {
+                const highRiskArticles = data.articles.filter(a => a.risk_level === 'high');
+                if (highRiskArticles.length > 0) {
+                    showNotification(`${highRiskArticles.length} artículos de alto riesgo detectados - Actualizando vigilancia`, 'warning');
+                    
+                    // Refresh video surveillance components
+                    setTimeout(() => {
+                        loadRealTimeDetections();
+                        loadCriticalAlerts();
+                        loadRealTimeStatistics();
+                    }, 2000); // Small delay to allow backend processing
+                }
+            }
+        });
+        
+        socket.on('disconnect', function() {
+            console.log('📹 Socket.IO disconnected from video surveillance stream');
+            showNotification('Conexión con sistema de video perdida - Reintentando...', 'warning');
+        });
+        
+        socket.on('error', function(error) {
+            console.error('Video surveillance Socket.IO error:', error);
+            showNotification('Error en conexión con sistema de video vigilancia', 'error');
+        });
+        
+        // Request updates every 30 seconds
+        setInterval(() => {
+            if (socket.connected) {
+                socket.emit('request_video_update');
+            }
+        }, 30000);
+        
+        // Store socket globally for other functions
+        window.videoSurveillanceSocket = socket;
+        
+    } catch (error) {
+        console.error('Error initializing video surveillance Socket.IO:', error);
+        showNotification('WebSocket no disponible - Usando actualizaciones periódicas', 'warning');
+        
+        // Fallback to polling
+        setInterval(() => {
+            loadRealTimeDetections();
+            loadCriticalAlerts();
+            loadRealTimeStatistics();
+        }, 30000);
+    }
+}
+
+function addDetectionToFeed(detection) {
+    const feedContainer = document.getElementById('real-time-detections');
+    if (!feedContainer) return;
+    
+    const time = new Date(detection.timestamp).toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    
+    const feedItem = document.createElement('div');
+    feedItem.className = 'feed-item';
+    feedItem.innerHTML = `
+        <div class="feed-time">${time}</div>
+        <div class="flex-grow-1">
+            <div class="text-white small fw-bold">${detection.message}</div>
+            <div class="text-muted small">${detection.location}</div>
+            <div class="text-info small">Confianza: ${detection.confidence}%</div>
+        </div>
+    `;
+    
+    // Add highlight animation
+    feedItem.style.animation = 'fadeIn 0.5s ease-in';
+    
+    feedContainer.insertBefore(feedItem, feedContainer.firstChild);
+    
+    // Keep only last 15 items
+    while (feedContainer.children.length > 15) {
+        feedContainer.removeChild(feedContainer.lastChild);
+    }
 }
 
 function showNotification(message, type = 'info') {

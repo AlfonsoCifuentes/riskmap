@@ -31,10 +31,10 @@ from sklearn.covariance import EllipticEnvelope
 
 # Deep learning for feature extraction
 import tensorflow as tf
-from tensorflow.keras.models import Model, Sequential
-from tensorflow.keras.layers import Dense, Input, Dropout, BatchNormalization
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras import regularizers
+from keras.models import Model, Sequential
+from keras.layers import Dense, Input, Dropout, BatchNormalization
+from keras.optimizers import Adam
+from keras import regularizers
 
 # Statistical analysis
 from scipy import stats

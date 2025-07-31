@@ -32,11 +32,11 @@ from sklearn.feature_selection import SelectKBest, f_regression
 
 # Deep Learning
 import tensorflow as tf
-from tensorflow.keras.models import Sequential, Model
-from tensorflow.keras.layers import LSTM, GRU, Dense, Dropout, Conv1D, MaxPooling1D, Flatten, Input, Attention
-from tensorflow.keras.optimizers import Adam, RMSprop
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.regularizers import l1_l2
+from keras.models import Sequential, Model
+from keras.layers import LSTM, GRU, Dense, Dropout, Conv1D, MaxPooling1D, Flatten, Input, Attention
+from keras.optimizers import Adam, RMSprop
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from keras.regularizers import l1_l2
 
 # Statistical analysis
 from scipy import stats

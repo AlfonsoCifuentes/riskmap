@@ -1,0 +1,493 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiskMap - Sistema Unificado de Análisis Geopolítico</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .status-indicator { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .status-running { background-color: #28a745; }
+        .status-warning { background-color: #ffc107; }
+        .status-error { background-color: #dc3545; }
+        .status-inactive { background-color: #6c757d; }
+        .card-feature { transition: transform 0.2s; cursor: pointer; }
+        .card-feature:hover { transform: translateY(-5px); }
+        .stats-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">🗺️ RiskMap</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">Dashboard Histórico</a>
+                <a class="nav-link" href="/multivariate">Análisis Multivariable</a>
+                <a class="nav-link" href="/logs">Logs</a>
+                <a class="nav-link" href="/settings">Configuración</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1>🗺️ RiskMap - Sistema Unificado de Análisis Geopolítico</h1>
+                <p class="lead">Plataforma integral de inteligencia geopolítica con ingesta automática, procesamiento NLP y análisis histórico multivariable.</p>
+            </div>
+        </div>
+
+        <!-- Estado del Sistema -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>🔧 Estado del Sistema</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="d-flex align-items-center">
+                                    <span id="system-status-indicator" class="status-indicator status-inactive"></span>
+                                    <span>Sistema: <span id="system-status">{{ system_state.system_status }}</span></span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="d-flex align-items-center">
+                                    <span id="ingestion-indicator" class="status-indicator {% if system_state.data_ingestion_running %}status-running{% else %}status-inactive{% endif %}"></span>
+                                    <span>Ingesta RSS</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="d-flex align-items-center">
+                                    <span id="processing-indicator" class="status-indicator {% if system_state.nlp_processing_running %}status-running{% else %}status-inactive{% endif %}"></span>
+                                    <span>Procesamiento NLP</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="d-flex align-items-center">
+                                    <span id="analysis-indicator" class="status-indicator {% if system_state.historical_analysis_running %}status-running{% else %}status-inactive{% endif %}"></span>
+                                    <span>Análisis Histórico</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="d-flex align-items-center">
+                                    <span id="dashboard-indicator" class="status-indicator {% if system_state.dashboards_ready %}status-running{% else %}status-inactive{% endif %}"></span>
+                                    <span>Dashboards</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="d-flex align-items-center">
+                                    <span id="api-indicator" class="status-indicator {% if system_state.api_ready %}status-running{% else %}status-inactive{% endif %}"></span>
+                                    <span>API REST</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <h3 id="total-articles">{{ system_state.statistics.total_articles }}</h3>
+                        <p>Artículos Totales</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <h3 id="processed-articles">{{ system_state.statistics.processed_articles }}</h3>
+                        <p>Artículos Procesados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <h3 id="risk-alerts">{{ system_state.statistics.risk_alerts }}</h3>
+                        <p>Alertas de Riesgo</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <h3 id="data-sources">{{ system_state.statistics.data_sources }}</h3>
+                        <p>Fuentes de Datos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles del Sistema -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>⚡ Controles del Sistema</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <button id="btn-initialize" class="btn btn-primary w-100" onclick="initializeSystem()">
+                                    🚀 Inicializar Todo
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <button id="btn-start-ingestion" class="btn btn-info w-100" onclick="startIngestion()">
+                                    📡 Iniciar Ingesta
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <button id="btn-start-processing" class="btn btn-success w-100" onclick="startProcessing()">
+                                    🧠 Iniciar NLP
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <button id="btn-start-analysis" class="btn btn-warning w-100" onclick="startAnalysis()">
+                                    📊 Iniciar Análisis
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <button id="btn-refresh" class="btn btn-secondary w-100" onclick="refreshStatus()">
+                                    🔄 Actualizar
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <button id="btn-view-logs" class="btn btn-dark w-100" onclick="window.open('/logs', '_blank')">
+                                    📋 Ver Logs
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-3">
+                                <button id="btn-test-groq" class="btn btn-outline-primary w-100" onclick="testGroq()">
+                                    🤖 Test Groq API
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button id="btn-groq-analysis" class="btn btn-outline-success w-100" onclick="generateGroqAnalysis()">
+                                    📝 Análisis Groq
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button id="btn-view-analysis" class="btn btn-outline-info w-100" onclick="viewLastAnalysis()">
+                                    👁️ Ver Último Análisis
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button id="btn-export-data" class="btn btn-outline-warning w-100" onclick="exportData()">
+                                    💾 Exportar Datos
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Funcionalidades Principales -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card card-feature" onclick="window.open('/dashboard', '_blank')">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">📊 Dashboard Histórico</h5>
+                        <p class="card-text">Análisis temporal, patrones históricos y predicciones basadas en 100+ años de datos.</p>
+                        <span class="btn btn-outline-primary">Abrir Dashboard</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-feature" onclick="window.open('/multivariate', '_blank')">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">🔗 Análisis Multivariable</h5>
+                        <p class="card-text">Relaciones entre variables energéticas, climáticas, políticas, sanitarias y de recursos.</p>
+                        <span class="btn btn-outline-success">Abrir Análisis</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-feature" onclick="window.open('/api/v1/docs', '_blank')">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">🔌 API REST</h5>
+                        <p class="card-text">Acceso programático a todos los datos y análisis del sistema.</p>
+                        <span class="btn btn-outline-info">Ver Documentación</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas Recientes -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>🚨 Alertas Recientes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="alerts-container">
+                            <p class="text-muted">No hay alertas recientes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript functions for system control
+        async function initializeSystem() {
+            try {
+                const response = await axios.post('/api/system/initialize');
+                if (response.data.success) {
+                    showAlert('success', 'Sistema inicializándose en segundo plano...');
+                    refreshStatus();
+                } else {
+                    showAlert('error', 'Error: ' + response.data.error);
+                }
+            } catch (error) {
+                showAlert('error', 'Error de conexión: ' + error.message);
+            }
+        }
+
+        async function startIngestion() {
+            try {
+                const response = await axios.post('/api/ingestion/start');
+                if (response.data.success) {
+                    showAlert('success', 'Ingesta de datos iniciada...');
+                    refreshStatus();
+                } else {
+                    showAlert('error', 'Error: ' + response.data.error);
+                }
+            } catch (error) {
+                showAlert('error', 'Error de conexión: ' + error.message);
+            }
+        }
+
+        async function startProcessing() {
+            try {
+                const response = await axios.post('/api/processing/start');
+                if (response.data.success) {
+                    showAlert('success', 'Procesamiento NLP iniciado...');
+                    refreshStatus();
+                } else {
+                    showAlert('error', 'Error: ' + response.data.error);
+                }
+            } catch (error) {
+                showAlert('error', 'Error de conexión: ' + error.message);
+            }
+        }
+
+        async function startAnalysis() {
+            try {
+                const response = await axios.post('/api/analysis/start');
+                if (response.data.success) {
+                    showAlert('success', 'Análisis histórico iniciado...');
+                    refreshStatus();
+                } else {
+                    showAlert('error', 'Error: ' + response.data.error);
+                }
+            } catch (error) {
+                showAlert('error', 'Error de conexión: ' + error.message);
+            }
+        }
+
+        async function testGroq() {
+            try {
+                showAlert('info', 'Probando conexión con Groq API...');
+                const response = await axios.get('/api/groq/test');
+                if (response.data.success) {
+                    showAlert('success', 'Groq API: ' + response.data.message + ' - Respuesta: ' + response.data.test_response);
+                } else {
+                    showAlert('error', 'Error Groq: ' + response.data.error);
+                }
+            } catch (error) {
+                showAlert('error', 'Error probando Groq: ' + error.message);
+            }
+        }
+
+        async function generateGroqAnalysis() {
+            try {
+                showAlert('info', 'Generando análisis geopolítico con Groq... (esto puede tardar unos segundos)');
+                const response = await axios.get('/api/groq/analysis');
+                if (response.data.success) {
+                    const analysis = response.data.analysis;
+                    showAlert('success', 'Análisis generado exitosamente con ' + response.data.articles_count + ' artículos');
+                    
+                    // Mostrar el análisis en un modal
+                    showAnalysisModal(analysis);
+                } else {
+                    showAlert('error', 'Error generando análisis: ' + response.data.error);
+                    if (response.data.fallback_analysis) {
+                        showAnalysisModal(response.data.fallback_analysis);
+                    }
+                }
+            } catch (error) {
+                showAlert('error', 'Error generando análisis: ' + error.message);
+            }
+        }
+
+        function showAnalysisModal(analysis) {
+            const modalHtml = `
+                <div class="modal fade" id="analysisModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">📝 ${analysis.title || 'Análisis Geopolítico'}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                ${analysis.subtitle ? '<h6 class="text-muted mb-3">' + analysis.subtitle + '</h6>' : ''}
+                                <div class="analysis-content">
+                                    ${analysis.content || analysis}
+                                </div>
+                                ${analysis.sources_count ? '<p class="text-muted mt-3"><small>Basado en ' + analysis.sources_count + ' fuentes</small></p>' : ''}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" onclick="exportAnalysis()">💾 Exportar</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal if any
+            const existingModal = document.getElementById('analysisModal');
+            if (existingModal) existingModal.remove();
+            
+            // Add new modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('analysisModal'));
+            modal.show();
+        }
+
+        function viewLastAnalysis() {
+            showAlert('info', 'Funcionalidad en desarrollo - por ahora usa "Análisis Groq"');
+        }
+
+        function exportData() {
+            showAlert('info', 'Funcionalidad de exportación en desarrollo');
+        }
+
+        function exportAnalysis() {
+            const content = document.querySelector('.analysis-content').innerHTML;
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'analisis_geopolitico_' + new Date().toISOString().slice(0,10) + '.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        async function refreshStatus() {
+            try {
+                // Get system status
+                const statusResponse = await axios.get('/api/system/status');
+                if (statusResponse.data.success) {
+                    updateStatusDisplay(statusResponse.data.system_state);
+                }
+                
+                // Get statistics
+                const statsResponse = await axios.get('/api/statistics');
+                if (statsResponse.data.success) {
+                    updateStatistics(statsResponse.data.statistics);
+                }
+                
+                // Get alerts
+                const alertsResponse = await axios.get('/api/alerts');
+                if (alertsResponse.data.success) {
+                    updateAlerts(alertsResponse.data.alerts);
+                }
+            } catch (error) {
+                console.error('Error refreshing status:', error);
+            }
+        }
+
+        function updateStatusDisplay(systemState) {
+            // Update status indicators
+            document.getElementById('system-status').textContent = systemState.system_status;
+            document.getElementById('system-status-indicator').className = 'status-indicator ' + getStatusClass(systemState.system_status);
+            
+            document.getElementById('ingestion-indicator').className = 'status-indicator ' + (systemState.data_ingestion_running ? 'status-running' : 'status-inactive');
+            document.getElementById('processing-indicator').className = 'status-indicator ' + (systemState.nlp_processing_running ? 'status-running' : 'status-inactive');
+            document.getElementById('analysis-indicator').className = 'status-indicator ' + (systemState.historical_analysis_running ? 'status-running' : 'status-inactive');
+            document.getElementById('dashboard-indicator').className = 'status-indicator ' + (systemState.dashboards_ready ? 'status-running' : 'status-inactive');
+            document.getElementById('api-indicator').className = 'status-indicator ' + (systemState.api_ready ? 'status-running' : 'status-inactive');
+        }
+
+        function updateStatistics(stats) {
+            document.getElementById('total-articles').textContent = stats.total_articles || 0;
+            document.getElementById('processed-articles').textContent = stats.processed_articles || 0;
+            document.getElementById('risk-alerts').textContent = stats.risk_alerts || 0;
+            document.getElementById('data-sources').textContent = stats.data_sources || 0;
+        }
+
+        function updateAlerts(alerts) {
+            const container = document.getElementById('alerts-container');
+            if (!alerts || alerts.length === 0) {
+                container.innerHTML = '<p class="text-muted">No hay alertas recientes</p>';
+                return;
+            }
+
+            let html = '';
+            alerts.slice(-5).forEach(alert => {
+                const alertClass = alert.type.includes('error') || alert.type.includes('failed') ? 'danger' : 
+                                 alert.type.includes('warning') ? 'warning' : 'info';
+                html += `
+                    <div class="alert alert-${alertClass} alert-sm">
+                        <strong>${alert.type}</strong>: ${alert.message}
+                        <small class="text-muted d-block">${new Date(alert.timestamp).toLocaleString()}</small>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function getStatusClass(status) {
+            if (status.includes('running') || status.includes('initialized') || status.includes('ready')) return 'status-running';
+            if (status.includes('failed') || status.includes('error')) return 'status-error';
+            if (status.includes('initializing') || status.includes('starting')) return 'status-warning';
+            return 'status-inactive';
+        }
+
+        function showAlert(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-danger' : 'alert-info';
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            // Insert at top of page
+            const container = document.querySelector('.container-fluid');
+            container.insertAdjacentHTML('afterbegin', alertHtml);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                const alert = container.querySelector('.alert');
+                if (alert) alert.remove();
+            }, 5000);
+        }
+
+        // Auto-refresh every 5 minutes (300000 ms)
+        setInterval(refreshStatus, 300000);
+        
+        // Initial load
+        document.addEventListener('DOMContentLoaded', refreshStatus);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+        
