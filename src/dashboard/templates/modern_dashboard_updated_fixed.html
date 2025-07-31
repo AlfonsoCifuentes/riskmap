@@ -1,0 +1,921 @@
+{% extends "base_navigation.html" %}
+
+{% block title %}Análisis de Noticias - Stratosight{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/article_cards.css') }}">
+<style>
+    :root {
+        --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        --bg-secondary: #141824;
+        --text-primary: #e8eaed;
+        --text-secondary: #b0b8c4;
+        --accent-cyan: #00d4ff;
+        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+        --border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: #1a237e;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        position: relative;
+    }
+
+    /* News Analysis Dashboard Styles - Responsive y Mobile-First */
+    .news-dashboard {
+        padding: 0;
+        max-width: none;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 80px);
+        background: rgba(10, 15, 44, 0.08);
+        backdrop-filter: blur(2px);
+        gap: 0;
+        width: 100vw;
+    }
+    
+    .dashboard-content {
+        max-width: 96%;
+        margin: 0 auto !important;
+        margin-top: 0 !important;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Header and Stats Container */
+    .header-stats-container {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        margin-bottom: 0;
+        top: -80px;
+        z-index: 0;
+        background: transparent;
+        border-radius: 0;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin: 0;
+        color: #fff;
+        padding: 180px 0 100px 0;
+        width: 100%;
+        position: relative;
+        background: linear-gradient(135deg, rgba(26, 32, 64, 0.75) 0%, rgba(16, 24, 48, 0.8) 50%, rgba(20, 28, 56, 0.75) 100%);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .page-title {
+        font-family: 'Orbitron', monospace;
+        font-size: clamp(1.5rem, 6vw, 4rem);
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        width: 75%;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.2;
+        word-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    .page-subtitle {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 20px;
+    }
+
+    /* Stats Cards - Responsive Grid */
+    .news-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0;
+        margin: 0;
+        width: 100%;
+        position: relative;
+    }
+    
+    .news-stat-card {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(3px);
+        box-shadow: none;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .news-stat-card:last-child {
+        border-right: none;
+    }
+    
+    .news-stat-card:nth-child(1) {
+        background: linear-gradient(135deg, rgba(0, 119, 255, 0.4) 0%, rgba(30, 144, 255, 0.35) 100%);
+    }
+    
+    .news-stat-card:nth-child(2) {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.45) 0%, rgba(239, 68, 68, 0.4) 100%);
+    }
+    
+    .news-stat-card:nth-child(3) {
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.4) 0%, rgba(45, 212, 191, 0.35) 100%);
+    }
+    
+    .news-stat-card:nth-child(4) {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(37, 99, 235, 0.35) 100%);
+    }
+    
+    .news-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .news-stat-card:nth-child(1):hover {
+        background: linear-gradient(135deg, rgba(0, 119, 255, 0.6) 0%, rgba(30, 144, 255, 0.5) 100%);
+    }
+    
+    .news-stat-card:nth-child(2):hover {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.65) 0%, rgba(239, 68, 68, 0.55) 100%);
+    }
+    
+    .news-stat-card:nth-child(3):hover {
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.6) 0%, rgba(45, 212, 191, 0.5) 100%);
+    }
+    
+    .news-stat-card:nth-child(4):hover {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.6) 0%, rgba(37, 99, 235, 0.5) 100%);
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto 15px;
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: #fff;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 5px;
+        font-family: 'Orbitron', monospace;
+    }
+    
+    .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Section styling - Mobile-First */
+    .news-section {
+        background: rgba(26, 32, 64, 0.7);
+        border: 1px solid rgba(70, 234, 215, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        backdrop-filter: blur(15px);
+        margin-bottom: 25px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .section-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+        gap: 15px;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+    }
+    
+    .btn-control {
+        flex: 1 1 auto;
+        max-width: 140px;
+        min-width: 80px;
+        text-align: center;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-control:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .btn-control.active {
+        background: rgba(70, 234, 215, 0.3);
+        border-color: rgba(70, 234, 215, 0.5);
+        color: #fff;
+    }
+
+    /* High Risk Articles Grid - Responsive */
+    .high-risk-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .high-risk-card {
+        background: linear-gradient(145deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.08));
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        border-radius: 12px;
+        padding: 15px;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(15px);
+    }
+    
+    .high-risk-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+        border-color: rgba(239, 68, 68, 0.5);
+    }
+    
+    .high-risk-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+    
+    .high-risk-description {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+    
+    .high-risk-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .high-risk-location {
+        color: rgba(255, 255, 255, 0.6);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .high-risk-badge {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.65rem;
+    }
+
+    /* Latest Articles - Full width cards - Mobile-First */
+    .latest-articles-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .latest-article-card {
+        background: rgba(26, 32, 64, 0.7);
+        border: 1px solid rgba(70, 234, 215, 0.25);
+        border-radius: 12px;
+        padding: 15px;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(15px);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .latest-article-card:hover {
+        background: rgba(26, 32, 64, 0.85);
+        border-color: rgba(70, 234, 215, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    .latest-article-content {
+        flex: 1;
+    }
+    
+    .latest-article-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 6px;
+        line-height: 1.3;
+    }
+    
+    .latest-article-description {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 8px;
+    }
+    
+    .latest-article-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .latest-article-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .latest-article-sidebar {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+    
+    .latest-risk-badge {
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.65rem;
+    }
+    
+    .latest-risk-badge.high {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+    }
+    
+    .latest-risk-badge.medium {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+    }
+    
+    .latest-risk-badge.low {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+    }
+
+    /* News Mosaic Section - Dynamic Collage Layout */
+    .news-mosaic-section {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        margin-top: 0;
+        padding: 0;
+        background: transparent;
+        z-index: 1;
+        margin-top: 0 !important;
+    }
+
+    .mosaic-controls-container {
+        width: 100%;
+        padding: 20px;
+        background: rgba(10, 15, 44, 0.5);
+        backdrop-filter: blur(5px);
+        z-index: 5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        width: 100vw;
+        box-sizing: border-box;
+    }
+    
+    .mosaic-controls {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+    
+    .news-mosaic-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-auto-rows: calc(25vw / 1.618);
+        gap: 0;
+        grid-auto-flow: dense;
+        width: 100vw;
+        min-height: 100vh;
+        background: rgba(0, 0, 0, 0.1);
+        padding: 0;
+    }
+    
+    /* Mosaic Article Tiles - Irregular Sizes */
+    .mosaic-article {
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        border: 1px solid #0a0f2c;
+        box-sizing: border-box;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+    }
+    
+    .mosaic-article::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            135deg,
+            rgba(0, 0, 0, 0.2) 0%,
+            rgba(0, 0, 0, 0.1) 40%,
+            rgba(0, 0, 0, 0.5) 100%
+        );
+        border-radius: 0;
+        z-index: 1;
+    }
+    
+    .mosaic-article:hover {
+        transform: scale(1.02);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        z-index: 5;
+        border: 1px solid var(--accent-cyan);
+    }
+    
+    .mosaic-article:hover::before {
+        background: linear-gradient(
+            135deg,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0.05) 40%,
+            rgba(0, 0, 0, 0.4) 100%
+        );
+    }
+    
+    /* Irregular size variants based on importance score */
+    .mosaic-article.size-1 { grid-column: span 2; grid-row: span 2; }
+    .mosaic-article.size-2 { grid-column: span 1; grid-row: span 2; }
+    .mosaic-article.size-3 { grid-column: span 1; grid-row: span 1; }
+    .mosaic-article.size-4 { grid-column: span 1; grid-row: span 1; }
+    .mosaic-article.size-5 { grid-column: span 1; grid-row: span 1; }
+    .mosaic-article.size-6 { grid-column: span 1; grid-row: span 2; }
+    .mosaic-article.size-7 { grid-column: span 2; grid-row: span 1; }
+    .mosaic-article.size-8 { grid-column: span 1; grid-row: span 1; }
+    .mosaic-article.size-9 { grid-column: span 1; grid-row: span 2; }
+    .mosaic-article.size-10 { grid-column: span 1; grid-row: span 1; }
+    .mosaic-article.size-11 { grid-column: span 1; grid-row: span 2; }
+    .mosaic-article.size-12 { grid-column: span 2; grid-row: span 1; }
+
+    /* Fallback sizes for additional articles */
+    .mosaic-article.size-default-lg-wide { grid-column: span 2; grid-row: span 1; }
+    .mosaic-article.size-default-lg-tall { grid-column: span 1; grid-row: span 2; }
+    .mosaic-article.size-default-md-sq { grid-column: span 1; grid-row: span 1; }
+    
+    /* Article content overlay with fixed padding */
+    .mosaic-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 15px;
+        z-index: 2;
+        color: white;
+        background: linear-gradient(
+            transparent 0%,
+            rgba(0, 0, 0, 0.3) 20%,
+            rgba(0, 0, 0, 0.7) 70%,
+            rgba(0, 0, 0, 0.9) 100%
+        );
+        border-radius: 0;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+    
+    .mosaic-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 1.3;
+        margin: 0 0 8px 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .mosaic-article.size-1 .mosaic-title {
+        font-size: 1.6rem;
+        -webkit-line-clamp: 4;
+        line-clamp: 4;
+    }
+    .mosaic-article.size-2 .mosaic-title {
+        font-size: 1.2rem;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+    }
+    
+    .mosaic-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: auto;
+    }
+    
+    .mosaic-location {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(0, 0, 0, 0.4);
+        padding: 6px 10px;
+        border-radius: 15px;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .mosaic-risk-badge {
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 6px 10px;
+        border-radius: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-shadow: none;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .mosaic-risk-badge.hero {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        color: white;
+        font-size: 0.8rem;
+        padding: 8px 12px;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+    }
+    
+    .mosaic-risk-badge.high {
+        background: rgba(220, 38, 38, 0.9);
+        color: white;
+        box-shadow: 0 2px 10px rgba(220, 38, 38, 0.3);
+    }
+    
+    .mosaic-risk-badge.medium {
+        background: rgba(245, 158, 11, 0.9);
+        color: white;
+        box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+    }
+    
+    .mosaic-risk-badge.low {
+        background: rgba(34, 197, 94, 0.9);
+        color: white;
+        box-shadow: 0 2px 10px rgba(34, 197, 94, 0.3);
+    }
+
+    /* Loading state */
+    .mosaic-loading {
+        grid-column: 1 / -1;
+        grid-row: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1.2rem;
+    }
+    
+    .mosaic-loading i {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: #46ead7;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .news-mosaic-container {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .news-mosaic-container {
+            grid-template-columns: repeat(2, 1fr);
+            grid-auto-rows: calc(45vw / 1.618);
+        }
+        
+        .mosaic-article.size-1 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-2 { grid-column: span 1; grid-row: span 1; }
+        .mosaic-article.size-7 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-12 { grid-column: span 2; grid-row: span 1; }
+    }
+
+    @media (max-width: 480px) {
+        .news-mosaic-container {
+            grid-template-columns: 1fr;
+            grid-auto-rows: 50vw;
+        }
+        
+        .mosaic-article { grid-column: span 1; grid-row: span 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="news-dashboard">
+    <!-- Header and Stats Section -->
+    <div class="header-stats-container">
+        <div class="page-header">
+            <h1 class="page-title">Análisis Estratégico de Noticias</h1>
+            <p class="page-subtitle">Monitoreo en tiempo real de riesgos y amenazas globales</p>
+            
+            <!-- Statistics Cards -->
+            <div class="news-stats" id="newsStats">
+                <div class="news-stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <div class="stat-value" id="totalArticles">-</div>
+                    <div class="stat-label">Total Artículos</div>
+                </div>
+                <div class="news-stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-value" id="highRiskArticles">-</div>
+                    <div class="stat-label">Alto Riesgo</div>
+                </div>
+                <div class="news-stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="stat-value" id="countriesCount">-</div>
+                    <div class="stat-label">Países</div>
+                </div>
+                <div class="news-stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-value" id="lastUpdate">-</div>
+                    <div class="stat-label">Última Actualización</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- News Mosaic Section -->
+    <div class="news-mosaic-section">
+        <div class="mosaic-controls-container">
+            <div class="mosaic-controls">
+                <button class="btn-control active" data-filter="all">
+                    <i class="fas fa-th"></i> Todos
+                </button>
+                <button class="btn-control" data-filter="high">
+                    <i class="fas fa-exclamation-triangle"></i> Alto Riesgo
+                </button>
+                <button class="btn-control" data-filter="medium">
+                    <i class="fas fa-exclamation-circle"></i> Medio Riesgo
+                </button>
+                <button class="btn-control" data-filter="recent">
+                    <i class="fas fa-clock"></i> Recientes
+                </button>
+                <button class="btn-control" id="loadMoreBtn">
+                    <i class="fas fa-plus"></i> Cargar Más
+                </button>
+            </div>
+        </div>
+        
+        <div class="news-mosaic-container" id="newsMosaic">
+            <div class="mosaic-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <div>Cargando noticias...</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+let isLoading = false;
+let currentFilter = 'all';
+let articlesData = [];
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardStats();
+    loadMosaicNews(12); // Load initial 12 articles
+    setupMosaicControls();
+});
+
+// Load dashboard statistics
+function loadDashboardStats() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalArticles').textContent = data.total_articles || 0;
+            document.getElementById('highRiskArticles').textContent = data.high_risk_articles || 0;
+            document.getElementById('countriesCount').textContent = data.countries_count || 0;
+            document.getElementById('lastUpdate').textContent = data.last_update || 'N/A';
+        })
+        .catch(error => {
+            console.error('Error loading stats:', error);
+        });
+}
+
+// Load mosaic news articles
+function loadMosaicNews(limit = 12, append = false) {
+    if (isLoading) return;
+    
+    isLoading = true;
+    const url = `/api/articles?limit=${limit}&page=${currentPage}&filter=${currentFilter}`;
+    
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const articles = data.articles || data;
+            
+            if (!Array.isArray(articles)) {
+                console.error('Articles is not an array:', articles);
+                return;
+            }
+            
+            if (append) {
+                articlesData = [...articlesData, ...articles];
+            } else {
+                articlesData = articles;
+            }
+            
+            renderMosaicNews(articlesData);
+            currentPage++;
+        })
+        .catch(error => {
+            console.error('Error fetching articles:', error);
+            document.getElementById('newsMosaic').innerHTML = 
+                '<div class="mosaic-loading">Error cargando artículos</div>';
+        })
+        .finally(() => {
+            isLoading = false;
+        });
+}
+
+// Render mosaic news with AI-based importance sizing
+function renderMosaicNews(articles) {
+    const mosaic = document.getElementById('newsMosaic');
+    
+    if (!articles || articles.length === 0) {
+        mosaic.innerHTML = '<div class="mosaic-loading">No hay artículos disponibles</div>';
+        return;
+    }
+    
+    mosaic.innerHTML = '';
+    
+    articles.forEach((article, index) => {
+        const articleElement = document.createElement('div');
+        articleElement.className = `mosaic-article size-${index + 1}`;
+        
+        // Set background image if available
+        if (article.image_url) {
+            articleElement.style.backgroundImage = `url('${article.image_url}')`;
+        } else {
+            articleElement.style.background = 'linear-gradient(135deg, #1a2040 0%, #2a3558 100%)';
+        }
+        
+        // Determine risk level for styling
+        const riskLevel = getRiskLevel(article.risk_score);
+        const riskClass = riskLevel.toLowerCase();
+        
+        // Create content overlay
+        articleElement.innerHTML = `
+            <div class="mosaic-content">
+                <div class="mosaic-title">${article.title}</div>
+                <div class="mosaic-meta">
+                    <div class="mosaic-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        ${article.location || 'Ubicación desconocida'}
+                    </div>
+                    <div class="mosaic-risk-badge ${riskClass}">
+                        ${riskLevel}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add click handler
+        articleElement.addEventListener('click', () => openArticleModal(article));
+        
+        mosaic.appendChild(articleElement);
+    });
+}
+
+// Setup mosaic controls
+function setupMosaicControls() {
+    const controls = document.querySelectorAll('.btn-control[data-filter]');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    
+    controls.forEach(control => {
+        control.addEventListener('click', function() {
+            // Remove active class from all controls
+            controls.forEach(c => c.classList.remove('active'));
+            // Add active class to clicked control
+            this.classList.add('active');
+            
+            currentFilter = this.dataset.filter;
+            currentPage = 1;
+            loadMosaicNews(12, false);
+        });
+    });
+    
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function() {
+            loadMosaicNews(12, true);
+        });
+    }
+}
+
+// Helper function to determine risk level
+function getRiskLevel(riskScore) {
+    if (riskScore >= 0.7) return 'ALTO';
+    if (riskScore >= 0.4) return 'MEDIO';
+    return 'BAJO';
+}
+
+// Open article modal (placeholder for future implementation)
+function openArticleModal(article) {
+    console.log('Opening article:', article);
+    // TODO: Implement modal functionality
+}
+
+// AI Importance calculation (placeholder for future integration)
+function calculateAIImportance(article) {
+    // This would call the AI importance calculator
+    // For now, return a placeholder value
+    return Math.random() * 100;
+}
+</script>
+{% endblock %}
