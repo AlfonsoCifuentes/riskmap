@@ -420,28 +420,89 @@
         padding: 0;
         background: transparent;
         z-index: 1;
-        margin-top: 100px !important; /* ensure separation from header stats */
+        margin-top: 0 !important;
+    }
+
+    .mosaic-controls-container {
+        width: 100%;
+        padding: 20px;
+        background: rgba(10, 15, 44, 0.5);
+        backdrop-filter: blur(5px);
+        z-index: 5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        width: 100vw;
+        box-sizing: border-box;
     }
     
     .mosaic-controls {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        z-index: 10;
         display: flex;
-        gap: 10px;
+        gap: 15px;
+        justify-content: center;
     }
     
     .news-mosaic-container {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        grid-auto-rows: 250px; /* larger cells */
-        gap: 0; /* no space between items */
+        grid-template-columns: repeat(6, 1fr);
+        grid-auto-rows: calc(16.666vw / 1.2);
+        gap: 0;
         grid-auto-flow: dense;
         width: 100vw;
         min-height: 100vh;
         background: rgba(0, 0, 0, 0.1);
         padding: 0;
+    }
+
+    /* Load More Button Container */
+    .load-more-container {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 30px 0;
+        background: rgba(10, 15, 44, 0.3);
+        backdrop-filter: blur(5px);
+    }
+
+    .load-more-btn {
+        width: 66.666%;
+        max-width: 800px;
+        padding: 15px 30px;
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.2) 0%, rgba(70, 234, 215, 0.4) 100%);
+        border: 2px solid rgba(70, 234, 215, 0.5);
+        color: #46ead7;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        backdrop-filter: blur(15px);
+        box-shadow: 0 4px 20px rgba(70, 234, 215, 0.2);
+    }
+
+    .load-more-btn:hover {
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.4) 0%, rgba(70, 234, 215, 0.6) 100%);
+        border-color: rgba(70, 234, 215, 0.8);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(70, 234, 215, 0.3);
+        color: #fff;
+    }
+
+    .load-more-btn:active {
+        transform: translateY(0);
     }
     
     /* Mosaic Article Tiles - Irregular Sizes */
@@ -450,8 +511,7 @@
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        border-radius: 0 !important; /* remove rounding */
-        padding: 15px !important; /* padding within articles */
+        border: 1px solid #0a0f2c;
         box-sizing: border-box;
         overflow: hidden;
         cursor: pointer;
@@ -473,14 +533,15 @@
             rgba(0, 0, 0, 0.1) 40%,
             rgba(0, 0, 0, 0.5) 100%
         );
-        border-radius: 12px;
+        border-radius: 0;
         z-index: 1;
     }
     
     .mosaic-article:hover {
-        transform: scale(1.03);
+        transform: scale(1.02);
         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
         z-index: 5;
+        border: 1px solid var(--accent-cyan);
     }
     
     .mosaic-article:hover::before {
@@ -492,66 +553,31 @@
         );
     }
     
-    /* Irregular size variants based on importance score */
-    .mosaic-article.size-hero {
-        grid-column: span 3;
-        grid-row: span 3;
-    }
-    
-    .mosaic-article.size-large-wide {
-        grid-column: span 2;
-        grid-row: span 1;
-    }
-    
-    .mosaic-article.size-large-tall {
-        grid-column: span 1;
-        grid-row: span 2;
-    }
-    
-    .mosaic-article.size-medium-wide {
-        grid-column: span 2;
-        grid-row: span 1;
-    }
-    
-    .mosaic-article.size-medium-square {
-        grid-column: span 1;
-        grid-row: span 1;
-    }
-    
-    .mosaic-article.size-medium-tall {
-        grid-column: span 1;
-        grid-row: span 2;
-    }
-    
-    .mosaic-article.size-small-wide {
-        grid-column: span 1;
-        grid-row: span 1;
-    }
-    
-    .mosaic-article.size-small-square {
-        grid-column: span 1;
-        grid-row: span 1;
-    }
-    
-    .mosaic-article.size-small-tall {
-        grid-column: span 1;
-        grid-row: span 2;
-    }
-    
-    .mosaic-article.size-mini-wide {
-        grid-column: span 1;
-        grid-row: span 1;
-    }
-    
-    .mosaic-article.size-mini-square {
-        grid-column: span 1;
-        grid-row: span 1;
-    }
-    
-    .mosaic-article.size-tiny {
-        grid-column: span 1;
-        grid-row: span 1;
-    }
+    /* Irregular size variants based on importance score - 6-column grid */
+    .mosaic-article.size-1 { grid-column: span 3; grid-row: span 2; } /* Hero article - half width */
+    .mosaic-article.size-2 { grid-column: span 2; grid-row: span 2; } /* Large vertical */
+    .mosaic-article.size-3 { grid-column: span 1; grid-row: span 2; } /* Tall thin */
+    .mosaic-article.size-4 { grid-column: span 2; grid-row: span 1; } /* Wide horizontal */
+    .mosaic-article.size-5 { grid-column: span 1; grid-row: span 1; } /* Small square */
+    .mosaic-article.size-6 { grid-column: span 1; grid-row: span 1; } /* Small square */
+    .mosaic-article.size-7 { grid-column: span 1; grid-row: span 1; } /* Small square */
+    .mosaic-article.size-8 { grid-column: span 2; grid-row: span 1; } /* Wide horizontal */
+    .mosaic-article.size-9 { grid-column: span 1; grid-row: span 2; } /* Tall thin */
+    .mosaic-article.size-10 { grid-column: span 1; grid-row: span 1; } /* Small square */
+    .mosaic-article.size-11 { grid-column: span 1; grid-row: span 1; } /* Small square */
+    .mosaic-article.size-12 { grid-column: span 1; grid-row: span 1; } /* Small square */
+    .mosaic-article.size-13 { grid-column: span 3; grid-row: span 1; } /* Extra wide */
+    .mosaic-article.size-14 { grid-column: span 1; grid-row: span 2; } /* Tall thin */
+    .mosaic-article.size-15 { grid-column: span 2; grid-row: span 1; } /* Wide horizontal */
+    .mosaic-article.size-16 { grid-column: span 1; grid-row: span 1; } /* Small square */
+    .mosaic-article.size-17 { grid-column: span 1; grid-row: span 1; } /* Small square */
+    .mosaic-article.size-18 { grid-column: span 1; grid-row: span 1; } /* Small square */
+
+    /* Fallback sizes for additional articles */
+    .mosaic-article.size-default-lg-wide { grid-column: span 3; grid-row: span 1; }
+    .mosaic-article.size-default-lg-tall { grid-column: span 1; grid-row: span 2; }
+    .mosaic-article.size-default-md-wide { grid-column: span 2; grid-row: span 1; }
+    .mosaic-article.size-default-md-sq { grid-column: span 1; grid-row: span 1; }
     
     /* Article content overlay with fixed padding */
     .mosaic-content {
@@ -559,7 +585,7 @@
         bottom: 0;
         left: 0;
         right: 0;
-        padding: 20px;
+        padding: 15px;
         z-index: 2;
         color: white;
         background: linear-gradient(
@@ -568,55 +594,18 @@
             rgba(0, 0, 0, 0.7) 70%,
             rgba(0, 0, 0, 0.9) 100%
         );
-        border-radius: 0 0 12px 12px;
+        border-radius: 0;
         min-height: 80px;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
     }
     
-    /* Fixed padding for all content sizes */
-    .mosaic-article.size-hero .mosaic-content {
-        padding: 30px;
-        min-height: 120px;
-    }
-    
-    .mosaic-article.size-large-wide .mosaic-content,
-    .mosaic-article.size-large-tall .mosaic-content {
-        padding: 25px;
-        min-height: 100px;
-    }
-    
-    .mosaic-article.size-medium-wide .mosaic-content,
-    .mosaic-article.size-medium-square .mosaic-content,
-    .mosaic-article.size-medium-tall .mosaic-content {
-        padding: 20px;
-        min-height: 80px;
-    }
-    
-    .mosaic-article.size-small-wide .mosaic-content,
-    .mosaic-article.size-small-square .mosaic-content,
-    .mosaic-article.size-small-tall .mosaic-content {
-        padding: 15px;
-        min-height: 60px;
-    }
-    
-    .mosaic-article.size-mini-wide .mosaic-content,
-    .mosaic-article.size-mini-square .mosaic-content {
-        padding: 12px;
-        min-height: 50px;
-    }
-    
-    .mosaic-article.size-tiny .mosaic-content {
-        padding: 10px;
-        min-height: 40px;
-    }
-    
     .mosaic-title {
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: 600;
         line-height: 1.3;
-        margin: 0 0 10px 0;
+        margin: 0 0 8px 0;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
         display: -webkit-box;
         -webkit-line-clamp: 3;
@@ -624,53 +613,16 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
-    
-    .mosaic-article.size-hero .mosaic-title {
-        font-size: 1.8rem;
-        margin-bottom: 15px;
+
+    .mosaic-article.size-1 .mosaic-title {
+        font-size: 1.6rem;
         -webkit-line-clamp: 4;
         line-clamp: 4;
     }
-    
-    .mosaic-article.size-large-wide .mosaic-title,
-    .mosaic-article.size-large-tall .mosaic-title {
-        font-size: 1.4rem;
-        margin-bottom: 12px;
+    .mosaic-article.size-2 .mosaic-title {
+        font-size: 1.2rem;
         -webkit-line-clamp: 3;
         line-clamp: 3;
-    }
-    
-    .mosaic-article.size-medium-wide .mosaic-title,
-    .mosaic-article.size-medium-square .mosaic-title,
-    .mosaic-article.size-medium-tall .mosaic-title {
-        font-size: 1.1rem;
-        margin-bottom: 10px;
-        -webkit-line-clamp: 3;
-        line-clamp: 3;
-    }
-    
-    .mosaic-article.size-small-wide .mosaic-title,
-    .mosaic-article.size-small-square .mosaic-title,
-    .mosaic-article.size-small-tall .mosaic-title {
-        font-size: 0.95rem;
-        margin-bottom: 8px;
-        line-clamp: 2;
-        -webkit-line-clamp: 2;
-    }
-    
-    .mosaic-article.size-mini-wide .mosaic-title,
-    .mosaic-article.size-mini-square .mosaic-title {
-        font-size: 0.85rem;
-        margin-bottom: 6px;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-    }
-    
-    .mosaic-article.size-tiny .mosaic-title {
-        font-size: 0.75rem;
-        margin-bottom: 4px;
-        -webkit-line-clamp: 1;
-        line-clamp: 1;
     }
     
     .mosaic-meta {
@@ -732,7 +684,26 @@
         color: white;
         box-shadow: 0 2px 10px rgba(34, 197, 94, 0.3);
     }
+
+    /* Filler articles styling */
+    .mosaic-article.filler-article {
+        opacity: 0.85;
+    }
     
+    .mosaic-article.filler-article::before {
+        background: linear-gradient(
+            135deg,
+            rgba(0, 0, 0, 0.3) 0%,
+            rgba(0, 0, 0, 0.2) 40%,
+            rgba(0, 0, 0, 0.6) 100%
+        );
+    }
+    
+    .mosaic-article.filler-article:hover {
+        opacity: 1;
+        transform: scale(1.01); /* Slightly less dramatic hover for filler */
+    }
+
     /* Loading state */
     .mosaic-loading {
         grid-column: 1 / -1;
@@ -750,433 +721,232 @@
         margin-bottom: 15px;
         color: #46ead7;
     }
-    
-    /* Collage mosaic layout */
-    .news-mosaic-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        grid-auto-rows: 250px; /* larger cells */
-        gap: 0; /* no space between items */
-        grid-auto-flow: dense;
-        width: 100vw;
-        min-height: 100vh;
-        background: rgba(0, 0, 0, 0.1);
-        padding: 0;
-    }
-    
-    .size-hero { grid-column: span 3; grid-row: span 3; }
-    .size-large-wide { grid-column: span 2; grid-row: span 1; }
-    .size-large-tall { grid-column: span 1; grid-row: span 2; }
-    .size-medium-wide { grid-column: span 2; grid-row: span 1; }
-    .size-medium-square { grid-column: span 1; grid-row: span 1; }
-    .size-medium-tall { grid-column: span 1; grid-row: span 2; }
-    .size-small-wide { grid-column: span 1; grid-row: span 1; }
-    .size-small-square { grid-column: span 1; grid-row: span 1; }
-    .size-small-tall { grid-column: span 1; grid-row: span 2; }
-    .size-mini-wide { grid-column: span 1; grid-row: span 1; }
-    .size-mini-square { grid-column: span 1; grid-row: span 1; }
-    .size-tiny { grid-column: span 1; grid-row: span 1; }
 
-    /* News Mosaic - Load More Button */
-    .load-more-container {
-        grid-column: 1 / -1;
-        text-align: center;
-        margin: 20px 0;
-        padding: 10px;
-    }
-    
-    .btn-load-more {
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
-        color: #fff;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.85rem;
-        cursor: pointer;
-    }
-    
-    .btn-load-more:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
-    }
-
-    /* Media Queries para mejorar la experiencia móvil */
-    @media (min-width: 768px) {
-        .page-title {
-            font-size: clamp(2.5rem, 8vw, 5rem);
-            width: 75%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .page-subtitle {
-            font-size: 1.2rem;
-            width: 75%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .news-dashboard {
-            padding: 0;
-        }
-        
-        .dashboard-content {
-            padding: 0 30px;
-        }
-        
-        .featured-article-content {
-            grid-template-columns: 1fr;
-            gap: 16px;
-        }
-        
-        .featured-article-image {
-            aspect-ratio: 16/9;
-        }
-    }
-    
-    /* Tablet and Desktop */
-    @media (min-width: 768px) {
-        .page-title {
-            font-size: 2.5rem;
-        }
-        
-        .page-subtitle {
-            font-size: 1.2rem;
-        }
-        
-        .news-dashboard {
-            padding: 0;
-        }
-        
-        .dashboard-content {
-            padding: 0 30px;
-        }
-        
-        .featured-article-content {
-            grid-template-columns: 280px 1fr;
-            gap: 20px;
-        }
-        
-        .featured-article-image {
-            aspect-ratio: 16/10;
-        }
-        
-        .latest-article-card {
-            flex-direction: row;
-            align-items: center;
-        }
-        
-        .latest-article-sidebar {
-            align-items: flex-end;
-            flex-direction: row;
-            justify-content: space-between;
-        }
-        
-        .map-container {
-            height: 500px;
-        }
-        
-        .news-stats {
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .news-mosaic-container {
             grid-template-columns: repeat(4, 1fr);
-            gap: 0;
+            grid-auto-rows: calc(25vw / 1.2);
         }
         
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            font-size: 1.5rem;
-        }
-        
-        .stat-value {
-            font-size: 2.5rem;
-        }
+        .mosaic-article.size-1 { grid-column: span 2; grid-row: span 2; }
+        .mosaic-article.size-2 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-13 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-default-lg-wide { grid-column: span 2; grid-row: span 1; }
     }
 
-    @media (max-width: 767px) {
-        .page-title {
-            font-size: clamp(1.2rem, 8vw, 2.5rem);
-            width: 90%;
-            white-space: normal;
-            word-break: break-word;
-            line-height: 1.3;
+    @media (max-width: 768px) {
+        .news-mosaic-container {
+            grid-template-columns: repeat(3, 1fr);
+            grid-auto-rows: calc(33.333vw / 1.2);
         }
         
-        .page-subtitle {
-            width: 90%;
-            margin-left: auto;
-            margin-right: auto;
-        }
+        .mosaic-article.size-1 { grid-column: span 3; grid-row: span 1; }
+        .mosaic-article.size-2 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-7 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-8 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-12 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-13 { grid-column: span 3; grid-row: span 1; }
+        .mosaic-article.size-15 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-default-lg-wide { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-default-md-wide { grid-column: span 2; grid-row: span 1; }
         
-        .section-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        
-        .section-controls {
-            width: 100%;
-            justify-content: flex-start;
-        }
-        
-        .btn-control {
-            font-size: 0.75rem;
-            padding: 6px 10px;
-            min-width: 70px;
-        }
-        
-        .latest-article-card {
-            align-items: flex-start;
-        }
-        
-        .latest-article-sidebar {
-            align-items: flex-start;
-            flex-direction: row;
-            width: 100%;
-            justify-content: space-between;
-        }
-        
-        .featured-article-actions {
-            justify-content: center;
+        .load-more-btn {
+            width: 85%;
+            font-size: 1rem;
         }
     }
 
     @media (max-width: 480px) {
-        .news-dashboard {
-            padding: 0;
-        }
-        
-        .dashboard-content {
-            padding: 0 15px;
-        }
-        
-        .news-stats {
+        .news-mosaic-container {
             grid-template-columns: repeat(2, 1fr);
-            gap: 0;
+            grid-auto-rows: 50vw;
         }
         
-        .news-stat-card {
-            padding: 15px;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        .mosaic-article { grid-column: span 1; grid-row: span 1; }
+        .mosaic-article.size-1 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-7 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-8 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-12 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-13 { grid-column: span 2; grid-row: span 1; }
+        .mosaic-article.size-15 { grid-column: span 2; grid-row: span 1; }
         
-        .news-stat-card:nth-child(2n) {
-            border-right: none;
-        }
-        
-        .news-stat-card:nth-child(3), .news-stat-card:nth-child(4) {
-            border-bottom: none;
-        }
-        
-        .stat-value {
-            font-size: 1.8rem;
-        }
-        
-        .high-risk-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    
-    @media (min-width: 1200px) {
-        .page-title {
-            font-size: clamp(3rem, 6vw, 4.5rem);
-            width: 75%;
-            white-space: nowrap;
-        }
-        
-        .page-subtitle {
-            font-size: 1.3rem;
-            width: 75%;
-        }
-        
-        .featured-article-content {
-            grid-template-columns: 320px 1fr;
-            gap: 28px;
-        }
-        
-        .featured-article-image {
-            aspect-ratio: 16/10;
+        .load-more-btn {
+            width: 90%;
+            font-size: 0.9rem;
+            padding: 12px 20px;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Header and Stats Container -->
-<div class="header-stats-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <h1 class="page-title">📰 Análisis de Noticias</h1>
-        <p class="page-subtitle">
-            Monitoreo en tiempo real de noticias geopolíticas con análisis de riesgo y clasificación automática
-        </p>
-    </div>
-    
-    <!-- News Statistics -->
-    <div class="news-stats">
-        <div class="news-stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-newspaper"></i>
-            </div>
-            <div class="stat-value" id="totalArticles">0</div>
-            <div class="stat-label">Total Artículos</div>
-        </div>
-        
-        <div class="news-stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="stat-value" id="highRiskEvents">0</div>
-            <div class="stat-label">Eventos Alto Riesgo</div>
-        </div>
-        
-        <div class="news-stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-shield-alt"></i>
-            </div>
-            <div class="stat-value" id="processedToday">0</div>
-            <div class="stat-label">Procesados Hoy</div>
-        </div>
-        
-        <div class="news-stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-globe-americas"></i>
-            </div>
-            <div class="stat-value" id="activeRegions">0</div>
-            <div class="stat-label">Regiones Activas</div>
-        </div>
-    </div>
-</div>
-
-<!-- News Analysis Dashboard -->
 <div class="news-dashboard">
-    <div class="dashboard-content">
-
-    <!-- News Mosaic Section - Dynamic Collage Layout -->
-    <div class="news-mosaic-section">
-        <div class="mosaic-controls">
-            <button class="btn-control" id="refreshMosaic">
-                <i class="fas fa-sync-alt"></i> Actualizar Noticias
-            </button>
-            <button class="btn-control" id="filterMosaic">
-                <i class="fas fa-filter"></i> Filtrar
-            </button>
-        </div>
-        
-        <div class="news-mosaic-container" id="newsMosaicGrid">
-            <!-- Dynamic mosaic articles will be loaded here -->
-            <div class="mosaic-loading">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>Cargando mosaico de noticias...</p>
-            </div>
-        </div>
-        <!-- Load more button -->
-        <div id="loadMoreContainer" style="text-align:center; margin-top:0;">
-            <button id="loadMoreBtn" class="btn-control">
-                <i class="fas fa-plus"></i> Cargar más Noticias
-            </button>
-        </div>
-    </div>
-
-    <!-- Map Section - Enhanced -->
-    <div class="map-section-enhanced">
-        <div class="section-header">
-            <h3 class="section-title">
-                <i class="fas fa-map-marked-alt"></i>
-                Mapas de Análisis Geopolítico
-            </h3>
-            <div class="section-controls">
-                <button class="btn-control active" data-map-type="general">
-                    <i class="fas fa-globe"></i> General
-                </button>
-                <button class="btn-control" data-map-type="conflict_risk">
-                    <i class="fas fa-exclamation-triangle"></i> Riesgo Conflicto
-                </button>
-                <button class="btn-control" data-map-type="historical_conflicts">
-                    <i class="fas fa-history"></i> Conflictos Históricos
-                </button>
-                <button class="btn-control" data-map-type="oil">
-                    <i class="fas fa-oil-can"></i> Petróleo
-                </button>
-                <button class="btn-control" data-map-type="energy">
-                    <i class="fas fa-bolt"></i> Energía
-                </button>
-                <button class="btn-control" data-map-type="supplies">
-                    <i class="fas fa-shipping-fast"></i> Suministros
-                </button>
-                <button class="btn-control" data-map-type="internet_cables">
-                    <i class="fas fa-network-wired"></i> Internet
-                </button>
-                <button class="btn-control" data-map-type="military_bases">
-                    <i class="fas fa-shield-alt"></i> Militar
-                </button>
-                <button class="btn-control" data-map-type="trade_routes">
-                    <i class="fas fa-route"></i> Comercio
-                </button>
-            </div>
-            <!-- Map display container -->
-            <div class="section-body">
-                <div id="map" class="h-96 rounded-lg bg-gray-800/50 border border-gray-700/50"></div>
-            </div>
-        </div>
-        <div class="map-container" id="main-map">
-            <i class="fas fa-map" style="font-size: 3rem; opacity: 0.3;"></i>
-            <p style="margin-top: 1rem; opacity: 0.6;">Mapa de calor cargando...</p>
-        </div>
-    </div>
-
-    <!-- Enhanced AI Analysis Section -->
-    <div id="aiArticleContent" class="news-section">
-        <div class="section-header">
-            <h3 class="section-title">
-                <i class="fas fa-newspaper"></i>
-                La actualidad geopolítica vista por la IA
-            </h3>
-            <div class="section-controls">
-                <button class="btn-control" id="refreshAIAnalysis">
-                    <i class="fas fa-sync-alt"></i> Actualizar Análisis
-                </button>
-                <button class="btn-control" id="generateAIReport">
-                    <i class="fas fa-file-download"></i> Exportar Artículo
-                </button>
-            </div>
-        </div>
-        <div class="section-body">
-            <!-- Contenedor para análisis IA avanzado -->
-            <div id="aiAnalysisContent" class="ai-article-container">
-                <div class="ai-loading-state">
-                    <i class="fas fa-edit" style="font-size: 2rem; margin-bottom: 15px; opacity: 0.6; color: #46ead7;"></i>
-                    <h4 style="margin-bottom: 10px; color: #fff;">Generando análisis geopolítico...</h4>
-                    <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Nuestro periodista de IA está preparando un resumen exhaustivo de la actualidad mundial</p>
-                    <div class="loading-spinner" style="margin-top: 20px;">
-                        <i class="fas fa-spinner fa-spin" style="color: #46ead7; font-size: 1.5rem;"></i>
+    <!-- Header and Stats Section -->
+    <div class="header-stats-container">
+        <div class="page-header">
+            <h1 class="page-title">Análisis Estratégico de Noticias</h1>
+            <p class="page-subtitle">Monitoreo en tiempo real de riesgos y amenazas globales</p>
+            
+            <!-- Statistics Cards -->
+            <div class="news-stats" id="newsStats">
+                <div class="news-stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-newspaper"></i>
                     </div>
+                    <div class="stat-value" id="totalArticles">-</div>
+                    <div class="stat-label">Total Artículos</div>
+                </div>
+                <div class="news-stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-value" id="highRiskArticles">-</div>
+                    <div class="stat-label">Alto Riesgo</div>
+                </div>
+                <div class="news-stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="stat-value" id="countriesCount">-</div>
+                    <div class="stat-label">Países</div>
+                </div>
+                <div class="news-stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-value" id="lastUpdate">-</div>
+                    <div class="stat-label">Última Actualización</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Analytics Charts Section -->
-    <div class="news-section">
-        <div class="section-header">
-            <h3 class="section-title"><i class="fas fa-chart-pie"></i> Análisis de Categorías</h3>
+    <div class="dashboard-content">
+        <!-- News Mosaic Section -->
+        <div class="news-mosaic-section">
+            <div class="mosaic-controls-container">
+                <div class="mosaic-controls">
+                    <button class="btn-control active" data-filter="all">
+                        <i class="fas fa-th"></i> Todos
+                    </button>
+                    <button class="btn-control" data-filter="high">
+                        <i class="fas fa-exclamation-triangle"></i> Alto Riesgo
+                    </button>
+                    <button class="btn-control" data-filter="medium">
+                        <i class="fas fa-exclamation-circle"></i> Medio Riesgo
+                    </button>
+                    <button class="btn-control" data-filter="recent">
+                        <i class="fas fa-clock"></i> Recientes
+                    </button>
+                </div>
+            </div>
+            
+            <div class="news-mosaic-container" id="newsMosaic">
+                <div class="mosaic-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div>Cargando noticias...</div>
+                </div>
+            </div>
+            
+            <!-- Load More Button -->
+            <div class="load-more-container">
+                <button class="load-more-btn" id="loadMoreBtn">
+                    <i class="fas fa-plus"></i> Cargar Más Noticias
+                </button>
+            </div>
         </div>
-        <div class="section-body grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div id="categoryChart" style="height:300px;"></div>
-            <div id="timelineChart" style="height:300px;"></div>
-            <div id="sentimentChart" style="height:300px;"></div>
-        </div>
-    </div>
 
+        <!-- Map Section - Enhanced -->
+        <div class="map-section-enhanced">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-map-marked-alt"></i>
+                    Mapas de Análisis Geopolítico
+                </h3>
+                <div class="section-controls">
+                    <button class="btn-control active" data-map-type="general">
+                        <i class="fas fa-globe"></i> General
+                    </button>
+                    <button class="btn-control" data-map-type="conflict_risk">
+                        <i class="fas fa-exclamation-triangle"></i> Riesgo Conflicto
+                    </button>
+                    <button class="btn-control" data-map-type="historical_conflicts">
+                        <i class="fas fa-history"></i> Conflictos Históricos
+                    </button>
+                    <button class="btn-control" data-map-type="oil">
+                        <i class="fas fa-oil-can"></i> Petróleo
+                    </button>
+                    <button class="btn-control" data-map-type="energy">
+                        <i class="fas fa-bolt"></i> Energía
+                    </button>
+                    <button class="btn-control" data-map-type="supplies">
+                        <i class="fas fa-shipping-fast"></i> Suministros
+                    </button>
+                    <button class="btn-control" data-map-type="internet_cables">
+                        <i class="fas fa-network-wired"></i> Internet
+                    </button>
+                    <button class="btn-control" data-map-type="military_bases">
+                        <i class="fas fa-shield-alt"></i> Militar
+                    </button>
+                    <button class="btn-control" data-map-type="trade_routes">
+                        <i class="fas fa-route"></i> Comercio
+                    </button>
+                </div>
+            </div>
+            <div class="section-body">
+                <div id="map" class="h-96 rounded-lg bg-gray-800/50 border border-gray-700/50"></div>
+            </div>
+            <div class="map-container" id="main-map">
+                <i class="fas fa-map" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p style="margin-top: 1rem; opacity: 0.6;">Mapa de calor cargando...</p>
+            </div>
+        </div>
+
+        <!-- Enhanced AI Analysis Section -->
+        <div id="aiArticleContent" class="news-section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-newspaper"></i>
+                    La actualidad geopolítica vista por la IA
+                </h3>
+                <div class="section-controls">
+                    <button class="btn-control" id="refreshAIAnalysis">
+                        <i class="fas fa-sync-alt"></i> Actualizar Análisis
+                    </button>
+                    <button class="btn-control" id="generateAIReport">
+                        <i class="fas fa-file-download"></i> Exportar Artículo
+                    </button>
+                </div>
+            </div>
+            <div class="section-body">
+                <div id="aiAnalysisContent" class="ai-article-container">
+                    <div class="ai-loading-state">
+                        <i class="fas fa-edit" style="font-size: 2rem; margin-bottom: 15px; opacity: 0.6; color: #46ead7;"></i>
+                        <h4 style="margin-bottom: 10px; color: #fff;">Generando análisis geopolítico...</h4>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Nuestro periodista de IA está preparando un resumen exhaustivo de la actualidad mundial</p>
+                        <div class="loading-spinner" style="margin-top: 20px;">
+                            <i class="fas fa-spinner fa-spin" style="color: #46ead7; font-size: 1.5rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Charts Section -->
+        <div class="news-section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fas fa-chart-pie"></i> Análisis de Categorías</h3>
+            </div>
+            <div class="section-body grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div id="categoryChart" style="height:300px;"></div>
+                <div id="timelineChart" style="height:300px;"></div>
+                <div id="sentimentChart" style="height:300px;"></div>
+            </div>
+        </div>
 
     </div> <!-- close dashboard-content -->
-</div> <!-- close news-dashboard -->
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -1185,6 +955,9 @@
 let articlesData = [];
 let mosaicOffset = 0;
 const mosaicPageSize = 10;
+let currentPage = 1;
+let isLoading = false;
+let currentFilter = 'all';
 
 // Initialize dashboard when page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -1205,6 +978,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     setupMapControls();
     loadNewsMosaic(0);
+    loadDashboardStats();
 });
 
 // Socket.IO connection for real-time updates
@@ -1212,12 +986,43 @@ function initializeSocketConnection() {
     try {
         if (typeof io !== 'undefined') {
             window.dashboardSocket = io();
+            
+            window.dashboardSocket.on('connect', function() {
+                console.log('Connected to real-time updates');
+                showNotification('Conectado a actualizaciones en tiempo real', 'success');
+            });
+            
+            window.dashboardSocket.on('new_article', function(article) {
+                console.log('New article received:', article);
+                showNotification(`Nueva noticia: ${article.title.substring(0, 50)}...`, 'info');
+                loadNewsMosaic(0);
+            });
+            
+            window.dashboardSocket.on('disconnect', function() {
+                console.log('Disconnected from real-time updates');
+                showNotification('Desconectado de actualizaciones en tiempo real', 'error');
+            });
         } else {
             console.warn('Socket.IO not available');
         }
     } catch (error) {
         console.error('Socket connection initialization failed:', error);
     }
+}
+
+// Load dashboard statistics
+function loadDashboardStats() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalArticles').textContent = data.total_articles || 0;
+            document.getElementById('highRiskArticles').textContent = data.high_risk_articles || 0;
+            document.getElementById('countriesCount').textContent = data.countries_count || 0;
+            document.getElementById('lastUpdate').textContent = data.last_update || 'N/A';
+        })
+        .catch(error => {
+            console.error('Error loading stats:', error);
+        });
 }
 
 // News Mosaic Functions - Hybrid: Real data with Mock fallback
@@ -1228,33 +1033,158 @@ async function loadNewsMosaic(offset = 0) {
     if (offset === 0) container.innerHTML = '';
     container.insertAdjacentHTML('beforeend', '<p>Cargando noticias...</p>');
     
-    // Mock articles for fallback
+    // Mock articles for fallback - Extended to 18 for better grid filling
     const mockArticles = [
         {
             id: 1, title: 'Tensiones geopolíticas aumentan en Europa Oriental', 
             content: 'Análisis de la situación actual en la región...', 
             risk_level: 'high', location: 'Europa Oriental',
             created_at: new Date().toISOString(),
-            url: 'https://example.com/news1'
+            url: 'https://example.com/news1',
+            risk_score: 0.8
         },
         {
             id: 2, title: 'Nuevo acuerdo comercial entre potencias mundiales',
             content: 'Las negociaciones han llegado a un punto crucial...',
             risk_level: 'medium', location: 'Global',
             created_at: new Date(Date.now() - 3600000).toISOString(),
-            url: 'https://example.com/news2'
+            url: 'https://example.com/news2',
+            risk_score: 0.5
         },
         {
             id: 3, title: 'Desarrollo en tecnología de defensa', 
             content: 'Avances significativos en sistemas defensivos...',
             risk_level: 'low', location: 'Asia Pacífico',
             created_at: new Date(Date.now() - 7200000).toISOString(),
-            url: 'https://example.com/news3'
+            url: 'https://example.com/news3',
+            risk_score: 0.2
+        },
+        {
+            id: 4, title: 'Crisis económica mundial se agrava',
+            content: 'Los mercados financieros muestran signos de inestabilidad...',
+            risk_level: 'high', location: 'Mundial',
+            created_at: new Date(Date.now() - 10800000).toISOString(),
+            url: 'https://example.com/news4',
+            risk_score: 0.75
+        },
+        {
+            id: 5, title: 'Avances en energía renovable',
+            content: 'Nuevas tecnologías prometen revolucionar el sector...',
+            risk_level: 'low', location: 'Europa',
+            created_at: new Date(Date.now() - 14400000).toISOString(),
+            url: 'https://example.com/news5',
+            risk_score: 0.1
+        },
+        {
+            id: 6, title: 'Conflicto regional se intensifica',
+            content: 'Las tensiones en la región han escalado significativamente...',
+            risk_level: 'high', location: 'Medio Oriente',
+            created_at: new Date(Date.now() - 18000000).toISOString(),
+            url: 'https://example.com/news6',
+            risk_score: 0.9
+        },
+        {
+            id: 7, title: 'Cumbre diplomática busca soluciones',
+            content: 'Líderes mundiales se reúnen para abordar crisis global...',
+            risk_level: 'medium', location: 'Suiza',
+            created_at: new Date(Date.now() - 21600000).toISOString(),
+            url: 'https://example.com/news7',
+            risk_score: 0.6
+        },
+        {
+            id: 8, title: 'Innovación en ciberseguridad',
+            content: 'Nuevos protocolos de seguridad digital...',
+            risk_level: 'low', location: 'Estados Unidos',
+            created_at: new Date(Date.now() - 25200000).toISOString(),
+            url: 'https://example.com/news8',
+            risk_score: 0.3
+        },
+        {
+            id: 9, title: 'Amenaza nuclear aumenta',
+            content: 'Expertos expresan preocupación por la escalada...',
+            risk_level: 'high', location: 'Asia',
+            created_at: new Date(Date.now() - 28800000).toISOString(),
+            url: 'https://example.com/news9',
+            risk_score: 0.85
+        },
+        {
+            id: 10, title: 'Cooperación internacional fortalecida',
+            content: 'Nuevos acuerdos multilaterales prometen estabilidad...',
+            risk_level: 'low', location: 'Internacional',
+            created_at: new Date(Date.now() - 32400000).toISOString(),
+            url: 'https://example.com/news10',
+            risk_score: 0.15
+        },
+        {
+            id: 11, title: 'Crisis migratoria se agudiza',
+            content: 'Aumenta el flujo de refugiados en la frontera...',
+            risk_level: 'medium', location: 'Europa',
+            created_at: new Date(Date.now() - 36000000).toISOString(),
+            url: 'https://example.com/news11',
+            risk_score: 0.65
+        },
+        {
+            id: 12, title: 'Nuevos hallazgos científicos',
+            content: 'Investigadores descubren avances prometedores...',
+            risk_level: 'low', location: 'Japón',
+            created_at: new Date(Date.now() - 39600000).toISOString(),
+            url: 'https://example.com/news12',
+            risk_score: 0.05
+        },
+        {
+            id: 13, title: 'Tensiones comerciales escalan globalmente',
+            content: 'Nuevas sanciones afectan el comercio internacional...',
+            risk_level: 'high', location: 'Global',
+            created_at: new Date(Date.now() - 43200000).toISOString(),
+            url: 'https://example.com/news13',
+            risk_score: 0.7
+        },
+        {
+            id: 14, title: 'Avances en inteligencia artificial',
+            content: 'Nueva generación de IA promete revolucionar industrias...',
+            risk_level: 'medium', location: 'Silicon Valley',
+            created_at: new Date(Date.now() - 46800000).toISOString(),
+            url: 'https://example.com/news14',
+            risk_score: 0.4
+        },
+        {
+            id: 15, title: 'Crisis climática acelera cambios políticos',
+            content: 'Gobiernos implementan medidas urgentes contra el cambio climático...',
+            risk_level: 'high', location: 'Mundial',
+            created_at: new Date(Date.now() - 50400000).toISOString(),
+            url: 'https://example.com/news15',
+            risk_score: 0.8
+        },
+        {
+            id: 16, title: 'Nuevas alianzas militares se forman',
+            content: 'Países estratégicos establecen acuerdos de defensa...',
+            risk_level: 'medium', location: 'Asia-Pacífico',
+            created_at: new Date(Date.now() - 54000000).toISOString(),
+            url: 'https://example.com/news16',
+            risk_score: 0.55
+        },
+        {
+            id: 17, title: 'Revolución en transporte sostenible',
+            content: 'Nuevas tecnologías de transporte limpio ganan tracción...',
+            risk_level: 'low', location: 'Europa',
+            created_at: new Date(Date.now() - 57600000).toISOString(),
+            url: 'https://example.com/news17',
+            risk_score: 0.2
+        },
+        {
+            id: 18, title: 'Ciberataques amenazan infraestructura crítica',
+            content: 'Expertos alertan sobre vulnerabilidades en sistemas vitales...',
+            risk_level: 'high', location: 'Internacional',
+            created_at: new Date(Date.now() - 61200000).toISOString(),
+            url: 'https://example.com/news18',
+            risk_score: 0.85
         }
     ];
     
+    const initialLoadCount = offset === 0 ? 18 : mosaicPageSize;
+    
     try {
-        const response = await fetch(`/api/articles?limit=${mosaicPageSize}&offset=${offset}`);
+        const response = await fetch(`/api/articles?limit=${initialLoadCount}&offset=${offset}`);
         if (response.ok) {
             const data = await response.json();
             if (data && data.length > 0) {
@@ -1268,7 +1198,8 @@ async function loadNewsMosaic(offset = 0) {
     } catch (error) {
         console.warn('Carga de datos reales falló:', error.message);
         console.log('Usando datos de demostración');
-        renderMosaic(mockArticles);
+        const articlesToShow = offset === 0 ? mockArticles : mockArticles.slice(0, mosaicPageSize);
+        renderMosaic(articlesToShow);
         updateStatistics();
     }
 }
@@ -1289,37 +1220,98 @@ function renderMosaic(articles, append = false) {
         articlesData = [...articlesData, ...articles];
     }
     
-    // Calculate importance for each article and assign sizes
+    // Calculate importance for each article and assign irregular sizes
     const articlesWithSizes = articles.map((article, index) => {
         const importance = calculateArticleImportance(article);
-        const sizeClass = assignSizeClass(importance, index, articles.length);
+        
+        // Smart size assignment based on position and importance
+        let sizeClass;
+        if (index < 18) {
+            sizeClass = `size-${index + 1}`;
+        } else {
+            // Cycle through fallback patterns for additional articles
+            const fallbackPatterns = ['default-md-sq', 'default-lg-wide', 'default-lg-tall', 'default-md-wide'];
+            const patternIndex = (index - 18) % fallbackPatterns.length;
+            sizeClass = `size-${fallbackPatterns[patternIndex]}`;
+        }
         
         return {
             ...article,
             importance,
-            sizeClass
+            sizeClass,
+            isFiller: false
         };
     });
     
-    // Sort by importance but keep some randomness for visual variety
+    // Sort by importance for more engaging layout
     articlesWithSizes.sort((a, b) => {
         const scoreDiff = b.importance - a.importance;
-        const randomFactor = (Math.random() - 0.5) * 10; // ±5 points
+        const randomFactor = (Math.random() - 0.5) * 8;
         return scoreDiff + randomFactor;
     });
+    
+    // Calculate how many grid spaces we're using and add filler to complete rows
+    let totalSpacesUsed = 0;
+    articlesWithSizes.forEach(article => {
+        const spaces = getGridSpacesForSize(article.sizeClass);
+        totalSpacesUsed += spaces;
+    });
+    
+    // Calculate how many spaces we need to fill to complete the grid (multiples of 6)
+    const remainderSpaces = totalSpacesUsed % 6;
+    let spacesToAdd = 0;
+    
+    if (remainderSpaces > 0) {
+        spacesToAdd = 6 - remainderSpaces;
+        console.log(`🔧 Grid usa ${totalSpacesUsed} espacios, resto: ${remainderSpaces}, agregando ${spacesToAdd} espacios`);
+        
+        // Add small filler articles (1x1) to fill the remaining spaces
+        for (let i = 0; i < spacesToAdd; i++) {
+            const fillerArticle = {
+                id: `filler-${Date.now()}-${i}`,
+                title: generateFillerTitle(),
+                content: 'Artículo de relleno para mantener la cohesión del diseño.',
+                risk_level: ['low', 'medium'][Math.floor(Math.random() * 2)],
+                location: ['Global', 'Internacional', 'Mundo'][Math.floor(Math.random() * 3)],
+                created_at: new Date().toISOString(),
+                risk_score: 0.1 + Math.random() * 0.4,
+                importance: 10, // Low importance for filler
+                sizeClass: 'size-default-md-sq', // Always 1x1 for filler
+                isFiller: true
+            };
+            articlesWithSizes.push(fillerArticle);
+        }
+    }
     
     const mosaicHTML = articlesWithSizes.map((article, index) => {
         const title = (article.title || 'Sin título').substring(0, 120);
         const location = article.location || article.country || 'Global';
-        const riskLevel = article.risk_level || 'low';
-        const defaultImage = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=600&fit=crop';
+        const riskLevel = getRiskLevel(article.risk_score);
+        const riskClass = riskLevel.toLowerCase();
+        
+        // Enhanced image selection with more variety
+        const imageVariations = [
+            'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1585409677983-0f6c41ca9c58?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1598387993441-a364f854c3e1?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=800&h=600&fit=crop'
+        ];
+        const defaultImage = imageVariations[index % imageVariations.length];
         const backgroundImage = article.image_url || article.image || article.urlToImage || defaultImage;
         
+        // Add subtle styling for filler articles
+        const fillerClass = article.isFiller ? ' filler-article' : '';
+        
         return `
-            <div class="mosaic-article ${article.sizeClass}" 
+            <div class="mosaic-article ${article.sizeClass}${fillerClass}" 
                  style="background-image: url('${backgroundImage}')"
                  data-article-id="${article.id || index}"
                  data-importance="${article.importance}"
+                 data-is-filler="${article.isFiller || false}"
                  onclick="openArticleModal(${JSON.stringify(article).replace(/"/g, '&quot;')})">
                 <div class="mosaic-content">
                     <h3 class="mosaic-title">${title}</h3>
@@ -1328,8 +1320,8 @@ function renderMosaic(articles, append = false) {
                             <i class="fas fa-map-marker-alt"></i>
                             ${location}
                         </span>
-                        <span class="mosaic-risk-badge ${index === 0 ? 'hero' : riskLevel}">
-                            ${index === 0 ? 'DESTACADO' : riskLevel.toUpperCase()}
+                        <span class="mosaic-risk-badge ${!article.isFiller && index === 0 ? 'hero' : riskClass}">
+                            ${!article.isFiller && index === 0 ? 'DESTACADO' : riskLevel}
                         </span>
                     </div>
                 </div>
@@ -1339,8 +1331,11 @@ function renderMosaic(articles, append = false) {
     
     if (append) container.insertAdjacentHTML('beforeend', mosaicHTML);
     else container.innerHTML = mosaicHTML;
-    console.log('✅ Mosaico renderizado exitosamente con', articles.length, 'artículos!');
-    console.log('📊 Distribución de tamaños:', articlesWithSizes.map(a => a.sizeClass));
+    
+    const finalSpaceCount = totalSpacesUsed + spacesToAdd;
+    console.log('✅ Mosaico renderizado con', articlesWithSizes.length, 'artículos');
+    console.log('📊 Espacios totales:', finalSpaceCount, '- Múltiplo de 6:', finalSpaceCount % 6 === 0 ? 'SÍ' : 'NO');
+    console.log('🎯 Grid perfectamente alineado sin artículos sueltos');
 }
 
 // Calculate article importance based on multiple factors
@@ -1386,317 +1381,240 @@ function calculateArticleImportance(article) {
     return Math.min(Math.max(score, 0), 100);
 }
 
-// Assign size class based on importance with variety
-function assignSizeClass(importance, index, totalArticles) {
-    // Add some randomness for visual variety
-    const randomFactor = (Math.sin(index * 7.3) + Math.cos(index * 3.7)) * 5;
-    const adjustedImportance = Math.max(0, Math.min(100, importance + randomFactor));
+// Calculate total grid spaces needed for articles
+function calculateGridSpaces(articles) {
+    const sizeMap = {
+        'size-1': 6,  // 3x2 = 6 spaces
+        'size-2': 4,  // 2x2 = 4 spaces
+        'size-3': 2,  // 1x2 = 2 spaces
+        'size-4': 2,  // 2x1 = 2 spaces
+        'size-5': 1,  // 1x1 = 1 space
+        'size-6': 1,  // 1x1 = 1 space
+        'size-7': 1,  // 1x1 = 1 space
+        'size-8': 2,  // 2x1 = 2 spaces
+        'size-9': 2,  // 1x2 = 2 spaces
+        'size-10': 1, // 1x1 = 1 space
+        'size-11': 1, // 1x1 = 1 space
+        'size-12': 1, // 1x1 = 1 space
+        'size-13': 3, // 3x1 = 3 spaces
+        'size-14': 2, // 1x2 = 2 spaces
+        'size-15': 2, // 2x1 = 2 spaces
+        'size-16': 1, // 1x1 = 1 space
+        'size-17': 1, // 1x1 = 1 space
+        'size-18': 1, // 1x1 = 1 space
+        'size-default-lg-wide': 3, // 3x1 = 3 spaces
+        'size-default-lg-tall': 2,  // 1x2 = 2 spaces
+        'size-default-md-wide': 2,  // 2x1 = 2 spaces
+        'size-default-md-sq': 1     // 1x1 = 1 space
+    };
     
-    // First article always gets hero treatment
-    if (index === 0) return 'size-hero';
+    let totalSpaces = 0;
+    articles.forEach((article, index) => {
+        let sizeClass;
+        if (index < 18) {
+            sizeClass = `size-${index + 1}`;
+        } else {
+            const fallbackPatterns = ['default-md-sq', 'default-lg-wide', 'default-lg-tall', 'default-md-wide'];
+            const patternIndex = (index - 18) % fallbackPatterns.length;
+            sizeClass = `size-${fallbackPatterns[patternIndex]}`;
+        }
+        totalSpaces += sizeMap[sizeClass] || 1;
+    });
     
-    // Distribute sizes based on importance
-    if (adjustedImportance >= 85) return 'size-large-wide';
-    if (adjustedImportance >= 75) return index % 2 === 0 ? 'size-large-tall' : 'size-medium-wide';
-    if (adjustedImportance >= 65) {
-        const mediumSizes = ['size-medium-wide', 'size-medium-square', 'size-medium-tall'];
-        return mediumSizes[index % mediumSizes.length];
-    }
-    if (adjustedImportance >= 45) {
-        const smallSizes = ['size-small-wide', 'size-small-square', 'size-small-tall'];
-        return smallSizes[index % smallSizes.length];
-    }
-    if (adjustedImportance >= 25) {
-        const miniSizes = ['size-mini-wide', 'size-mini-square'];
-        return miniSizes[index % miniSizes.length];
-    }
-    return 'size-tiny';
+    return totalSpaces;
 }
 
-// Modal for article details
+// Get grid spaces for a specific size class
+function getGridSpacesForSize(sizeClass) {
+    const sizeMap = {
+        'size-1': 6,  // 3x2 = 6 spaces
+        'size-2': 4,  // 2x2 = 4 spaces
+        'size-3': 2,  // 1x2 = 2 spaces
+        'size-4': 2,  // 2x1 = 2 spaces
+        'size-5': 1,  // 1x1 = 1 space
+        'size-6': 1,  // 1x1 = 1 space
+        'size-7': 1,  // 1x1 = 1 space
+        'size-8': 2,  // 2x1 = 2 spaces
+        'size-9': 2,  // 1x2 = 2 spaces
+        'size-10': 1, // 1x1 = 1 space
+        'size-11': 1, // 1x1 = 1 space
+        'size-12': 1, // 1x1 = 1 space
+        'size-13': 3, // 3x1 = 3 spaces
+        'size-14': 2, // 1x2 = 2 spaces
+        'size-15': 2, // 2x1 = 2 spaces
+        'size-16': 1, // 1x1 = 1 space
+        'size-17': 1, // 1x1 = 1 space
+        'size-18': 1, // 1x1 = 1 space
+        'size-default-lg-wide': 3, // 3x1 = 3 spaces
+        'size-default-lg-tall': 2,  // 1x2 = 2 spaces
+        'size-default-md-wide': 2,  // 2x1 = 2 spaces
+        'size-default-md-sq': 1     // 1x1 = 1 space
+    };
+    
+    return sizeMap[sizeClass] || 1;
+}
+
+// Generate filler article titles
+function generateFillerTitle() {
+    const fillerTitles = [
+        'Desarrollo sostenible avanza en nuevas regiones',
+        'Innovación tecnológica impulsa crecimiento económico',
+        'Cooperación internacional fortalece lazos diplomáticos',
+        'Avances en salud pública mejoran calidad de vida',
+        'Educación digital transforma el aprendizaje global',
+        'Energías renovables ganan terreno mundialmente',
+        'Investigación científica revela nuevos hallazgos',
+        'Programas de desarrollo rural muestran progreso',
+        'Iniciativas culturales promueven diversidad global',
+        'Modernización de infraestructuras beneficia comunidades',
+        'Políticas ambientales generan cambios positivos',
+        'Colaboración empresarial impulsa innovación'
+    ];
+    
+    return fillerTitles[Math.floor(Math.random() * fillerTitles.length)];
+}
+
+// Helper function to determine risk level
+function getRiskLevel(riskScore) {
+    if (riskScore >= 0.7) return 'ALTO';
+    if (riskScore >= 0.4) return 'MEDIO';
+    return 'BAJO';
+}
+
+// Enhanced article modal functionality
 function openArticleModal(article) {
-    const modal = document.createElement('div');
-    modal.className = 'article-modal';
-    modal.style.cssText = `
+    console.log('Opening article:', article);
+    
+    // Create modal backdrop
+    const modalBackdrop = document.createElement('div');
+    modalBackdrop.style.cssText = `
         position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-        background: rgba(0, 0, 0, 0.8); z-index: 1000; display: flex; 
-        align-items: center; justify-content: center; padding: 20px;
+        background: rgba(0,0,0,0.8); z-index: 1000; display: flex; 
+        align-items: center; justify-content: center; backdrop-filter: blur(5px);
     `;
     
-    modal.innerHTML = `
-        <div class="modal-content" style="
-            background: linear-gradient(135deg, rgba(26, 32, 64, 0.95) 0%, rgba(16, 24, 48, 0.95) 100%);
-            padding: 30px; border-radius: 12px; max-width: 600px; width: 100%;
-            color: white; position: relative; backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        ">
-            <span class="modal-close" style="
-                position: absolute; top: 10px; right: 15px; font-size: 24px;
-                cursor: pointer; color: rgba(255, 255, 255, 0.7);
-            ">&times;</span>
-            <h2>${article.title || 'Sin título'}</h2>
-            <div class="modal-meta" style="margin: 15px 0; display: flex; gap: 15px; flex-wrap: wrap;">
-                <span><i class="fas fa-map-marker-alt"></i> ${article.location || article.country || 'Global'}</span>
-                <span><i class="fas fa-calendar"></i> ${new Date(article.published_date || article.date_published || Date.now()).toLocaleDateString()}</span>
-                <span class="risk-badge" style="
-                    padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
-                    background: ${article.risk_level === 'high' ? '#ef4444' : article.risk_level === 'medium' ? '#f59e0b' : '#10b981'};
-                ">${(article.risk_level || 'low').toUpperCase()}</span>
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: linear-gradient(135deg, #1a2040 0%, #2a3558 100%);
+        border-radius: 12px; max-width: 800px; max-height: 90vh; 
+        overflow-y: auto; margin: 20px; color: white; position: relative;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="padding: 30px;">
+            <button onclick="this.closest('.modal-backdrop').remove()" 
+                    style="position: absolute; top: 15px; right: 15px; background: none; 
+                           border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
+            <h2 style="margin-bottom: 20px; color: #00d4ff;">${article.title}</h2>
+            <div style="margin-bottom: 20px;">
+                <span style="background: rgba(70, 234, 215, 0.2); color: #46ead7; 
+                           padding: 5px 10px; border-radius: 5px; margin-right: 10px;">
+                    ${article.location || 'Ubicación desconocida'}
+                </span>
+                <span style="background: ${getRiskLevel(article.risk_score) === 'ALTO' ? 'rgba(220, 38, 38, 0.3)' : 
+                                         getRiskLevel(article.risk_score) === 'MEDIO' ? 'rgba(245, 158, 11, 0.3)' : 
+                                         'rgba(34, 197, 94, 0.3)'}; 
+                           color: ${getRiskLevel(article.risk_score) === 'ALTO' ? '#ef4444' : 
+                                   getRiskLevel(article.risk_score) === 'MEDIO' ? '#f59e0b' : '#22c55e'};
+                           padding: 5px 10px; border-radius: 5px;">
+                    Riesgo: ${getRiskLevel(article.risk_score)}
+                </span>
             </div>
-            <p>${article.description || article.summary || 'No hay descripción disponible.'}</p>
-            <div class="modal-actions" style="margin-top: 20px;">
-                <a href="${article.source_url || article.url || article.link || '#'}" target="_blank" 
-                   style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
-                          background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
-                          color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
-                    <i class="fas fa-external-link-alt"></i> Leer artículo completo
-                </a>
-            </div>
+            ${article.image_url ? `<img src="${article.image_url}" style="width: 100%; border-radius: 8px; margin-bottom: 20px;">` : ''}
+            <p style="line-height: 1.6; color: rgba(255,255,255,0.9);">
+                ${article.content || article.description || 'No hay contenido disponible para este artículo.'}
+            </p>
+            ${article.url ? `<a href="${article.url}" target="_blank" 
+                              style="display: inline-block; margin-top: 20px; padding: 10px 20px; 
+                                     background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%); 
+                                     color: white; text-decoration: none; border-radius: 8px;">
+                              Leer artículo completo
+                              </a>` : ''}
         </div>
     `;
     
-    // Close modal handlers
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.remove();
-    });
+    modalBackdrop.className = 'modal-backdrop';
+    modalBackdrop.appendChild(modalContent);
+    document.body.appendChild(modalBackdrop);
     
-    modal.querySelector('.modal-close').addEventListener('click', () => {
-        modal.remove();
+    // Close on backdrop click
+    modalBackdrop.addEventListener('click', (e) => {
+        if (e.target === modalBackdrop) {
+            modalBackdrop.remove();
+        }
     });
-    
-    document.body.appendChild(modal);
 }
 
 // Initialize news system
 function initializeNews() {
     console.log('📰 Inicializando sistema de noticias...');
-    
-    // Load latest articles (only if container exists)
-    if (document.getElementById('latestArticlesList')) {
-        loadLatestArticles();
-    } else {
-        console.log('Latest articles container not found, skipping...');
-    }
-    
-    // Load high risk articles (only if container exists)
-    if (document.getElementById('highRiskArticlesGrid')) {
-        loadHighRiskArticles();
-    } else {
-        console.log('High risk articles container not found, skipping...');
-    }
-    
-    // Start auto-refresh
-    setInterval(() => {
-        if (document.getElementById('latestArticlesList')) {
-            loadLatestArticles();
-        }
-        if (document.getElementById('highRiskArticlesGrid')) {
-            loadHighRiskArticles();
-        }
-    }, 300000); // Refresh every 5 minutes
+    setupMosaicControls();
 }
 
-// Load latest articles
-async function loadLatestArticles() {
-    try {
-        const response = await fetch('/api/articles/latest?limit=10');
-        if (response.ok) {
-            const data = await response.json();
-            updateLatestArticlesList(data.articles || data);
-        }
-    } catch (error) {
-        console.warn('⚠️ Error cargando últimos artículos:', error);
-    }
-}
-
-// Load high risk articles
-async function loadHighRiskArticles() {
-    try {
-        const response = await fetch('/api/articles/high-risk?limit=6');
-        if (response.ok) {
-            const data = await response.json();
-            updateHighRiskArticlesGrid(data.articles || data);
-        }
-    } catch (error) {
-        console.warn('⚠️ Error cargando artículos de alto riesgo:', error);
-    }
-}
-
-// Update latest articles list
-function updateLatestArticlesList(articles) {
-    const container = document.getElementById('latestArticlesList');
-    if (!container || !articles) {
-        console.log('Latest articles container not found or no articles data');
-        return;
-    }
+// Setup mosaic controls
+function setupMosaicControls() {
+    const controls = document.querySelectorAll('.btn-control[data-filter]');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
     
-    container.innerHTML = articles.slice(0, 10).map(article => `
-        <div class="latest-article-card" onclick="openArticleModal(${JSON.stringify(article).replace(/"/g, '&quot;')})">
-            <div class="latest-article-content">
-                <h4 class="latest-article-title">${article.title || 'Sin título'}</h4>
-                <p class="latest-article-description">${(article.description || article.summary || '').substring(0, 150)}...</p>
-                <div class="latest-article-meta">
-                    <span class="latest-article-meta-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        ${article.location || article.country || 'Global'}
-                    </span>
-                    <span class="latest-article-meta-item">
-                        <i class="fas fa-clock"></i>
-                        ${new Date(article.published_date || article.date_published || Date.now()).toLocaleDateString()}
-                    </span>
-                </div>
-            </div>
-            <div class="latest-article-sidebar">
-                <span class="latest-risk-badge ${article.risk_level || 'low'}">${(article.risk_level || 'low').toUpperCase()}</span>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Update high risk articles grid
-function updateHighRiskArticlesGrid(articles) {
-    const container = document.getElementById('highRiskArticlesGrid');
-    if (!container || !articles) {
-        console.log('High risk articles container not found or no articles data');
-        return;
-    }
-    
-    container.innerHTML = articles.slice(0, 6).map(article => `
-        <div class="high-risk-card" onclick="openArticleModal(${JSON.stringify(article).replace(/"/g, '&quot;')})">
-            <h4 class="high-risk-title">${article.title || 'Sin título'}</h4>
-            <p class="high-risk-description">${(article.description || article.summary || '').substring(0, 120)}...</p>
-            <div class="high-risk-meta">
-                <span class="high-risk-location">
-                    <i class="fas fa-map-marker-alt"></i>
-                    ${article.location || article.country || 'Global'}
-                </span>
-                <span class="high-risk-badge">ALTO RIESGO</span>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Update statistics
-function updateStatistics() {
-    const totalArticles = articlesData.length || 0;
-    const highRiskCount = articlesData.filter(a => a.risk_level === 'high').length || 0;
-    const processedToday = Math.floor(totalArticles * 0.8) || 0;
-    const activeRegions = Math.max(5, Math.floor(totalArticles / 3)) || 0;
-    
-    // Update counters with animation (with null checks)
-    const totalEl = document.getElementById('totalArticles');
-    const highRiskEl = document.getElementById('highRiskEvents');
-    const processedEl = document.getElementById('processedToday');
-    const regionsEl = document.getElementById('activeRegions');
-    
-    if (totalEl) animateValue('totalArticles', 0, totalArticles, 1000);
-    if (highRiskEl) animateValue('highRiskEvents', 0, highRiskCount, 1200);
-    if (processedEl) animateValue('processedToday', 0, processedToday, 1400);
-    if (regionsEl) animateValue('activeRegions', 0, activeRegions, 1600);
-}
-
-// Animate number counters
-function animateValue(elementId, start, end, duration) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    const startTime = performance.now();
-    
-    function update(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        const current = Math.floor(start + (end - start) * progress);
-        element.textContent = current;
-        
-        if (progress < 1) {
-            requestAnimationFrame(update);
-        }
-    }
-    
-    requestAnimationFrame(update);
-}
-
-// Set up event listeners
-function setupEventListeners() {
-    // Refresh mosaic button
-    const refreshButton = document.getElementById('refreshMosaic');
-    if (refreshButton) {
-        refreshButton.addEventListener('click', () => {
-            showNotification('Actualizando mosaico de noticias...', 'info');
-            loadNewsMosaic();
+    controls.forEach(control => {
+        control.addEventListener('click', function() {
+            controls.forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            
+            currentFilter = this.dataset.filter;
+            currentPage = 1;
+            loadNewsMosaic(0);
         });
-    }
+    });
     
-    // Filter mosaic button
-    const filterButton = document.getElementById('filterMosaic');
-    if (filterButton) {
-        filterButton.addEventListener('click', () => {
-            showNotification('Función de filtrado en desarrollo', 'info');
-        });
-    }
-    
-    // AI Analysis refresh
-    const aiRefreshButton = document.getElementById('refreshAIAnalysis');
-    if (aiRefreshButton) {
-        aiRefreshButton.addEventListener('click', () => {
-            showNotification('Actualizando análisis de IA...', 'info');
-            // Implement AI analysis refresh
-        });
-    }
-    
-    // Load more news button
-    const loadMoreButton = document.getElementById('loadMoreBtn');
-    if (loadMoreButton) {
-        loadMoreButton.addEventListener('click', () => {
-            showNotification('Cargando más noticias...', 'info');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function() {
             loadNewsMosaic(mosaicOffset);
         });
     }
 }
 
-// Load more news function
-async function loadMoreNews() {
-    const container = document.querySelector('.news-mosaic-container');
-    if (!container) return;
+// Setup event listeners
+function setupEventListeners() {
+    // AI Analysis refresh
+    const refreshAIBtn = document.getElementById('refreshAIAnalysis');
+    if (refreshAIBtn) {
+        refreshAIBtn.addEventListener('click', () => {
+            showNotification('Actualizando análisis de IA...', 'info');
+            // TODO: Implement AI analysis refresh
+        });
+    }
     
-    const currentCount = container.children.length;
-    container.insertAdjacentHTML('beforeend', '<div class="mosaic-loading"><i class="fas fa-spinner fa-spin"></i><p>Cargando más noticias...</p></div>');
-    
-    try {
-        const response = await fetch(`/api/articles?offset=${currentCount}&limit=10`);
-        if (response.ok) {
-            const data = await response.json();
-            renderMosaic(data, true);
-            updateStatistics();
-        } else {
-            throw new Error('No se pudieron cargar más artículos');
-        }
-    } catch (error) {
-        console.error('Error cargando más noticias:', error);
-        container.insertAdjacentHTML('beforeend', '<p class="error-message">Error al cargar más noticias</p>');
-    } finally {
-        const loading = container.querySelector('.mosaic-loading');
-        if (loading) loading.remove();
+    // AI Report generation
+    const generateReportBtn = document.getElementById('generateAIReport');
+    if (generateReportBtn) {
+        generateReportBtn.addEventListener('click', () => {
+            showNotification('Generando reporte...', 'info');
+            // TODO: Implement report generation
+        });
     }
 }
 
-// Map controllers for heatmap events
+// Setup map controls
 function setupMapControls() {
-    const buttons = document.querySelectorAll('.section-controls button[data-map-type]');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            buttons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const type = btn.dataset.mapType;
-            showNotification(`Cargando mapa: ${type}`, 'info');
-            showMapLoading();
-            fetchHeatmap(type);
+    const mapControls = document.querySelectorAll('[data-map-type]');
+    mapControls.forEach(control => {
+        control.addEventListener('click', function() {
+            mapControls.forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            
+            const mapType = this.dataset.mapType;
+            loadMapData(mapType);
         });
     });
 }
 
-async function fetchHeatmap(type) {
+// Load map data
+async function loadMapData(type) {
+    showNotification(`Cargando mapa: ${type}`, 'info');
+    
     try {
         const response = await fetch(`/api/events/heatmap?type=${type}`);
         if (!response.ok) throw new Error(response.status);
@@ -1710,11 +1628,23 @@ async function fetchHeatmap(type) {
     }
 }
 
+// Update statistics
+function updateStatistics() {
+    if (articlesData.length > 0) {
+        const highRisk = articlesData.filter(a => (a.risk_score || 0) >= 0.7).length;
+        const countries = [...new Set(articlesData.map(a => a.location || a.country).filter(Boolean))].length;
+        
+        document.getElementById('totalArticles').textContent = articlesData.length;
+        document.getElementById('highRiskArticles').textContent = highRisk;
+        document.getElementById('countriesCount').textContent = countries;
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+    }
+}
+
 // Notification system
 function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
     
-    // Create notification element
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed; top: 20px; right: 20px; z-index: 10000;
@@ -1727,26 +1657,45 @@ function showNotification(message, type = 'info') {
     
     document.body.appendChild(notification);
     
-    // Animate in
     setTimeout(() => {
         notification.style.transform = 'translateX(0)';
     }, 100);
     
-    // Remove after delay
     setTimeout(() => {
         notification.style.transform = 'translateX(100%)';
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
 
-// Expose functions globally for debugging (single export)
+// Map helper functions
+function updateMapWithHeatmap(data, type) {
+    console.log(`Updating map with ${type} data:`, data);
+    // TODO: Implement actual map update logic
+}
+
+function showMapError(message) {
+    const mapContainer = document.getElementById('main-map');
+    if (mapContainer) {
+        mapContainer.innerHTML = `<p style="color: #ef4444;">${message}</p>`;
+    }
+}
+
+function hideMapLoading() {
+    // TODO: Hide loading indicator
+}
+
+// Expose functions globally for debugging
 window.dashboardFunctions = {
     initializeSocketConnection,
     loadNewsMosaic,
     renderMosaic,
-    updateStatistics,
+    loadDashboardStats,
     showNotification,
-    openArticleModal
+    openArticleModal,
+    calculateArticleImportance,
+    updateStatistics,
+    setupMapControls,
+    loadMapData
 };
 </script>
 {% endblock %}
