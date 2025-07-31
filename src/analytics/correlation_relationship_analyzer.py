@@ -16,8 +16,8 @@ warnings.filterwarnings('ignore')
 
 # Statistical analysis
 from scipy import stats
-from scipy.stats import pearsonr, spearmanr, kendalltau, chi2_contingency
-from scipy.stats import mutual_info_regression, f_oneway
+from scipy.stats import pearsonr, spearmanr, kendalltau, chi2_contingency, f_oneway
+from sklearn.feature_selection import mutual_info_regression
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import grangercausalitytests, coint, adfuller
 from statsmodels.tsa.vector_ar.var_model import VAR

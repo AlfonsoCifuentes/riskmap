@@ -34,12 +34,12 @@ from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_reg
 
 # Deep learning
 import tensorflow as tf
-from tensorflow.keras.models import Sequential, Model
-from tensorflow.keras.layers import Dense, LSTM, Dropout, Input, Attention
-from tensorflow.keras.optimizers import Adam
+from keras.models import Sequential, Model
+from keras.layers import Dense, LSTM, Dropout, Input, Attention
+from keras.optimizers import Adam
 
 # Time series analysis
-from statsmodels.tsa.stattools import granger_causality
+from statsmodels.tsa.stattools import grangercausalitytests
 from statsmodels.tsa.vector_ar.var_model import VAR
 from statsmodels.stats.stattools import durbin_watson
 import networkx as nx
