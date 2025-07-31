@@ -546,6 +546,17 @@ def get_featured_article():
         logger.error(f"Error getting featured article: {e}")
         return jsonify({'id': 0, 'title': 'Error al cargar artículo', 'error': str(e)}), 500
 
+# API Route Aliases - For backward compatibility with different naming conventions
+@app.route('/api/latest_articles')
+def get_latest_articles_alias():
+    """Alias for /api/articles/latest - backward compatibility."""
+    return get_latest_articles()
+
+@app.route('/api/high_risk_articles')
+def get_high_risk_articles_alias():
+    """Alias for /api/articles/high-risk - backward compatibility."""
+    return get_high_risk_articles()
+
 @app.route('/api/events/heatmap')
 @app.route('/api/heatmap')
 def get_heatmap_data():
