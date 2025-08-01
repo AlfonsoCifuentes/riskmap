@@ -558,6 +558,127 @@ class RiskMapUnifiedApplication:
             except Exception as e:
                 return f"Error reading logs: {e}"
         
+        @self.flask_app.route('/api/articles')
+        def get_articles():
+            """Obtener artículos de la base de datos para el dashboard"""
+            try:
+                # Obtener parámetros de consulta
+                limit = request.args.get('limit', 20, type=int)
+                offset = request.args.get('offset', 0, type=int)
+                
+                # Obtener artículos de la base de datos
+                articles = self.get_top_articles_from_db(limit + offset)
+                
+                # Aplicar offset si es necesario
+                if offset > 0 and len(articles) > offset:
+                    articles = articles[offset:]
+                elif offset > 0:
+                    articles = []
+                
+                # Convertir a formato para el dashboard
+                dashboard_articles = []
+                for article in articles:
+                    # Mapear risk_level a formato esperado por el dashboard
+                    risk_mapping = {
+                        'high': 'high',
+                        'medium': 'medium', 
+                        'low': 'low',
+                        'unknown': 'low'
+                    }
+                    
+                    risk_level = risk_mapping.get(article.get('risk_level', 'unknown'), 'low')
+                    
+                    dashboard_article = {
+                        'id': article.get('id'),
+                        'title': article.get('title', 'Sin título'),
+                        'content': article.get('content', 'Sin contenido'),
+                        'location': article.get('location', 'Global'),
+                        'country': article.get('country', 'Global'),
+                        'region': article.get('region', 'Internacional'),
+                        'risk': risk_level,
+                        'risk_level': risk_level,
+                        'risk_score': article.get('risk_score', 0.0),
+                        'source': article.get('source', 'Fuente desconocida'),
+                        'published_at': article.get('published_at'),
+                        'summary': article.get('summary'),
+                        'url': article.get('url'),
+                        'image': f"https://picsum.photos/400/300?random={article.get('id', 1)}"  # Imagen placeholder
+                    }
+                    dashboard_articles.append(dashboard_article)
+                
+                return jsonify({
+                    'success': True,
+                    'articles': dashboard_articles,
+                    'total': len(dashboard_articles),
+                    'offset': offset,
+                    'limit': limit
+                })
+                
+            except Exception as e:
+                logger.error(f"Error en endpoint /api/articles: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e),
+                    'articles': []
+                }), 500
+        
+        @self.flask_app.route('/api/hero-article')
+        def get_hero_article():
+            """Obtener el artículo héroe (más importante) de la base de datos"""
+            try:
+                # Obtener el artículo con mayor riesgo
+                articles = self.get_top_articles_from_db(1)
+                
+                if not articles:
+                    # Artículo de fallback
+                    return jsonify({
+                        'success': True,
+                        'article': {
+                            'title': 'Análisis geopolítico en curso',
+                            'text': 'El sistema está procesando los últimos desarrollos geopolíticos para proporcionar análisis actualizados.',
+                            'location': 'Global',
+                            'risk': 'medium',
+                            'image': 'https://picsum.photos/1920/800?random=hero'
+                        }
+                    })
+                
+                article = articles[0]
+                
+                # Mapear risk_level a formato esperado
+                risk_mapping = {
+                    'high': 'high',
+                    'medium': 'medium',
+                    'low': 'low', 
+                    'unknown': 'medium'
+                }
+                
+                hero_article = {
+                    'title': article.get('title', 'Desarrollo geopolítico importante'),
+                    'text': article.get('summary') or article.get('content', '')[:300] + '...',
+                    'location': article.get('location') or article.get('country') or article.get('region') or 'Global',
+                    'risk': risk_mapping.get(article.get('risk_level', 'unknown'), 'medium'),
+                    'image': f"https://picsum.photos/1920/800?random=hero{article.get('id', 1)}"
+                }
+                
+                return jsonify({
+                    'success': True,
+                    'article': hero_article
+                })
+                
+            except Exception as e:
+                logger.error(f"Error en endpoint /api/hero-article: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e),
+                    'article': {
+                        'title': 'Error al cargar artículo principal',
+                        'text': 'No se pudo cargar el contenido principal.',
+                        'location': 'Sistema',
+                        'risk': 'low',
+                        'image': 'https://picsum.photos/1920/800?random=error'
+                    }
+                }), 500
+        
         # Static files
         @self.flask_app.route('/static/<path:filename>')
         def static_files(filename):
