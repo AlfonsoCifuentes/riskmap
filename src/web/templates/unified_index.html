@@ -481,8 +481,8 @@
             }, 5000);
         }
 
-        // Auto-refresh every 5 minutes (300000 ms)
-        setInterval(refreshStatus, 300000);
+        // Auto-refresh every 10 seconds
+        setInterval(refreshStatus, 10000);
         
         // Initial load
         document.addEventListener('DOMContentLoaded', refreshStatus);

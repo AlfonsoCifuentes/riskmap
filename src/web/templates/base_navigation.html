@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Inteligencia Geopolítica{% endblock %}</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rtl.css') }}">
+    <!-- Efectos visuales eliminados: se quitó effects.css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/articles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/scroll_fix.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        /* Navigation Styles */
+        .main-navigation {
+            background: linear-gradient(135deg, #0f0f0f 0%, #191919 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Main Navigation - Mobile First Approach */
+        .main-navigation {
+            background: linear-gradient(135deg, rgba(15, 15, 15, 0.8) 0%, rgba(25, 25, 25, 0.9) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 80px;
+        }
+        
+        .nav-container {
+            max-width: 100%;
+            margin: 0;
+            padding: 0 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 80px;
+            width: 100%;
+        }
+        
+        /* Logo/Brand - Always left aligned */
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            margin-left: 0;
+        }
+        
+        .nav-brand .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+        
+        /* Mobile First - Hidden menu by default */
+        .nav-menu {
+            position: fixed;
+            top: 80px;
+            left: -100%;
+            width: 100%;
+            height: calc(100vh - 80px);
+            background: linear-gradient(135deg, rgba(26, 32, 64, 0.95) 0%, rgba(26, 32, 64, 0.98) 100%);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 20px;
+            gap: 8px;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            list-style: none;
+            margin: 0;
+        }
+        
+        .nav-menu.active {
+            left: 0;
+        }
+        
+        .nav-item {
+            width: 100%;
+            position: relative;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+            width: 100%;
+            justify-content: flex-start;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            line-height: 1.2;
+        }
+        
+        .nav-link:hover {
+            color: #fff;
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            transform: translateX(4px);
+        }
+        
+        .nav-link.active {
+            color: #fff;
+            background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .nav-link i {
+            margin-right: 12px;
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            color: #00d4ff;
+        }
+        
+        .nav-link.active i {
+            color: #fff;
+        }
+        
+        /* Right side controls */
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            margin-right: 0;
+        }
+        
+        .nav-control-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-control-btn:hover {
+            background: rgba(0, 212, 255, 0.15);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        
+        /* Mobile Navigation Toggle - Visible by default */
+        .mobile-nav-toggle {
+            display: flex;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-nav-toggle:hover {
+            background: rgba(0, 212, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        /* Tablet Design */
+        @media (min-width: 768px) {
+            .nav-container {
+                padding: 0 25px;
+            }
+            
+            .nav-menu {
+                width: 300px;
+            }
+            
+            .nav-controls {
+                gap: 8px;
+            }
+        }
+        
+        /* Desktop Design - Horizontal layout with equidistant, smaller nav buttons */
+        @media (min-width: 1024px) {
+            .nav-container {
+                padding: 0 25px;
+                justify-content: space-between;
+            }
+            
+            .nav-menu {
+                position: static;
+                width: auto;
+                height: auto;
+                background: none;
+                backdrop-filter: none;
+                border: none;
+                flex-direction: row;
+                align-items: center;
+                padding: 0;
+                gap: 10px;
+                transition: none;
+                overflow: visible;
+                margin-left: auto;
+                margin-right: 0;
+            }
+            
+            .nav-item {
+                width: auto;
+            }
+            
+            .nav-link {
+                padding: 6px 16px;
+                font-size: 0.8rem;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                min-width: 120px;
+                max-width: 120px;
+                justify-content: center;
+                text-align: center;
+                flex: 0 0 120px;
+                border-radius: 16px;
+                line-height: 1.2;
+            }
+            
+            .nav-link:hover {
+                transform: translateY(-2px);
+            }
+            
+            .nav-link i {
+                margin-right: 6px;
+                width: auto;
+                font-size: 0.85rem;
+            }
+            
+            .mobile-nav-toggle {
+                display: none;
+            }
+            
+            .nav-controls {
+                gap: 10px;
+            }
+        }
+        
+        /* Large Desktop - More spacing and larger equal-width buttons */
+        @media (min-width: 1200px) {
+            .nav-container {
+                padding: 0 35px;
+            }
+            
+            .nav-menu {
+                gap: 12px;
+            }
+            
+            .nav-link {
+                padding: 7px 18px;
+                font-size: 0.85rem;
+                min-width: 140px;
+                max-width: 140px;
+                flex: 0 0 140px;
+                border-radius: 16px;
+                line-height: 1.2;
+            }
+            
+            .nav-link i {
+                margin-right: 7px;
+                font-size: 0.9rem;
+            }
+            
+            .nav-controls {
+                gap: 12px;
+            }
+            
+            .nav-control-btn {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* Extra Large Desktop - Maximum edge alignment */
+        @media (min-width: 1400px) {
+            .nav-container {
+                padding: 0 45px;
+                max-width: none;
+            }
+            
+            .nav-brand {
+                margin-left: 0;
+            }
+            
+            .nav-controls {
+                margin-right: 0;
+            }
+        }
+
+        /* Notifications - Always below navbar */
+        .notification,
+        .alert,
+        .toast,
+        .flash-message,
+        .success-message,
+        .error-message,
+        .info-message,
+        .warning-message {
+            position: fixed !important;
+            top: 85px !important; /* 5px below the 80px navbar */
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 9999 !important; /* Higher than navbar but below modals */
+            max-width: 500px !important;
+            width: auto !important;
+            margin: 0 20px !important;
+            padding: 12px 20px !important;
+            background: rgba(26, 32, 64, 0.95) !important;
+            backdrop-filter: blur(15px) !important;
+            border: 1px solid rgba(70, 234, 215, 0.3) !important;
+            border-radius: 12px !important;
+            color: #fff !important;
+            font-size: 0.9rem !important;
+            font-weight: 500 !important;
+            text-align: center !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+            animation: slideDownFade 0.3s ease-out !important;
+        }
+
+        .notification.success,
+        .success-message {
+            border-color: rgba(34, 197, 94, 0.5) !important;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        .notification.error,
+        .error-message {
+            border-color: rgba(239, 68, 68, 0.5) !important;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        .notification.warning,
+        .warning-message {
+            border-color: rgba(245, 158, 11, 0.5) !important;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        .notification.info,
+        .info-message {
+            border-color: rgba(59, 130, 246, 0.5) !important;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        @keyframes slideDownFade {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Responsive notifications */
+        @media (max-width: 768px) {
+            .notification,
+            .alert,
+            .toast,
+            .flash-message,
+            .success-message,
+            .error-message,
+            .info-message,
+            .warning-message {
+                top: 85px !important;
+                left: 10px !important;
+                right: 10px !important;
+                transform: none !important;
+                max-width: none !important;
+                margin: 0 !important;
+            }
+        }
+        
+        /* Page Content */
+        .page-content {
+            min-height: calc(100vh - 80px);
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            padding-top: 80px;
+        }
+
+        /* Ensure any dynamically added content respects navbar */
+        .page-content > *:first-child {
+            margin-top: 10px;
+        }
+
+        /* Common notification library classes */
+        .swal2-container,
+        .toastr-container,
+        .noty_layout,
+        .humane,
+        .growl-container {
+            z-index: 9999 !important;
+        }
+
+        .swal2-popup {
+            margin-top: 90px !important;
+        }
+
+        /* Toastr specific positioning */
+        #toast-container {
+            top: 90px !important;
+        }
+
+        /* Noty specific positioning */
+        .noty_layout.topCenter {
+            top: 90px !important;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .breadcrumb-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .breadcrumb-list {
+            display: flex;
+            align-items: center;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb-item:not(:last-child)::after {
+            content: '/';
+            margin: 0 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .breadcrumb-link {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .breadcrumb-link:hover {
+            color: #667eea;
+        }
+        
+        .breadcrumb-current {
+            color: #fff;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Main Navigation -->
+    <nav class="main-navigation">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <div class="brand-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <span>Stratosight</span>
+            </a>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="/news-analysis" class="nav-link {% if request.endpoint == 'news_analysis' or request.endpoint == 'index' %}active{% endif %}">
+                        <i class="fas fa-newspaper"></i>
+                        Análisis de Noticias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/conflict-monitoring" class="nav-link {% if request.endpoint == 'conflict_monitoring' %}active{% endif %}">
+                        <i class="fas fa-shield-alt"></i>
+                        Monitor de conflictos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/trends-analysis" class="nav-link {% if request.endpoint == 'trends_analysis' %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i>
+                        Análisis de Tendencias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/early-warning" class="nav-link {% if request.endpoint == 'early_warning' %}active{% endif %}">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Alertas Tempranas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/executive-reports" class="nav-link {% if request.endpoint == 'executive_reports' %}active{% endif %}">
+                        <i class="fas fa-file-alt"></i>
+                        Reportes Ejecutivos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/satellite-analysis" class="nav-link {% if request.endpoint == 'satellite_analysis' %}active{% endif %}">
+                        <i class="fas fa-satellite"></i>
+                        Análisis Satelital
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/video-surveillance" class="nav-link {% if request.endpoint == 'video_surveillance' %}active{% endif %}">
+                        <i class="fas fa-video"></i>
+                        Video Vigilancia
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/historical-analysis" class="nav-link {% if request.endpoint == 'historical_analysis' %}active{% endif %}">
+                        <i class="fas fa-history"></i>
+                        Análisis Histórico
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="nav-controls">
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-nav-toggle" id="mobileNavToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Breadcrumb -->
+    {% if show_breadcrumb %}
+    <div class="breadcrumb">
+        <div class="breadcrumb-container">
+            <ul class="breadcrumb-list">
+                <li class="breadcrumb-item">
+                    <a href="/" class="breadcrumb-link">
+                        <i class="fas fa-home"></i>
+                    </a>
+                </li>
+                {% for item in breadcrumb_items %}
+                <li class="breadcrumb-item">
+                    {% if item.url %}
+                        <a href="{{ item.url }}" class="breadcrumb-link">{{ item.name }}</a>
+                    {% else %}
+                        <span class="breadcrumb-current">{{ item.name }}</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Page Content -->
+    <div class="page-content">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.2/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <!-- Dashboard-specific scripts (only loaded on dashboard pages) -->
+    {% block dashboard_js %}
+    <script src="{{ url_for('static', filename='js/modern_dashboard_fixed.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/enhanced_dashboard_fixed.js') }}"></script>
+    {% endblock %}
+    
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Mobile Navigation Toggle with improved functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileNavToggle = document.getElementById('mobileNavToggle');
+            const navMenu = document.getElementById('navMenu');
+            const body = document.body;
+            
+            if (mobileNavToggle && navMenu) {
+                // Toggle mobile menu
+                mobileNavToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    navMenu.classList.toggle('active');
+                    
+                    // Update hamburger icon
+                    const icon = mobileNavToggle.querySelector('i');
+                    if (navMenu.classList.contains('active')) {
+                        icon.className = 'fas fa-times';
+                        body.style.overflow = 'hidden'; // Prevent body scroll when menu is open
+                    } else {
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+                
+                // Close mobile menu when clicking on a link
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    });
+                });
+                
+                // Close mobile menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!navMenu.contains(e.target) && !mobileNavToggle.contains(e.target)) {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+                
+                // Close mobile menu on escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+                
+                // Handle window resize
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth >= 1024) {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+            }
+
+            // Auto-adjust notifications positioning
+            function adjustNotificationsPosition() {
+                const navbarHeight = 80;
+                const offset = 5;
+                const totalOffset = navbarHeight + offset;
+
+                // Common notification selectors
+                const notificationSelectors = [
+                    '.notification', '.alert', '.toast', '.flash-message',
+                    '.success-message', '.error-message', '.info-message', '.warning-message',
+                    '.swal2-container', '.toastr-container', '.noty_layout', '.humane', '.growl-container',
+                    '#toast-container', '.noty_layout.topCenter'
+                ];
+
+                notificationSelectors.forEach(selector => {
+                    const elements = document.querySelectorAll(selector);
+                    elements.forEach(element => {
+                        if (element.style.position === 'fixed' || window.getComputedStyle(element).position === 'fixed') {
+                            const currentTop = parseInt(element.style.top) || 0;
+                            if (currentTop < totalOffset) {
+                                element.style.top = totalOffset + 'px';
+                                element.style.zIndex = '9999';
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Initial adjustment
+            adjustNotificationsPosition();
+
+            // Observer for dynamically added notifications
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.nodeType === 1) { // Element node
+                                // Check if the added node is a notification
+                                const isNotification = [
+                                    'notification', 'alert', 'toast', 'flash-message',
+                                    'success-message', 'error-message', 'info-message', 'warning-message'
+                                ].some(className => node.classList && node.classList.contains(className));
+
+                                if (isNotification) {
+                                    setTimeout(adjustNotificationsPosition, 10);
+                                }
+
+                                // Also check child notifications
+                                const childNotifications = node.querySelectorAll && node.querySelectorAll([
+                                    '.notification', '.alert', '.toast', '.flash-message',
+                                    '.success-message', '.error-message', '.info-message', '.warning-message'
+                                ].join(','));
+
+                                if (childNotifications && childNotifications.length > 0) {
+                                    setTimeout(adjustNotificationsPosition, 10);
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Start observing
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+
+            // Adjust on window resize
+            window.addEventListener('resize', adjustNotificationsPosition);
+        });
+    </script>
+</body>
+</html>

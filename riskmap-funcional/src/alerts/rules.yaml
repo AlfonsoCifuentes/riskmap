@@ -1,4 +1,0 @@
-- type: fatality_threshold
-  threshold: 500
-  lookback_hours: 48
-  description: "Alerta si un evento histórico supera 500 víctimas en 48h"

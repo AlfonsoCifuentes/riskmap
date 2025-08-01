@@ -629,19 +629,19 @@
         <div class="card-body">
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number" id="images-processed">2,847</div>
+                <div class="stat-number" id="images-processed">Cargando...</div>
                 <div class="stat-label">Imágenes Procesadas Hoy</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="detections-made">156</div>
+                <div class="stat-number" id="detections-made">Cargando...</div>
                 <div class="stat-label">Detecciones Confirmadas</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="active-models">8</div>
+                <div class="stat-number" id="active-models">Cargando...</div>
                 <div class="stat-label">Modelos de IA Activos</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="coverage-area">94.2%</div>
+                <div class="stat-number" id="coverage-area">Cargando...</div>
                 <div class="stat-label">Cobertura Global</div>
             </div>
         </div>
@@ -682,38 +682,11 @@
                         Rendimiento de Modelos de IA
                     </h3>
                     
-                    <div class="model-performance">
-                        <div class="model-card">
-                            <h5 class="text-white">YOLOv8</h5>
-                            <div class="model-accuracy">96.8%</div>
-                            <p class="text-muted small">Detección de Objetos</p>
-                            <div class="confidence-meter">
-                                <div class="confidence-fill" style="width: 96.8%;"></div>
-                            </div>
-                        </div>
-                        <div class="model-card">
-                            <h5 class="text-white">Detectron2</h5>
-                            <div class="model-accuracy">94.2%</div>
-                            <p class="text-muted small">Segmentación</p>
-                            <div class="confidence-meter">
-                                <div class="confidence-fill" style="width: 94.2%;"></div>
-                            </div>
-                        </div>
-                        <div class="model-card">
-                            <h5 class="text-white">Vision Transformer</h5>
-                            <div class="model-accuracy">92.5%</div>
-                            <p class="text-muted small">Clasificación</p>
-                            <div class="confidence-meter">
-                                <div class="confidence-fill" style="width: 92.5%;"></div>
-                            </div>
-                        </div>
-                        <div class="model-card">
-                            <h5 class="text-white">Segment Anything</h5>
-                            <div class="model-accuracy">89.7%</div>
-                            <p class="text-muted small">Segmentación Universal</p>
-                            <div class="confidence-meter">
-                                <div class="confidence-fill" style="width: 89.7%;"></div>
-                            </div>
+                    <div class="model-performance" id="model-performance">
+                        <!-- Model performance metrics will be loaded from API -->
+                        <div class="text-center text-muted p-4">
+                            <i class="fas fa-brain fa-2x mb-3"></i>
+                            <p>Cargando métricas de rendimiento...</p>
                         </div>
                     </div>
                 </div>
@@ -886,6 +859,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCriticalAlerts();
     loadEvolutionPredictions();
     loadAnalysisTimeline();
+    loadModelPerformance();
     
     // Update confidence threshold display
     const confidenceSlider = document.getElementById('confidence-threshold');
@@ -896,132 +870,152 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+async function loadModelPerformance() {
+    const container = document.getElementById('model-performance');
+    
+    try {
+        const response = await fetch('/api/satellite/model-performance');
+        const data = await response.json();
+        
+        if (data.success && data.models && data.models.length > 0) {
+            container.innerHTML = data.models.map(model => `
+                <div class="model-card">
+                    <h5 class="text-white">${model.name}</h5>
+                    <div class="model-accuracy">${model.accuracy}%</div>
+                    <p class="text-muted small">${model.task}</p>
+                    <div class="confidence-meter">
+                        <div class="confidence-fill" style="width: ${model.accuracy}%;"></div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-brain fa-2x mb-3"></i>
+                    <p>No hay métricas de modelos disponibles</p>
+                    <small>Esperando evaluación de modelos...</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading model performance:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <p>Error al cargar métricas de modelos</p>
+                <small>Verificando sistemas de evaluación...</small>
+            </div>
+        `;
+    }
+}
+});
+
 function initializeSatelliteAnalysis() {
     console.log('🛰️ Initializing Satellite Analysis System...');
     
-    // Simulate real-time statistics updates
-    setInterval(updateStatistics, 30000); // Update every 30 seconds
+    // Load real statistics from API
+    loadRealTimeStatistics();
     
-    // Initialize WebSocket connection for real-time updates (simulated)
-    simulateWebSocketConnection();
+    // Initialize WebSocket connection for real-time updates
+    initializeRealWebSocketConnection();
+    
+    // Refresh statistics every 5 minutes
+    setInterval(loadRealTimeStatistics, 300000);
 }
 
-function updateStatistics() {
-    // Simulate incrementing statistics
-    const imagesProcessed = document.getElementById('images-processed');
-    const detectionsMode = document.getElementById('detections-made');
-    
-    if (imagesProcessed) {
-        const current = parseInt(imagesProcessed.textContent.replace(',', ''));
-        imagesProcessed.textContent = (current + Math.floor(Math.random() * 10) + 1).toLocaleString();
-    }
-    
-    if (detectionsMode) {
-        const current = parseInt(detectionsMode.textContent);
-        if (Math.random() > 0.7) { // 30% chance of new detection
-            detectionsMode.textContent = current + 1;
+async function loadRealTimeStatistics() {
+    try {
+        const response = await fetch('/api/satellite/statistics');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('images-processed').textContent = data.stats.images_processed_today.toLocaleString();
+            document.getElementById('detections-made').textContent = data.stats.detections_confirmed;
+            document.getElementById('active-models').textContent = data.stats.active_models;
+            document.getElementById('coverage-area').textContent = data.stats.coverage_percentage + '%';
         }
+    } catch (error) {
+        console.error('Error loading satellite statistics:', error);
+        // Show loading state instead of fake data
+        document.getElementById('images-processed').textContent = 'Cargando...';
+        document.getElementById('detections-made').textContent = 'Cargando...';
+        document.getElementById('active-models').textContent = 'Cargando...';
+        document.getElementById('coverage-area').textContent = 'Cargando...';
     }
 }
 
-function loadRecentDetections() {
+async function loadRecentDetections() {
     const container = document.getElementById('recent-detections');
     
-    const detections = [
-        {
-            id: 1,
-            type: 'military',
-            title: 'Formación de Vehículos Militares Detectada',
-            location: 'Ucrania Oriental',
-            coordinates: '48.7194°N, 37.5581°E',
-            confidence: 94.2,
-            timestamp: '2025-01-09 14:23:15',
-            model: 'YOLOv8',
-            image: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            details: 'Convoy de 12 vehículos blindados detectado mediante análisis multiespectral'
-        },
-        {
-            id: 2,
-            type: 'infrastructure',
-            title: 'Cambios en Infraestructura Estratégica',
-            location: 'Mar del Sur de China',
-            coordinates: '9.2497°N, 112.3082°E',
-            confidence: 89.7,
-            timestamp: '2025-01-09 13:45:32',
-            model: 'Detectron2',
-            image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            details: 'Construcción de nuevas instalaciones portuarias identificada'
-        },
-        {
-            id: 3,
-            type: 'natural',
-            title: 'Formación de Tormenta Tropical',
-            location: 'Océano Atlántico',
-            coordinates: '15.2500°N, 45.0000°W',
-            confidence: 96.8,
-            timestamp: '2025-01-09 12:15:48',
-            model: 'Vision Transformer',
-            image: 'https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            details: 'Sistema meteorológico con potencial de desarrollo ciclónico'
-        },
-        {
-            id: 4,
-            type: 'movement',
-            title: 'Desplazamiento Masivo de Población',
-            location: 'Región del Sahel',
-            coordinates: '14.5000°N, 0.0000°E',
-            confidence: 87.3,
-            timestamp: '2025-01-09 11:30:22',
-            model: 'Segment Anything',
-            image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            details: 'Movimiento de aproximadamente 5,000 personas detectado'
+    try {
+        const response = await fetch('/api/satellite/recent-detections');
+        const data = await response.json();
+        
+        if (data.success && data.detections && data.detections.length > 0) {
+            container.innerHTML = data.detections.map(detection => `
+                <div class="satellite-card p-3 mb-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="satellite-image-container">
+                                <img src="${detection.image_url}" alt="${detection.title}" class="satellite-image" 
+                                     onerror="this.style.display='none'">
+                                <div class="detection-overlay"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="text-white mb-1">${detection.title}</h5>
+                                <span class="detection-badge detection-${detection.type}">
+                                    ${getDetectionTypeLabel(detection.type)}
+                                </span>
+                            </div>
+                            
+                            <p class="text-muted small mb-2">${detection.details}</p>
+                            
+                            <div class="row text-sm">
+                                <div class="col-6">
+                                    <div class="text-muted">Ubicación:</div>
+                                    <div class="text-white">${detection.location}</div>
+                                    <div class="coordinates">${detection.coordinates}</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-muted">Modelo:</div>
+                                    <div class="text-white">${detection.model}</div>
+                                    <div class="text-muted">Confianza: <span class="text-success">${detection.confidence}%</span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="confidence-meter mt-2">
+                                <div class="confidence-fill" style="width: ${detection.confidence}%;"></div>
+                            </div>
+                            
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-clock me-1"></i>
+                                ${formatTimestamp(detection.timestamp)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-satellite fa-2x mb-3"></i>
+                    <p>No hay detecciones recientes disponibles</p>
+                    <small>Los datos se actualizan en tiempo real desde las APIs satelitales</small>
+                </div>
+            `;
         }
-    ];
-    
-    container.innerHTML = detections.map(detection => `
-        <div class="satellite-card p-3 mb-3">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="satellite-image-container">
-                        <img src="${detection.image}" alt="${detection.title}" class="satellite-image">
-                        <div class="detection-overlay"></div>
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="text-white mb-1">${detection.title}</h5>
-                        <span class="detection-badge detection-${detection.type}">
-                            ${getDetectionTypeLabel(detection.type)}
-                        </span>
-                    </div>
-                    
-                    <p class="text-muted small mb-2">${detection.details}</p>
-                    
-                    <div class="row text-sm">
-                        <div class="col-6">
-                            <div class="text-muted">Ubicación:</div>
-                            <div class="text-white">${detection.location}</div>
-                            <div class="coordinates">${detection.coordinates}</div>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-muted">Modelo:</div>
-                            <div class="text-white">${detection.model}</div>
-                            <div class="text-muted">Confianza: <span class="text-success">${detection.confidence}%</span></div>
-                        </div>
-                    </div>
-                    
-                    <div class="confidence-meter mt-2">
-                        <div class="confidence-fill" style="width: ${detection.confidence}%;"></div>
-                    </div>
-                    
-                    <div class="text-muted small mt-2">
-                        <i class="fas fa-clock me-1"></i>
-                        ${formatTimestamp(detection.timestamp)}
-                    </div>
-                </div>
+    } catch (error) {
+        console.error('Error loading recent detections:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <p>Error al cargar detecciones</p>
+                <small>Verificando conexión con APIs satelitales...</small>
             </div>
-        </div>
-    `).join('');
+        `;
+    }
 }
 
 function startRealTimeFeed() {
@@ -1050,241 +1044,218 @@ function startRealTimeFeed() {
         }
     }
     
-    // Simulate real-time feed updates
-    const feedMessages = [
-        'Nueva imagen Sentinel-2 procesada: Ucrania',
-        'Detección confirmada: Actividad militar en zona de conflicto',
-        'Análisis completado: Cambios en infraestructura portuaria',
-        'Alerta meteorológica: Formación ciclónica detectada',
-        'Procesamiento batch iniciado: 847 imágenes en cola',
-        'Modelo YOLOv8 actualizado: Precisión mejorada al 96.8%',
-        'Correlación cruzada completada: 23 eventos validados',
-        'Nueva fuente de datos integrada: NASA MODIS',
-        'Análisis temporal finalizado: Tendencias identificadas',
-        'Sistema de validación activo: Reduciendo falsos positivos'
-    ];
+    // Load real-time feed from API
+    loadRealTimeFeed();
     
-    let messageIndex = 0;
-    setInterval(() => {
-        addFeedItem(feedMessages[messageIndex % feedMessages.length]);
-        messageIndex++;
-    }, 8000); // New message every 8 seconds
+    // Refresh feed every 30 seconds
+    setInterval(loadRealTimeFeed, 30000);
     
-    // Add initial messages
-    addFeedItem('Sistema de análisis satelital iniciado');
-    addFeedItem('Conectado a fuentes de datos en tiempo real');
-    addFeedItem('Modelos de IA cargados y operativos');
+    // Add initial message
+    addFeedItem('Sistema de análisis satelital iniciado - Conectando APIs...');
 }
 
-function loadCriticalAlerts() {
+async function loadRealTimeFeed() {
+    try {
+        const response = await fetch('/api/satellite/real-time-feed');
+        const data = await response.json();
+        
+        if (data.success && data.feed_items && data.feed_items.length > 0) {
+            const feedContainer = document.getElementById('real-time-feed');
+            
+            data.feed_items.forEach(item => {
+                const time = new Date(item.timestamp).toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                const feedItem = document.createElement('div');
+                feedItem.className = 'feed-item';
+                feedItem.innerHTML = `
+                    <div class="feed-time">${time}</div>
+                    <div class="flex-grow-1">
+                        <div class="text-white small">${item.message}</div>
+                    </div>
+                `;
+                
+                feedContainer.insertBefore(feedItem, feedContainer.firstChild);
+            });
+            
+            // Keep only last 20 items
+            while (feedContainer.children.length > 20) {
+                feedContainer.removeChild(feedContainer.lastChild);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading real-time feed:', error);
+        const feedContainer = document.getElementById('real-time-feed');
+        feedContainer.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-wifi fa-2x mb-2"></i>
+                <p>Conectando con feed en tiempo real...</p>
+            </div>
+        `;
+    }
+}
+
+async function loadCriticalAlerts() {
     const container = document.getElementById('critical-alerts');
     
-    const alerts = [
-        {
-            level: 'critical',
-            message: 'Actividad militar inusual detectada en zona fronteriza',
-            location: 'Europa Oriental',
-            time: 'hace 15 min'
-        },
-        {
-            level: 'high',
-            message: 'Cambios significativos en infraestructura estratégica',
-            location: 'Pacífico Occidental',
-            time: 'hace 1 hora'
-        },
-        {
-            level: 'medium',
-            message: 'Movimiento de población detectado en región de conflicto',
-            location: 'África Subsahariana',
-            time: 'hace 2 horas'
-        }
-    ];
-    
-    container.innerHTML = alerts.map(alert => `
-        <div class="mb-3 p-2 rounded" style="background: rgba(255, 255, 255, 0.05);">
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1">
-                    <div class="text-white small fw-bold">${alert.message}</div>
-                    <div class="text-muted small">${alert.location}</div>
+    try {
+        const response = await fetch('/api/satellite/critical-alerts');
+        const data = await response.json();
+        
+        if (data.success && data.alerts && data.alerts.length > 0) {
+            container.innerHTML = data.alerts.map(alert => `
+                <div class="mb-3 p-2 rounded" style="background: rgba(255, 255, 255, 0.05);">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="text-white small fw-bold">${alert.message}</div>
+                            <div class="text-muted small">${alert.location}</div>
+                        </div>
+                        <div class="text-muted small">${alert.time_ago}</div>
+                    </div>
                 </div>
-                <div class="text-muted small">${alert.time}</div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                    <p>No hay alertas críticas activas</p>
+                    <small>Sistema en monitoreo continuo</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading critical alerts:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Error al cargar alertas</p>
+                <small>Verificando sistemas de monitoreo...</small>
             </div>
-        </div>
-    `).join('');
+        `;
+    }
 }
 
-function loadEvolutionPredictions() {
+async function loadEvolutionPredictions() {
     const container = document.getElementById('evolution-predictions');
     
-    const predictions = [
-        {
-            type: 'Escalada Militar',
-            probability: 73,
-            timeframe: '72 horas',
-            confidence: 'Alta'
-        },
-        {
-            type: 'Desastre Natural',
-            probability: 45,
-            timeframe: '5-7 días',
-            confidence: 'Media'
-        },
-        {
-            type: 'Crisis Humanitaria',
-            probability: 62,
-            timeframe: '1-2 semanas',
-            confidence: 'Alta'
+    try {
+        const response = await fetch('/api/satellite/evolution-predictions');
+        const data = await response.json();
+        
+        if (data.success && data.predictions && data.predictions.length > 0) {
+            container.innerHTML = data.predictions.map(pred => `
+                <div class="mb-3 p-3 rounded" style="background: rgba(255, 255, 255, 0.05);">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-white mb-0">${pred.type}</h6>
+                        <span class="badge bg-info">${pred.confidence_level}</span>
+                    </div>
+                    <div class="text-muted small mb-2">Probabilidad en ${pred.timeframe}</div>
+                    <div class="confidence-meter">
+                        <div class="confidence-fill" style="width: ${pred.probability}%;"></div>
+                    </div>
+                    <div class="text-center mt-1">
+                        <span class="text-white fw-bold">${pred.probability}%</span>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-crystal-ball fa-2x mb-2"></i>
+                    <p>No hay predicciones disponibles</p>
+                    <small>Analizando patrones históricos...</small>
+                </div>
+            `;
         }
-    ];
-    
-    container.innerHTML = predictions.map(pred => `
-        <div class="mb-3 p-3 rounded" style="background: rgba(255, 255, 255, 0.05);">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="text-white mb-0">${pred.type}</h6>
-                <span class="badge bg-info">${pred.confidence}</span>
+    } catch (error) {
+        console.error('Error loading evolution predictions:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Error al cargar predicciones</p>
+                <small>Verificando modelos predictivos...</small>
             </div>
-            <div class="text-muted small mb-2">Probabilidad en ${pred.timeframe}</div>
-            <div class="confidence-meter">
-                <div class="confidence-fill" style="width: ${pred.probability}%;"></div>
-            </div>
-            <div class="text-center mt-1">
-                <span class="text-white fw-bold">${pred.probability}%</span>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }
 }
 
-function loadSatelliteGallery() {
+async function loadSatelliteGallery() {
     const container = document.getElementById('satellite-gallery');
     
-    const galleryImages = [
-        {
-            id: 1,
-            title: 'Convoy Militar - Ucrania Oriental',
-            image: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            coordinates: '48.7194°N, 37.5581°E',
-            confidence: 94.2,
-            model: 'YOLOv8',
-            source: 'Sentinel-2',
-            timestamp: '2025-01-09 14:23:15',
-            type: 'military',
-            details: 'Detección de 12 vehículos blindados en formación de convoy. Análisis multiespectral confirma actividad militar.',
-            detections: [
-                { x: 25, y: 30, w: 15, h: 8, label: 'Tanque Principal', confidence: 96.8 },
-                { x: 45, y: 35, w: 12, h: 6, label: 'Vehículo Blindado', confidence: 92.4 },
-                { x: 65, y: 40, w: 10, h: 5, label: 'Transporte Tropas', confidence: 89.1 }
-            ]
-        },
-        {
-            id: 2,
-            title: 'Infraestructura Portuaria - Mar del Sur de China',
-            image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            coordinates: '9.2497°N, 112.3082°E',
-            confidence: 89.7,
-            model: 'Detectron2',
-            source: 'Landsat-8',
-            timestamp: '2025-01-09 13:45:32',
-            type: 'infrastructure',
-            details: 'Construcción de nuevas instalaciones portuarias. Cambios significativos en la infraestructura costera.',
-            detections: [
-                { x: 20, y: 25, w: 30, h: 20, label: 'Nueva Terminal', confidence: 91.3 },
-                { x: 55, y: 45, w: 25, h: 15, label: 'Grúas Portuarias', confidence: 87.9 },
-                { x: 10, y: 60, w: 40, h: 10, label: 'Muelle Extendido', confidence: 85.6 }
-            ]
-        },
-        {
-            id: 3,
-            title: 'Formación Ciclónica - Océano Atlántico',
-            image: 'https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            coordinates: '15.2500°N, 45.0000°W',
-            confidence: 96.8,
-            model: 'Vision Transformer',
-            source: 'MODIS',
-            timestamp: '2025-01-09 12:15:48',
-            type: 'natural',
-            details: 'Sistema meteorológico con potencial de desarrollo ciclónico. Patrones de nubosidad indican formación tropical.',
-            detections: [
-                { x: 35, y: 25, w: 30, h: 30, label: 'Ojo del Ciclón', confidence: 98.2 },
-                { x: 15, y: 15, w: 60, h: 50, label: 'Bandas Espirales', confidence: 94.7 },
-                { x: 25, y: 70, w: 40, h: 15, label: 'Frente de Tormenta', confidence: 91.3 }
-            ]
-        },
-        {
-            id: 4,
-            title: 'Desplazamiento Poblacional - Región del Sahel',
-            image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            coordinates: '14.5000°N, 0.0000°E',
-            confidence: 87.3,
-            model: 'Segment Anything',
-            source: 'Sentinel-1',
-            timestamp: '2025-01-09 11:30:22',
-            type: 'movement',
-            details: 'Movimiento masivo de aproximadamente 5,000 personas. Campamentos temporales y rutas de migración identificadas.',
-            detections: [
-                { x: 30, y: 20, w: 20, h: 15, label: 'Campamento Principal', confidence: 89.4 },
-                { x: 55, y: 35, w: 15, h: 10, label: 'Asentamiento Temporal', confidence: 84.7 },
-                { x: 20, y: 55, w: 50, h: 8, label: 'Ruta de Migración', confidence: 82.1 }
-            ]
-        },
-        {
-            id: 5,
-            title: 'Actividad Volcánica - Monte Etna',
-            image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            coordinates: '37.7510°N, 14.9934°E',
-            confidence: 93.6,
-            model: 'ResNet-50',
-            source: 'Sentinel-2',
-            timestamp: '2025-01-09 10:45:18',
-            type: 'natural',
-            details: 'Incremento en la actividad volcánica. Detección de emisiones térmicas y cambios en la superficie.',
-            detections: [
-                { x: 40, y: 30, w: 20, h: 20, label: 'Cráter Activo', confidence: 95.8 },
-                { x: 25, y: 50, w: 35, h: 15, label: 'Flujo de Lava', confidence: 91.2 },
-                { x: 60, y: 25, w: 15, h: 25, label: 'Emisión Térmica', confidence: 88.9 }
-            ]
-        },
-        {
-            id: 6,
-            title: 'Base Militar - Región Clasificada',
-            image: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            coordinates: '35.0000°N, 45.0000°E',
-            confidence: 91.8,
-            model: 'YOLOv8',
-            source: 'Sentinel-2',
-            timestamp: '2025-01-09 09:15:33',
-            type: 'military',
-            details: 'Instalación militar con múltiples estructuras defensivas. Presencia de sistemas de defensa aérea.',
-            detections: [
-                { x: 15, y: 20, w: 25, h: 20, label: 'Complejo Principal', confidence: 93.7 },
-                { x: 50, y: 15, w: 12, h: 12, label: 'Sistema SAM', confidence: 90.4 },
-                { x: 70, y: 45, w: 18, h: 15, label: 'Hangar Militar', confidence: 87.6 }
-            ]
-        }
-    ];
-    
-    container.innerHTML = galleryImages.map(item => `
-        <div class="gallery-item">
-            <div class="gallery-image-container">
-                <img src="${item.image}" alt="${item.title}" class="gallery-image">
-                
-                <!-- Detection Bounding Boxes -->
-                ${item.detections.map(detection => `
-                    <div class="detection-bounding-box ${item.type}" 
-                         style="left: ${detection.x}%; top: ${detection.y}%; width: ${detection.w}%; height: ${detection.h}%;">
-                        <div class="detection-label">${detection.label} (${detection.confidence}%)</div>
+    try {
+        const response = await fetch('/api/satellite/gallery-images');
+        const data = await response.json();
+        
+        if (data.success && data.gallery_images && data.gallery_images.length > 0) {
+            container.innerHTML = data.gallery_images.map(item => `
+                <div class="gallery-item">
+                    <div class="gallery-image-container">
+                        <img src="${item.image_url}" alt="${item.title}" class="gallery-image" 
+                             onerror="this.parentElement.style.display='none'">
+                        
+                        <!-- Detection Bounding Boxes -->
+                        ${item.detections ? item.detections.map(detection => `
+                            <div class="detection-bounding-box ${item.type}" 
+                                 style="left: ${detection.x}%; top: ${detection.y}%; width: ${detection.w}%; height: ${detection.h}%;">
+                                <div class="detection-label">${detection.label} (${detection.confidence}%)</div>
+                            </div>
+                        `).join('') : ''}
                     </div>
-                `).join('')}
-            </div>
-            
-            <div class="gallery-info">
-                <div class="gallery-title">${item.title}</div>
-                
-                <div class="gallery-meta">
-                    <div class="gallery-coordinates">${item.coordinates}</div>
-                    <div class="gallery-confidence">${item.confidence}%</div>
+                    
+                    <div class="gallery-info">
+                        <div class="gallery-title">${item.title}</div>
+                        
+                        <div class="gallery-meta">
+                            <div class="gallery-coordinates">${item.coordinates}</div>
+                            <div class="gallery-confidence">${item.confidence}%</div>
+                        </div>
+                        
+                        <div class="gallery-details">${item.details}</div>
+                        
+                        <div class="gallery-source">
+                            <div>
+                                <span class="source-badge">${item.source}</span>
+                                <span class="ai-model-badge">${item.model}</span>
+                            </div>
+                            <div class="analysis-timestamp">${formatTimestamp(item.timestamp)}</div>
+                        </div>
+                        
+                        ${item.detections && item.detections.length > 0 ? `
+                        <div class="mt-3">
+                            <div class="text-muted small mb-1">Detecciones Identificadas:</div>
+                            ${item.detections.map(detection => `
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-white small">${detection.label}</span>
+                                    <span class="text-success small">${detection.confidence}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+                    </div>
                 </div>
-                
-                <div class="gallery-details">${item.details}</div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-images fa-2x mb-3"></i>
+                    <p>No hay imágenes satelitales disponibles</p>
+                    <small>Esperando análisis de nuevas imágenes desde las APIs satelitales</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading satellite gallery:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <p>Error al cargar galería de imágenes</p>
+                <small>Verificando conexión con fuentes satelitales...</small>
+            </div>
+        `;
+    }
+}
                 
                 <div class="gallery-source">
                     <div>
@@ -1308,53 +1279,49 @@ function loadSatelliteGallery() {
     `).join('');
 }
 
-function loadAnalysisTimeline() {
+async function loadAnalysisTimeline() {
     const container = document.getElementById('analysis-timeline');
     
-    const timelineItems = [
-        {
-            time: '14:23',
-            event: 'Detección de convoy militar confirmada',
-            status: 'completed'
-        },
-        {
-            time: '13:45',
-            event: 'Análisis de infraestructura completado',
-            status: 'completed'
-        },
-        {
-            time: '13:15',
-            event: 'Procesamiento de imágenes Sentinel-2',
-            status: 'processing'
-        },
-        {
-            time: '12:30',
-            event: 'Validación cruzada con fuentes OSINT',
-            status: 'completed'
-        },
-        {
-            time: '11:45',
-            event: 'Actualización de modelos de IA',
-            status: 'completed'
+    try {
+        const response = await fetch('/api/satellite/analysis-timeline');
+        const data = await response.json();
+        
+        if (data.success && data.timeline_items && data.timeline_items.length > 0) {
+            container.innerHTML = data.timeline_items.map(item => `
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-white small">${item.event}</div>
+                            <div class="text-muted small">${item.time}</div>
+                        </div>
+                        <div class="mt-1">
+                            <span class="badge ${item.status === 'completed' ? 'bg-success' : 'bg-warning'}">
+                                ${item.status === 'completed' ? 'Completado' : 'En Proceso'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <p>No hay eventos recientes en el timeline</p>
+                    <small>Esperando nuevos análisis...</small>
+                </div>
+            `;
         }
-    ];
-    
-    container.innerHTML = timelineItems.map(item => `
-        <div class="timeline-item">
-            <div class="timeline-marker"></div>
-            <div class="timeline-content">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-white small">${item.event}</div>
-                    <div class="text-muted small">${item.time}</div>
-                </div>
-                <div class="mt-1">
-                    <span class="badge ${item.status === 'completed' ? 'bg-success' : 'bg-warning'}">
-                        ${item.status === 'completed' ? 'Completado' : 'En Proceso'}
-                    </span>
-                </div>
+    } catch (error) {
+        console.error('Error loading analysis timeline:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Error al cargar timeline</p>
+                <small>Verificando sistemas de análisis...</small>
             </div>
-        </div>
-    `).join('');
+        `;
+    }
 }
 
 function getDetectionTypeLabel(type) {
@@ -1383,44 +1350,85 @@ function formatTimestamp(timestamp) {
     }
 }
 
-function updateAnalysis() {
+async function updateAnalysis() {
     // Show loading state
     const button = event.target;
     const originalText = button.innerHTML;
     button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Actualizando...';
     button.disabled = true;
     
-    // Simulate analysis update
-    setTimeout(() => {
-        loadRecentDetections();
-        loadCriticalAlerts();
-        updateStatistics();
+    try {
+        // Refresh all data from APIs
+        await Promise.all([
+            loadRecentDetections(),
+            loadCriticalAlerts(),
+            loadRealTimeStatistics(),
+            loadSatelliteGallery(),
+            loadEvolutionPredictions(),
+            loadAnalysisTimeline(),
+            loadModelPerformance()
+        ]);
         
         // Reset button
         button.innerHTML = originalText;
         button.disabled = false;
         
         // Show success message
-        showNotification('Análisis actualizado correctamente', 'success');
-    }, 2000);
+        showNotification('Análisis actualizado desde APIs satelitales', 'success');
+    } catch (error) {
+        console.error('Error updating analysis:', error);
+        
+        // Reset button
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Show error message
+        showNotification('Error al actualizar análisis - Verificando conexión con APIs', 'error');
+    }
 }
 
-function simulateWebSocketConnection() {
-    // Simulate WebSocket messages for real-time updates
-    setInterval(() => {
-        if (Math.random() > 0.8) { // 20% chance
-            const events = [
-                'Nueva detección militar confirmada',
-                'Análisis de cambio temporal completado',
-                'Alerta de infraestructura crítica',
-                'Validación cruzada exitosa',
-                'Modelo de IA actualizado'
-            ];
+function initializeRealWebSocketConnection() {
+    // Initialize real WebSocket connection for satellite data updates
+    try {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${protocol}//${window.location.host}/ws/satellite-updates`);
+        
+        ws.onopen = function(event) {
+            console.log('🛰️ WebSocket connected to satellite data stream');
+            showNotification('Conectado al feed satelital en tiempo real', 'success');
+        };
+        
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
             
-            const randomEvent = events[Math.floor(Math.random() * events.length)];
-            showNotification(randomEvent, 'info');
-        }
-    }, 15000); // Check every 15 seconds
+            if (data.type === 'new_detection') {
+                showNotification(`Nueva detección: ${data.message}`, 'info');
+                loadRecentDetections(); // Refresh detections
+            } else if (data.type === 'alert') {
+                showNotification(data.message, 'warning');
+                loadCriticalAlerts(); // Refresh alerts
+            } else if (data.type === 'statistics_update') {
+                loadRealTimeStatistics(); // Refresh statistics
+            }
+        };
+        
+        ws.onclose = function(event) {
+            console.log('🛰️ WebSocket disconnected from satellite data stream');
+            showNotification('Conexión con feed satelital perdida - Reintentando...', 'warning');
+            
+            // Attempt to reconnect after 5 seconds
+            setTimeout(initializeRealWebSocketConnection, 5000);
+        };
+        
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+            showNotification('Error en conexión con APIs satelitales', 'error');
+        };
+        
+    } catch (error) {
+        console.error('Error initializing WebSocket:', error);
+        showNotification('WebSocket no disponible - Usando actualizaciones periódicas', 'warning');
+    }
 }
 
 function showNotification(message, type = 'info') {
