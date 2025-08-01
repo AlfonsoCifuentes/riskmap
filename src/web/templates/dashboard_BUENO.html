@@ -34,6 +34,7 @@
         z-index: 1;
         display: flex;
         flex-direction: column;
+        
         min-height: calc(100vh - 80px);
         background: rgba(10, 15, 44, 0.08);
         backdrop-filter: blur(2px);
@@ -44,7 +45,7 @@
     .dashboard-content {
         max-width: 96%;
         margin: 0 auto !important;
-        margin-top: 0 !important;
+        margin-top: -80px !important;
         padding: 0 20px;
         width: 100%;
         box-sizing: border-box;
@@ -58,7 +59,7 @@
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        margin-bottom: 0;
+        
         top: -80px;
         z-index: 0;
         background: transparent;
@@ -69,7 +70,7 @@
         text-align: center;
         margin: 0;
         color: #fff;
-        padding: 180px 0 100px 0;
+        padding: 180px 0 80px 0; /* Aumentado el padding inferior para dar espacio al news-stats */
         width: 100%;
         position: relative;
         background: linear-gradient(135deg, rgba(26, 32, 64, 0.75) 0%, rgba(16, 24, 48, 0.8) 50%, rgba(20, 28, 56, 0.75) 100%);
@@ -108,6 +109,9 @@
         margin: 0;
         width: 100%;
         position: relative;
+        left: 0;
+        right: 0;
+        z-index: 10;
     }
     
     .news-stat-card {
@@ -416,7 +420,7 @@
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        margin-top: 0 !important;
+        margin-top: -60 !important;
         padding: 0;
         background: transparent;
         z-index: 1;
@@ -653,11 +657,14 @@
     <!-- Header and Statistics -->
     <div class="header-stats-container">
         <div class="page-header">
-            <h1 class="page-title">Tablero Geopolítico</h1>
-            <div class="page-subtitle">Análisis en tiempo real del panorama geopolítico mundial</div>
-            
-            <!-- Statistics Grid -->
-            <div class="news-stats">
+            <div>
+                <h1 class="page-title">Tablero Geopolítico</h1>
+                <div class="page-subtitle">Análisis en tiempo real del panorama geopolítico mundial</div>
+            </div>
+                        
+        </div>
+        <!-- Statistics Grid -->
+        <div class="news-stats">
                 <div class="news-stat-card">
                     <div class="stat-icon">📰</div>
                     <div class="stat-value" id="total-articles">{{ total_articles | default(0) }}</div>
@@ -679,138 +686,33 @@
                     <div class="stat-label">Fuentes Activas</div>
                 </div>
             </div>
-        </div>
     </div>
 
     <!-- Dashboard Content -->
     <div class="dashboard-content">
-        <!-- High Risk Articles Section -->
-        <section class="news-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
-                    Alertas de Alto Riesgo
-                </h2>
-                <div class="section-controls">
-                    <button class="btn-control active" onclick="filterHighRisk('all', this)">Todas</button>
-                    <button class="btn-control" onclick="filterHighRisk('military', this)">Militares</button>
-                    <button class="btn-control" onclick="filterHighRisk('political', this)">Políticas</button>
-                    <button class="btn-control" onclick="filterHighRisk('economic', this)">Económicas</button>
+
+
+
+
+        <!-- News Mosaic Section - Full Width -->
+        <section class="news-mosaic-section">
+            <div class="mosaic-controls-container">
+                <div class="mosaic-controls">
+                    <button class="btn-control active" onclick="loadMosaic('importance', this)">Por Importancia</button>
+                    <button class="btn-control" onclick="loadMosaic('geographic', this)">Por Región</button>
+                    <button class="btn-control" onclick="loadMosaic('temporal', this)">Por Tiempo</button>
+                    <button class="btn-control" onclick="loadMosaic('risk', this)">Por Riesgo</button>
                 </div>
             </div>
-            <div class="high-risk-grid" id="high-risk-articles">
-                {% if high_risk_articles %}
-                    {% for article in high_risk_articles %}
-                    <div class="high-risk-card" data-category="{{ article.conflict_type | default('general') }}">
-                        <h3 class="high-risk-title">{{ article.title }}</h3>
-                        <p class="high-risk-description">{{ article.summary or article.content[:200] + '...' }}</p>
-                        <div class="high-risk-meta">
-                            <span class="high-risk-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                {{ article.country or article.region or 'Global' }}
-                            </span>
-                            <span class="high-risk-badge">{{ article.risk_level | default('high') | upper }}</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="high-risk-card">
-                        <h3 class="high-risk-title">No hay alertas críticas en este momento</h3>
-                        <p class="high-risk-description">El sistema está monitoreando constantemente las fuentes de noticias para identificar eventos de alto riesgo.</p>
-                        <div class="high-risk-meta">
-                            <span class="high-risk-location">
-                                <i class="fas fa-shield-alt"></i>
-                                Estado: Monitoreo Activo
-                            </span>
-                            <span class="high-risk-badge">OK</span>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-        </section>
-
-        <!-- Latest Articles Section -->
-        <section class="news-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-clock" style="color: #46ead7;"></i>
-                    Últimas Noticias Analizadas
-                </h2>
-                <div class="section-controls">
-                    <button class="btn-control active" onclick="filterLatest('all', this)">Todas</button>
-                    <button class="btn-control" onclick="filterLatest('today', this)">Hoy</button>
-                    <button class="btn-control" onclick="filterLatest('week', this)">Esta Semana</button>
-                    <button class="btn-control" onclick="refreshLatest()">Actualizar</button>
+            
+            <div class="news-mosaic-container" id="news-mosaic">
+                <div class="mosaic-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div>Cargando mosaico de noticias...</div>
                 </div>
             </div>
-            <div class="latest-articles-grid" id="latest-articles">
-                {% if latest_articles %}
-                    {% for article in latest_articles %}
-                    <div class="latest-article-card" data-date="{{ article.published_at or article.created_at }}">
-                        <div class="latest-article-content">
-                            <h3 class="latest-article-title">{{ article.title }}</h3>
-                            <p class="latest-article-description">{{ article.summary or article.content[:150] + '...' }}</p>
-                            <div class="latest-article-meta">
-                                <span class="latest-article-meta-item">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    {{ article.country or article.region or 'Global' }}
-                                </span>
-                                <span class="latest-article-meta-item">
-                                    <i class="fas fa-newspaper"></i>
-                                    {{ article.source or 'Fuente Desconocida' }}
-                                </span>
-                                <span class="latest-article-meta-item">
-                                    <i class="fas fa-clock"></i>
-                                    {{ article.published_at or article.created_at or 'Fecha desconocida' }}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="latest-article-sidebar">
-                            <span class="latest-risk-badge {{ article.risk_level | default('low') }}">
-                                {{ article.risk_level | default('low') | upper }}
-                            </span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="latest-article-card">
-                        <div class="latest-article-content">
-                            <h3 class="latest-article-title">No hay artículos recientes disponibles</h3>
-                            <p class="latest-article-description">El sistema está procesando nuevas fuentes de noticias. Por favor, actualice en unos minutos.</p>
-                            <div class="latest-article-meta">
-                                <span class="latest-article-meta-item">
-                                    <i class="fas fa-sync-alt"></i>
-                                    Sistema en proceso de análisis
-                                </span>
-                            </div>
-                        </div>
-                        <div class="latest-article-sidebar">
-                            <span class="latest-risk-badge low">INFO</span>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
         </section>
-    </div>
-
-    <!-- News Mosaic Section - Full Width -->
-    <section class="news-mosaic-section">
-        <div class="mosaic-controls-container">
-            <div class="mosaic-controls">
-                <button class="btn-control active" onclick="loadMosaic('importance', this)">Por Importancia</button>
-                <button class="btn-control" onclick="loadMosaic('geographic', this)">Por Región</button>
-                <button class="btn-control" onclick="loadMosaic('temporal', this)">Por Tiempo</button>
-                <button class="btn-control" onclick="loadMosaic('risk', this)">Por Riesgo</button>
-            </div>
-        </div>
-        
-        <div class="news-mosaic-container" id="news-mosaic">
-            <div class="mosaic-loading">
-                <i class="fas fa-spinner fa-spin"></i>
-                <div>Cargando mosaico de noticias...</div>
-            </div>
-        </div>
-    </section>
+    </div>    
 </div>
 
 {% block dashboard_js %}

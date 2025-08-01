@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Video Vigilancia Inteligente - Análisis Geopolítico</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-red: #ff0000;
+            --secondary-red: #cc0000;
+            --dark-bg: #0a0a0a;
+            --card-bg: rgba(26, 35, 50, 0.95);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .navbar {
+            background: linear-gradient(90deg, rgba(0,0,0,0.9), rgba(26,35,50,0.9));
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--primary-red);
+        }
+        
+        .navbar-brand {
+            color: var(--primary-red) !important;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255,0,0,0.3);
+        }
+        
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 0, 0, 0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-red), transparent);
+            opacity: 0.6;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(255, 0, 0, 0.2);
+            border-color: var(--primary-red);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
+            padding: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,0,0,0.1)"><polygon points="0,100 1000,0 1000,100"/></svg>');
+            background-size: cover;
+        }
+        
+        .camera-feed {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 16/9;
+            border: 2px solid rgba(255, 0, 0, 0.3);
+            cursor: pointer;
+        }
+        
+        .camera-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: linear-gradient(45deg, #111, #222);
+            color: #666;
+            transition: all 0.3s ease;
+        }
+        
+        .camera-placeholder:hover {
+            color: var(--primary-red);
+            background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+        }
+        
+        .camera-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.5rem;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-live { background: #00ff00; }
+        .status-recording { background: var(--primary-red); }
+        .status-offline { background: #666; }
+        .status-processing { background: #ffa500; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .detection-box {
+            position: absolute;
+            border: 2px solid var(--primary-red);
+            background: rgba(255, 0, 0, 0.1);
+            border-radius: 4px;
+            animation: pulse-detection 2s infinite;
+        }
+        
+        @keyframes pulse-detection {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        
+        .detection-label {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: var(--primary-red);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .stat-card {
+            background: linear-gradient(145deg, rgba(26, 35, 50, 0.9) 0%, rgba(15, 20, 25, 0.8) 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 0, 0, 0.2);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-red);
+            margin: 0.5rem 0;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        
+        .stat-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .camera-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        .detection-type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0.2rem;
+        }
+        
+        .detection-military {
+            background: rgba(255, 0, 0, 0.2);
+            color: var(--primary-red);
+            border: 1px solid var(--primary-red);
+        }
+        
+        .detection-crowd {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+            border: 1px solid #ffa500;
+        }
+        
+        .detection-disaster {
+            background: rgba(255, 69, 0, 0.2);
+            color: #ff4500;
+            border: 1px solid #ff4500;
+        }
+        
+        .detection-traffic {
+            background: rgba(0, 191, 255, 0.2);
+            color: #00bfff;
+            border: 1px solid #00bfff;
+        }
+        
+        .detection-suspicious {
+            background: rgba(138, 43, 226, 0.2);
+            color: #8a2be2;
+            border: 1px solid #8a2be2;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-red), var(--secondary-red));
+            border: none;
+            border-radius: 25px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
+            background: linear-gradient(45deg, #ff3333, var(--primary-red));
+        }
+        
+        .form-control {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .form-control:focus {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: var(--primary-red);
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+            color: white;
+        }
+        
+        .form-select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: white;
+        }
+        
+        .real-time-feed {
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        
+        .feed-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-red);
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .feed-time {
+            color: var(--primary-red);
+            font-size: 0.8rem;
+            margin-right: 1rem;
+            min-width: 60px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .ai-model-badge {
+            background: linear-gradient(45deg, var(--primary-red), var(--secondary-red));
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin: 0.2rem;
+            display: inline-block;
+        }
+        
+        .confidence-meter {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4500, #ffa500, #00ff00);
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+        
+        .source-info {
+            background: rgba(255, 0, 0, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            margin: 1rem 0;
+        }
+        
+        .coordinates {
+            font-family: 'Courier New', monospace;
+            color: var(--primary-red);
+            font-weight: 600;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .tab-content {
+            margin-top: 2rem;
+        }
+        
+        .nav-tabs .nav-link {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: rgba(255, 255, 255, 0.7);
+            margin-right: 0.5rem;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: var(--primary-red);
+            color: white;
+        }
+        
+        .progress {
+            background: rgba(255, 255, 255, 0.1);
+            height: 8px;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-red), #ff6666);
+        }
+        
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 0, 0, 0.2);
+        }
+        
+        .modal-footer {
+            border-top: 1px solid rgba(255, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .camera-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .hero-section {
+                padding: 2rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-video me-2"></i>
+                SURVEIL-AI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#cameras">Cámaras</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#analytics">Análisis</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#alerts">Alertas</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section" id="dashboard">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-3">
+                        <i class="fas fa-video me-3" style="color: var(--primary-red);"></i>
+                        Sistema de Video Vigilancia Inteligente
+                    </h1>
+                    <p class="lead mb-4">
+                        Análisis automatizado en tiempo real de feeds de video públicos utilizando IA avanzada 
+                        para detectar eventos geopolíticos, amenazas de seguridad y situaciones de emergencia.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <span class="ai-model-badge">YOLOv8</span>
+                        <span class="ai-model-badge">EfficientDet</span>
+                        <span class="ai-model-badge">Vision Transformers</span>
+                        <span class="ai-model-badge">OpenCV DNN</span>
+                        <span class="ai-model-badge">Object Tracking</span>
+                    </div>
+                    <button class="btn btn-primary me-3" onclick="startMonitoring()">
+                        <i class="fas fa-play me-2"></i>
+                        Iniciar Monitoreo
+                    </button>
+                    <button class="btn btn-outline-light" onclick="showSystemInfo()">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Información del Sistema
+                    </button>
+                </div>
+                <div class="col-lg-4">
+                    <div class="glass-card p-4 text-center">
+                        <h3 class="mb-3">Estado del Sistema</h3>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span>Feeds Activos</span>
+                            <div class="d-flex align-items-center">
+                                <div class="status-indicator status-live"></div>
+                                <span class="text-success">Online</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span>Análisis IA</span>
+                            <div class="d-flex align-items-center">
+                                <div class="status-indicator status-processing"></div>
+                                <span class="text-warning">Procesando</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span>Grabación</span>
+                            <div class="d-flex align-items-center">
+                                <div class="status-indicator status-recording"></div>
+                                <span class="text-danger">Activa</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Dashboard -->
+    <section class="container my-5">
+        <div class="glass-card p-4">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="active-cameras">0</div>
+                    <div class="stat-label">Cámaras Activas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="detections-today">0</div>
+                    <div class="stat-label">Detecciones Hoy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="alerts-generated">0</div>
+                    <div class="stat-label">Alertas Generadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="processing-fps">0</div>
+                    <div class="stat-label">FPS Procesamiento</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <!-- Camera Feeds -->
+            <div class="col-lg-8" id="cameras">
+                <div class="glass-card p-4">
+                    <h3 class="mb-4">
+                        <i class="fas fa-camera me-2" style="color: var(--primary-red);"></i>
+                        Feeds de Video en Tiempo Real
+                    </h3>
+                    
+                    <!-- Camera Filter Tabs -->
+                    <ul class="nav nav-tabs mb-4" id="cameraTypeTab">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#all-cameras">
+                                Todas
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#urban-cameras">
+                                Urbanas
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#infrastructure-cameras">
+                                Infraestructura
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#border-cameras">
+                                Fronteras
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="all-cameras">
+                            <div class="camera-grid" id="camera-feeds">
+                                <!-- Camera feeds will be populated by JavaScript -->
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="urban-cameras">
+                            <div class="camera-grid" id="urban-camera-feeds">
+                                <!-- Urban camera feeds -->
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="infrastructure-cameras">
+                            <div class="camera-grid" id="infrastructure-camera-feeds">
+                                <!-- Infrastructure camera feeds -->
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="border-cameras">
+                            <div class="camera-grid" id="border-camera-feeds">
+                                <!-- Border camera feeds -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls & Real-time Feed -->
+            <div class="col-lg-4">
+                <!-- Controls Panel -->
+                <div class="glass-card p-4 mb-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-sliders-h me-2" style="color: var(--primary-red);"></i>
+                        Controles de Análisis
+                    </h4>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-danger">Región de Monitoreo</label>
+                        <select class="form-select" id="region-selector">
+                            <option value="global">Global</option>
+                            <option value="europe">Europa</option>
+                            <option value="middle-east">Medio Oriente</option>
+                            <option value="asia-pacific">Asia-Pacífico</option>
+                            <option value="americas">Américas</option>
+                            <option value="africa">África</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-danger">Tipo de Detección</label>
+                        <select class="form-select" id="detection-type">
+                            <option value="all">Todas las Detecciones</option>
+                            <option value="military">Actividad Militar</option>
+                            <option value="crowd">Multitudes/Manifestaciones</option>
+                            <option value="disaster">Desastres Naturales</option>
+                            <option value="traffic">Anomalías de Tráfico</option>
+                            <option value="suspicious">Actividad Sospechosa</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-danger">Umbral de Confianza: <span id="confidence-value">80%</span></label>
+                        <input type="range" class="form-range" id="confidence-threshold" min="50" max="100" value="80">
+                    </div>
+                    
+                    <button class="btn btn-primary w-100" onclick="updateAnalysis()">
+                        <i class="fas fa-sync-alt me-2"></i>
+                        Actualizar Análisis
+                    </button>
+                </div>
+
+                <!-- Real-time Detection Feed -->
+                <div class="glass-card p-4" id="alerts">
+                    <h4 class="mb-3">
+                        <i class="fas fa-rss me-2" style="color: var(--primary-red);"></i>
+                        Detecciones en Tiempo Real
+                    </h4>
+                    
+                    <div class="real-time-feed" id="real-time-detections">
+                        <!-- Detection items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="row mt-5" id="analytics">
+            <div class="col-lg-6">
+                <div class="glass-card p-4">
+                    <h3 class="mb-4">
+                        <i class="fas fa-brain me-2" style="color: var(--primary-red);"></i>
+                        Rendimiento de Modelos IA
+                    </h3>
+                    <div id="model-performance">
+                        <!-- Model performance metrics -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="glass-card p-4">
+                    <h3 class="mb-4">
+                        <i class="fas fa-history me-2" style="color: var(--primary-red);"></i>
+                        Historial de Detecciones
+                    </h3>
+                    <div class="real-time-feed" id="detection-history">
+                        <!-- Detection history -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Sources -->
+        <div class="glass-card p-4 mt-5">
+            <h3 class="mb-4">
+                <i class="fas fa-database me-2" style="color: var(--primary-red);"></i>
+                Fuentes de Video y Cobertura
+            </h3>
+            
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="source-info">
+                        <h5>Cámaras Urbanas</h5>
+                        <p class="text-muted small">CCTV municipales, tráfico, transporte</p>
+                        <div class="coordinates">Feeds: RTSP/HTTP</div>
+                        <div class="coordinates">Resolución: 1080p-4K</div>
+                        <div class="coordinates">Cobertura: 156 ciudades</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="source-info">
+                        <h5>Infraestructura Crítica</h5>
+                        <p class="text-muted small">Puertos, aeropuertos, plantas eléctricas</p>
+                        <div class="coordinates">Feeds: HLS/RTMP</div>
+                        <div class="coordinates">Resolución: 720p-1080p</div>
+                        <div class="coordinates">Cobertura: 89 instalaciones</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="source-info">
+                        <h5>Webcams Ambientales</h5>
+                        <p class="text-muted small">Volcanes, costas, montañas, ríos</p>
+                        <div class="coordinates">Feeds: HTTP/WebRTC</div>
+                        <div class="coordinates">Resolución: 480p-1080p</div>
+                        <div class="coordinates">Cobertura: 234 ubicaciones</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="source-info">
+                        <h5>Fuentes Internacionales</h5>
+                        <p class="text-muted small">ONU, USGS, EarthCam, SkylineWebcams</p>
+                        <div class="coordinates">Feeds: Múltiples protocolos</div>
+                        <div class="coordinates">Resolución: Variable</div>
+                        <div class="coordinates">Cobertura: Global
