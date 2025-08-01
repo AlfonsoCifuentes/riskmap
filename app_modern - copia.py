@@ -223,11 +223,6 @@ def index():
     """Render the main dashboard."""
     return render_template('dashboard_BUENO.html')
 
-@app.route('/dashboard')
-def dashboard():
-    """Render the dashboard page."""
-    return render_template('dashboard_BUENO.html')
-
 @app.route('/news-analysis')
 def news_analysis():
     """Render the news analysis page (original dashboard)."""
@@ -340,70 +335,6 @@ def get_dashboard_stats():
             },
             'alerts': [],
             'events': []
-        })
-
-@app.route('/api/system/status')
-def get_system_status():
-    """Get system status information for the dashboard."""
-    try:
-        logger.info("Checking system status...")
-        
-        # Check database connection
-        db_status = True
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT 1")
-            conn.close()
-        except Exception as e:
-            logger.error(f"Database connection error: {e}")
-            db_status = False
-        
-        # Check scheduler status
-        scheduler_status = scheduler_available and (scheduler_bg is not None and scheduler_bg.running if scheduler_bg else False)
-        
-        # System uptime (simplified)
-        uptime = "Running"
-        
-        # Overall system status
-        system_running = db_status
-        
-        result = {
-            'success': True,
-            'system_state': {
-                'system_status': 'running' if system_running else 'offline',
-                'database_status': 'connected' if db_status else 'disconnected',
-                'scheduler_status': 'active' if scheduler_status else 'inactive',
-                'uptime': uptime,
-                'timestamp': datetime.now().isoformat()
-            },
-            'components': {
-                'database': db_status,
-                'scheduler': scheduler_status,
-                'api': True
-            }
-        }
-        
-        logger.info(f"System status: {result['system_state']['system_status']}")
-        return jsonify(result)
-        
-    except Exception as e:
-        logger.error(f"Error getting system status: {e}")
-        return jsonify({
-            'success': False,
-            'system_state': {
-                'system_status': 'error',
-                'database_status': 'unknown',
-                'scheduler_status': 'unknown',
-                'uptime': 'unknown',
-                'timestamp': datetime.now().isoformat(),
-                'error': str(e)
-            },
-            'components': {
-                'database': False,
-                'scheduler': False,
-                'api': True
-            }
         })
 
 @app.route('/api/articles')

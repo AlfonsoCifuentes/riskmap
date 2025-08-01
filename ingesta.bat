@@ -1,0 +1,2 @@
+python run_full_rss_ingestion.py
+python process_all_articles_nlp.py

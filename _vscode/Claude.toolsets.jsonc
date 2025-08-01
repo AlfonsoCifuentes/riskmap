@@ -1,0 +1,179 @@
+{
+  "CorePython": {
+    "tools": [
+      "ipython>=8.0.0",
+      "black>=24.0.0",
+      "ruff>=0.12.0",
+      "mypy>=1.8.0",
+      "pydantic>=2.5.0",
+      "pytest>=8.0.0",
+      "pre-commit>=3.6.0"
+    ],
+    "description": "Base robusta de desarrollo: intérprete moderno, formateo, linting y tipado estricto para reducir bugs al mínimo.",
+    "icon": "code",
+    "priority": "high",
+    "category": "core"
+  },
+
+  "DataManipulation": {
+    "tools": [
+      "numpy",
+      "pandas",
+      "polars",
+      "pyarrow",
+      "scipy",
+      "statsmodels",
+      "tabulate"
+    ],
+    "description": "Manipulación vectorizada, DataFrames en memoria y en columna, estadísticas y álgebra lineal a escala.",
+    "icon": "table_chart"
+  },
+
+  "BigDataDistributed": {
+    "tools": [
+      "pyspark",
+      "dask[complete]",
+      "ray",
+      "modin[all]",
+      "rapidsai-cudf",
+      "duckdb",
+      "clickhouse-connect"
+    ],
+    "description": "Procesamiento masivo en clúster, GPU y bases columnar in-process para consultas interactive-SQL.",
+    "icon": "database"
+  },
+
+  "MachineLearning": {
+    "tools": [
+      "scikit-learn>=1.4.0",
+      "xgboost>=2.0.0",
+      "lightgbm>=4.3.0",
+      "catboost>=1.2.0"
+    ],
+    "description": "Clásicos supervisados/unsupervisados optimizados y AutoML para entrega rápida de modelos tabulares.",
+    "icon": "analytics"
+  },
+
+  "DeepLearning": {
+    "tools": [
+      "torch>=2.2.0",
+      "tensorflow>=2.16.0",
+      "jax>=0.4.0",
+      "keras>=3.0.0",
+      "onnxruntime>=1.17.0",
+      "torchmetrics>=1.3.0",
+      "lightning>=2.2.0"
+    ],
+    "description": "Frameworks de redes neuronales con soporte multimodal, entrenamiento distribuido y cuantización/LoRA out-of-the-box.",
+    "icon": "brain"
+  },
+
+  "NLP_LLM": {
+    "tools": [
+      "transformers",
+      "sentencepiece",
+      "accelerate",
+      "trl",
+      "ragas",
+      "langchain",
+      "llama-index"
+    ],
+    "description": "Stack completo para LLMs, RAG, fine-tuning, RLHF y evaluación de calidad de respuestas.",
+    "icon": "chat"
+  },
+
+  "ComputerVision": {
+    "tools": [
+      "opencv-python",
+      "torchvision",
+      "ultralytics",
+      "mmdet",
+      "supervision",
+      "mediapipe",
+      "open3d"
+    ],
+    "description": "Procesamiento de imagen/vídeo en tiempo real, detección, segmentación y 3D point-cloud magic.",
+    "icon": "eye"
+  },
+
+  "AudioSpeech": {
+    "tools": [
+      "librosa",
+      "torchaudio",
+      "speechbrain",
+      "whisperx"
+    ],
+    "description": "Análisis espectral, síntesis y transcripción con modelos state-of-the-art.",
+    "icon": "hearing"
+  },
+
+  "ReinforcementLearning": {
+    "tools": [
+      "stable-baselines3",
+      "rllib",
+      "gymnasium",
+      "pettingzoo",
+      "ray[tune]"
+    ],
+    "description": "Entrena agentes single- y multi-agent con logging, hyper-tuning y simuladores listos para producción.",
+    "icon": "sports_esports"
+  },
+
+  "GenerativeArt": {
+    "tools": [
+      "diffusers",
+      "comfyui",
+      "py5",
+      "samila",
+      "manim",
+      "pillow",
+      "cairo",
+      "plotly",
+      "bokeh"
+    ],
+    "description": "Desde gráficos interactivos hasta arte algorítmico y difusión estable; perfecto para obras NFT o visualizaciones cinemáticas.",
+    "icon": "palette"
+  },
+
+  "Visualization_Dashboards": {
+    "tools": [
+      "matplotlib",
+      "seaborn",
+      "plotly",
+      "altair",
+      "streamlit",
+      "dash",
+      "gradio",
+      "panel"
+    ],
+    "description": "Gráficos estáticos e interactivos, prototipado de apps y front-end de IA en minutos.",
+    "icon": "bar_chart"
+  },
+
+  "MLOps_Deployment": {
+    "tools": [
+      "mlflow",
+      "wandb",
+      "bentoml",
+      "fastapi",
+      "docker",
+      "kubernetes",
+      "terraform"
+    ],
+    "description": "Tracking de experimentos, empaquetado y escalado en contenedores y nube para poner modelos en producción sin drama.",
+    "icon": "rocket_launch"
+  },
+
+  "DevOps_Automation": {
+    "tools": [
+      "pre-commit",
+      "git-lfs",
+      "gitlab-ci",
+      "github-actions",
+      "codeql",
+      "snyk"
+    ],
+    "description": "Seguridad, CI/CD y calidad de código integrados con GitHub Copilot para feedback continuo.",
+    "icon": "settings"
+  }
+}
