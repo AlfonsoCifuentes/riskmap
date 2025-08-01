@@ -989,51 +989,102 @@
 let currentFilter = 'all';
 let mosaicData = [];
 let currentNewsSet = 0; // Track which news set we're showing
-let totalNewsSets = 3; // Total number of news sets available (3 diseños)
+let totalNewsSets = 4; // Total number of news sets available (4 diseños)
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
+    loadRealNewsData();  // Cargar datos reales primero
     loadHeroArticle();
     loadMosaic('importance', null);  // Pass null for initial load
     updateStatistics();
     
     // Auto-refresh every 5 minutes
     setInterval(function() {
+        loadRealNewsData();  // Recargar datos reales
         updateStatistics();
         loadHeroArticle();
         refreshLatest();
     }, 300000);
 });
 
+// Cargar datos reales de la API
+function loadRealNewsData() {
+    fetch('/api/articles?limit=40')  // Cargar suficientes artículos para 4+ sets
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.articles) {
+                window.realNewsData = data.articles;
+                console.log(`✅ Cargados ${data.articles.length} artículos reales de la base de datos`);
+            } else {
+                console.warn('No se pudieron cargar artículos reales, usando datos mock');
+                window.realNewsData = [];
+            }
+        })
+        .catch(error => {
+            console.error('Error cargando datos reales:', error);
+            window.realNewsData = [];
+        });
+}
+
 // Load hero article (most important news)
 function loadHeroArticle() {
-    // This would typically fetch from your API endpoint
-    // For now, we'll use sample data with high importance
+    // Fetch real data from our API
+    fetch('/api/hero-article')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.article) {
+                const heroArticle = data.article;
+                
+                // Update hero article content
+                document.getElementById('hero-title').textContent = heroArticle.title;
+                document.getElementById('hero-text').textContent = heroArticle.text;
+                document.getElementById('hero-location-text').textContent = heroArticle.location;
+                
+                // Update risk badge
+                const riskBadge = document.getElementById('hero-risk-badge');
+                riskBadge.className = `hero-risk-badge ${heroArticle.risk}`;
+                riskBadge.textContent = heroArticle.risk.toUpperCase().replace('_', ' ') + ' RIESGO';
+                
+                // Update background image
+                document.getElementById('hero-article').style.backgroundImage = `url('${heroArticle.image}')`;
+            } else {
+                console.warn('No se pudo cargar el artículo héroe, usando datos de fallback');
+                loadHeroArticleFallback();
+            }
+        })
+        .catch(error => {
+            console.error('Error cargando artículo héroe:', error);
+            loadHeroArticleFallback();
+        });
+}
+
+function loadHeroArticleFallback() {
+    // Fallback data if API fails
     const heroArticles = [
         {
             title: "Crisis diplomática escalas en Europa Oriental con implicaciones globales",
-            text: "Los últimos desarrollos han intensificado las preocupaciones sobre la estabilidad regional, con movimientos militares que sugieren una preparación para posibles acciones de mayor envergadura. Los analistas internacionales observan con atención las respuestas de las principales potencias mundiales.",
+            text: "Los últimos desarrollos han intensificado las preocupaciones sobre la estabilidad regional, con movimientos militares que sugieren una preparación para posibles acciones de mayor envergadura.",
             location: "Europa Oriental",
             risk: "high",
             image: "https://picsum.photos/1920/800?random=hero1"
         },
         {
             title: "Tensiones comerciales amenazan la estabilidad económica mundial",
-            text: "Las nuevas restricciones comerciales han generado ondas de choque en los mercados globales, con preocupaciones crecientes sobre una posible guerra comercial que podría afectar las cadenas de suministro internacionales y el crecimiento económico mundial.",
+            text: "Las nuevas restricciones comerciales han generado ondas de choque en los mercados globales, con preocupaciones crecientes sobre una posible guerra comercial.",
             location: "Global",
             risk: "high", 
             image: "https://picsum.photos/1920/800?random=hero2"
         },
         {
             title: "Desarrollos críticos en el Medio Oriente alteran el equilibrio regional",
-            text: "Los eventos recientes han reconfigurado las alianzas tradicionales en la región, con implicaciones significativas para la seguridad energética global y las rutas comerciales estratégicas que conectan Europa, Asia y África.",
+            text: "Los eventos recientes han reconfigurado las alianzas tradicionales en la región, con implicaciones significativas para la seguridad energética global.",
             location: "Medio Oriente",
             risk: "critical",
             image: "https://picsum.photos/1920/800?random=hero3"
         }
     ];
     
-    // Simulate API call - select random hero article
+    // Select random hero article
     const heroArticle = heroArticles[Math.floor(Math.random() * heroArticles.length)];
     
     // Update hero article content
@@ -1170,7 +1221,21 @@ function generateMosaicTiles(mode) {
             // Set 1: Diseño original (7 noticias)
             sizeClass = `size-${(index % 12) + 1}`;
         } else if (currentNewsSet === 1) {
-            // Set 2: Diseño puzzle - Rejilla 3x4 (12 cuadrados) perfectamente rellenada
+            // Set 2: NUEVO DISEÑO DEL USUARIO - Rejilla 3x4 (12 cuadrados) 
+            // Basado en la nueva imagen proporcionada
+            const newUserPattern = [
+                'size-puzzle-single',  // Art 1: 1 cuadrado 
+                'size-puzzle-single',  // Art 2: 1 cuadrado  
+                'size-puzzle-single',  // Art 3: 1 cuadrado
+                'size-puzzle-single',  // Art 4: 1 cuadrado
+                'size-puzzle-big',     // Art 5: 4 cuadrados (grande)
+                'size-puzzle-wide',    // Art 6: 2 cuadrados (ancho)
+                'size-puzzle-wide'     // Art 7: 2 cuadrados (ancho)
+                // TOTAL: 1 + 1 + 1 + 1 + 4 + 2 + 2 = 12 cuadrados EXACTOS
+            ];
+            sizeClass = newUserPattern[index] || 'size-puzzle-single';
+        } else if (currentNewsSet === 2) {
+            // Set 3: Diseño puzzle anterior - Rejilla 3x4 (12 cuadrados) 
             // 4 simples a la izquierda (4) + 1 grande a la derecha (4) + 2 anchas abajo (4) = 12 cuadrados EXACTOS
             const puzzlePattern = [
                 'size-puzzle-single',  // Art 1: 1 cuadrado (izquierda)
@@ -1183,8 +1248,8 @@ function generateMosaicTiles(mode) {
                 // TOTAL: 1 + 1 + 4 + 1 + 1 + 2 + 2 = 12 cuadrados EXACTOS
             ];
             sizeClass = puzzlePattern[index] || 'size-puzzle-single';
-        } else if (currentNewsSet === 2) {
-            // Set 3: Diseño esquema Paint - Rejilla 3x4 (12 cuadrados) según imagen
+        } else if (currentNewsSet === 3) {
+            // Set 4: Diseño esquema Paint - Rejilla 3x4 (12 cuadrados) según imagen
             // Fila 1: 2 verdes (2) + 1 azul grande (4) + 1 amarillo (1) = 7 cuadrados
             // Fila 2: (continúa azul) + 1 marrón (1) = 1 cuadrado  
             // Fila 3: 1 amarillo ancho (2) + 1 rojo (1) + 2 verdes (2) = 5 cuadrados
@@ -1245,6 +1310,36 @@ function generateMosaicTiles(mode) {
 
 // Get different news sets with perfect alignment
 function getNewsSet(setIndex) {
+    // Verificar si tenemos datos reales cargados
+    if (window.realNewsData && window.realNewsData.length > 0) {
+        return getRealNewsForSet(setIndex);
+    }
+    
+    // Fallback a datos mock si no hay datos reales
+    return getMockNewsSet(setIndex);
+}
+
+// Obtener datos reales organizados por sets
+function getRealNewsForSet(setIndex) {
+    const articlesPerSet = 7; // Cada set tiene 7 artículos
+    const startIndex = setIndex * articlesPerSet;
+    const endIndex = startIndex + articlesPerSet;
+    
+    // Obtener slice de artículos reales para este set
+    const realArticles = window.realNewsData.slice(startIndex, endIndex);
+    
+    // Si no hay suficientes artículos reales, completar con mock
+    if (realArticles.length < articlesPerSet) {
+        const mockArticles = getMockNewsSet(setIndex);
+        const needed = articlesPerSet - realArticles.length;
+        realArticles.push(...mockArticles.slice(0, needed));
+    }
+    
+    return realArticles;
+}
+
+// Función para obtener datos mock (como respaldo)
+function getMockNewsSet(setIndex) {
     const newsSets = [
         // Set 1: 7 articles - DISEÑO ORIGINAL QUE FUNCIONABA BIEN
         [
@@ -1291,7 +1386,52 @@ function getNewsSet(setIndex) {
                 image: "https://picsum.photos/400/300?random=7"
             }
         ],
-        // Set 2: 7 articles - DISEÑO PUZZLE (3x4 = 12 cuadrados completos)
+        // Set 2: 7 articles - NUEVO DISEÑO DEL USUARIO (3x4 = 12 cuadrados completos)
+        [
+            {
+                title: "Reformas estratégicas en el Sudeste Asiático",
+                location: "Sudeste Asiático",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=23"
+            },
+            {
+                title: "Alianzas energéticas en Europa Central",
+                location: "Europa Central",
+                risk: "high",
+                image: "https://picsum.photos/400/300?random=24"
+            },
+            {
+                title: "Desarrollos tecnológicos en Asia Oriental",
+                location: "Asia Oriental",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=25"
+            },
+            {
+                title: "Negociaciones comerciales en el Mediterráneo",
+                location: "Mediterráneo",
+                risk: "low",
+                image: "https://picsum.photos/400/300?random=26"
+            },
+            {
+                title: "Crisis migratoria intensifica tensiones regionales",
+                location: "Europa del Sur",
+                risk: "high",
+                image: "https://picsum.photos/400/300?random=27"
+            },
+            {
+                title: "Acuerdos de cooperación en el Atlántico Norte",
+                location: "Atlántico Norte",
+                risk: "low",
+                image: "https://picsum.photos/400/300?random=28"
+            },
+            {
+                title: "Reformas políticas en América Andina",
+                location: "América Andina",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=29"
+            }
+        ],
+        // Set 3: 7 articles - DISEÑO PUZZLE ANTERIOR (3x4 = 12 cuadrados completos)
         [
             {
                 title: "Escalada de conflictos en el Sudeste Asiático",
@@ -1336,7 +1476,7 @@ function getNewsSet(setIndex) {
                 image: "https://picsum.photos/400/300?random=14"
             }
         ],
-        // Set 3: 8 articles - DISEÑO ESQUEMA PAINT (3x4 = 12 cuadrados completos)
+        // Set 4: 8 articles - DISEÑO ESQUEMA PAINT (3x4 = 12 cuadrados completos)
         [
             {
                 title: "Tensiones diplomáticas en Asia Central",
@@ -1421,8 +1561,31 @@ function loadMoreNews() {
 
 // Update statistics
 function updateStatistics() {
-    // This would typically fetch from an API
-    // For now, we'll use sample data
+    // Fetch real statistics from API
+    fetch('/api/statistics')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const stats = data.statistics;
+                document.getElementById('total-articles').textContent = stats.total_articles || 0;
+                document.getElementById('high-risk-count').textContent = stats.risk_alerts || 0;
+                document.getElementById('countries-monitored').textContent = stats.countries_monitored || 0;
+                document.getElementById('sources-count').textContent = stats.data_sources || 0;
+                
+                console.log('✅ Estadísticas actualizadas desde la base de datos');
+            } else {
+                console.warn('Error obteniendo estadísticas, usando valores mock');
+                updateStatisticsFallback();
+            }
+        })
+        .catch(error => {
+            console.error('Error cargando estadísticas:', error);
+            updateStatisticsFallback();
+        });
+}
+
+function updateStatisticsFallback() {
+    // Fallback statistics if API fails
     const stats = {
         totalArticles: Math.floor(Math.random() * 1000) + 500,
         highRiskCount: Math.floor(Math.random() * 20) + 5,
