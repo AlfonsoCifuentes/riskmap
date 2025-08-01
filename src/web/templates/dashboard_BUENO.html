@@ -45,7 +45,7 @@
     .dashboard-content {
         max-width: 96%;
         margin: 0 auto !important;
-        margin-top: -80px !important;
+        
         padding: 0 20px;
         width: 100%;
         box-sizing: border-box;
@@ -61,6 +61,7 @@
         margin-right: -50vw;
         
         top: -80px;
+        margin-bottom: -80px;
         z-index: 0;
         background: transparent;
         border-radius: 0;
@@ -649,6 +650,184 @@
         margin-bottom: 15px;
         color: #46ead7;
     }
+
+    /* Hero Article Section - Full Width Featured Story */
+    .hero-article-section {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        margin-top: 0;
+        margin-bottom: 0;
+        padding: 0;
+        background: transparent;
+        z-index: 1;
+    }
+
+    .hero-article {
+        position: relative;
+        width: 100%;
+        height: 60vh;
+        min-height: 400px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+        border: none;
+    }
+
+    .hero-article::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0.3) 40%,
+            rgba(0, 0, 0, 0.7) 80%,
+            rgba(0, 0, 0, 0.9) 100%
+        );
+        z-index: 1;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        padding: 40px 5% 40px 5%;
+        color: white;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    .hero-title {
+        font-size: clamp(1.8rem, 4vw, 3.5rem);
+        font-weight: 700;
+        line-height: 1.2;
+        margin: 0 0 15px 0;
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
+        color: #fff;
+        max-width: 80%;
+    }
+
+    .hero-text {
+        font-size: clamp(1rem, 2vw, 1.2rem);
+        line-height: 1.6;
+        margin: 0 0 20px 0;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        max-width: 70%;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .hero-meta {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
+
+    .hero-location {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px 15px;
+        border-radius: 25px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        text-shadow: none;
+    }
+
+    .hero-risk-badge {
+        font-size: 0.9rem;
+        font-weight: 700;
+        padding: 10px 20px;
+        border-radius: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: none;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-risk-badge.high {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        color: white;
+        border-color: rgba(220, 38, 38, 0.5);
+        box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
+    }
+
+    .hero-risk-badge.medium {
+        background: linear-gradient(135deg, #d97706, #f59e0b);
+        color: white;
+        border-color: rgba(245, 158, 11, 0.5);
+        box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    .hero-risk-badge.low {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+        border-color: rgba(16, 185, 129, 0.5);
+        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .hero-risk-badge.critical {
+        background: linear-gradient(135deg, #991b1b, #dc2626);
+        color: white;
+        border-color: rgba(153, 27, 27, 0.5);
+        box-shadow: 0 4px 20px rgba(153, 27, 27, 0.5);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    /* Responsive adjustments for hero article */
+    @media (max-width: 768px) {
+        .hero-article {
+            height: 50vh;
+            min-height: 350px;
+        }
+        
+        .hero-content {
+            padding: 30px 4% 30px 4%;
+        }
+        
+        .hero-title {
+            max-width: 95%;
+        }
+        
+        .hero-text {
+            max-width: 90%;
+        }
+        
+        .hero-meta {
+            gap: 10px;
+        }
+        
+        .hero-location, .hero-risk-badge {
+            font-size: 0.85rem;
+            padding: 8px 12px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -688,6 +867,23 @@
             </div>
     </div>
 
+    <!-- Hero Article Section - Featured Story -->
+    <section class="hero-article-section">
+        <div class="hero-article" id="hero-article" style="background-image: url('https://picsum.photos/1920/800?random=hero')">
+            <div class="hero-content">
+                <h1 class="hero-title" id="hero-title">Escalada de tensiones geopolíticas marca el panorama internacional</h1>
+                <p class="hero-text" id="hero-text">Los últimos desarrollos en el escenario global han intensificado las preocupaciones sobre la estabilidad regional, con implicaciones que se extienden más allá de las fronteras inmediatas y afectan los mercados internacionales, las alianzas diplomáticas y la seguridad energética mundial.</p>
+                <div class="hero-meta">
+                    <span class="hero-location" id="hero-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="hero-location-text">Europa Oriental</span>
+                    </span>
+                    <span class="hero-risk-badge high" id="hero-risk-badge">ALTO RIESGO</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Dashboard Content -->
     <div class="dashboard-content">
 
@@ -726,15 +922,62 @@ let mosaicData = [];
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
+    loadHeroArticle();
     loadMosaic('importance', null);  // Pass null for initial load
     updateStatistics();
     
     // Auto-refresh every 5 minutes
     setInterval(function() {
         updateStatistics();
+        loadHeroArticle();
         refreshLatest();
     }, 300000);
 });
+
+// Load hero article (most important news)
+function loadHeroArticle() {
+    // This would typically fetch from your API endpoint
+    // For now, we'll use sample data with high importance
+    const heroArticles = [
+        {
+            title: "Crisis diplomática escalas en Europa Oriental con implicaciones globales",
+            text: "Los últimos desarrollos han intensificado las preocupaciones sobre la estabilidad regional, con movimientos militares que sugieren una preparación para posibles acciones de mayor envergadura. Los analistas internacionales observan con atención las respuestas de las principales potencias mundiales.",
+            location: "Europa Oriental",
+            risk: "high",
+            image: "https://picsum.photos/1920/800?random=hero1"
+        },
+        {
+            title: "Tensiones comerciales amenazan la estabilidad económica mundial",
+            text: "Las nuevas restricciones comerciales han generado ondas de choque en los mercados globales, con preocupaciones crecientes sobre una posible guerra comercial que podría afectar las cadenas de suministro internacionales y el crecimiento económico mundial.",
+            location: "Global",
+            risk: "high", 
+            image: "https://picsum.photos/1920/800?random=hero2"
+        },
+        {
+            title: "Desarrollos críticos en el Medio Oriente alteran el equilibrio regional",
+            text: "Los eventos recientes han reconfigurado las alianzas tradicionales en la región, con implicaciones significativas para la seguridad energética global y las rutas comerciales estratégicas que conectan Europa, Asia y África.",
+            location: "Medio Oriente",
+            risk: "critical",
+            image: "https://picsum.photos/1920/800?random=hero3"
+        }
+    ];
+    
+    // Simulate API call - select random hero article
+    const heroArticle = heroArticles[Math.floor(Math.random() * heroArticles.length)];
+    
+    // Update hero article content
+    document.getElementById('hero-title').textContent = heroArticle.title;
+    document.getElementById('hero-text').textContent = heroArticle.text;
+    document.getElementById('hero-location-text').textContent = heroArticle.location;
+    
+    // Update risk badge
+    const riskBadge = document.getElementById('hero-risk-badge');
+    riskBadge.className = `hero-risk-badge ${heroArticle.risk}`;
+    riskBadge.textContent = heroArticle.risk.toUpperCase().replace('_', ' ') + ' RIESGO';
+    
+    // Update background image
+    document.getElementById('hero-article').style.backgroundImage = `url('${heroArticle.image}')`;
+}
 
 // High risk articles filtering
 function filterHighRisk(category, buttonElement) {
