@@ -525,6 +525,18 @@
     .mosaic-article.size-11 { grid-column: span 1; grid-row: span 1; }
     .mosaic-article.size-12 { grid-column: span 2; grid-row: span 1; }
 
+    /* Custom sizes for specific designed layouts */
+    .mosaic-article.size-custom-wide-2 { grid-column: span 2; grid-row: span 1; } /* 1 fila x 2 columnas */
+    .mosaic-article.size-custom-single { grid-column: span 1; grid-row: span 1; } /* 1 fila x 1 columna */
+    .mosaic-article.size-custom-tall-2 { grid-column: span 1; grid-row: span 2; } /* 2 filas x 1 columna */
+    .mosaic-article.size-custom-big-4 { grid-column: span 2; grid-row: span 2; } /* 2 filas x 2 columnas */
+
+    /* Puzzle layout sizes - Rejilla 3x4 perfecta */
+    .mosaic-article.size-puzzle-big { grid-column: span 2; grid-row: span 2; } /* 2 filas x 2 columnas = 4 cuadrados */
+    .mosaic-article.size-puzzle-single { grid-column: span 1; grid-row: span 1; } /* 1 fila x 1 columna = 1 cuadrado */
+    .mosaic-article.size-puzzle-wide { grid-column: span 2; grid-row: span 1; } /* 1 fila x 2 columnas = 2 cuadrados */
+    .mosaic-article.size-puzzle-tall { grid-column: span 1; grid-row: span 2; } /* 2 filas x 1 columna = 2 cuadrados */
+
     /* Fallback sizes for additional articles */
     .mosaic-article.size-default-lg-wide { grid-column: span 2; grid-row: span 1; }
     .mosaic-article.size-default-lg-tall { grid-column: span 1; grid-row: span 2; }
@@ -651,6 +663,47 @@
         color: #46ead7;
     }
 
+    /* Load More Button */
+    .load-more-container {
+        width: 100%;
+        padding: 30px 0;
+        background: rgba(10, 15, 44, 0.3);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-load-more {
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
+        border: 2px solid rgba(70, 234, 215, 0.4);
+        color: #46ead7;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .btn-load-more:hover {
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.3) 0%, rgba(0, 212, 255, 0.3) 100%);
+        border-color: rgba(70, 234, 215, 0.6);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(70, 234, 215, 0.3);
+    }
+
+    .btn-load-more i {
+        font-size: 1.2rem;
+    }
+
     /* Hero Article Section - Full Width Featured Story */
     .hero-article-section {
         width: 100vw;
@@ -700,12 +753,13 @@
     .hero-content {
         position: relative;
         z-index: 2;
-        padding: 40px 5% 40px 5%;
+        padding: 40px 5% 40px 4%; /* Reducido padding izquierdo para pegar más a la izquierda */
         color: white;
         width: 100%;
         max-width: 1200px;
-        margin: 0 auto;
+        margin: 0;
         box-sizing: border-box;
+        text-align: left; /* Alineación explícita a la izquierda */
     }
 
     .hero-title {
@@ -715,7 +769,8 @@
         margin: 0 0 15px 0;
         text-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
         color: #fff;
-        max-width: 80%;
+        max-width: 65%; /* Reducido para mejor lectura alineado a la izquierda */
+        text-align: left;
     }
 
     .hero-text {
@@ -724,11 +779,12 @@
         margin: 0 0 20px 0;
         color: rgba(255, 255, 255, 0.9);
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-        max-width: 70%;
+        max-width: 55%; /* Reducido para mejor lectura alineado a la izquierda */
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        text-align: left;
     }
 
     .hero-meta {
@@ -737,6 +793,7 @@
         gap: 20px;
         flex-wrap: wrap;
         margin-top: 15px;
+        justify-content: flex-start; /* Alineación a la izquierda */
     }
 
     .hero-location {
@@ -808,19 +865,23 @@
         }
         
         .hero-content {
-            padding: 30px 4% 30px 4%;
+            padding: 30px 6% 30px 4%; /* Reducido padding izquierdo para móviles también */
+            text-align: left;
         }
         
         .hero-title {
-            max-width: 95%;
+            max-width: 85%; /* Ajustado para móviles pero manteniendo alineación izquierda */
+            text-align: left;
         }
         
         .hero-text {
-            max-width: 90%;
+            max-width: 80%; /* Ajustado para móviles pero manteniendo alineación izquierda */
+            text-align: left;
         }
         
         .hero-meta {
             gap: 10px;
+            justify-content: flex-start; /* Mantenido alineación a la izquierda en móviles */
         }
         
         .hero-location, .hero-risk-badge {
@@ -907,6 +968,14 @@
                     <div>Cargando mosaico de noticias...</div>
                 </div>
             </div>
+            
+            <!-- Load More Button -->
+            <div class="load-more-container" id="load-more-container" style="display: none;">
+                <button class="btn-load-more" onclick="loadMoreNews()">
+                    <i class="fas fa-plus-circle"></i>
+                    Cargar más noticias
+                </button>
+            </div>
         </section>
     </div>    
 </div>
@@ -919,6 +988,8 @@
 // Global variables
 let currentFilter = 'all';
 let mosaicData = [];
+let currentNewsSet = 0; // Track which news set we're showing
+let totalNewsSets = 3; // Total number of news sets available (3 diseños)
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
@@ -1047,6 +1118,9 @@ function refreshLatest() {
 function loadMosaic(mode, buttonElement) {
     const container = document.getElementById('news-mosaic');
     
+    // Reset news set counter when changing filter
+    currentNewsSet = 0;
+    
     // Update button states
     document.querySelectorAll('.mosaic-controls .btn-control').forEach(btn => {
         btn.classList.remove('active');
@@ -1071,6 +1145,10 @@ function loadMosaic(mode, buttonElement) {
         </div>
     `;
     
+    // Hide load more button during initial load
+    const loadMoreContainer = document.getElementById('load-more-container');
+    loadMoreContainer.style.display = 'none';
+    
     // Simulate loading and populate with sample data
     setTimeout(() => {
         generateMosaicTiles(mode);
@@ -1082,60 +1160,52 @@ function generateMosaicTiles(mode) {
     const container = document.getElementById('news-mosaic');
     let tilesHTML = '';
     
-    // Sample articles for the mosaic
-    const sampleArticles = [
-        {
-            title: "Tensiones geopolíticas se intensifican en Europa Oriental",
-            location: "Europa Oriental",
-            risk: "high",
-            image: "https://picsum.photos/400/300?random=1"
-        },
-        {
-            title: "Crisis diplomática en Asia-Pacífico",
-            location: "Asia-Pacífico",
-            risk: "medium",
-            image: "https://picsum.photos/400/300?random=2"
-        },
-        {
-            title: "Movimientos económicos estratégicos en Medio Oriente",
-            location: "Medio Oriente",
-            risk: "medium",
-            image: "https://picsum.photos/400/300?random=3"
-        },
-        {
-            title: "Desarrollos significativos en América Latina",
-            location: "América Latina",
-            risk: "low",
-            image: "https://picsum.photos/400/300?random=4"
-        },
-        {
-            title: "Cambios en las alianzas africanas",
-            location: "África",
-            risk: "medium",
-            image: "https://picsum.photos/400/300?random=5"
-        },
-        {
-            title: "Nuevas políticas en América del Norte",
-            location: "América del Norte",
-            risk: "low",
-            image: "https://picsum.photos/400/300?random=6"
-        },
-        {
-            title: "Desarrollos en el Ártico",
-            location: "Ártico",
-            risk: "medium",
-            image: "https://picsum.photos/400/300?random=7"
-        },
-        {
-            title: "Situación en Oceanía",
-            location: "Oceanía",
-            risk: "low",
-            image: "https://picsum.photos/400/300?random=8"
-        }
-    ];
+    // Get the current news set
+    const sampleArticles = getNewsSet(currentNewsSet);
     
     sampleArticles.forEach((article, index) => {
-        const sizeClass = `size-${(index % 12) + 1}`;
+        let sizeClass;
+        
+        if (currentNewsSet === 0) {
+            // Set 1: Diseño original (7 noticias)
+            sizeClass = `size-${(index % 12) + 1}`;
+        } else if (currentNewsSet === 1) {
+            // Set 2: Diseño puzzle - Rejilla 3x4 (12 cuadrados) perfectamente rellenada
+            // 4 simples a la izquierda (4) + 1 grande a la derecha (4) + 2 anchas abajo (4) = 12 cuadrados EXACTOS
+            const puzzlePattern = [
+                'size-puzzle-single',  // Art 1: 1 cuadrado (izquierda)
+                'size-puzzle-single',  // Art 2: 1 cuadrado (izquierda)
+                'size-puzzle-big',     // Art 3: 4 cuadrados (derecha)
+                'size-puzzle-single',  // Art 4: 1 cuadrado (izquierda)
+                'size-puzzle-single',  // Art 5: 1 cuadrado (izquierda)
+                'size-puzzle-wide',    // Art 6: 2 cuadrados (abajo)
+                'size-puzzle-wide'     // Art 7: 2 cuadrados (abajo)
+                // TOTAL: 1 + 1 + 4 + 1 + 1 + 2 + 2 = 12 cuadrados EXACTOS
+            ];
+            sizeClass = puzzlePattern[index] || 'size-puzzle-single';
+        } else if (currentNewsSet === 2) {
+            // Set 3: Diseño esquema Paint - Rejilla 3x4 (12 cuadrados) según imagen
+            // Fila 1: 2 verdes (2) + 1 azul grande (4) + 1 amarillo (1) = 7 cuadrados
+            // Fila 2: (continúa azul) + 1 marrón (1) = 1 cuadrado  
+            // Fila 3: 1 amarillo ancho (2) + 1 rojo (1) + 2 verdes (2) = 5 cuadrados
+            // TOTAL: 2 + 4 + 1 + 1 + 2 + 1 + 1 = 12 cuadrados EXACTOS
+            const paintPattern = [
+                'size-puzzle-single',  // Art 1: Verde 1 (1 cuadrado)
+                'size-puzzle-single',  // Art 2: Verde 2 (1 cuadrado)  
+                'size-puzzle-big',     // Art 3: Azul grande (4 cuadrados)
+                'size-puzzle-single',  // Art 4: Amarillo 1 (1 cuadrado)
+                'size-puzzle-single',  // Art 5: Marrón (1 cuadrado)
+                'size-puzzle-wide',    // Art 6: Amarillo ancho (2 cuadrados)
+                'size-puzzle-single',  // Art 7: Rojo (1 cuadrado)
+                'size-puzzle-single'   // Art 8: Verde 3 (1 cuadrado)
+                // TOTAL: 1 + 1 + 4 + 1 + 1 + 2 + 1 + 1 = 12 cuadrados EXACTOS
+            ];
+            sizeClass = paintPattern[index] || 'size-puzzle-single';
+        } else {
+            // Otros sets: usar sistema original
+            sizeClass = `size-${(index % 12) + 1}`;
+        }
+        
         const riskClass = article.risk === 'high' ? 'hero' : article.risk;
         
         tilesHTML += `
@@ -1154,7 +1224,199 @@ function generateMosaicTiles(mode) {
         `;
     });
     
-    container.innerHTML = tilesHTML;
+    // If this is the first load, replace content. Otherwise, append
+    if (currentNewsSet === 0) {
+        container.innerHTML = tilesHTML;
+    } else {
+        // Para sets adicionales, añadir las noticias al contenido existente
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = tilesHTML;
+        
+        // Añadir cada artículo individualmente al contenedor
+        while (tempDiv.firstChild) {
+            container.appendChild(tempDiv.firstChild);
+        }
+    }
+    
+    // Show/hide load more button - MANTENER VISIBLE por ahora para testear diseños
+    const loadMoreContainer = document.getElementById('load-more-container');
+    loadMoreContainer.style.display = 'flex';
+}
+
+// Get different news sets with perfect alignment
+function getNewsSet(setIndex) {
+    const newsSets = [
+        // Set 1: 7 articles - DISEÑO ORIGINAL QUE FUNCIONABA BIEN
+        [
+            {
+                title: "Tensiones geopolíticas se intensifican en Europa Oriental",
+                location: "Europa Oriental",
+                risk: "high",
+                image: "https://picsum.photos/400/300?random=1"
+            },
+            {
+                title: "Crisis diplomática en Asia-Pacífico",
+                location: "Asia-Pacífico",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=2"
+            },
+            {
+                title: "Movimientos económicos estratégicos en Medio Oriente",
+                location: "Medio Oriente",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=3"
+            },
+            {
+                title: "Desarrollos significativos en América Latina",
+                location: "América Latina",
+                risk: "low",
+                image: "https://picsum.photos/400/300?random=4"
+            },
+            {
+                title: "Cambios en las alianzas africanas",
+                location: "África",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=5"
+            },
+            {
+                title: "Nuevas políticas en América del Norte",
+                location: "América del Norte",
+                risk: "low",
+                image: "https://picsum.photos/400/300?random=6"
+            },
+            {
+                title: "Desarrollos en el Ártico",
+                location: "Ártico",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=7"
+            }
+        ],
+        // Set 2: 7 articles - DISEÑO PUZZLE (3x4 = 12 cuadrados completos)
+        [
+            {
+                title: "Escalada de conflictos en el Sudeste Asiático",
+                location: "Sudeste Asiático",
+                risk: "high",
+                image: "https://picsum.photos/400/300?random=8"
+            },
+            {
+                title: "Nuevas sanciones económicas globales",
+                location: "Global",
+                risk: "high",
+                image: "https://picsum.photos/400/300?random=9"
+            },
+            {
+                title: "Cambios en la política energética europea",
+                location: "Europa",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=10"
+            },
+            {
+                title: "Desarrollos en el Cáucaso",
+                location: "Cáucaso",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=11"
+            },
+            {
+                title: "Situación en el Cuerno de África",
+                location: "África Oriental",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=12"
+            },
+            {
+                title: "Acuerdos comerciales en el Pacífico",
+                location: "Pacífico",
+                risk: "low",
+                image: "https://picsum.photos/400/300?random=13"
+            },
+            {
+                title: "Reformas políticas en América Central",
+                location: "América Central",
+                risk: "low",
+                image: "https://picsum.photos/400/300?random=14"
+            }
+        ],
+        // Set 3: 8 articles - DISEÑO ESQUEMA PAINT (3x4 = 12 cuadrados completos)
+        [
+            {
+                title: "Tensiones diplomáticas en Asia Central",
+                location: "Asia Central",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=15"
+            },
+            {
+                title: "Crisis energética en Europa del Norte",
+                location: "Europa del Norte",
+                risk: "high",
+                image: "https://picsum.photos/400/300?random=16"
+            },
+            {
+                title: "Desarrollos militares en el Indo-Pacífico",
+                location: "Indo-Pacífico",
+                risk: "high",
+                image: "https://picsum.photos/400/300?random=17"
+            },
+            {
+                title: "Negociaciones comerciales en África Occidental",
+                location: "África Occidental",
+                risk: "low",
+                image: "https://picsum.photos/400/300?random=18"
+            },
+            {
+                title: "Reformas políticas en el Mediterráneo Oriental",
+                location: "Mediterráneo Oriental",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=19"
+            },
+            {
+                title: "Cooperación internacional en la Antártida",
+                location: "Antártida",
+                risk: "low",
+                image: "https://picsum.photos/400/300?random=20"
+            },
+            {
+                title: "Disputas territoriales en el Mar del Sur de China",
+                location: "Mar del Sur de China",
+                risk: "high",
+                image: "https://picsum.photos/400/300?random=21"
+            },
+            {
+                title: "Alianzas estratégicas en América del Sur",
+                location: "América del Sur",
+                risk: "medium",
+                image: "https://picsum.photos/400/300?random=22"
+            }
+        ]
+    ];
+    
+    return newsSets[setIndex] || [];
+}
+
+// Load more news function
+function loadMoreNews() {
+    if (currentNewsSet < totalNewsSets - 1) {
+        currentNewsSet++;
+        
+        // Show loading for the additional content
+        const container = document.getElementById('news-mosaic');
+        const loadingHTML = `
+            <div class="mosaic-loading" style="grid-column: 1 / -1; margin: 20px 0;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <div>Cargando más noticias...</div>
+            </div>
+        `;
+        container.innerHTML += loadingHTML;
+        
+        // Simulate loading time
+        setTimeout(() => {
+            // Remove loading indicator
+            const loadingElements = container.querySelectorAll('.mosaic-loading');
+            loadingElements.forEach(el => el.remove());
+            
+            // Add new articles
+            generateMosaicTiles('importance');
+        }, 1000);
+    }
 }
 
 // Update statistics
