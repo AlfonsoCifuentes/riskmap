@@ -522,6 +522,82 @@
     .quality-low {
         background: #ff0000;
     }
+    
+    /* Satellite Gallery Styles */
+    .satellite-gallery {
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        margin: 2rem 0;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 0, 0, 0.2);
+    }
+    
+    .satellite-image {
+        flex: 1;
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid rgba(255, 0, 0, 0.3);
+    }
+    
+    .satellite-image:hover {
+        transform: scale(1.05);
+        border-color: #ff0000;
+        box-shadow: 0 8px 25px rgba(255, 0, 0, 0.4);
+    }
+    
+    .satellite-image img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        transition: all 0.3s ease;
+    }
+    
+    .satellite-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+        color: white;
+        padding: 1rem;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .satellite-image:hover .satellite-overlay {
+        transform: translateY(0);
+    }
+    
+    .satellite-btn {
+        background: linear-gradient(45deg, #ff0000, #cc0000);
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+        text-decoration: none;
+        display: inline-block;
+        margin: 1rem;
+    }
+    
+    .satellite-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
+        background: linear-gradient(45deg, #ff3333, #ff0000);
+        color: white;
+        text-decoration: none;
+    }
 </style>
 {% endblock %}
 
@@ -582,6 +658,65 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Satellite Gallery Section -->
+    <div class="glass-card section-spacing">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="text-white">
+                    <i class="fas fa-satellite me-2" style="color: #ff0000;"></i>
+                    Imágenes Satelitales Recientes
+                </h3>
+                <div class="d-flex gap-2">
+                    <button class="satellite-btn" onclick="trainDamageModel()">
+                        <i class="fas fa-brain me-2"></i>
+                        Entrenar Modelo xView2
+                    </button>
+                    <a href="/" class="satellite-btn">
+                        <i class="fas fa-satellite-dish me-2"></i>
+                        Sistema Satelital Completo
+                    </a>
+                </div>
+            </div>
+            
+            <div class="satellite-gallery" id="satellite-gallery">
+                <!-- Satellite images will be loaded here -->
+                <div class="satellite-image" data-location="Urban" onclick="updateSatelliteView('urban')">
+                    <img src="/data/satellite_images/urban_sample_40.7128_-74.0060_2025-08-01.png" alt="Imagen Satelital Urbana" onerror="this.src='/src/images/space.jpg'">
+                    <div class="satellite-overlay">
+                        <h6 class="text-white mb-1">Zona Urbana</h6>
+                        <p class="small mb-0">Nueva York - Análisis Urbano</p>
+                        <div class="coordinates small">40.7128°N, 74.0060°W</div>
+                    </div>
+                </div>
+                
+                <div class="satellite-image" data-location="Conflict" onclick="updateSatelliteView('conflict')">
+                    <img src="/data/satellite_images/conflict_sample_33.3152_44.3661_2025-08-01.png" alt="Imagen Satelital de Conflicto" onerror="this.src='/src/images/space.jpg'">
+                    <div class="satellite-overlay">
+                        <h6 class="text-white mb-1">Zona de Conflicto</h6>
+                        <p class="small mb-0">Bagdad - Monitoreo Geopolítico</p>
+                        <div class="coordinates small">33.3152°N, 44.3661°E</div>
+                    </div>
+                </div>
+                
+                <div class="satellite-image" data-location="Rural" onclick="updateSatelliteView('rural')">
+                    <img src="/data/satellite_images/rural_sample_35.6762_139.6503_2025-08-01.png" alt="Imagen Satelital Rural" onerror="this.src='/src/images/space.jpg'">
+                    <div class="satellite-overlay">
+                        <h6 class="text-white mb-1">Zona Rural</h6>
+                        <p class="small mb-0">Tokio - Análisis Ambiental</p>
+                        <div class="coordinates small">35.6762°N, 139.6503°E</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3">
+                <p class="text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Haz clic en cualquier imagen para análisis detallado en el sistema satelital
+                </p>
             </div>
         </div>
     </div>
@@ -835,6 +970,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadDetectionHistory();
     loadAnalysisTimeline();
     loadModelPerformance();
+    initializeSatelliteGallery();
     
     // Update confidence threshold display
     const confidenceSlider = document.getElementById('confidence-threshold');
@@ -1416,6 +1552,193 @@ function addDetectionToFeed(detection) {
     while (feedContainer.children.length > 15) {
         feedContainer.removeChild(feedContainer.lastChild);
     }
+}
+
+function initializeSatelliteGallery() {
+    console.log('🛰️ Initializing Satellite Gallery...');
+    
+    // Add click event listeners to satellite images
+    document.querySelectorAll('.satellite-image').forEach(image => {
+        image.addEventListener('click', function() {
+            const location = this.dataset.location;
+            updateSatelliteView(location);
+            
+            // Add visual feedback
+            this.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 200);
+        });
+        
+        // Add keyboard support for accessibility
+        image.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.click();
+            }
+        });
+        
+        // Make focusable for accessibility
+        image.setAttribute('tabindex', '0');
+        image.setAttribute('role', 'button');
+        image.setAttribute('aria-label', `Ver análisis satelital de ${this.dataset.location}`);
+    });
+    
+    // Load satellite images dynamically
+    loadSatelliteImages();
+}
+
+function updateSatelliteView(location) {
+    console.log(`🛰️ Updating satellite view for: ${location}`);
+    
+    // Show notification
+    showNotification(`Análisis satelital cargado para zona: ${location}`, 'info');
+    
+    // Here you could add logic to update other parts of the page
+    // or navigate to the satellite analysis page
+    
+    // Optionally redirect to satellite page with specific location
+    // window.location.href = `/satellite?location=${location.toLowerCase()}`;
+}
+
+async function loadSatelliteImages() {
+    try {
+        // Try to load images from the API
+        const response = await fetch('/api/satellite/images');
+        const data = await response.json();
+        
+        if (data.success && data.images && data.images.length > 0) {
+            updateSatelliteGallery(data.images);
+        } else {
+            console.log('Using default satellite images');
+        }
+    } catch (error) {
+        console.error('Error loading satellite images:', error);
+        console.log('Using fallback satellite images');
+    }
+}
+
+function updateSatelliteGallery(images) {
+    const gallery = document.getElementById('satellite-gallery');
+    if (!gallery || !images || images.length === 0) return;
+    
+    // Take first 3 images
+    const displayImages = images.slice(0, 3);
+    
+    gallery.innerHTML = displayImages.map((image, index) => `
+        <div class="satellite-image" data-location="${image.location}" 
+             onclick="updateSatelliteView('${image.location}')"
+             tabindex="0" role="button" 
+             aria-label="Ver análisis satelital de ${image.location}">
+            <img src="${image.url}" alt="Satelital ${image.location}" 
+                 onerror="this.src='/src/images/space.jpg'">
+            <div class="satellite-overlay">
+                <h6 class="text-white mb-1">${image.title}</h6>
+                <p class="small mb-0">${image.description}</p>
+                <div class="coordinates small">${image.coordinates}</div>
+            </div>
+        </div>
+    `).join('');
+    
+    // Re-initialize event listeners for new images
+    initializeSatelliteGallery();
+}
+
+async function trainDamageModel() {
+    console.log('🧠 Starting xView2 damage model training...');
+    
+    // Show training notification
+    showNotification('Iniciando entrenamiento del modelo xView2 de evaluación de daños...', 'info');
+    
+    // Disable button during training
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Entrenando Modelo...';
+    button.disabled = true;
+    
+    try {
+        const response = await fetch('/train_damage_model', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('✅ Modelo xView2 entrenado exitosamente!', 'success');
+            
+            // Load model info to show results
+            const infoResponse = await fetch('/damage_model_info');
+            const modelInfo = await infoResponse.json();
+            
+            if (modelInfo.evaluation_results) {
+                const accuracy = (modelInfo.evaluation_results.validation_accuracy * 100).toFixed(1);
+                showNotification(`Precisión del modelo: ${accuracy}%`, 'info');
+            }
+            
+        } else {
+            showNotification(`❌ Error en entrenamiento: ${result.message}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Training error:', error);
+        showNotification('❌ Error durante el entrenamiento del modelo', 'error');
+    } finally {
+        // Re-enable button
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+async function analyzeDamageForLocation(lat, lon, date) {
+    console.log(`🔍 Analyzing damage for location: ${lat}, ${lon}`);
+    
+    try {
+        const response = await fetch('/damage_analysis', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ lat, lon, date })
+        });
+        
+        const result = await response.json();
+        
+        if (result.error) {
+            showNotification(`Error en análisis: ${result.error}`, 'error');
+            return null;
+        }
+        
+        // Show damage analysis results
+        if (result.damage_analysis) {
+            const damage = result.damage_analysis;
+            const confidence = (damage.confidence * 100).toFixed(1);
+            
+            showNotification(
+                `Evaluación de daños: ${damage.damage_class} (${confidence}% confianza)`,
+                getDamageNotificationType(damage.damage_class)
+            );
+        }
+        
+        return result;
+        
+    } catch (error) {
+        console.error('Damage analysis error:', error);
+        showNotification('Error realizando análisis de daños', 'error');
+        return null;
+    }
+}
+
+function getDamageNotificationType(damageClass) {
+    const typeMapping = {
+        'no-damage': 'success',
+        'minor-damage': 'info', 
+        'major-damage': 'warning',
+        'destroyed': 'error'
+    };
+    return typeMapping[damageClass] || 'info';
 }
 
 function showNotification(message, type = 'info') {
