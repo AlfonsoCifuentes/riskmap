@@ -24,7 +24,7 @@
         "data_sources": [
           "news_analysis"
         ],
-        "data_updated": "2025-08-02T06:24:51.487294",
+        "data_updated": "2025-08-02T06:03:53.466536",
         "event_types": [],
         "fatalities": 0,
         "id": "conflict_zone_1",
@@ -81,7 +81,7 @@
       "ai_analysis"
     ],
     "data_timeframe_days": 7,
-    "generated_at": "2025-08-02T06:24:51.487294",
+    "generated_at": "2025-08-02T06:03:53.466536",
     "generated_by": "RiskMap Integrated Geopolitical Analyzer",
     "monitoring_strategy": {
       "cloud_cover_threshold": 20,

@@ -849,6 +849,155 @@
     </div>
 </div>
 
+<!-- Automated Satellite Monitoring Section -->
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="satellite-card p-4 mb-4">
+                <h3 class="text-white mb-4">
+                    <i class="fas fa-satellite me-2" style="color: #00ffff;"></i>
+                    Monitor Satelital Automático
+                    <span class="badge bg-primary ms-2" id="monitoring-status-badge">Inicializando...</span>
+                </h3>
+                
+                <div class="row">
+                    <!-- Control Panel -->
+                    <div class="col-lg-4">
+                        <div class="satellite-card p-3">
+                            <h5 class="text-white mb-3">
+                                <i class="fas fa-cogs me-2"></i>
+                                Panel de Control
+                            </h5>
+                            
+                            <div class="control-group">
+                                <button class="btn btn-success w-100 mb-2" onclick="startSatelliteMonitoring()">
+                                    <i class="fas fa-play me-2"></i>
+                                    Iniciar Monitoreo
+                                </button>
+                                <button class="btn btn-warning w-100 mb-2" onclick="stopSatelliteMonitoring()">
+                                    <i class="fas fa-stop me-2"></i>
+                                    Detener Monitoreo
+                                </button>
+                                <button class="btn btn-info w-100 mb-2" onclick="updateSatelliteZones()">
+                                    <i class="fas fa-sync me-2"></i>
+                                    Actualizar Zonas
+                                </button>
+                                <button class="btn btn-secondary w-100 mb-2" onclick="populateSatelliteZones()">
+                                    <i class="fas fa-database me-2"></i>
+                                    Poblar Zonas
+                                </button>
+                            </div>
+                            
+                            <div class="control-group mt-3">
+                                <label class="control-label">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Configuración de Intervalos
+                                </label>
+                                <small class="text-muted d-block">Zonas Prioritarias: Cada 2 horas</small>
+                                <small class="text-muted d-block">Todas las Zonas: Cada 4 horas</small>
+                                <small class="text-muted d-block">Máx. Nubes: 20%</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistics Panel -->
+                    <div class="col-lg-4">
+                        <div class="satellite-card p-3">
+                            <h5 class="text-white mb-3">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Estadísticas del Monitor
+                            </h5>
+                            
+                            <div id="satellite-monitor-stats">
+                                <div class="stat-item d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Zonas Monitoreadas:</span>
+                                    <span class="text-white" id="stat-total-zones">-</span>
+                                </div>
+                                <div class="stat-item d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Zonas Prioritarias:</span>
+                                    <span class="text-white" id="stat-priority-zones">-</span>
+                                </div>
+                                <div class="stat-item d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Imágenes Descargadas:</span>
+                                    <span class="text-white" id="stat-images-downloaded">-</span>
+                                </div>
+                                <div class="stat-item d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Descargas Últimas 24h:</span>
+                                    <span class="text-white" id="stat-recent-downloads">-</span>
+                                </div>
+                                <div class="stat-item d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Almacenamiento:</span>
+                                    <span class="text-white" id="stat-storage-size">-</span>
+                                </div>
+                                <div class="stat-item d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Estado SentinelHub:</span>
+                                    <span class="text-white" id="stat-sentinelhub-status">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="col-lg-4">
+                        <div class="satellite-card p-3">
+                            <h5 class="text-white mb-3">
+                                <i class="fas fa-history me-2"></i>
+                                Actividad Reciente
+                            </h5>
+                            
+                            <div id="satellite-monitor-activity">
+                                <div class="text-center text-muted p-3">
+                                    <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                                    <p>Cargando actividad...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Conflict Zones Table -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="satellite-card p-3">
+                            <h5 class="text-white mb-3">
+                                <i class="fas fa-map-marked-alt me-2"></i>
+                                Zonas de Conflicto Monitoreadas
+                                <button class="btn btn-sm btn-outline-info ms-2" onclick="refreshSatelliteZonesTable()">
+                                    <i class="fas fa-refresh"></i>
+                                </button>
+                            </h5>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-dark table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Nivel de Riesgo</th>
+                                            <th>Prioridad</th>
+                                            <th>Última Verificación</th>
+                                            <th>Imagen Satelital</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="satellite-zones-table-body">
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted p-4">
+                                                <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                                                <br>Cargando zonas de conflicto...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Satellite Analysis JavaScript
 document.addEventListener('DOMContentLoaded', function() {
@@ -1449,6 +1598,298 @@ function showNotification(message, type = 'info') {
             notification.parentNode.removeChild(notification);
         }
     }, 5000);
+}
+
+// =========================================
+// AUTOMATED SATELLITE MONITORING FUNCTIONS
+// =========================================
+
+// Initialize satellite monitoring on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadSatelliteMonitoringStatus();
+    loadSatelliteZonesTable();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadSatelliteMonitoringStatus, 30000);
+    setInterval(loadSatelliteZonesTable, 60000);
+});
+
+async function startSatelliteMonitoring() {
+    try {
+        showNotification('Iniciando monitor satelital automático...', 'info');
+        
+        const response = await fetch('/api/satellite/monitoring/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('✅ Monitor satelital automático iniciado', 'success');
+            loadSatelliteMonitoringStatus();
+        } else {
+            showNotification('❌ Error iniciando monitor: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Error de conexión: ' + error.message, 'error');
+    }
+}
+
+async function stopSatelliteMonitoring() {
+    try {
+        showNotification('Deteniendo monitor satelital automático...', 'info');
+        
+        const response = await fetch('/api/satellite/monitoring/stop', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('🛑 Monitor satelital automático detenido', 'success');
+            loadSatelliteMonitoringStatus();
+        } else {
+            showNotification('❌ Error deteniendo monitor: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Error de conexión: ' + error.message, 'error');
+    }
+}
+
+async function updateSatelliteZones() {
+    try {
+        showNotification('Actualizando imágenes satelitales de zonas de conflicto...', 'info');
+        
+        const response = await fetch('/api/satellite/monitoring/update-zones', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                priority_only: false
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const stats = data.statistics;
+            showNotification(`✅ Actualización completada: ${stats.updated} imágenes actualizadas, ${stats.processed} zonas procesadas`, 'success');
+            loadSatelliteMonitoringStatus();
+            loadSatelliteZonesTable();
+        } else {
+            showNotification('❌ Error actualizando zonas: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Error de conexión: ' + error.message, 'error');
+    }
+}
+
+async function populateSatelliteZones() {
+    try {
+        showNotification('Poblando zonas de conflicto desde datos GeoJSON...', 'info');
+        
+        const response = await fetch('/api/satellite/monitoring/populate-zones', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(`✅ Se crearon ${data.zones_created} zonas de conflicto para monitoreo satelital`, 'success');
+            loadSatelliteMonitoringStatus();
+            loadSatelliteZonesTable();
+        } else {
+            showNotification('❌ Error poblando zonas: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Error de conexión: ' + error.message, 'error');
+    }
+}
+
+async function loadSatelliteMonitoringStatus() {
+    try {
+        const response = await fetch('/api/satellite/monitoring/status');
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update status badge
+            const badge = document.getElementById('monitoring-status-badge');
+            if (data.monitoring_running) {
+                badge.textContent = '🟢 Activo';
+                badge.className = 'badge bg-success ms-2';
+            } else {
+                badge.textContent = '🔴 Inactivo';
+                badge.className = 'badge bg-secondary ms-2';
+            }
+            
+            // Update statistics
+            const stats = data.statistics;
+            document.getElementById('stat-total-zones').textContent = stats.total_zones || '-';
+            document.getElementById('stat-priority-zones').textContent = stats.priority_zones || '-';
+            document.getElementById('stat-images-downloaded').textContent = stats.images_downloaded || '-';
+            document.getElementById('stat-recent-downloads').textContent = stats.recent_downloads_24h || '-';
+            document.getElementById('stat-storage-size').textContent = stats.total_storage_mb ? `${stats.total_storage_mb} MB` : '-';
+            document.getElementById('stat-sentinelhub-status').textContent = stats.sentinelhub_configured ? '✅ Configurado' : '❌ No configurado';
+            
+        } else {
+            // Show error state
+            const badge = document.getElementById('monitoring-status-badge');
+            badge.textContent = '❌ Error';
+            badge.className = 'badge bg-danger ms-2';
+        }
+    } catch (error) {
+        console.error('Error loading satellite monitoring status:', error);
+    }
+}
+
+async function loadSatelliteZonesTable() {
+    try {
+        const response = await fetch('/api/satellite/monitoring/zones');
+        const data = await response.json();
+        
+        const tbody = document.getElementById('satellite-zones-table-body');
+        
+        if (data.success && data.zones && data.zones.length > 0) {
+            tbody.innerHTML = data.zones.map(zone => `
+                <tr>
+                    <td>${zone.zone_id}</td>
+                    <td>
+                        <strong>${zone.name}</strong>
+                        <br><small class="text-muted">Creado: ${formatDate(zone.created_at)}</small>
+                    </td>
+                    <td>
+                        <span class="badge ${getRiskLevelBadgeClass(zone.risk_level)}">
+                            ${zone.risk_level.toUpperCase()}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge ${getPriorityBadgeClass(zone.priority)}">
+                            ${getPriorityText(zone.priority)}
+                        </span>
+                    </td>
+                    <td>
+                        ${zone.last_checked ? formatDate(zone.last_checked) : '<span class="text-muted">Nunca</span>'}
+                    </td>
+                    <td>
+                        ${zone.satellite_image ? `
+                            <span class="text-success">✅ Disponible</span>
+                            <br><small class="text-muted">
+                                ${zone.satellite_image.sensed_date}<br>
+                                Nubes: ${zone.satellite_image.cloud_percent}%<br>
+                                ${zone.satellite_image.file_size_mb} MB
+                            </small>
+                        ` : '<span class="text-muted">❌ No disponible</span>'}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" onclick="updateSingleZone(${zone.zone_id})" title="Actualizar esta zona">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary ms-1" onclick="viewZoneImage(${zone.zone_id})" title="Ver imagen" ${!zone.satellite_image ? 'disabled' : ''}>
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-muted p-4">
+                        <i class="fas fa-map-marked-alt fa-2x mb-2"></i>
+                        <br>No hay zonas de conflicto configuradas
+                        <br><small>Use "Poblar Zonas" para crear zonas desde datos GeoJSON</small>
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading satellite zones:', error);
+        const tbody = document.getElementById('satellite-zones-table-body');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-danger p-4">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <br>Error cargando zonas de conflicto
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function refreshSatelliteZonesTable() {
+    loadSatelliteZonesTable();
+    showNotification('Actualizando tabla de zonas...', 'info');
+}
+
+async function updateSingleZone(zoneId) {
+    try {
+        showNotification(`Actualizando zona ${zoneId}...`, 'info');
+        
+        // This would require a new endpoint for single zone update
+        // For now, we'll update all zones as a fallback
+        await updateSatelliteZones();
+        
+    } catch (error) {
+        showNotification('❌ Error actualizando zona: ' + error.message, 'error');
+    }
+}
+
+function viewZoneImage(zoneId) {
+    // This would open a modal or new window with the satellite image
+    showNotification(`Función "Ver imagen" para zona ${zoneId} en desarrollo`, 'info');
+}
+
+// Utility functions for the satellite monitoring interface
+function getRiskLevelBadgeClass(riskLevel) {
+    switch(riskLevel.toLowerCase()) {
+        case 'high': return 'bg-danger';
+        case 'medium': return 'bg-warning';
+        case 'low': return 'bg-success';
+        default: return 'bg-secondary';
+    }
+}
+
+function getPriorityBadgeClass(priority) {
+    switch(priority) {
+        case 1: return 'bg-danger';
+        case 2: return 'bg-warning';
+        case 3: return 'bg-info';
+        default: return 'bg-secondary';
+    }
+}
+
+function getPriorityText(priority) {
+    switch(priority) {
+        case 1: return 'ALTA';
+        case 2: return 'MEDIA';
+        case 3: return 'BAJA';
+        default: return 'DESCONOCIDA';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        return dateString;
+    }
 }
 </script>
 {% endblock %}
