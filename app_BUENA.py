@@ -151,6 +151,83 @@ except ImportError as e:
         def generate_comprehensive_geojson(self, **kwargs):
             return {'error': 'Integrated analyzer not available'}
 
+# Satellite Integration import
+try:
+    from satellite_integration import (
+        SatelliteIntegrationManager, 
+        SentinelHubAPI, 
+        PlanetAPI,
+        SatelliteQueryParams,
+        SatelliteImage
+    )
+    from dataclasses import asdict
+    SATELLITE_AVAILABLE = True
+    logger.info("✅ Satellite Integration module loaded successfully")
+except ImportError as e:
+    SATELLITE_AVAILABLE = False
+    logger.warning(f"⚠️ Satellite Integration module not available: {e}")
+    # Mock classes for when satellite integration is not available
+
+# Automated Satellite Monitor import
+try:
+    from src.satellite.automated_satellite_monitor import (
+        AutomatedSatelliteMonitor,
+        ConflictZone,
+        SatelliteImage as AutoSatelliteImage
+    )
+    AUTOMATED_SATELLITE_AVAILABLE = True
+    logger.info("✅ Automated Satellite Monitor module loaded successfully")
+except ImportError as e:
+    AUTOMATED_SATELLITE_AVAILABLE = False
+    logger.warning(f"⚠️ Automated Satellite Monitor not available: {e}")
+    # Mock class for when automated satellite monitor is not available
+    class AutomatedSatelliteMonitor:
+        def __init__(self, db_path=None, config=None):
+            pass
+        def start_monitoring(self):
+            logger.warning("Automated satellite monitoring not available")
+        def stop_monitoring(self):
+            pass
+        def update_all_zones(self, priority_only=False):
+            return {'processed': 0, 'updated': 0, 'errors': 1, 'skipped': 0}
+        def get_monitoring_statistics(self):
+            return {'error': 'Automated satellite monitoring not available'}
+        def populate_zones_from_geojson_endpoint(self):
+            return 0
+    
+    class ConflictZone:
+        def __init__(self, *args, **kwargs):
+            pass
+    
+    class AutoSatelliteImage:
+        def __init__(self, *args, **kwargs):
+            pass
+    
+    # Estas clases deberían estar en el bloque anterior de SATELLITE_AVAILABLE
+    if not SATELLITE_AVAILABLE:
+        class SatelliteIntegrationManager:
+            def __init__(self):
+                pass
+            def search_images_for_geojson(self, geojson_data, **kwargs):
+                return {'error': 'Satellite integration not available'}
+            def get_satellite_statistics(self):
+                return {'error': 'Satellite integration not available'}
+        
+        class SentinelHubAPI:
+            def __init__(self, client_id=None, client_secret=None):
+                pass
+            def search_images(self, query_params):
+                return []
+        
+        class PlanetAPI:
+            def __init__(self, api_key=None):
+                pass
+            def search_images(self, query_params):
+                return []
+        
+        def asdict(obj):
+            return {'error': 'Satellite integration not available'}
+
 class RiskMapUnifiedApplication:
     """
     Aplicación web unificada que ejecuta todos los componentes del sistema RiskMap
@@ -176,20 +253,31 @@ class RiskMapUnifiedApplication:
         self.external_feeds = None
         self.integrated_analyzer = None
         
+        # Satellite integration
+        self.satellite_manager = None
+        self.sentinelhub_api = None
+        self.planet_api = None
+        
+        # Automated satellite monitoring
+        self.automated_satellite_monitor = None
+        
         # System state
         self.system_state = {
             'core_system_initialized': False,
             'historical_system_initialized': False,
             'external_intelligence_initialized': False,
+            'satellite_system_initialized': False,
             'data_ingestion_running': False,
             'nlp_processing_running': False,
             'historical_analysis_running': False,
+            'satellite_monitoring_running': False,
             'dashboards_ready': False,
             'api_ready': False,
             'last_ingestion': None,
             'last_processing': None,
             'last_analysis': None,
             'last_external_feeds_update': None,
+            'last_satellite_search': None,
             'system_status': 'starting',
             'background_tasks': {},
             'alerts': [],
@@ -198,7 +286,10 @@ class RiskMapUnifiedApplication:
                 'processed_articles': 0,
                 'risk_alerts': 0,
                 'data_sources': 0,
-                'external_feeds_count': 0
+                'external_feeds_count': 0,
+                'satellite_images_found': 0,
+                'sentinel_searches': 0,
+                'planet_searches': 0
             }
         }
         
@@ -231,6 +322,11 @@ class RiskMapUnifiedApplication:
             'processing_interval_hours': 2,
             'analysis_interval_hours': 6,
             'maintenance_interval_hours': 24,
+            
+            # Satellite monitoring intervals
+            'satellite_check_interval_hours': 4,
+            'satellite_priority_interval_hours': 2,
+            'satellite_auto_start': True,
             
             # Data directories
             'data_dir': 'datasets/historical',
@@ -1123,20 +1219,17 @@ class RiskMapUnifiedApplication:
                     # Obtener artículos con análisis de riesgo en el período
                     cursor.execute("""
                         SELECT 
-                            id, title, location, risk_level, conflict_category, 
-                            latitude, longitude, published_date, url,
-                            bert_conflict_probability, bert_risk_level,
-                            sentiment_score
+                            id, title, key_locations, country, region, risk_level, conflict_type, 
+                            published_at, url, sentiment_score
                         FROM articles 
-                        WHERE published_date >= ? 
+                        WHERE published_at >= ? 
                         AND (
                             risk_level IN ('high', 'medium') 
-                            OR bert_conflict_probability > 0.5
-                            OR bert_risk_level IN ('high', 'medium')
+                            OR sentiment_score < -0.3
+                            OR conflict_type IS NOT NULL
                         )
-                        AND location IS NOT NULL 
-                        AND location != ''
-                        ORDER BY published_date DESC
+                        AND (key_locations IS NOT NULL OR country IS NOT NULL OR region IS NOT NULL)
+                        ORDER BY published_at DESC
                     """, (cutoff_date.strftime('%Y-%m-%d %H:%M:%S'),))
                     
                     conflicts = cursor.fetchall()
@@ -1144,19 +1237,28 @@ class RiskMapUnifiedApplication:
                     # Formatear datos de conflictos
                     formatted_conflicts = []
                     for conflict in conflicts:
+                        # Create location from available fields: key_locations, country, region
+                        key_locations = conflict[2] or ''
+                        country = conflict[3] or ''
+                        region = conflict[4] or ''
+                        
+                        # Priority: key_locations > country > region > 'Global'
+                        location = key_locations or country or region or 'Global'
+                        
                         formatted_conflicts.append({
                             'id': conflict[0],
                             'title': conflict[1],
-                            'location': conflict[2],
-                            'risk_level': conflict[3] or 'unknown',
-                            'category': conflict[4] or 'general',
-                            'latitude': conflict[5],
-                            'longitude': conflict[6],
+                            'location': location,
+                            'key_locations': key_locations,
+                            'country': country,
+                            'region': region,
+                            'risk_level': conflict[5] or 'unknown',
+                            'category': conflict[6] or 'general',
                             'published_date': conflict[7],
                             'url': conflict[8],
-                            'bert_conflict_probability': conflict[9] or 0,
-                            'bert_risk_level': conflict[10] or 'unknown',
-                            'sentiment_score': conflict[11] or 0
+                            'sentiment_score': conflict[9] or 0,
+                            'latitude': None,  # Not available in current schema
+                            'longitude': None,  # Not available in current schema
                         })
                     
                     # Calcular estadísticas
@@ -1165,7 +1267,7 @@ class RiskMapUnifiedApplication:
                         'high_risk': len([c for c in formatted_conflicts if c['risk_level'] == 'high']),
                         'medium_risk': len([c for c in formatted_conflicts if c['risk_level'] == 'medium']),
                         'total_sources': cursor.execute("SELECT COUNT(DISTINCT source) FROM articles WHERE source IS NOT NULL").fetchone()[0],
-                        'active_sources': cursor.execute("SELECT COUNT(DISTINCT source) FROM articles WHERE published_date >= ? AND source IS NOT NULL", (cutoff_date.strftime('%Y-%m-%d %H:%M:%S'),)).fetchone()[0],
+                        'active_sources': cursor.execute("SELECT COUNT(DISTINCT source) FROM articles WHERE published_at >= ? AND source IS NOT NULL", (cutoff_date.strftime('%Y-%m-%d %H:%M:%S'),)).fetchone()[0],
                         'reliability_score': 78  # Score simulado
                     }
                 
@@ -1209,16 +1311,78 @@ class RiskMapUnifiedApplication:
                             include_predictions=include_external
                         )
                         
+                        # Si se solicita optimización satelital y está disponible, enriquecer con datos satelitales
+                        if satellite_optimized and SATELLITE_AVAILABLE and self.satellite_manager:
+                            try:
+                                logger.info("🛰️ Enriqueciendo GeoJSON con datos satelitales...")
+                                
+                                # Configuración de búsqueda satelital
+                                satellite_config = {
+                                    'days_back': min(timeframe_days, 30),  # Limitar búsqueda satelital
+                                    'cloud_cover_max': 20,
+                                    'collection': 'sentinel-2-l2a',
+                                    'buffer_km': 15
+                                }
+                                
+                                # Buscar imágenes satelitales para las ubicaciones del GeoJSON
+                                satellite_results = self.satellite_manager.search_images_for_geojson(
+                                    comprehensive_geojson, **satellite_config
+                                )
+                                
+                                # Añadir información satelital a las features
+                                if satellite_results:
+                                    features_updated = 0
+                                    for feature in comprehensive_geojson.get('features', []):
+                                        feature_id = str(feature.get('properties', {}).get('id', ''))
+                                        if feature_id in satellite_results:
+                                            satellite_data = satellite_results[feature_id]
+                                            # Añadir información satelital a las propiedades
+                                            feature['properties']['satellite_data'] = {
+                                                'images_found': len(satellite_data.get('images', [])),
+                                                'latest_image_date': satellite_data.get('latest_date'),
+                                                'average_cloud_cover': satellite_data.get('avg_cloud_cover'),
+                                                'provider': satellite_data.get('provider', 'SentinelHub')
+                                            }
+                                            features_updated += 1
+                                    
+                                    # Actualizar metadatos
+                                    if 'metadata' not in comprehensive_geojson:
+                                        comprehensive_geojson['metadata'] = {}
+                                    comprehensive_geojson['metadata']['satellite_enhanced'] = True
+                                    comprehensive_geojson['metadata']['satellite_features_updated'] = features_updated
+                                    comprehensive_geojson['metadata']['satellite_config'] = satellite_config
+                                    
+                                    # Actualizar estadísticas del sistema
+                                    total_satellite_images = sum(
+                                        len(result.get('images', [])) 
+                                        for result in satellite_results.values()
+                                    )
+                                    self.system_state['statistics']['satellite_images_found'] += total_satellite_images
+                                    self.system_state['last_satellite_search'] = datetime.now().isoformat()
+                                    
+                                    logger.info(f"✅ GeoJSON enriquecido con {total_satellite_images} imágenes satelitales para {features_updated} ubicaciones")
+                                
+                            except Exception as satellite_error:
+                                logger.warning(f"Error enriqueciendo con datos satelitales: {satellite_error}")
+                                # Continuar sin datos satelitales
+                        
                         # Actualizar estadísticas del sistema
                         if comprehensive_geojson.get('metadata'):
                             self.system_state['last_external_feeds_update'] = datetime.now().isoformat()
                             self.system_state['statistics']['external_feeds_count'] = comprehensive_geojson['metadata'].get('external_sources_count', 0)
                         
+                        data_sources = ['news_analysis', 'groq_ai']
+                        if include_external:
+                            data_sources.append('external_feeds')
+                        if satellite_optimized and SATELLITE_AVAILABLE:
+                            data_sources.append('satellite_imagery')
+                        
                         return jsonify({
                             'success': True,
                             'geojson': comprehensive_geojson,
                             'enhanced': True,
-                            'data_sources': ['news_analysis', 'groq_ai', 'external_feeds'] if include_external else ['news_analysis', 'groq_ai'],
+                            'data_sources': data_sources,
+                            'satellite_optimized': satellite_optimized,
                             'timestamp': datetime.now().isoformat()
                         })
                         
@@ -1250,7 +1414,7 @@ class RiskMapUnifiedApplication:
                                 "title": conflict['title'],
                                 "risk_level": conflict['risk_level'],
                                 "conflict_type": conflict['category'],
-                                "intensity": min(max(conflict.get('bert_conflict_probability', 0), 0), 1),
+                                "intensity": abs(conflict.get('sentiment_score', 0)) if conflict.get('sentiment_score') else 0.5,
                                 "articles_count": 1,
                                 "sentiment_score": conflict.get('sentiment_score', 0),
                                 "published_date": conflict['published_date'],
@@ -1562,6 +1726,552 @@ class RiskMapUnifiedApplication:
                     'error': str(e)
                 }), 500
         
+        # ========================================
+        # SATELLITE API ENDPOINTS
+        # ========================================
+        
+        @self.flask_app.route('/api/satellite/search', methods=['POST'])
+        def api_satellite_search():
+            """API: Buscar imágenes satelitales para coordenadas específicas"""
+            try:
+                if not SATELLITE_AVAILABLE:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Satellite integration not available'
+                    }), 503
+                
+                data = request.get_json()
+                if not data:
+                    return jsonify({
+                        'success': False,
+                        'error': 'JSON data required'
+                    }), 400
+                
+                # Inicializar sistema satelital si no está disponible
+                if not self.satellite_manager:
+                    self._initialize_satellite_system()
+                
+                # Extraer parámetros de búsqueda
+                bbox = data.get('bbox')  # [min_lon, min_lat, max_lon, max_lat]
+                start_date = data.get('start_date', '2024-01-01')
+                end_date = data.get('end_date', datetime.now().strftime('%Y-%m-%d'))
+                cloud_cover_max = data.get('cloud_cover_max', 20)
+                collection = data.get('collection', 'sentinel-2-l2a')
+                
+                if not bbox or len(bbox) != 4:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Valid bbox required: [min_lon, min_lat, max_lon, max_lat]'
+                    }), 400
+                
+                # Crear parámetros de consulta
+                query_params = SatelliteQueryParams(
+                    bbox=bbox,
+                    start_date=start_date,
+                    end_date=end_date,
+                    cloud_cover_max=cloud_cover_max,
+                    collection=collection
+                )
+                
+                # Buscar imágenes
+                if collection.startswith('sentinel'):
+                    images = self.sentinelhub_api.search_images(query_params)
+                    provider = 'SentinelHub'
+                else:
+                    images = self.planet_api.search_images(query_params)
+                    provider = 'Planet'
+                
+                # Actualizar estadísticas
+                self.system_state['statistics']['satellite_images_found'] += len(images)
+                if provider == 'SentinelHub':
+                    self.system_state['statistics']['sentinel_searches'] += 1
+                else:
+                    self.system_state['statistics']['planet_searches'] += 1
+                
+                self.system_state['last_satellite_search'] = datetime.now().isoformat()
+                
+                return jsonify({
+                    'success': True,
+                    'images': [asdict(img) for img in images],
+                    'provider': provider,
+                    'query_params': asdict(query_params),
+                    'total_found': len(images),
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error en búsqueda satelital: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/satellite/search-geojson', methods=['POST'])
+        def api_satellite_search_geojson():
+            """API: Buscar imágenes satelitales para todas las ubicaciones en un GeoJSON"""
+            try:
+                if not SATELLITE_AVAILABLE:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Satellite integration not available'
+                    }), 503
+                
+                data = request.get_json()
+                geojson_data = data.get('geojson')
+                
+                if not geojson_data:
+                    return jsonify({
+                        'success': False,
+                        'error': 'GeoJSON data required'
+                    }), 400
+                
+                # Inicializar sistema satelital si no está disponible
+                if not self.satellite_manager:
+                    self._initialize_satellite_system()
+                
+                # Configuración de búsqueda
+                search_config = {
+                    'days_back': data.get('days_back', 30),
+                    'cloud_cover_max': data.get('cloud_cover_max', 20),
+                    'collection': data.get('collection', 'sentinel-2-l2a'),
+                    'buffer_km': data.get('buffer_km', 10)
+                }
+                
+                # Buscar imágenes para todas las ubicaciones del GeoJSON
+                results = self.satellite_manager.search_images_for_geojson(
+                    geojson_data, 
+                    **search_config
+                )
+                
+                # Actualizar estadísticas del sistema
+                total_images = sum(len(feature_result.get('images', [])) for feature_result in results.values())
+                self.system_state['statistics']['satellite_images_found'] += total_images
+                self.system_state['last_satellite_search'] = datetime.now().isoformat()
+                
+                return jsonify({
+                    'success': True,
+                    'results': results,
+                    'search_config': search_config,
+                    'total_locations': len(results),
+                    'total_images': total_images,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error en búsqueda satelital GeoJSON: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/satellite/status')
+        def api_satellite_status():
+            """API: Estado del sistema satelital"""
+            try:
+                if not SATELLITE_AVAILABLE:
+                    return jsonify({
+                        'success': False,
+                        'available': False,
+                        'error': 'Satellite integration not available'
+                    })
+                
+                # Verificar credenciales
+                sentinelhub_configured = bool(
+                    os.getenv("SENTINELHUB_CLIENT_ID") and 
+                    os.getenv("SENTINELHUB_CLIENT_SECRET")
+                )
+                planet_configured = bool(os.getenv("PLANET_API_KEY"))
+                
+                status = {
+                    'available': True,
+                    'initialized': self.system_state['satellite_system_initialized'],
+                    'providers': {
+                        'sentinelhub': {
+                            'configured': sentinelhub_configured,
+                            'available': sentinelhub_configured,
+                            'searches_count': self.system_state['statistics']['sentinel_searches']
+                        },
+                        'planet': {
+                            'configured': planet_configured,
+                            'available': planet_configured,
+                            'searches_count': self.system_state['statistics']['planet_searches']
+                        }
+                    },
+                    'statistics': {
+                        'total_images_found': self.system_state['statistics']['satellite_images_found'],
+                        'total_searches': (
+                            self.system_state['statistics']['sentinel_searches'] + 
+                            self.system_state['statistics']['planet_searches']
+                        ),
+                        'last_search': self.system_state['last_satellite_search']
+                    }
+                }
+                
+                return jsonify({
+                    'success': True,
+                    **status,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error obteniendo estado satelital: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/satellite/configure', methods=['POST'])
+        def api_satellite_configure():
+            """API: Configurar credenciales satelitales"""
+            try:
+                data = request.get_json()
+                
+                if not data:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Configuration data required'
+                    }), 400
+                
+                # Configurar SentinelHub
+                if 'sentinelhub' in data:
+                    sentinel_config = data['sentinelhub']
+                    os.environ['SENTINELHUB_CLIENT_ID'] = sentinel_config.get('client_id', '')
+                    os.environ['SENTINELHUB_CLIENT_SECRET'] = sentinel_config.get('client_secret', '')
+                
+                # Configurar Planet
+                if 'planet' in data:
+                    planet_config = data['planet']
+                    os.environ['PLANET_API_KEY'] = planet_config.get('api_key', '')
+                
+                # Reinicializar sistema satelital
+                self._initialize_satellite_system()
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Satellite system configured and reinitialized',
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error configurando sistema satelital: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/satellite/test-connection')
+        def api_satellite_test_connection():
+            """API: Probar conexión con APIs satelitales"""
+            try:
+                if not SATELLITE_AVAILABLE:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Satellite integration not available'
+                    })
+                
+                # Inicializar si es necesario
+                if not self.satellite_manager:
+                    self._initialize_satellite_system()
+                
+                results = {}
+                
+                # Test SentinelHub
+                try:
+                    if self.sentinelhub_api and self.sentinelhub_api.authenticate():
+                        results['sentinelhub'] = {
+                            'status': 'connected',
+                            'message': 'Authentication successful'
+                        }
+                    else:
+                        results['sentinelhub'] = {
+                            'status': 'failed',
+                            'message': 'Authentication failed or not configured'
+                        }
+                except Exception as e:
+                    results['sentinelhub'] = {
+                        'status': 'error',
+                        'message': str(e)
+                    }
+                
+                # Test Planet (simpler test)
+                try:
+                    if os.getenv("PLANET_API_KEY"):
+                        results['planet'] = {
+                            'status': 'configured',
+                            'message': 'API key configured'
+                        }
+                    else:
+                        results['planet'] = {
+                            'status': 'not_configured',
+                            'message': 'API key not configured'
+                        }
+                except Exception as e:
+                    results['planet'] = {
+                        'status': 'error',
+                        'message': str(e)
+                    }
+                
+                return jsonify({
+                    'success': True,
+                    'connections': results,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error probando conexiones satelitales: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+
+        # ============================================
+        # AUTOMATED SATELLITE MONITORING API ENDPOINTS
+        # ============================================
+        
+        @self.flask_app.route('/api/satellite/monitoring/start', methods=['POST'])
+        def api_start_satellite_monitoring():
+            """API: Iniciar monitoreo satelital automático"""
+            try:
+                if not AUTOMATED_SATELLITE_AVAILABLE or not self.automated_satellite_monitor:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Automated satellite monitoring not available'
+                    }), 503
+                
+                # Inicializar monitor si no está inicializado
+                if not self.automated_satellite_monitor:
+                    self._initialize_satellite_system()
+                
+                # Iniciar monitoreo
+                self.automated_satellite_monitor.start_monitoring()
+                self.system_state['satellite_monitoring_running'] = True
+                
+                # Obtener estadísticas iniciales
+                stats = self.automated_satellite_monitor.get_monitoring_statistics()
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Automated satellite monitoring started',
+                    'statistics': stats,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error starting satellite monitoring: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/satellite/monitoring/stop', methods=['POST'])
+        def api_stop_satellite_monitoring():
+            """API: Detener monitoreo satelital automático"""
+            try:
+                if not AUTOMATED_SATELLITE_AVAILABLE or not self.automated_satellite_monitor:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Automated satellite monitoring not available'
+                    }), 503
+                
+                # Detener monitoreo
+                self.automated_satellite_monitor.stop_monitoring()
+                self.system_state['satellite_monitoring_running'] = False
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Automated satellite monitoring stopped',
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error stopping satellite monitoring: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/satellite/monitoring/status')
+        def api_satellite_monitoring_status():
+            """API: Obtener estado del monitoreo satelital automático"""
+            try:
+                if not AUTOMATED_SATELLITE_AVAILABLE or not self.automated_satellite_monitor:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Automated satellite monitoring not available'
+                    }), 503
+                
+                # Obtener estadísticas
+                stats = self.automated_satellite_monitor.get_monitoring_statistics()
+                
+                return jsonify({
+                    'success': True,
+                    'monitoring_running': self.system_state.get('satellite_monitoring_running', False),
+                    'statistics': stats,
+                    'configuration': {
+                        'check_interval_hours': self.config.get('satellite_check_interval_hours', 4),
+                        'priority_interval_hours': self.config.get('satellite_priority_interval_hours', 2),
+                        'auto_start': self.config.get('satellite_auto_start', True)
+                    },
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error getting satellite monitoring status: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/satellite/monitoring/update-zones', methods=['POST'])
+        def api_update_satellite_zones():
+            """API: Actualizar zonas de conflicto manualmente"""
+            try:
+                if not AUTOMATED_SATELLITE_AVAILABLE or not self.automated_satellite_monitor:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Automated satellite monitoring not available'
+                    }), 503
+                
+                # Parsear parámetros
+                data = request.get_json() or {}
+                priority_only = data.get('priority_only', False)
+                
+                # Ejecutar actualización
+                stats = self.automated_satellite_monitor.update_all_zones(priority_only=priority_only)
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Updated satellite images for conflict zones',
+                    'priority_only': priority_only,
+                    'statistics': stats,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error updating satellite zones: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/satellite/monitoring/populate-zones', methods=['POST'])
+        def api_populate_satellite_zones():
+            """API: Poblar zonas de conflicto desde datos GeoJSON existentes"""
+            try:
+                if not AUTOMATED_SATELLITE_AVAILABLE or not self.automated_satellite_monitor:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Automated satellite monitoring not available'
+                    }), 503
+                
+                # Poblar zonas desde el sistema existente
+                zones_count = self.automated_satellite_monitor.populate_zones_from_geojson_endpoint()
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Populated {zones_count} conflict zones for satellite monitoring',
+                    'zones_created': zones_count,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error populating satellite zones: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/satellite/monitoring/zones')
+        def api_get_satellite_zones():
+            """API: Obtener lista de zonas de conflicto para monitoreo satelital"""
+            try:
+                if not AUTOMATED_SATELLITE_AVAILABLE:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Automated satellite monitoring not available'
+                    }), 503
+                
+                # Obtener zonas de la base de datos
+                db_path = get_database_path()
+                with sqlite3.connect(db_path) as conn:
+                    cursor = conn.cursor()
+                    
+                    cursor.execute("""
+                        SELECT 
+                            cz.zone_id, cz.name, cz.risk_level, cz.priority, 
+                            cz.last_checked, cz.created_at, cz.active,
+                            zsi.sensed_date, zsi.cloud_percent, zsi.download_time, zsi.file_size
+                        FROM conflict_zones cz
+                        LEFT JOIN zone_satellite_images zsi ON cz.zone_id = zsi.zone_id
+                        WHERE cz.active = 1
+                        ORDER BY cz.priority ASC, cz.last_checked ASC NULLS FIRST
+                    """)
+                    
+                    zones = []
+                    for row in cursor.fetchall():
+                        zone = {
+                            'zone_id': row[0],
+                            'name': row[1],
+                            'risk_level': row[2],
+                            'priority': row[3],
+                            'last_checked': row[4],
+                            'created_at': row[5],
+                            'active': bool(row[6]),
+                            'satellite_image': {
+                                'sensed_date': row[7],
+                                'cloud_percent': row[8],
+                                'download_time': row[9],
+                                'file_size_mb': round((row[10] or 0) / (1024 * 1024), 2) if row[10] else None
+                            } if row[7] else None
+                        }
+                        zones.append(zone)
+                
+                return jsonify({
+                    'success': True,
+                    'zones': zones,
+                    'total_zones': len(zones),
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error getting satellite zones: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/satellite/monitoring/cleanup', methods=['POST'])
+        def api_cleanup_satellite_images():
+            """API: Limpiar imágenes satelitales antiguas"""
+            try:
+                if not AUTOMATED_SATELLITE_AVAILABLE or not self.automated_satellite_monitor:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Automated satellite monitoring not available'
+                    }), 503
+                
+                # Parsear parámetros
+                data = request.get_json() or {}
+                days_to_keep = data.get('days_to_keep', 90)
+                
+                # Ejecutar limpieza
+                deleted_count = self.automated_satellite_monitor.cleanup_old_images(days_to_keep)
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Cleaned up {deleted_count} old satellite images',
+                    'deleted_count': deleted_count,
+                    'days_to_keep': days_to_keep,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error cleaning up satellite images: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+
         # ========================================
         # SMART IMAGE POSITIONING API ENDPOINTS
         # ========================================
@@ -2134,6 +2844,102 @@ class RiskMapUnifiedApplication:
         except Exception as e:
             logger.error(f"Error starting background task {task_name}: {e}")
     
+    def _initialize_satellite_system(self):
+        """Inicializar sistema de integración satelital"""
+        try:
+            if not SATELLITE_AVAILABLE:
+                logger.warning("Satellite integration not available")
+                return False
+            
+            logger.info("Initializing satellite integration system...")
+            
+            # Inicializar APIs satelitales
+            self.sentinelhub_api = SentinelHubAPI()
+            self.planet_api = PlanetAPI()
+            
+            # Inicializar manager principal
+            self.satellite_manager = SatelliteIntegrationManager()
+            
+            # Probar conectividad básica
+            sentinelhub_ok = False
+            planet_ok = False
+            
+            try:
+                # Test SentinelHub si está configurado
+                if os.getenv("SENTINELHUB_CLIENT_ID") and os.getenv("SENTINELHUB_CLIENT_SECRET"):
+                    sentinelhub_ok = self.sentinelhub_api.authenticate()
+                    if sentinelhub_ok:
+                        logger.info("✅ SentinelHub API connected successfully")
+                    else:
+                        logger.warning("⚠️ SentinelHub API authentication failed")
+                else:
+                    logger.info("ℹ️ SentinelHub credentials not configured")
+            except Exception as e:
+                logger.warning(f"SentinelHub connection test failed: {e}")
+            
+            try:
+                # Test Planet si está configurado
+                if os.getenv("PLANET_API_KEY"):
+                    planet_ok = True  # Planet no requiere autenticación previa
+                    logger.info("✅ Planet API configured")
+                else:
+                    logger.info("ℹ️ Planet API key not configured")
+            except Exception as e:
+                logger.warning(f"Planet API test failed: {e}")
+            
+            # Inicializar Monitor Satelital Automático
+            try:
+                if AUTOMATED_SATELLITE_AVAILABLE:
+                    logger.info("Initializing Automated Satellite Monitor...")
+                    
+                    # Configuración específica para el monitor
+                    monitor_config = {
+                        'images_dir': 'data/satellite_images',
+                        'max_cloud_cover': 20,
+                        'image_size': (512, 512),
+                        'check_interval_hours': self.config.get('satellite_check_interval_hours', 4),
+                        'priority_zones_interval_hours': self.config.get('satellite_priority_interval_hours', 2),
+                        'max_age_days': 30,
+                        'batch_size': 10,
+                        'retry_attempts': 3,
+                        'timeout_seconds': 120
+                    }
+                    
+                    # Crear el monitor con la misma BD que usa el resto del sistema
+                    self.automated_satellite_monitor = AutomatedSatelliteMonitor(
+                        db_path=get_database_path(),
+                        config=monitor_config
+                    )
+                    
+                    logger.info("✅ Automated Satellite Monitor initialized successfully")
+                    
+                    # Verificar si tiene credenciales para funcionar
+                    if sentinelhub_ok:
+                        logger.info("🛰️ Automated monitoring ready with SentinelHub")
+                    else:
+                        logger.warning("⚠️ Automated monitoring initialized but needs valid credentials")
+                        
+                else:
+                    logger.warning("⚠️ Automated Satellite Monitor not available")
+                    self.automated_satellite_monitor = None
+                    
+            except Exception as e:
+                logger.error(f"Error initializing Automated Satellite Monitor: {e}")
+                self.automated_satellite_monitor = None
+            
+            # Marcar como inicializado si al menos una API está disponible
+            if sentinelhub_ok or planet_ok:
+                self.system_state['satellite_system_initialized'] = True
+                logger.info("🛰️ Satellite system initialized successfully")
+                return True
+            else:
+                logger.warning("⚠️ No satellite APIs are properly configured")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error initializing satellite system: {e}")
+            return False
+    
     def _initialize_all_systems(self):
         """Inicializar todos los sistemas del RiskMap"""
         try:
@@ -2196,17 +3002,21 @@ class RiskMapUnifiedApplication:
                 logger.warning("External intelligence modules not available")
                 self.system_state['external_intelligence_initialized'] = False
             
-            # 5. Initialize task scheduler
+            # 5. Initialize satellite integration system
+            logger.info("Initializing satellite integration system...")
+            self._initialize_satellite_system()
+            
+            # 6. Initialize task scheduler
             logger.info("Initializing task scheduler...")
             self.task_scheduler = TaskScheduler(self.core_orchestrator)
             
-            # 6. Setup API endpoints
+            # 7. Setup API endpoints
             self._setup_api_endpoints()
             
-            # 7. Initialize Dash applications with existing data
+            # 8. Initialize Dash applications with existing data
             self._initialize_dash_apps()
             
-            # 8. Start background processes if enabled (for continuous updates)
+            # 9. Start background processes if enabled (for continuous updates)
             if self.config['enable_background_tasks']:
                 self._start_background_processes()
             
@@ -2217,6 +3027,8 @@ class RiskMapUnifiedApplication:
                 'status': 'success',
                 'core_system': self.system_state['core_system_initialized'],
                 'historical_system': self.system_state['historical_system_initialized'],
+                'external_intelligence': self.system_state['external_intelligence_initialized'],
+                'satellite_system': self.system_state['satellite_system_initialized'],
                 'dashboards': self.system_state['dashboards_ready'],
                 'api': self.system_state['api_ready'],
                 'existing_data_loaded': True
@@ -2247,6 +3059,16 @@ class RiskMapUnifiedApplication:
             # Auto-start external feeds update
             if INTELLIGENCE_AVAILABLE and self.external_feeds:
                 self._run_background_task('auto_external_feeds', self._run_continuous_external_feeds_update)
+            
+            # Auto-start satellite monitoring
+            if self.config.get('satellite_auto_start', True) and AUTOMATED_SATELLITE_AVAILABLE and self.automated_satellite_monitor:
+                try:
+                    logger.info("Starting automated satellite monitoring...")
+                    self.automated_satellite_monitor.start_monitoring()
+                    self.system_state['satellite_monitoring_running'] = True
+                    logger.info("✅ Automated satellite monitoring started")
+                except Exception as e:
+                    logger.error(f"Error starting satellite monitoring: {e}")
             
             # Start maintenance cycle
             self._run_background_task('maintenance', self._run_maintenance_cycle)
@@ -3841,6 +4663,16 @@ La estabilidad internacional dependerá de la capacidad de los líderes mundiale
         """Detener la aplicación gracefully"""
         try:
             logger.info("Stopping RiskMap Unified Application...")
+            
+            # Stop satellite monitoring
+            if AUTOMATED_SATELLITE_AVAILABLE and self.automated_satellite_monitor:
+                try:
+                    logger.info("Stopping automated satellite monitoring...")
+                    self.automated_satellite_monitor.stop_monitoring()
+                    self.system_state['satellite_monitoring_running'] = False
+                    logger.info("✅ Automated satellite monitoring stopped")
+                except Exception as e:
+                    logger.error(f"Error stopping satellite monitoring: {e}")
             
             # Set shutdown event
             self.shutdown_event.set();

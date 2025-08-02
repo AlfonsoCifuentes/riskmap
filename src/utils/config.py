@@ -231,3 +231,10 @@ class DatabaseManager:
             conn.close()
 
 db_manager = DatabaseManager(config)
+
+def get_database_path() -> str:
+    """
+    Obtener la ruta de la base de datos principal.
+    Esta función es utilizada por múltiples módulos para acceder a la BD.
+    """
+    return config.database.path
