@@ -719,9 +719,40 @@ class RiskMapUnifiedApplication:
         
         @self.flask_app.route('/api/articles')
         def get_articles():
-            """Obtener artículos de la base de datos para el dashboard, excluyendo el artículo héroe"""
+            """Obtener artículos organizados inteligentemente para el dashboard usando análisis CV"""
             try:
+                # Importar el sistema de mosaico inteligente
+                from src.dashboard.smart_mosaic_layout import get_smart_mosaic_articles
+                
                 # Obtener parámetros de consulta
+                limit = request.args.get('limit', 25, type=int)
+                use_smart_layout = request.args.get('smart_layout', 'true').lower() == 'true'
+                
+                if use_smart_layout:
+                    # Usar el sistema inteligente de posicionamiento
+                    smart_articles = get_smart_mosaic_articles(limit)
+                    
+                    # Aplanar la estructura para compatibilidad con el frontend
+                    dashboard_articles = []
+                    
+                    # Agregar artículos en orden de prioridad
+                    for position in ['hero', 'featured', 'standard', 'thumbnail']:
+                        articles_in_position = smart_articles.get(position, [])
+                        dashboard_articles.extend(articles_in_position)
+                    
+                    # Limitar al número solicitado
+                    dashboard_articles = dashboard_articles[:limit]
+                    
+                    return jsonify({
+                        'success': True,
+                        'articles': dashboard_articles,
+                        'total': len(dashboard_articles),
+                        'smart_layout': True,
+                        'layout_data': smart_articles,
+                        'positioning_info': 'Artículos posicionados usando análisis CV inteligente'
+                    })
+                
+                # Fallback al método original si smart_layout=false
                 limit = request.args.get('limit', 20, type=int)
                 offset = request.args.get('offset', 0, type=int)
                 
@@ -777,7 +808,8 @@ class RiskMapUnifiedApplication:
                     'articles': dashboard_articles,
                     'total': len(dashboard_articles),
                     'offset': offset,
-                    'limit': limit
+                    'limit': limit,
+                    'smart_layout': False
                 })
                 
             except Exception as e:
@@ -1525,6 +1557,161 @@ class RiskMapUnifiedApplication:
                 
             except Exception as e:
                 logger.error(f"Error en análisis comprensivo: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        # ========================================
+        # SMART IMAGE POSITIONING API ENDPOINTS
+        # ========================================
+        
+        @self.flask_app.route('/api/smart-positioning/run', methods=['POST'])
+        def api_run_smart_positioning():
+            """API: Ejecutar sistema completo de posicionamiento inteligente"""
+            try:
+                from src.intelligence.smart_image_positioning import SmartImagePositioning
+                
+                # Inicializar sistema
+                smart_positioning = SmartImagePositioning()
+                
+                # Ejecutar en background
+                self._run_background_task('smart_positioning', self._run_smart_positioning_full, smart_positioning)
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Sistema de posicionamiento inteligente iniciado en background',
+                    'task_id': 'smart_positioning'
+                })
+                
+            except Exception as e:
+                logger.error(f"Error iniciando posicionamiento inteligente: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/smart-positioning/status')
+        def api_smart_positioning_status():
+            """API: Obtener estado del sistema de posicionamiento"""
+            try:
+                from src.dashboard.smart_mosaic_layout import get_mosaic_layout_stats
+                
+                # Obtener estadísticas actuales
+                stats = get_mosaic_layout_stats()
+                
+                # Verificar estado de la tarea en background
+                task_status = self.system_state['background_tasks'].get('smart_positioning', {})
+                
+                return jsonify({
+                    'success': True,
+                    'layout_stats': stats,
+                    'task_status': task_status,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error obteniendo estado de posicionamiento: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/smart-positioning/duplicates')
+        def api_check_duplicates():
+            """API: Verificar imágenes duplicadas"""
+            try:
+                from src.intelligence.smart_image_positioning import SmartImagePositioning
+                
+                smart_positioning = SmartImagePositioning()
+                duplicates = smart_positioning.check_duplicate_images()
+                
+                return jsonify({
+                    'success': True,
+                    'duplicates': duplicates,
+                    'count': len(duplicates),
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error verificando duplicados: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/smart-positioning/optimize-quality', methods=['POST'])
+        def api_optimize_image_quality():
+            """API: Optimizar imágenes de baja calidad"""
+            try:
+                from src.intelligence.smart_image_positioning import SmartImagePositioning
+                
+                data = request.get_json() or {}
+                quality_threshold = data.get('quality_threshold', 0.5)
+                
+                smart_positioning = SmartImagePositioning()
+                
+                # Ejecutar optimización en background
+                self._run_background_task('optimize_quality', smart_positioning.optimize_low_quality_images, quality_threshold)
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Optimización de calidad iniciada en background',
+                    'quality_threshold': quality_threshold
+                })
+                
+            except Exception as e:
+                logger.error(f"Error iniciando optimización de calidad: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/smart-positioning/assign-positions', methods=['POST'])
+        def api_assign_mosaic_positions():
+            """API: Asignar posiciones del mosaico basadas en análisis CV"""
+            try:
+                from src.intelligence.smart_image_positioning import SmartImagePositioning
+                
+                smart_positioning = SmartImagePositioning()
+                
+                # Ejecutar asignación en background
+                self._run_background_task('assign_positions', smart_positioning.assign_mosaic_positions)
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Asignación de posiciones iniciada en background'
+                })
+                
+            except Exception as e:
+                logger.error(f"Error asignando posiciones: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/mosaic/layout')
+        def api_get_mosaic_layout():
+            """API: Obtener layout completo del mosaico organizado inteligentemente"""
+            try:
+                from src.dashboard.smart_mosaic_layout import get_smart_mosaic_articles, get_mosaic_layout_stats
+                
+                # Obtener artículos organizados
+                mosaic_articles = get_smart_mosaic_articles()
+                
+                # Obtener estadísticas
+                stats = get_mosaic_layout_stats()
+                
+                return jsonify({
+                    'success': True,
+                    'layout': mosaic_articles,
+                    'statistics': stats,
+                    'total_articles': sum(len(articles) for articles in mosaic_articles.values()),
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error obteniendo layout del mosaico: {e}")
                 return jsonify({
                     'success': False,
                     'error': str(e)
@@ -2904,6 +3091,89 @@ La estabilidad internacional dependerá de la capacidad de los líderes mundiale
 *Este análisis se basa en información pública disponible y refleja una perspectiva equilibrada sobre los desarrollos geopolíticos actuales.*
 """
     
+    def _run_smart_positioning_full(self, smart_positioning):
+        """
+        Ejecutar sistema completo de posicionamiento inteligente en background
+        """
+        try:
+            logger.info("🚀 Iniciando sistema completo de posicionamiento inteligente...")
+            
+            # Paso 1: Actualizar fingerprints
+            logger.info("📋 Actualizando fingerprints de imágenes...")
+            fingerprint_results = smart_positioning.update_all_image_fingerprints()
+            logger.info(f"✅ Fingerprints: {fingerprint_results}")
+            
+            # Paso 2: Detectar y resolver duplicados
+            logger.info("📋 Detectando imágenes duplicadas...")
+            duplicates = smart_positioning.check_duplicate_images()
+            
+            if duplicates:
+                logger.info(f"🔍 Encontrados {len(duplicates)} pares similares")
+                resolution_results = smart_positioning.resolve_duplicate_images(duplicates)
+                logger.info(f"✅ Duplicados resueltos: {resolution_results}")
+            
+            # Paso 3: Optimizar calidad
+            logger.info("📋 Optimizando imágenes de baja calidad...")
+            optimization_results = smart_positioning.optimize_low_quality_images()
+            logger.info(f"✅ Optimización: {optimization_results}")
+            
+            # Paso 4: Asignar posiciones
+            logger.info("📋 Asignando posiciones del mosaico...")
+            position_results = smart_positioning.assign_mosaic_positions()
+            logger.info(f"✅ Posiciones: {position_results}")
+            
+            # Actualizar estadísticas del sistema
+            self.system_state['smart_positioning_last_run'] = datetime.now().isoformat()
+            self.system_state['smart_positioning_results'] = {
+                'fingerprints': fingerprint_results,
+                'duplicates_found': len(duplicates),
+                'optimization': optimization_results,
+                'positions': position_results
+            }
+            
+            logger.info("🎉 Sistema de posicionamiento inteligente completado")
+            
+        except Exception as e:
+            logger.error(f"Error en posicionamiento inteligente: {e}")
+            raise
+    
+    def ensure_smart_positioning_tables(self):
+        """
+        Asegurar que existen las tablas y columnas necesarias para el posicionamiento inteligente
+        """
+        try:
+            db_path = get_database_path()
+            with sqlite3.connect(db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Verificar y añadir columnas necesarias
+                cursor.execute("PRAGMA table_info(articles)")
+                columns = [column[1] for column in cursor.fetchall()]
+                
+                if 'mosaic_position' not in columns:
+                    cursor.execute("ALTER TABLE articles ADD COLUMN mosaic_position TEXT DEFAULT 'standard'")
+                    logger.info("✅ Columna mosaic_position añadida")
+                
+                if 'image_fingerprint' not in columns:
+                    cursor.execute("ALTER TABLE articles ADD COLUMN image_fingerprint TEXT")
+                    logger.info("✅ Columna image_fingerprint añadida")
+                
+                conn.commit()
+                
+        except Exception as e:
+            logger.error(f"Error configurando tablas de posicionamiento: {e}")
+    
+    def get_smart_positioning_statistics(self):
+        """
+        Obtener estadísticas del sistema de posicionamiento inteligente
+        """
+        try:
+            from src.dashboard.smart_mosaic_layout import get_mosaic_layout_stats
+            return get_mosaic_layout_stats()
+        except Exception as e:
+            logger.error(f"Error obteniendo estadísticas de posicionamiento: {e}")
+            return {}
+    
     def _clean_old_logs(self):
         """Limpiar logs antiguos"""
         try:
@@ -3872,20 +4142,60 @@ La estabilidad internacional dependerá de la capacidad de los líderes mundiale
             return 0
     
     def _generate_custom_placeholder(self, article_id, title):
-        """Generar un placeholder personalizado para el artículo"""
+        """Generar un placeholder personalizado LOCAL para el artículo"""
         try:
             # Crear directorio de placeholders si no existe
             placeholder_dir = Path("static/images/placeholders")
             placeholder_dir.mkdir(parents=True, exist_ok=True)
             
-            # Por ahora, retornar una URL de placeholder con info del artículo
-            placeholder_url = f"https://via.placeholder.com/800x600/2563eb/ffffff?text={article_id}"
+            # Generar filename único para el placeholder
+            safe_title = "".join(c for c in title[:20] if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            filename = f"placeholder_{article_id}_{safe_title.replace(' ', '_')}.png"
+            placeholder_path = placeholder_dir / filename
             
-            return placeholder_url
+            # Si ya existe, retornar la ruta
+            if placeholder_path.exists():
+                return f"/static/images/placeholders/{filename}"
+            
+            # Crear imagen placeholder local usando PIL
+            from PIL import Image, ImageDraw, ImageFont
+            
+            # Crear imagen de 800x600 con color azul corporativo
+            img = Image.new('RGB', (800, 600), color=(37, 99, 235))  # Azul corporativo
+            draw = ImageDraw.Draw(img)
+            
+            # Intentar usar una fuente más grande si está disponible
+            try:
+                font = ImageFont.truetype("arial.ttf", 40)
+                small_font = ImageFont.truetype("arial.ttf", 20)
+            except:
+                font = ImageFont.load_default()
+                small_font = ImageFont.load_default()
+            
+            # Texto principal
+            main_text = f"Artículo #{article_id}"
+            text_width = draw.textlength(main_text, font=font)
+            x = (800 - text_width) // 2
+            y = 250
+            draw.text((x, y), main_text, fill=(255, 255, 255), font=font)
+            
+            # Título truncado
+            title_text = title[:60] + "..." if len(title) > 60 else title
+            title_width = draw.textlength(title_text, font=small_font)
+            x_title = (800 - title_width) // 2
+            y_title = 320
+            draw.text((x_title, y_title), title_text, fill=(255, 255, 255), font=small_font)
+            
+            # Guardar imagen
+            img.save(placeholder_path, 'PNG')
+            
+            logger.info(f"Placeholder local generado: {placeholder_path}")
+            return f"/static/images/placeholders/{filename}"
             
         except Exception as e:
-            logger.error(f"Error generando placeholder: {e}")
-            return "https://via.placeholder.com/800x600/cccccc/ffffff?text=Article"
+            logger.error(f"Error generando placeholder local: {e}")
+            # Como último recurso, retornar None para que no se use imagen
+            return None
     
     def _scrape_article_image(self, url):
         """Buscar imagen principal del artículo usando web scraping"""
