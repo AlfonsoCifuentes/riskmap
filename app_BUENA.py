@@ -261,6 +261,9 @@ class RiskMapUnifiedApplication:
         # Automated satellite monitoring
         self.automated_satellite_monitor = None
         
+        # Intelligent data enrichment system
+        self.enrichment_system = None
+        
         # System state
         self.system_state = {
             'core_system_initialized': False,
@@ -271,6 +274,8 @@ class RiskMapUnifiedApplication:
             'nlp_processing_running': False,
             'historical_analysis_running': False,
             'satellite_monitoring_running': False,
+            'enrichment_system_initialized': False,
+            'enrichment_running': False,
             'dashboards_ready': False,
             'api_ready': False,
             'last_ingestion': None,
@@ -289,7 +294,11 @@ class RiskMapUnifiedApplication:
                 'external_feeds_count': 0,
                 'satellite_images_found': 0,
                 'sentinel_searches': 0,
-                'planet_searches': 0
+                'planet_searches': 0,
+                'articles_enriched': 0,
+                'fields_completed': 0,
+                'duplicates_detected': 0,
+                'enrichment_errors': 0
             }
         }
         
@@ -327,6 +336,11 @@ class RiskMapUnifiedApplication:
             'satellite_check_interval_hours': 4,
             'satellite_priority_interval_hours': 2,
             'satellite_auto_start': True,
+            
+            # Enrichment system settings
+            'enrichment_auto_start': True,
+            'enrichment_batch_size': 100,
+            'enrichment_processing_interval_hours': 1,
             
             # Data directories
             'data_dir': 'datasets/historical',
@@ -2273,6 +2287,216 @@ class RiskMapUnifiedApplication:
                 }), 500
 
         # ========================================
+        # INTELLIGENT DATA ENRICHMENT API ENDPOINTS
+        # ========================================
+        
+        @self.flask_app.route('/api/enrichment/start', methods=['POST'])
+        def api_start_enrichment():
+            """API: Iniciar enriquecimiento automático de datos"""
+            try:
+                if not self.enrichment_system:
+                    self._initialize_enrichment_system()
+                
+                if not self.enrichment_system.running:
+                    self.enrichment_system.start_automatic_enrichment()
+                    return jsonify({
+                        'success': True,
+                        'message': 'Intelligent data enrichment started',
+                        'timestamp': datetime.now().isoformat()
+                    })
+                else:
+                    return jsonify({
+                        'success': True,
+                        'message': 'Enrichment already running',
+                        'timestamp': datetime.now().isoformat()
+                    })
+            except Exception as e:
+                logger.error(f"Error starting enrichment: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/enrichment/stop', methods=['POST'])
+        def api_stop_enrichment():
+            """API: Detener enriquecimiento automático"""
+            try:
+                if self.enrichment_system and self.enrichment_system.running:
+                    self.enrichment_system.stop_automatic_enrichment()
+                    return jsonify({
+                        'success': True,
+                        'message': 'Enrichment stopped',
+                        'timestamp': datetime.now().isoformat()
+                    })
+                else:
+                    return jsonify({
+                        'success': True,
+                        'message': 'Enrichment was not running',
+                        'timestamp': datetime.now().isoformat()
+                    })
+            except Exception as e:
+                logger.error(f"Error stopping enrichment: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/enrichment/status')
+        def api_enrichment_status():
+            """API: Estado del sistema de enriquecimiento"""
+            try:
+                if not self.enrichment_system:
+                    return jsonify({
+                        'success': True,
+                        'available': False,
+                        'message': 'Enrichment system not initialized'
+                    })
+                
+                stats = self.enrichment_system.get_enrichment_statistics()
+                return jsonify({
+                    'success': True,
+                    'available': True,
+                    'statistics': stats,
+                    'timestamp': datetime.now().isoformat()
+                })
+            except Exception as e:
+                logger.error(f"Error getting enrichment status: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/enrichment/process-batch', methods=['POST'])
+        def api_enrichment_process_batch():
+            """API: Procesar lote de artículos específicos"""
+            try:
+                if not self.enrichment_system:
+                    self._initialize_enrichment_system()
+                
+                data = request.get_json() or {}
+                article_ids = data.get('article_ids')
+                limit = data.get('limit', 50)
+                
+                # Ejecutar enriquecimiento en background
+                self._run_background_task(
+                    'enrichment_batch', 
+                    self.enrichment_system.enrich_batch_articles,
+                    article_ids, limit
+                )
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Batch enrichment started for {len(article_ids) if article_ids else limit} articles',
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error starting batch enrichment: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/enrichment/detect-duplicates', methods=['POST'])
+        def api_enrichment_detect_duplicates():
+            """API: Detectar y procesar artículos duplicados"""
+            try:
+                if not self.enrichment_system:
+                    self._initialize_enrichment_system()
+                
+                # Ejecutar detección en background
+                self._run_background_task(
+                    'duplicate_detection', 
+                    self.enrichment_system.detect_and_merge_duplicates
+                )
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Duplicate detection started',
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error starting duplicate detection: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/enrichment/enrich-single', methods=['POST'])
+        def api_enrichment_enrich_single():
+            """API: Enriquecer un artículo específico"""
+            try:
+                if not self.enrichment_system:
+                    self._initialize_enrichment_system()
+                
+                data = request.get_json()
+                article_id = data.get('article_id')
+                
+                if not article_id:
+                    return jsonify({
+                        'success': False,
+                        'error': 'article_id required'
+                    }), 400
+                
+                # Enriquecer artículo individual
+                result = self.enrichment_system.enrich_single_article(article_id)
+                
+                return jsonify({
+                    'success': result.success,
+                    'article_id': result.article_id,
+                    'fields_updated': result.fields_updated,
+                    'processing_time': result.processing_time,
+                    'confidence_scores': result.confidence_scores,
+                    'error': result.error,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error enriching single article: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+        
+        @self.flask_app.route('/api/enrichment/field-completion')
+        def api_enrichment_field_completion():
+            """API: Estadísticas de completitud de campos"""
+            try:
+                if not self.enrichment_system:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Enrichment system not available'
+                    }), 503
+                
+                stats = self.enrichment_system.get_enrichment_statistics()
+                field_completion = stats.get('field_completion', {})
+                total_articles = stats.get('total_articles', 0)
+                
+                # Calcular porcentajes de completitud
+                completion_percentages = {}
+                for field, count in field_completion.items():
+                    completion_percentages[field] = {
+                        'completed': count,
+                        'total': total_articles,
+                        'percentage': (count / total_articles * 100) if total_articles > 0 else 0
+                    }
+                
+                return jsonify({
+                    'success': True,
+                    'field_completion': completion_percentages,
+                    'total_articles': total_articles,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error getting field completion: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                }), 500
+
+        # ========================================
         # SMART IMAGE POSITIONING API ENDPOINTS
         # ========================================
         
@@ -2939,6 +3163,60 @@ class RiskMapUnifiedApplication:
         except Exception as e:
             logger.error(f"Error initializing satellite system: {e}")
             return False
+
+    def _initialize_enrichment_system(self):
+        """Inicializar sistema de enriquecimiento inteligente de datos"""
+        try:
+            logger.info("🤖 Initializing intelligent data enrichment system...")
+            
+            from src.enrichment.intelligent_data_enrichment import (
+                create_enrichment_system, EnrichmentConfig
+            )
+            
+            # Configuración del sistema de enriquecimiento
+            enrichment_config = EnrichmentConfig(
+                batch_size=self.config.get('enrichment_batch_size', 10),
+                max_workers=self.config.get('enrichment_max_workers', 4),
+                confidence_threshold=self.config.get('enrichment_confidence_threshold', 0.7),
+                auto_enrich_interval_hours=self.config.get('auto_enrich_interval_hours', 6)
+            )
+            
+            # Crear sistema de enriquecimiento
+            self.enrichment_system = create_enrichment_system(
+                db_path=get_database_path(),
+                config=enrichment_config
+            )
+            
+            # Configurar triggers automáticos para nuevos artículos
+            self.enrichment_system.setup_automatic_enrichment_triggers()
+            
+            # Iniciar enriquecimiento automático si está configurado
+            if self.config.get('auto_start_enrichment', True):
+                self.enrichment_system.start_automatic_enrichment()
+                self.system_state['enrichment_running'] = True
+                logger.info("✅ Automatic enrichment started")
+            
+            self.system_state['enrichment_system_initialized'] = True
+            logger.info("✅ Intelligent data enrichment system initialized successfully")
+            
+            # Actualizar estadísticas iniciales
+            try:
+                stats = self.enrichment_system.get_enrichment_statistics()
+                self.system_state['statistics']['articles_enriched'] = stats.get('enriched_articles', 0)
+                self.system_state['statistics']['fields_completed'] = sum(stats.get('field_completion', {}).values())
+            except Exception as e:
+                logger.warning(f"Could not get initial enrichment stats: {e}")
+            
+            return True
+            
+        except ImportError as e:
+            logger.warning(f"⚠️ Enrichment system dependencies not available: {e}")
+            self.enrichment_system = None
+            return False
+        except Exception as e:
+            logger.error(f"Error initializing enrichment system: {e}")
+            self.enrichment_system = None
+            return False
     
     def _initialize_all_systems(self):
         """Inicializar todos los sistemas del RiskMap"""
@@ -3006,14 +3284,18 @@ class RiskMapUnifiedApplication:
             logger.info("Initializing satellite integration system...")
             self._initialize_satellite_system()
             
-            # 6. Initialize task scheduler
+            # 6. Initialize intelligent data enrichment system
+            logger.info("Initializing intelligent data enrichment system...")
+            self._initialize_enrichment_system()
+            
+            # 7. Initialize task scheduler
             logger.info("Initializing task scheduler...")
             self.task_scheduler = TaskScheduler(self.core_orchestrator)
             
-            # 7. Setup API endpoints
+            # 8. Setup API endpoints
             self._setup_api_endpoints()
             
-            # 8. Initialize Dash applications with existing data
+            # 9. Initialize Dash applications with existing data
             self._initialize_dash_apps()
             
             # 9. Start background processes if enabled (for continuous updates)
@@ -3069,6 +3351,16 @@ class RiskMapUnifiedApplication:
                     logger.info("✅ Automated satellite monitoring started")
                 except Exception as e:
                     logger.error(f"Error starting satellite monitoring: {e}")
+            
+            # Auto-start enrichment system
+            if self.config.get('enrichment_auto_start', True) and self.enrichment_system:
+                try:
+                    logger.info("Starting automated enrichment system...")
+                    self.enrichment_system.start_automatic_enrichment()
+                    self.system_state['enrichment_running'] = True
+                    logger.info("✅ Automated enrichment system started")
+                except Exception as e:
+                    logger.error(f"Error starting enrichment system: {e}")
             
             # Start maintenance cycle
             self._run_background_task('maintenance', self._run_maintenance_cycle)
@@ -4673,6 +4965,16 @@ La estabilidad internacional dependerá de la capacidad de los líderes mundiale
                     logger.info("✅ Automated satellite monitoring stopped")
                 except Exception as e:
                     logger.error(f"Error stopping satellite monitoring: {e}")
+            
+            # Stop enrichment system
+            if self.enrichment_system:
+                try:
+                    logger.info("Stopping enrichment system...")
+                    self.enrichment_system.stop_automatic_enrichment()
+                    self.system_state['enrichment_running'] = False
+                    logger.info("✅ Enrichment system stopped")
+                except Exception as e:
+                    logger.error(f"Error stopping enrichment system: {e}")
             
             # Set shutdown event
             self.shutdown_event.set();
