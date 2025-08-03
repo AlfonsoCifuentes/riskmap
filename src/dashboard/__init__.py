@@ -2,10 +2,12 @@
 Dashboard package for the web interface.
 """
 
-from .app_modern import app
+# NOTE: app_modern.py is in the root directory, not in src/dashboard
+# The app is created and managed by app_BUENA.py
 
 def create_app():
     """Create and configure the Flask application."""
-    return app
+    # The app is managed by the unified application in app_BUENA.py
+    return None
 
-__all__ = ['app', 'create_app']
+__all__ = ['create_app']

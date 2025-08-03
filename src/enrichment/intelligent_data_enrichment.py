@@ -385,14 +385,58 @@ class IntelligentDataEnrichment:
         return {}
 
     def enhance_with_groq(self, article_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Enriquecer artículo usando Groq para campos complejos"""
-        if not self.groq_client:
-            return {}
-            
+        """Enriquecer artículo usando Groq con fallback inteligente a Ollama"""
         try:
+            # Intentar con servicio unificado (maneja fallback automáticamente)
+            from src.ai.unified_ai_service import unified_ai_service
+            
             title = article_data.get('title', '')
             content = article_data.get('content', '')
             
+            # Usar el servicio unificado para análisis geopolítico
+            response = asyncio.run(unified_ai_service.analyze_geopolitical_content(
+                content=f"TÍTULO: {title}\nCONTENIDO: {content}",
+                prefer_local=True  # Priorizar Ollama para evitar rate limits
+            ))
+            
+            if response.success and response.metadata:
+                # Convertir respuesta del servicio unificado a formato esperado
+                metadata = response.metadata
+                return {
+                    "published_date": metadata.get('published_date'),
+                    "country": metadata.get('country', '').split(',')[0] if metadata.get('country') else '',
+                    "region": metadata.get('region', ''),
+                    "conflict_type": metadata.get('conflict_type'),
+                    "summary": metadata.get('summary', ''),
+                    "key_persons": metadata.get('key_persons', []),
+                    "key_locations": metadata.get('key_locations', []),
+                    "geopolitical_relevance": metadata.get('geopolitical_relevance', 0.5),
+                    "risk_assessment": metadata.get('risk_level', 'medium')
+                }
+            
+            # Fallback manual a Groq directo si el servicio unificado falla
+            if not self.groq_client:
+                logger.warning("🔄 Servicio unificado falló y Groq no disponible")
+                return self._fallback_to_ollama_direct(title, content)
+                
+            return self._enhance_with_groq_direct(title, content)
+            
+        except Exception as e:
+            logger.error(f"Error enhancing with AI: {e}")
+            
+            # Fallback directo a Ollama en caso de cualquier error
+            try:
+                return self._fallback_to_ollama_direct(
+                    article_data.get('title', ''), 
+                    article_data.get('content', '')
+                )
+            except Exception as fallback_error:
+                logger.error(f"Error en fallback Ollama: {fallback_error}")
+                return {}
+                
+    def _enhance_with_groq_direct(self, title: str, content: str) -> Dict[str, Any]:
+        """Método directo con Groq (preservado para compatibilidad)"""
+        try:
             # Prompt estructurado para extraer información faltante
             prompt = f"""
 Analiza el siguiente artículo de noticias y extrae la información solicitada en formato JSON:
@@ -436,9 +480,47 @@ JSON:
             if json_start >= 0 and json_end > json_start:
                 json_text = response_text[json_start:json_end]
                 return json.loads(json_text)
-            
+                
         except Exception as e:
-            logger.error(f"Error enhancing with Groq: {e}")
+            if "429" in str(e) or "rate_limit" in str(e).lower():
+                logger.warning(f"🔄 Rate limit detectado, usando Ollama directo...")
+                return self._fallback_to_ollama_direct(title, content)
+            else:
+                raise e
+                
+        return {}
+        
+    def _fallback_to_ollama_direct(self, title: str, content: str) -> Dict[str, Any]:
+        """Fallback directo a Ollama para enriquecimiento"""
+        try:
+            from src.ai.ollama_service import ollama_service, OllamaModel
+            
+            if not ollama_service.check_ollama_status():
+                logger.warning("⚠️ Ollama no disponible para fallback")
+                return {}
+                
+            # Usar DeepSeek para análisis profundo
+            analysis = ollama_service.analyze_geopolitical_content(
+                content=f"TÍTULO: {title}\nCONTENIDO: {content}",
+                model=OllamaModel.DEEPSEEK_R1_7B
+            )
+            
+            if analysis:
+                logger.info("✅ Análisis completado con Ollama DeepSeek")
+                return {
+                    "published_date": analysis.get('published_date'),
+                    "country": analysis.get('country', ''),
+                    "region": analysis.get('region', ''),
+                    "conflict_type": analysis.get('conflict_type'),
+                    "summary": analysis.get('summary', ''),
+                    "key_persons": analysis.get('key_persons', []),
+                    "key_locations": analysis.get('key_locations', []),
+                    "geopolitical_relevance": analysis.get('geopolitical_relevance', 0.5),
+                    "risk_assessment": analysis.get('risk_level', 'medium')
+                }
+                
+        except Exception as e:
+            logger.error(f"Error en fallback Ollama directo: {e}")
             
         return {}
 

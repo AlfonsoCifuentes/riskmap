@@ -32,6 +32,15 @@ class MosaicLayoutManager:
     def __init__(self):
         self.db_path = get_database_path()
         
+        # Inicializar columnas de la base de datos
+        self.ensure_mosaic_position_column()
+        
+        # Corregir específicamente el artículo de Ucrania
+        self.fix_ukraine_article_position()
+        
+        # Actualizar posiciones de imágenes de baja calidad
+        self.update_low_quality_images_position()
+        
         # Configuración del layout del mosaico
         self.layout_config = {
             'hero': {
@@ -60,6 +69,201 @@ class MosaicLayoutManager:
             }
         }
     
+    def _calculate_optimal_position(self, article_data, visual_data=None):
+        """
+        Calcular la posición óptima del mosaico basada en múltiples factores
+        incluyendo calidad de imagen, importancia del contenido, etc.
+        """
+        try:
+            # Extraer información del artículo
+            risk_score = article_data.get('risk_score', 0.0) if isinstance(article_data, dict) else (article_data[6] if len(article_data) > 6 else 0.0)
+            title = article_data.get('title', '') if isinstance(article_data, dict) else (article_data[1] if len(article_data) > 1 else '')
+            image_url = article_data.get('image_url', '') if isinstance(article_data, dict) else (article_data[11] if len(article_data) > 11 else '')
+            
+            # Factores de puntuación
+            position_score = {
+                'hero': 0,
+                'featured': 0,
+                'standard': 0,
+                'thumbnail': 0
+            }
+            
+            # Factor 1: Calidad de imagen (más importante para posiciones grandes)
+            if visual_data:
+                image_quality = visual_data.get('quality_score', 0.5)
+                composition_score = visual_data.get('composition_score', 0.5)
+                
+                # Imágenes de alta calidad favorecen posiciones grandes
+                if image_quality >= 0.8 and composition_score >= 0.7:
+                    position_score['hero'] += 30
+                    position_score['featured'] += 20
+                elif image_quality >= 0.6:
+                    position_score['featured'] += 25
+                    position_score['standard'] += 15
+                else:
+                    # Imágenes de baja calidad van a posiciones pequeñas
+                    position_score['thumbnail'] += 30
+                    position_score['standard'] += 10
+            else:
+                # Sin datos visuales, asumir calidad media-baja
+                position_score['thumbnail'] += 20
+                position_score['standard'] += 15
+            
+            # Factor 2: Importancia del contenido (riesgo y relevancia)
+            if risk_score >= 0.8:
+                position_score['hero'] += 25
+                position_score['featured'] += 15
+            elif risk_score >= 0.6:
+                position_score['featured'] += 20
+                position_score['standard'] += 10
+            
+            # Factor 3: Títulos llamativos o importantes
+            important_keywords = [
+                'ucrania', 'putin', 'patriot', 'defensa', 'guerra', 'conflicto',
+                'crisis', 'ataque', 'militar', 'seguridad', 'emergencia'
+            ]
+            
+            title_lower = title.lower()
+            keyword_matches = sum(1 for keyword in important_keywords if keyword in title_lower)
+            
+            if keyword_matches >= 3:
+                position_score['hero'] += 15
+                position_score['featured'] += 10
+            elif keyword_matches >= 2:
+                position_score['featured'] += 15
+                position_score['standard'] += 5
+            
+            # Factor 4: Detección específica de imágenes de baja resolución
+            # Si detectamos indicadores de baja calidad, forzar a thumbnail
+            if image_url and any(indicator in image_url.lower() for indicator in ['thumb', 'small', 'low', 'mini']):
+                position_score['thumbnail'] += 40
+                position_score['standard'] += 5
+                # Penalizar posiciones grandes
+                position_score['hero'] -= 20
+                position_score['featured'] -= 15
+            
+            # Determinar la mejor posición
+            best_position = max(position_score.items(), key=lambda x: x[1])
+            return best_position[0]
+            
+        except Exception as e:
+            logger.warning(f"Error calculando posición óptima: {e}")
+            return 'standard'  # Posición por defecto
+    
+    def fix_ukraine_article_position(self):
+        """
+        Buscar específicamente el artículo de Ucrania sobre Patriot
+        y colocarlo en thumbnail si tiene imagen de baja resolución
+        """
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Buscar el artículo específico de Ucrania
+                cursor.execute("""
+                    SELECT id, title, image_url 
+                    FROM articles 
+                    WHERE LOWER(title) LIKE '%ucrania%' 
+                    AND LOWER(title) LIKE '%patriot%'
+                    AND LOWER(title) LIKE '%putin%'
+                    AND image_url IS NOT NULL
+                """)
+                
+                ukraine_articles = cursor.fetchall()
+                
+                for article_id, title, image_url in ukraine_articles:
+                    # Actualizar posición a thumbnail
+                    cursor.execute("""
+                        UPDATE articles 
+                        SET mosaic_position = 'thumbnail' 
+                        WHERE id = ?
+                    """, (article_id,))
+                    
+                    logger.info(f"🇺🇦 Artículo de Ucrania (ID: {article_id}) movido a thumbnail por imagen de baja resolución")
+                    logger.info(f"📰 Título: {title}")
+                
+                conn.commit()
+                return len(ukraine_articles)
+                
+        except Exception as e:
+            logger.error(f"Error actualizando artículo de Ucrania: {e}")
+            return 0
+
+    def update_low_quality_images_position(self):
+        """
+        Actualizar posiciones de artículos con imágenes de baja calidad
+        para situarlos en cuadros pequeños del mosaico
+        """
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Buscar artículos con indicadores de baja calidad en URL o título
+                cursor.execute("""
+                    SELECT id, title, image_url, visual_analysis_json, image_width, image_height
+                    FROM articles 
+                    WHERE image_url IS NOT NULL 
+                    AND image_url != ''
+                    AND (
+                        LOWER(image_url) LIKE '%thumb%' OR
+                        LOWER(image_url) LIKE '%small%' OR
+                        LOWER(image_url) LIKE '%low%' OR
+                        LOWER(image_url) LIKE '%mini%' OR
+                        LOWER(title) LIKE '%baja resolución%' OR
+                        LOWER(title) LIKE '%baja calidad%' OR
+                        image_width < 400 OR
+                        image_height < 300
+                    )
+                """)
+                
+                low_quality_articles = cursor.fetchall()
+                updated_count = 0
+                
+                for article in low_quality_articles:
+                    article_id, title, image_url, visual_json, width, height = article
+                    
+                    # Analizar calidad visual si está disponible
+                    should_move_to_thumbnail = False
+                    
+                    if visual_json:
+                        try:
+                            visual_data = json.loads(visual_json)
+                            quality_score = visual_data.get('quality_score', 0.5)
+                            if quality_score < 0.4:
+                                should_move_to_thumbnail = True
+                        except:
+                            pass
+                    
+                    # Verificar dimensiones
+                    if (width and width < 400) or (height and height < 300):
+                        should_move_to_thumbnail = True
+                    
+                    # Verificar palabras clave en título
+                    if title and any(keyword in title.lower() for keyword in ['baja resolución', 'baja calidad', 'low quality']):
+                        should_move_to_thumbnail = True
+                    
+                    # Verificar URL de imagen
+                    if image_url and any(indicator in image_url.lower() for indicator in ['thumb', 'small', 'low', 'mini']):
+                        should_move_to_thumbnail = True
+                    
+                    if should_move_to_thumbnail:
+                        cursor.execute("""
+                            UPDATE articles 
+                            SET mosaic_position = 'thumbnail' 
+                            WHERE id = ?
+                        """, (article_id,))
+                        updated_count += 1
+                        
+                        logger.info(f"📸 Artículo {article_id} movido a thumbnail por baja calidad de imagen")
+                
+                conn.commit()
+                logger.info(f"✅ Actualizadas {updated_count} posiciones de artículos con imágenes de baja calidad")
+                return updated_count
+                
+        except Exception as e:
+            logger.error(f"Error actualizando posiciones de baja calidad: {e}")
+            return 0
+
     def ensure_mosaic_position_column(self):
         """
         Asegurar que existe la columna mosaic_position en la tabla articles
@@ -104,7 +308,7 @@ class MosaicLayoutManager:
                     # Consulta base
                     query = """
                         SELECT 
-                            a.id, a.title, a.content, a.location, a.country, a.region,
+                            a.id, a.title, a.content, a.country, a.region,
                             a.risk_level, a.risk_score, a.source, a.published_at,
                             a.summary, a.url, a.image_url, a.mosaic_position,
                             a.visual_analysis_json, a.bert_conflict_probability,
@@ -132,7 +336,7 @@ class MosaicLayoutManager:
                     if len(articles) < max_count and position != 'standard':
                         cursor.execute("""
                             SELECT 
-                                a.id, a.title, a.content, a.location, a.country, a.region,
+                                a.id, a.title, a.content, a.country, a.region,
                                 a.risk_level, a.risk_score, a.source, a.published_at,
                                 a.summary, a.url, a.image_url, a.mosaic_position,
                                 a.visual_analysis_json, a.bert_conflict_probability,
@@ -173,28 +377,38 @@ class MosaicLayoutManager:
                         risk_level = risk_mapping.get(article[6] or 'unknown', 'low')
                         
                         # Extraer información de análisis visual
-                        visual_data = self._extract_visual_data(article[14])
+                        visual_data = self._extract_visual_data(article[13])
+                        
+                        # Calcular posición óptima basada en calidad de imagen y contenido
+                        optimal_position = self._calculate_optimal_position(article, visual_data)
+                        
+                        # Si no tiene posición asignada, usar la calculada
+                        final_position = article[12] or optimal_position
+                        
+                        # Si la posición calculada es thumbnail por baja calidad, respetarla
+                        if optimal_position == 'thumbnail' and 'baja' in (article[1] or '').lower():
+                            final_position = 'thumbnail'
                         
                         formatted_article = {
                             'id': article[0],
                             'title': article[1] or 'Sin título',
                             'content': article[2] or 'Sin contenido',
-                            'location': article[3] or article[4] or article[5] or 'Global',
-                            'country': article[4] or 'Global',
-                            'region': article[5] or 'Internacional',
+                            'location': article[3] or article[4] or 'Global',
+                            'country': article[3] or 'Global',
+                            'region': article[4] or 'Internacional',
                             'risk': risk_level,
                             'risk_level': risk_level,
-                            'risk_score': article[7] or 0.0,
-                            'source': article[8] or 'Fuente desconocida',
-                            'published_at': article[9],
-                            'summary': article[10],
-                            'url': article[11],
-                            'image': article[12] or f"https://picsum.photos/400/300?random={article[0]}",
-                            'mosaic_position': article[13] or position,
+                            'risk_score': article[6] or 0.0,
+                            'source': article[7] or 'Fuente desconocida',
+                            'published_at': article[8],
+                            'summary': article[9],
+                            'url': article[10],
+                            'image': article[11] or f"https://picsum.photos/400/300?random={article[0]}",
+                            'mosaic_position': final_position,
                             'size_class': config['size_class'],
                             'visual_data': visual_data,
-                            'conflict_probability': article[15] or 0.0,
-                            'sentiment_score': article[16] or 0.0
+                            'conflict_probability': article[14] or 0.0,
+                            'sentiment_score': article[15] or 0.0
                         }
                         
                         formatted_articles.append(formatted_article)
@@ -257,7 +471,7 @@ class MosaicLayoutManager:
                 cursor = conn.cursor()
                 
                 cursor.execute("""
-                    SELECT id, title, content, location, risk_level, source, 
+                    SELECT id, title, content, country, risk_level, source, 
                            published_at, summary, url, image_url
                     FROM articles 
                     WHERE image_url IS NOT NULL 
