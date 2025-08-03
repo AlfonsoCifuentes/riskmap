@@ -24,24 +24,24 @@
         "data_sources": [
           "news_analysis"
         ],
-        "data_updated": "2025-08-03T23:11:29.960655",
+        "data_updated": "2025-08-02T06:58:26.499149",
         "event_types": [],
         "fatalities": 0,
         "id": "conflict_zone_1",
         "is_prediction": false,
-        "latest_event": "2025-08-03 21:10:14",
-        "marker_color": "#ffcc00",
+        "latest_event": "2025-08-02 01:49:08",
+        "marker_color": "#ff6600",
         "marker_size": "medium",
-        "monitoring_frequency": "monthly",
+        "monitoring_frequency": "weekly",
         "name": "Israel",
-        "news_articles_count": 1066,
+        "news_articles_count": 702,
         "prediction_base": null,
         "recommended_resolution": "20m",
         "region": "france",
-        "risk_level": "medium",
-        "risk_score": 0.568,
-        "sentinel_priority": "medium",
-        "total_events": 1066
+        "risk_level": "high",
+        "risk_score": 0.673,
+        "sentinel_priority": "high",
+        "total_events": 702
       },
       "type": "Feature"
     }
@@ -81,7 +81,7 @@
       "ai_analysis"
     ],
     "data_timeframe_days": 7,
-    "generated_at": "2025-08-03T23:11:29.960655",
+    "generated_at": "2025-08-02T06:58:26.499149",
     "generated_by": "RiskMap Integrated Geopolitical Analyzer",
     "monitoring_strategy": {
       "cloud_cover_threshold": 20,
@@ -89,7 +89,7 @@
       "high_zones_frequency": "weekly",
       "medium_zones_frequency": "monthly"
     },
-    "priority_zones": 0,
+    "priority_zones": 1,
     "recommended_collections": [
       "sentinel-2-l2a",
       "sentinel-1-grd",

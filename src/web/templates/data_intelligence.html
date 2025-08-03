@@ -1,0 +1,982 @@
+{% extends "base_navigation.html" %}
+
+{% block title %}Data Intelligence - Stratosight{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        --bg-secondary: #141824;
+        --text-primary: #e8eaed;
+        --text-secondary: #b0b8c4;
+        --accent-cyan: #00d4ff;
+        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+        --border-color: rgba(255, 255, 255, 0.1);
+        --success-color: #4caf50;
+        --warning-color: #ff9800;
+        --error-color: #f44336;
+        --info-color: #2196f3;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: #1a237e;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .data-intelligence-container {
+        padding: 0;
+        max-width: none;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 80px);
+        background: rgba(10, 15, 44, 0.08);
+        backdrop-filter: blur(2px);
+    }
+
+    .header-section {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        top: -80px;
+        margin-bottom: -80px;
+        z-index: 0;
+        background: linear-gradient(135deg, rgba(26, 32, 64, 0.75) 0%, rgba(16, 24, 48, 0.8) 50%, rgba(20, 28, 56, 0.75) 100%);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        padding: 180px 0 80px 0;
+        text-align: center;
+    }
+
+    .page-title {
+        font-family: 'Orbitron', monospace;
+        font-size: clamp(2rem, 6vw, 4rem);
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+    }
+
+    .content-section {
+        max-width: 95%;
+        margin: 40px auto;
+        padding: 0 20px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .dashboard-card {
+        background: rgba(20, 24, 36, 0.9);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 212, 255, 0.2);
+        border-color: var(--accent-cyan);
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--accent-cyan);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-icon {
+        font-size: 1.5rem;
+    }
+
+    .card-status {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .status-success {
+        background: rgba(76, 175, 80, 0.2);
+        color: var(--success-color);
+        border: 1px solid var(--success-color);
+    }
+
+    .status-warning {
+        background: rgba(255, 152, 0, 0.2);
+        color: var(--warning-color);
+        border: 1px solid var(--warning-color);
+    }
+
+    .status-error {
+        background: rgba(244, 67, 54, 0.2);
+        color: var(--error-color);
+        border: 1px solid var(--error-color);
+    }
+
+    .status-info {
+        background: rgba(33, 150, 243, 0.2);
+        color: var(--info-color);
+        border: 1px solid var(--info-color);
+    }
+
+    .card-content {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent-cyan) 0%, #0099cc 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--accent-glow);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: var(--accent-cyan);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, var(--error-color) 0%, #c62828 100%);
+        color: white;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #388e3c 100%);
+        color: white;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+        background: rgba(0, 212, 255, 0.1);
+        border-radius: 10px;
+        border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--accent-cyan);
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-top: 5px;
+    }
+
+    .dataset-list {
+        max-height: 300px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+
+    .dataset-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .dataset-item:last-child {
+        border-bottom: none;
+    }
+
+    .dataset-name {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .dataset-type {
+        font-size: 0.8rem;
+        padding: 3px 8px;
+        border-radius: 12px;
+        background: rgba(0, 212, 255, 0.2);
+        color: var(--accent-cyan);
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 15px 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent-cyan) 0%, #00a3cc 100%);
+        transition: width 0.3s ease;
+        border-radius: 4px;
+    }
+
+    .log-container {
+        background: #000;
+        color: #00ff00;
+        font-family: 'Courier New', monospace;
+        padding: 15px;
+        border-radius: 8px;
+        max-height: 300px;
+        overflow-y: auto;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        border: 1px solid var(--border-color);
+    }
+
+    .alert-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        border-left: 4px solid var(--error-color);
+        background: rgba(244, 67, 54, 0.1);
+    }
+
+    .alert-critical {
+        border-left-color: var(--error-color);
+        background: rgba(244, 67, 54, 0.1);
+    }
+
+    .alert-high {
+        border-left-color: var(--warning-color);
+        background: rgba(255, 152, 0, 0.1);
+    }
+
+    .alert-medium {
+        border-left-color: var(--info-color);
+        background: rgba(33, 150, 243, 0.1);
+    }
+
+    .alert-content {
+        flex: 1;
+    }
+
+    .alert-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+    }
+
+    .alert-details {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .alert-meta {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 10px;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border-color);
+        border-top: 2px solid var(--accent-cyan);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .button-group {
+            flex-direction: column;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .content-section {
+            padding: 0 10px;
+        }
+        
+        .dashboard-card {
+            padding: 20px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="data-intelligence-container">
+    <!-- Header Section -->
+    <div class="header-section">
+        <h1 class="page-title">📊 Data Intelligence</h1>
+        <p class="page-subtitle">Pipeline ETL de Conflictos Geopolíticos • Análisis Automatizado • Alertas en Tiempo Real</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-section">
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- ETL Controller Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="card-icon">🔄</span>
+                        Pipeline ETL Controller
+                    </h3>
+                    <span id="etl-status" class="card-status status-info">Ready</span>
+                </div>
+                <div class="card-content">
+                    <p>Control del sistema Extract-Transform-Load para ingesta automatizada de datos de conflictos desde múltiples fuentes.</p>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span id="etl-extracted" class="stat-value">0</span>
+                            <span class="stat-label">Extraídos</span>
+                        </div>
+                        <div class="stat-item">
+                            <span id="etl-transformed" class="stat-value">0</span>
+                            <span class="stat-label">Transformados</span>
+                        </div>
+                        <div class="stat-item">
+                            <span id="etl-loaded" class="stat-value">0</span>
+                            <span class="stat-label">Cargados</span>
+                        </div>
+                    </div>
+
+                    <div id="etl-progress" class="progress-bar hidden">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="btn-run-etl" class="btn btn-primary">
+                            <span>🚀</span> Ejecutar ETL
+                        </button>
+                        <button id="btn-stop-etl" class="btn btn-danger hidden">
+                            <span>⏹️</span> Detener
+                        </button>
+                        <button id="btn-etl-config" class="btn btn-secondary">
+                            <span>⚙️</span> Configurar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Datasets Management Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="card-icon">📚</span>
+                        Gestión de Datasets
+                    </h3>
+                    <span id="datasets-status" class="card-status status-success">Disponibles</span>
+                </div>
+                <div class="card-content">
+                    <p>Administración de fuentes de datos de conflictos geopolíticos: ACLED, UCDP, GDELT, Kaggle, HuggingFace.</p>
+                    
+                    <div class="dataset-list" id="datasets-list">
+                        <div class="dataset-item">
+                            <div>
+                                <div class="dataset-name">ACLED - Armed Conflict Data</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">API • Requiere clave</div>
+                            </div>
+                            <span class="dataset-type">API</span>
+                        </div>
+                        <div class="dataset-item">
+                            <div>
+                                <div class="dataset-name">UCDP - Uppsala Conflict Data</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Descarga • Público</div>
+                            </div>
+                            <span class="dataset-type">Download</span>
+                        </div>
+                        <div class="dataset-item">
+                            <div>
+                                <div class="dataset-name">GDELT - Global Events Database</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">API • Tiempo real</div>
+                            </div>
+                            <span class="dataset-type">API</span>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="btn-refresh-datasets" class="btn btn-primary">
+                            <span>🔄</span> Actualizar
+                        </button>
+                        <button id="btn-add-dataset" class="btn btn-secondary">
+                            <span>➕</span> Añadir Fuente
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Events Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="card-icon">🚨</span>
+                        Eventos Críticos
+                    </h3>
+                    <span id="events-status" class="card-status status-warning">2 Activos</span>
+                </div>
+                <div class="card-content">
+                    <p>Detección automática de eventos de alta severidad basada en umbrales de fatalidades y tipos de conflicto.</p>
+                    
+                    <div id="critical-events-list" class="dataset-list">
+                        <div class="alert-item alert-critical">
+                            <div class="alert-content">
+                                <div class="alert-title">🔴 Eastern Ukraine - Artillery Strike</div>
+                                <div class="alert-details">75 fatalidades reportadas • Severidad: Alta</div>
+                                <div class="alert-meta">Detectado hace 2 horas</div>
+                            </div>
+                        </div>
+                        <div class="alert-item alert-high">
+                            <div class="alert-content">
+                                <div class="alert-title">🟡 Gaza Strip - Airstrike</div>
+                                <div class="alert-details">62 fatalidades reportadas • Severidad: Alta</div>
+                                <div class="alert-meta">Detectado hace 4 horas</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="btn-refresh-events" class="btn btn-primary">
+                            <span>🔄</span> Actualizar
+                        </button>
+                        <button id="btn-export-events" class="btn btn-secondary">
+                            <span>📊</span> Exportar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Dashboard Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="card-icon">📈</span>
+                        Análisis Avanzado
+                    </h3>
+                    <span id="analytics-status" class="card-status status-success">Actualizado</span>
+                </div>
+                <div class="card-content">
+                    <p>Análisis estadístico y predictivo de patrones de conflicto basado en datos históricos y en tiempo real.</p>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span id="total-conflicts" class="stat-value">8</span>
+                            <span class="stat-label">Conflictos Activos</span>
+                        </div>
+                        <div class="stat-item">
+                            <span id="total-fatalities" class="stat-value">1,247</span>
+                            <span class="stat-label">Fatalidades (7d)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span id="regions-affected" class="stat-value">12</span>
+                            <span class="stat-label">Regiones</span>
+                        </div>
+                        <div class="stat-item">
+                            <span id="escalation-risk" class="stat-value">73%</span>
+                            <span class="stat-label">Riesgo Escalada</span>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="btn-view-analytics" class="btn btn-primary">
+                            <span>📊</span> Ver Análisis
+                        </button>
+                        <button id="btn-generate-report" class="btn btn-secondary">
+                            <span>📄</span> Generar Reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Logs Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="card-icon">📋</span>
+                        Logs del Sistema
+                    </h3>
+                    <span id="logs-status" class="card-status status-info">Activo</span>
+                </div>
+                <div class="card-content">
+                    <p>Monitoreo en tiempo real de procesos ETL, errores del sistema y eventos de depuración.</p>
+                    
+                    <div id="system-logs" class="log-container">
+                        <div>[2025-08-03 14:32:15] INFO: ETL Controller initialized successfully</div>
+                        <div>[2025-08-03 14:32:16] INFO: Connected to conflict datasets repository</div>
+                        <div>[2025-08-03 14:32:17] INFO: Critical events monitoring started</div>
+                        <div>[2025-08-03 14:32:18] INFO: Analytics engine ready</div>
+                        <div>[2025-08-03 14:32:19] INFO: Data Intelligence system operational</div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="btn-clear-logs" class="btn btn-secondary">
+                            <span>🗑️</span> Limpiar
+                        </button>
+                        <button id="btn-download-logs" class="btn btn-secondary">
+                            <span>⬇️</span> Descargar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="card-icon">⚙️</span>
+                        Configuración ETL
+                    </h3>
+                    <span id="config-status" class="card-status status-success">Configurado</span>
+                </div>
+                <div class="card-content">
+                    <p>Configuración avanzada del pipeline ETL: fuentes de datos, umbrales de alerta, frecuencia de actualización.</p>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span id="config-sources" class="stat-value">5</span>
+                            <span class="stat-label">Fuentes Activas</span>
+                        </div>
+                        <div class="stat-item">
+                            <span id="config-threshold" class="stat-value">50</span>
+                            <span class="stat-label">Umbral Alerta</span>
+                        </div>
+                        <div class="stat-item">
+                            <span id="config-frequency" class="stat-value">4h</span>
+                            <span class="stat-label">Frecuencia</span>
+                        </div>
+                        <div class="stat-item">
+                            <span id="config-retention" class="stat-value">30d</span>
+                            <span class="stat-label">Retención</span>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="btn-edit-config" class="btn btn-primary">
+                            <span>✏️</span> Editar Config
+                        </button>
+                        <button id="btn-reset-config" class="btn btn-danger">
+                            <span>🔄</span> Resetear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Data Intelligence JavaScript Controller
+class DataIntelligenceController {
+    constructor() {
+        this.currentETLTask = null;
+        this.refreshInterval = null;
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.loadInitialData();
+        this.startAutoRefresh();
+    }
+
+    bindEvents() {
+        // ETL Control buttons
+        document.getElementById('btn-run-etl')?.addEventListener('click', () => this.runETL());
+        document.getElementById('btn-stop-etl')?.addEventListener('click', () => this.stopETL());
+        document.getElementById('btn-etl-config')?.addEventListener('click', () => this.showETLConfig());
+
+        // Datasets buttons
+        document.getElementById('btn-refresh-datasets')?.addEventListener('click', () => this.refreshDatasets());
+        document.getElementById('btn-add-dataset')?.addEventListener('click', () => this.addDataset());
+
+        // Critical Events buttons
+        document.getElementById('btn-refresh-events')?.addEventListener('click', () => this.refreshCriticalEvents());
+        document.getElementById('btn-export-events')?.addEventListener('click', () => this.exportEvents());
+
+        // Analytics buttons
+        document.getElementById('btn-view-analytics')?.addEventListener('click', () => this.viewAnalytics());
+        document.getElementById('btn-generate-report')?.addEventListener('click', () => this.generateReport());
+
+        // Logs buttons
+        document.getElementById('btn-clear-logs')?.addEventListener('click', () => this.clearLogs());
+        document.getElementById('btn-download-logs')?.addEventListener('click', () => this.downloadLogs());
+
+        // Configuration buttons
+        document.getElementById('btn-edit-config')?.addEventListener('click', () => this.editConfig());
+        document.getElementById('btn-reset-config')?.addEventListener('click', () => this.resetConfig());
+    }
+
+    async loadInitialData() {
+        try {
+            await Promise.all([
+                this.refreshDatasets(),
+                this.refreshCriticalEvents(),
+                this.refreshAnalytics()
+            ]);
+            this.log('Sistema Data Intelligence inicializado correctamente');
+        } catch (error) {
+            console.error('Error loading initial data:', error);
+            this.log('Error: ' + error.message, 'error');
+        }
+    }
+
+    async runETL() {
+        try {
+            this.setETLStatus('running');
+            this.showProgressBar(true);
+            
+            const response = await fetch('/api/etl/conflicts/run', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sources: ['acled', 'gdelt'],
+                    enable_alerts: true,
+                    alert_threshold: 50
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.currentETLTask = data.task_id;
+                this.log(`ETL iniciado: ${data.task_id}`);
+                this.monitorETLProgress();
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error('Error running ETL:', error);
+            this.log('Error ejecutando ETL: ' + error.message, 'error');
+            this.setETLStatus('error');
+        }
+    }
+
+    async monitorETLProgress() {
+        if (!this.currentETLTask) return;
+
+        try {
+            const response = await fetch(`/api/etl/conflicts/status/${this.currentETLTask}`);
+            const data = await response.json();
+
+            if (data.success) {
+                const status = data.status;
+                const results = data.results;
+
+                if (status === 'completed') {
+                    this.setETLStatus('completed');
+                    this.updateETLStats(results);
+                    this.showProgressBar(false);
+                    this.log(`ETL completado: ${results.loaded_records} registros cargados`);
+                    this.refreshCriticalEvents();
+                    this.currentETLTask = null;
+                } else if (status === 'failed') {
+                    this.setETLStatus('error');
+                    this.showProgressBar(false);
+                    this.log(`ETL falló: ${data.error}`, 'error');
+                    this.currentETLTask = null;
+                } else {
+                    // Still running, check again in 2 seconds
+                    setTimeout(() => this.monitorETLProgress(), 2000);
+                }
+            }
+        } catch (error) {
+            console.error('Error monitoring ETL:', error);
+            this.log('Error monitoreando ETL: ' + error.message, 'error');
+        }
+    }
+
+    async refreshDatasets() {
+        try {
+            const response = await fetch('/api/etl/conflicts/datasets');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateDatasetsList(data.datasets);
+                this.log('Datasets actualizados');
+            }
+        } catch (error) {
+            console.error('Error refreshing datasets:', error);
+            this.log('Error actualizando datasets: ' + error.message, 'error');
+        }
+    }
+
+    async refreshCriticalEvents() {
+        try {
+            const response = await fetch('/api/etl/conflicts/critical-events');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateCriticalEventsList(data.critical_events);
+                this.updateEventsStatus(data.total_events);
+                this.log(`${data.total_events} eventos críticos encontrados`);
+            }
+        } catch (error) {
+            console.error('Error refreshing critical events:', error);
+            this.log('Error actualizando eventos críticos: ' + error.message, 'error');
+        }
+    }
+
+    async refreshAnalytics() {
+        try {
+            const response = await fetch('/api/etl/conflicts/analytics');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateAnalyticsStats(data.analytics);
+                this.log('Análisis actualizado');
+            }
+        } catch (error) {
+            console.error('Error refreshing analytics:', error);
+            this.log('Error actualizando análisis: ' + error.message, 'error');
+        }
+    }
+
+    setETLStatus(status) {
+        const statusElement = document.getElementById('etl-status');
+        const runButton = document.getElementById('btn-run-etl');
+        const stopButton = document.getElementById('btn-stop-etl');
+
+        statusElement.className = 'card-status';
+        
+        switch (status) {
+            case 'running':
+                statusElement.classList.add('status-warning');
+                statusElement.innerHTML = '<span class="loading-spinner"></span> Ejecutando';
+                runButton.classList.add('hidden');
+                stopButton.classList.remove('hidden');
+                break;
+            case 'completed':
+                statusElement.classList.add('status-success');
+                statusElement.textContent = 'Completado';
+                runButton.classList.remove('hidden');
+                stopButton.classList.add('hidden');
+                break;
+            case 'error':
+                statusElement.classList.add('status-error');
+                statusElement.textContent = 'Error';
+                runButton.classList.remove('hidden');
+                stopButton.classList.add('hidden');
+                break;
+            default:
+                statusElement.classList.add('status-info');
+                statusElement.textContent = 'Listo';
+                runButton.classList.remove('hidden');
+                stopButton.classList.add('hidden');
+        }
+    }
+
+    showProgressBar(show) {
+        const progressBar = document.getElementById('etl-progress');
+        if (show) {
+            progressBar.classList.remove('hidden');
+        } else {
+            progressBar.classList.add('hidden');
+        }
+    }
+
+    updateETLStats(results) {
+        if (results) {
+            document.getElementById('etl-extracted').textContent = results.extracted_records || 0;
+            document.getElementById('etl-transformed').textContent = results.transformed_records || 0;
+            document.getElementById('etl-loaded').textContent = results.loaded_records || 0;
+        }
+    }
+
+    updateAnalyticsStats(analytics) {
+        if (analytics && analytics.global_overview) {
+            const overview = analytics.global_overview;
+            document.getElementById('total-conflicts').textContent = overview.active_conflicts || 0;
+            document.getElementById('total-fatalities').textContent = (overview.total_fatalities_7d || 0).toLocaleString();
+            document.getElementById('regions-affected').textContent = overview.regions_affected || 0;
+        }
+        
+        if (analytics && analytics.risk_assessment) {
+            const risk = Math.round((analytics.risk_assessment.escalation_probability || 0) * 100);
+            document.getElementById('escalation-risk').textContent = risk + '%';
+        }
+    }
+
+    updateEventsStatus(totalEvents) {
+        const statusElement = document.getElementById('events-status');
+        if (totalEvents > 0) {
+            statusElement.className = 'card-status status-warning';
+            statusElement.textContent = `${totalEvents} Activos`;
+        } else {
+            statusElement.className = 'card-status status-success';
+            statusElement.textContent = 'Sin Eventos';
+        }
+    }
+
+    log(message, type = 'info') {
+        const logsContainer = document.getElementById('system-logs');
+        const timestamp = new Date().toLocaleString();
+        const logLevel = type.toUpperCase();
+        
+        const logEntry = document.createElement('div');
+        logEntry.textContent = `[${timestamp}] ${logLevel}: ${message}`;
+        
+        if (type === 'error') {
+            logEntry.style.color = '#ff6b6b';
+        } else if (type === 'warning') {
+            logEntry.style.color = '#feca57';
+        } else if (type === 'success') {
+            logEntry.style.color = '#48dbfb';
+        }
+        
+        logsContainer.appendChild(logEntry);
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+    }
+
+    clearLogs() {
+        document.getElementById('system-logs').innerHTML = '';
+        this.log('Logs limpiados');
+    }
+
+    startAutoRefresh() {
+        this.refreshInterval = setInterval(() => {
+            this.refreshCriticalEvents();
+            this.refreshAnalytics();
+        }, 60000); // Refresh every minute
+    }
+
+    stopAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
+    }
+
+    // Placeholder methods for future implementation
+    stopETL() { this.log('Funcionalidad de detener ETL pendiente de implementar'); }
+    showETLConfig() { this.log('Configuración ETL pendiente de implementar'); }
+    addDataset() { this.log('Añadir dataset pendiente de implementar'); }
+    exportEvents() { this.log('Exportar eventos pendiente de implementar'); }
+    viewAnalytics() { window.location.href = '/trends-analysis'; }
+    generateReport() { this.log('Generar reporte pendiente de implementar'); }
+    downloadLogs() { this.log('Descargar logs pendiente de implementar'); }
+    editConfig() { this.log('Editar configuración pendiente de implementar'); }
+    resetConfig() { this.log('Resetear configuración pendiente de implementar'); }
+}
+
+// Initialize controller when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.dataIntelligenceController = new DataIntelligenceController();
+});
+</script>
+{% endblock %}

@@ -96,6 +96,10 @@ try:
     # Enhanced historical analysis
     from src.analytics.enhanced_historical_orchestrator import EnhancedHistoricalOrchestrator
     
+    # AI Services - Unified Ollama + Groq integration
+    from src.ai.unified_ai_service import unified_ai_service, analyze_with_ai, generate_summary_ai
+    from src.ai.ollama_service import ollama_service, setup_ollama_models
+    
     # Dashboards
     from src.visualization.historical_dashboard import HistoricalDashboard
     from src.visualization.multivariate_dashboard import MultivariateRelationshipDashboard
@@ -228,6 +232,36 @@ except ImportError as e:
         def asdict(obj):
             return {'error': 'Satellite integration not available'}
 
+# ETL System for Geopolitical Conflicts import
+try:
+    from src.etl.flask_controller import create_etl_routes, get_etl_controller, ETLController
+    from src.etl.conflict_data_etl import ConflictDataETL, ETLConfig
+    ETL_AVAILABLE = True
+    logger.info("✅ ETL Conflicts System loaded successfully")
+except ImportError as e:
+    ETL_AVAILABLE = False
+    logger.warning(f"⚠️ ETL Conflicts System not available: {e}")
+    # Mock classes for when ETL is not available
+    class ETLController:
+        def __init__(self, db_path=None):
+            pass
+        def get_datasets_catalog(self):
+            return {'error': 'ETL system not available'}
+        def execute_etl_pipeline(self, **kwargs):
+            return {'error': 'ETL system not available'}
+        def get_etl_status(self, job_id=None):
+            return {'error': 'ETL system not available'}
+        def get_critical_events(self, **kwargs):
+            return []
+        def get_analytics_data(self, **kwargs):
+            return {'error': 'ETL system not available'}
+    
+    def create_etl_routes(app, etl_controller=None):
+        logger.warning("ETL routes not configured - system not available")
+    
+    def get_etl_controller():
+        return ETLController()
+
 class RiskMapUnifiedApplication:
     """
     Aplicación web unificada que ejecuta todos los componentes del sistema RiskMap
@@ -264,18 +298,23 @@ class RiskMapUnifiedApplication:
         # Intelligent data enrichment system
         self.enrichment_system = None
         
+        # ETL System for Geopolitical Conflicts
+        self.etl_controller = None
+        
         # System state
         self.system_state = {
             'core_system_initialized': False,
             'historical_system_initialized': False,
             'external_intelligence_initialized': False,
             'satellite_system_initialized': False,
+            'etl_system_initialized': False,
             'data_ingestion_running': False,
             'nlp_processing_running': False,
             'historical_analysis_running': False,
             'satellite_monitoring_running': False,
             'enrichment_system_initialized': False,
             'enrichment_running': False,
+            'etl_running': False,
             'dashboards_ready': False,
             'api_ready': False,
             'last_ingestion': None,
@@ -298,7 +337,10 @@ class RiskMapUnifiedApplication:
                 'articles_enriched': 0,
                 'fields_completed': 0,
                 'duplicates_detected': 0,
-                'enrichment_errors': 0
+                'enrichment_errors': 0,
+                'etl_runs_completed': 0,
+                'critical_events_detected': 0,
+                'conflict_datasets_processed': 0
             }
         }
         
@@ -660,6 +702,342 @@ class RiskMapUnifiedApplication:
                 'tasks': self.system_state['background_tasks']
             })
 
+        # ===== NUEVOS ENDPOINTS PARA OLLAMA Y MODELOS AVANZADOS =====
+        
+        @self.flask_app.route('/api/ollama/status')
+        def api_ollama_status():
+            """API: Estado del servicio Ollama y modelos disponibles"""
+            try:
+                status = unified_ai_service.get_service_status()
+                return jsonify({
+                    'success': True,
+                    'ollama_status': status,
+                    'timestamp': datetime.now().isoformat()
+                })
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'error': f'Error obteniendo estado de Ollama: {str(e)}'
+                })
+        
+        @self.flask_app.route('/api/ollama/models/install', methods=['POST'])
+        def api_install_ollama_models():
+            """API: Instalar modelos recomendados de Ollama"""
+            try:
+                from src.ai.ollama_service import setup_ollama_models
+                
+                # Ejecutar instalación en background
+                def install_models():
+                    try:
+                        result = setup_ollama_models()
+                        self.system_state['alerts'].append({
+                            'type': 'ollama_installation',
+                            'message': f'Instalación de modelos Ollama {"completada" if result else "falló"}',
+                            'timestamp': datetime.now().isoformat(),
+                            'success': result
+                        })
+                        return result
+                    except Exception as e:
+                        logger.error(f"Error installing Ollama models: {e}")
+                        return False
+                
+                self._run_background_task('install_ollama_models', install_models)
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Instalación de modelos Ollama iniciada en background'
+                })
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'error': f'Error iniciando instalación de Ollama: {str(e)}'
+                })
+        
+        @self.flask_app.route('/api/ai/deep-analysis', methods=['POST'])
+        def api_deep_analysis():
+            """API: Análisis profundo con DeepSeek-R1"""
+            try:
+                data = request.get_json()
+                content = data.get('content', '')
+                question = data.get('question', 'Realiza un análisis geopolítico profundo')
+                
+                if not content:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Contenido requerido para el análisis'
+                    })
+                
+                # Ejecutar análisis profundo
+                async def run_deep_analysis():
+                    return await unified_ai_service.perform_deep_analysis(
+                        content=content,
+                        question=question
+                    )
+                
+                # Ejecutar de forma síncrona (para simplificar por ahora)
+                import asyncio
+                try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                response = loop.run_until_complete(run_deep_analysis())
+                
+                return jsonify({
+                    'success': response.success,
+                    'analysis': {
+                        'content': response.content,
+                        'provider': response.provider,
+                        'model': response.model,
+                        'metadata': response.metadata
+                    },
+                    'timestamp': datetime.now().isoformat()
+                })
+            except Exception as e:
+                logger.error(f"Error in deep analysis: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Error en análisis profundo: {str(e)}'
+                })
+        
+        @self.flask_app.route('/api/ai/fast-summary', methods=['POST'])
+        def api_fast_summary():
+            """API: Resumen rápido con Gemma"""
+            try:
+                data = request.get_json()
+                title = data.get('title', '')
+                content = data.get('content', '')
+                max_words = data.get('max_words', 100)
+                
+                if not content:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Contenido requerido para el resumen'
+                    })
+                
+                response = unified_ai_service.generate_fast_summary(
+                    title=title,
+                    content=content,
+                    max_words=max_words
+                )
+                
+                return jsonify({
+                    'success': response.success,
+                    'summary': {
+                        'content': response.content,
+                        'provider': response.provider,
+                        'model': response.model,
+                        'metadata': response.metadata
+                    },
+                    'timestamp': datetime.now().isoformat()
+                })
+            except Exception as e:
+                logger.error(f"Error in fast summary: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Error en resumen rápido: {str(e)}'
+                })
+        
+        @self.flask_app.route('/api/ai/unified-analysis', methods=['POST'])
+        def api_unified_analysis():
+            """API: Análisis unificado con selección automática de modelo"""
+            try:
+                data = request.get_json()
+                content = data.get('content', '')
+                prefer_local = data.get('prefer_local', True)
+                analysis_type = data.get('type', 'standard')  # standard, deep, fast
+                
+                if not content:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Contenido requerido para el análisis'
+                    })
+                
+                # Seleccionar método según el tipo de análisis
+                if analysis_type == 'deep':
+                    # Análisis profundo con DeepSeek-R1
+                    async def run_analysis():
+                        return await unified_ai_service.perform_deep_analysis(content=content)
+                    
+                    import asyncio
+                    try:
+                        loop = asyncio.get_event_loop()
+                    except RuntimeError:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    
+                    response = loop.run_until_complete(run_analysis())
+                    
+                elif analysis_type == 'fast':
+                    # Análisis rápido con Gemma
+                    title = data.get('title', 'Análisis rápido')
+                    response = unified_ai_service.generate_fast_summary(
+                        title=title,
+                        content=content
+                    )
+                else:
+                    # Análisis estándar
+                    async def run_standard_analysis():
+                        return await unified_ai_service.analyze_geopolitical_content(
+                            content=content,
+                            prefer_local=prefer_local
+                        )
+                    
+                    import asyncio
+                    try:
+                        loop = asyncio.get_event_loop()
+                    except RuntimeError:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    
+                    response = loop.run_until_complete(run_standard_analysis())
+                
+                return jsonify({
+                    'success': response.success,
+                    'analysis': {
+                        'content': response.content,
+                        'provider': response.provider,
+                        'model': response.model,
+                        'metadata': response.metadata,
+                        'type': analysis_type
+                    },
+                    'timestamp': datetime.now().isoformat()
+                })
+            except Exception as e:
+                logger.error(f"Error in unified analysis: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Error en análisis unificado: {str(e)}'
+                })
+
+        @self.flask_app.route('/api/ai/fallback-status', methods=['GET'])
+        def api_fallback_status():
+            """API: Estado del sistema de fallback inteligente"""
+            try:
+                from src.ai.intelligent_fallback import get_fallback_stats
+                import sqlite3
+                from datetime import datetime, timedelta
+                
+                # Obtener estadísticas de fallback
+                stats = get_fallback_stats()
+                
+                # Verificar actividad reciente de enriquecimiento
+                try:
+                    db_path = self.get_db_path()
+                    conn = sqlite3.connect(db_path)
+                    cursor = conn.cursor()
+                    
+                    # Artículos procesados en los últimos 10 minutos
+                    ten_minutes_ago = datetime.now() - timedelta(minutes=10)
+                    cursor.execute("""
+                        SELECT COUNT(*) 
+                        FROM articles 
+                        WHERE enhanced_date IS NOT NULL 
+                        AND datetime(enhanced_date) > ?
+                    """, (ten_minutes_ago.isoformat(),))
+                    
+                    recent_enriched = cursor.fetchone()[0]
+                    
+                    # Total de artículos enriquecidos
+                    cursor.execute("SELECT COUNT(*) FROM articles WHERE groq_enhanced = 1")
+                    total_enriched = cursor.fetchone()[0]
+                    
+                    conn.close()
+                    
+                except Exception as db_error:
+                    logger.warning(f"Error checking DB activity: {db_error}")
+                    recent_enriched = 0
+                    total_enriched = 0
+                
+                # Obtener estado del servicio unificado
+                service_status = unified_ai_service.get_service_status()
+                
+                # Detectar si hay rate limits activos (heurística simple)
+                rate_limits_detected = stats['groq_rate_limits'] > 0
+                
+                return jsonify({
+                    'success': True,
+                    'timestamp': datetime.now().isoformat(),
+                    'fallback_stats': stats,
+                    'service_status': service_status,
+                    'recent_activity': {
+                        'articles_enriched_10min': recent_enriched,
+                        'total_articles_enriched': total_enriched
+                    },
+                    'system_health': {
+                        'rate_limits_detected': rate_limits_detected,
+                        'automatic_fallback_active': rate_limits_detected and service_status['ollama']['available'],
+                        'recommended_provider': 'ollama' if rate_limits_detected else 'auto'
+                    },
+                    'models_status': {
+                        'deepseek_available': service_status['capabilities']['deep_reasoning'],
+                        'gemma_available': service_status['capabilities']['fast_processing'],
+                        'qwen_available': service_status['capabilities']['multilingual'],
+                        'llama_available': service_status['capabilities']['general_purpose']
+                    }
+                })
+                
+            except Exception as e:
+                logger.error(f"Error getting fallback status: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Error obteniendo estado de fallback: {str(e)}',
+                    'timestamp': datetime.now().isoformat()
+                })
+
+        @self.flask_app.route('/api/ai/force-ollama-mode', methods=['POST'])
+        def api_force_ollama_mode():
+            """API: Forzar uso de Ollama por un período determinado"""
+            try:
+                data = request.get_json() or {}
+                duration_minutes = data.get('duration_minutes', 30)
+                
+                # Forzar prioridades
+                unified_ai_service.provider_priority = [unified_ai_service.AIProvider.OLLAMA]
+                
+                logger.info(f"🔒 Modo Ollama forzado por {duration_minutes} minutos")
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Modo Ollama activado por {duration_minutes} minutos',
+                    'new_priority': ['ollama'],
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error forcing Ollama mode: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Error activando modo Ollama: {str(e)}'
+                })
+
+        @self.flask_app.route('/api/ai/restore-normal-mode', methods=['POST'])
+        def api_restore_normal_mode():
+            """API: Restaurar modo normal de operación"""
+            try:
+                # Restaurar prioridades normales
+                unified_ai_service.provider_priority = [
+                    unified_ai_service.AIProvider.OLLAMA, 
+                    unified_ai_service.AIProvider.GROQ
+                ]
+                
+                logger.info("🔄 Modo normal restaurado")
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Modo normal restaurado',
+                    'new_priority': ['ollama', 'groq'],
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                logger.error(f"Error restoring normal mode: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Error restaurando modo normal: {str(e)}'
+                })
+
         @self.flask_app.route('/api/ai/geopolitical-analysis', methods=['POST'])
         def api_geopolitical_analysis():
             """API: Generar análisis geopolítico con IA"""
@@ -823,6 +1201,13 @@ class RiskMapUnifiedApplication:
                                  system_state=self.system_state,
                                  config=self.config)
         
+        @self.flask_app.route('/data-intelligence')
+        def data_intelligence():
+            """Página de inteligencia de datos y ETL de conflictos geopolíticos"""
+            return render_template('data_intelligence.html',
+                                 system_state=self.system_state,
+                                 config=self.config)
+        
         # ========================================
         # API ENDPOINTS
         # ========================================
@@ -831,38 +1216,42 @@ class RiskMapUnifiedApplication:
         def get_articles():
             """Obtener artículos organizados inteligentemente para el dashboard usando análisis CV"""
             try:
-                # Importar el sistema de mosaico inteligente
-                from src.dashboard.smart_mosaic_layout import get_smart_mosaic_articles
-                
                 # Obtener parámetros de consulta
                 limit = request.args.get('limit', 25, type=int)
-                use_smart_layout = request.args.get('smart_layout', 'true').lower() == 'true'
+                use_smart_layout = request.args.get('smart_layout', 'false').lower() == 'true'
                 
                 if use_smart_layout:
-                    # Usar el sistema inteligente de posicionamiento
-                    smart_articles = get_smart_mosaic_articles(limit)
-                    
-                    # Aplanar la estructura para compatibilidad con el frontend
-                    dashboard_articles = []
-                    
-                    # Agregar artículos en orden de prioridad
-                    for position in ['hero', 'featured', 'standard', 'thumbnail']:
-                        articles_in_position = smart_articles.get(position, [])
-                        dashboard_articles.extend(articles_in_position)
-                    
-                    # Limitar al número solicitado
-                    dashboard_articles = dashboard_articles[:limit]
-                    
-                    return jsonify({
-                        'success': True,
-                        'articles': dashboard_articles,
-                        'total': len(dashboard_articles),
-                        'smart_layout': True,
-                        'layout_data': smart_articles,
-                        'positioning_info': 'Artículos posicionados usando análisis CV inteligente'
-                    })
+                    try:
+                        # Importar el sistema de mosaico inteligente
+                        from src.dashboard.smart_mosaic_layout import get_smart_mosaic_articles
+                        
+                        # Usar el sistema inteligente de posicionamiento
+                        smart_articles = get_smart_mosaic_articles(limit)
+                        
+                        # Aplanar la estructura para compatibilidad con el frontend
+                        dashboard_articles = []
+                        
+                        # Agregar artículos en orden de prioridad
+                        for position in ['hero', 'featured', 'standard', 'thumbnail']:
+                            articles_in_position = smart_articles.get(position, [])
+                            dashboard_articles.extend(articles_in_position)
+                        
+                        # Limitar al número solicitado
+                        dashboard_articles = dashboard_articles[:limit]
+                        
+                        return jsonify({
+                            'success': True,
+                            'articles': dashboard_articles,
+                            'total': len(dashboard_articles),
+                            'smart_layout': True,
+                            'layout_data': smart_articles,
+                            'positioning_info': 'Artículos posicionados usando análisis CV inteligente'
+                        })
+                    except Exception as e:
+                        logger.warning(f"Smart layout failed, using fallback: {e}")
+                        use_smart_layout = False
                 
-                # Fallback al método original si smart_layout=false
+                # Método estándar usando datos reales de la base de datos
                 limit = request.args.get('limit', 20, type=int)
                 offset = request.args.get('offset', 0, type=int)
                 
@@ -919,7 +1308,7 @@ class RiskMapUnifiedApplication:
                     'total': len(dashboard_articles),
                     'offset': offset,
                     'limit': limit,
-                    'smart_layout': False
+                    'smart_layout': use_smart_layout
                 })
                 
             except Exception as e:
@@ -3288,6 +3677,27 @@ class RiskMapUnifiedApplication:
             logger.info("Initializing intelligent data enrichment system...")
             self._initialize_enrichment_system()
             
+            # 6. Initialize ETL system for geopolitical conflicts
+            logger.info("Initializing ETL system for geopolitical conflicts...")
+            try:
+                if ETL_AVAILABLE:
+                    self.etl_controller = get_etl_controller()
+                    
+                    # Test ETL system
+                    etl_status = self.etl_controller.get_etl_status()
+                    if etl_status.get('system_status') in ['operational', 'warning']:
+                        self.system_state['etl_system_initialized'] = True
+                        logger.info("ETL system initialized successfully")
+                    else:
+                        logger.warning("ETL system initialization completed with warnings")
+                        self.system_state['etl_system_initialized'] = True  # Continue anyway
+                else:
+                    logger.warning("ETL system not available - using mock implementation")
+                    self.system_state['etl_system_initialized'] = False
+            except Exception as e:
+                logger.error(f"Error initializing ETL system: {e}")
+                self.system_state['etl_system_initialized'] = False
+            
             # 7. Initialize task scheduler
             logger.info("Initializing task scheduler...")
             self.task_scheduler = TaskScheduler(self.core_orchestrator)
@@ -3311,6 +3721,7 @@ class RiskMapUnifiedApplication:
                 'historical_system': self.system_state['historical_system_initialized'],
                 'external_intelligence': self.system_state['external_intelligence_initialized'],
                 'satellite_system': self.system_state['satellite_system_initialized'],
+                'etl_system': self.system_state['etl_system_initialized'],
                 'dashboards': self.system_state['dashboards_ready'],
                 'api': self.system_state['api_ready'],
                 'existing_data_loaded': True
@@ -3608,10 +4019,10 @@ class RiskMapUnifiedApplication:
                     cursor.execute("SELECT COUNT(*) FROM articles")
                     total_articles = cursor.fetchone()[0]
                     
-                    cursor.execute("SELECT COUNT(*) FROM processed_data WHERE processed = 1")
+                    cursor.execute("SELECT COUNT(*) FROM articles WHERE processed = 1")
                     processed_articles = cursor.fetchone()[0]
                     
-                    cursor.execute("SELECT COUNT(*) FROM processed_data WHERE risk_level > 0.7")
+                    cursor.execute("SELECT COUNT(*) FROM articles WHERE risk_score > 0.7")
                     risk_alerts = cursor.fetchone()[0]
                     
                     cursor.execute("SELECT COUNT(DISTINCT source) FROM articles")
@@ -3672,19 +4083,20 @@ class RiskMapUnifiedApplication:
                     import sqlite3
                     from pathlib import Path
                     
-                    db_path = Path(get_database_path())
-                    if db_path.exists():
-                        conn = sqlite3.connect(str(db_path))
+                    # Use absolute path to ensure we find the database
+                    db_path = os.path.join(os.getcwd(), 'data', 'geopolitical_intel.db')
+                    if os.path.exists(db_path):
+                        conn = sqlite3.connect(db_path)
                         cursor = conn.cursor()
                         
                         # Get updated statistics
                         cursor.execute("SELECT COUNT(*) FROM articles")
                         total_articles = cursor.fetchone()[0]
                         
-                        cursor.execute("SELECT COUNT(*) FROM processed_data WHERE processed = 1")
+                        cursor.execute("SELECT COUNT(*) FROM articles WHERE processed = 1")
                         processed_articles = cursor.fetchone()[0]
                         
-                        cursor.execute("SELECT COUNT(*) FROM processed_data WHERE risk_level > 0.7")
+                        cursor.execute("SELECT COUNT(*) FROM articles WHERE risk_score > 0.7")
                         risk_alerts = cursor.fetchone()[0]
                         
                         cursor.execute("SELECT COUNT(DISTINCT source) FROM articles")
@@ -4001,8 +4413,12 @@ Artículo {i+1}:
         try:
             import sqlite3
             
-            # Ruta de la base de datos
-            db_path = r"data\geopolitical_intel.db"
+            # Obtener ruta de la base de datos usando la función correcta
+            try:
+                from src.utils.config import get_database_path
+                db_path = get_database_path()
+            except ImportError:
+                db_path = r"data\geopolitical_intel.db"
             
             if not os.path.exists(db_path):
                 logger.warning(f"Base de datos no encontrada en: {db_path}")
@@ -4287,7 +4703,92 @@ La estabilidad internacional dependerá de la capacidad de los líderes mundiale
         except Exception as e:
             logger.error(f"Error obteniendo estadísticas de posicionamiento: {e}")
             return {}
-    
+
+        # ============================================
+        # DATA INTELLIGENCE & ETL ENDPOINTS
+        # ============================================
+        
+        # Configurar las rutas ETL usando el controlador real
+        try:
+            if ETL_AVAILABLE:
+                # Inicializar controlador ETL si no existe
+                if not hasattr(self, 'etl_controller') or self.etl_controller is None:
+                    self.etl_controller = get_etl_controller()
+                
+                # Crear rutas ETL usando el controlador Flask
+                create_etl_routes(self.flask_app, self.etl_controller)
+                logger.info("✅ Rutas ETL configuradas con controlador real")
+                
+                # Marcar sistema ETL como inicializado
+                self.system_state['etl_system_initialized'] = True
+            else:
+                logger.warning("⚠️ Sistema ETL no disponible - configurando rutas mock")
+                # Configurar rutas mock si ETL no está disponible
+                self._setup_mock_etl_routes()
+        except Exception as e:
+            logger.error(f"❌ Error configurando rutas ETL: {e}")
+            self._setup_mock_etl_routes()
+        
+    def _setup_mock_etl_routes(self):
+        """Configurar rutas ETL mock cuando el sistema real no está disponible"""
+        
+        @self.flask_app.route('/api/etl/conflicts/datasets')
+        def api_get_conflict_datasets_mock():
+            """API Mock: Obtener lista de datasets disponibles para ETL de conflictos"""
+            return jsonify({
+                'error': 'Sistema ETL no disponible',
+                'mock_data': True,
+                'datasets': {
+                    "primary_sources": {
+                        "acled": {
+                            "name": "ACLED - Armed Conflict Location & Event Data Project",
+                            "status": "requires_configuration"
+                        },
+                        "gdelt": {
+                            "name": "GDELT - Global Database of Events",
+                            "status": "available"
+                        }
+                    }
+                }
+            })
+        
+        @self.flask_app.route('/api/etl/conflicts/execute', methods=['POST'])
+        def api_run_conflict_etl_mock():
+            """API Mock: Ejecutar pipeline ETL de conflictos"""
+            return jsonify({
+                'error': 'Sistema ETL no disponible',
+                'mock_data': True,
+                'message': 'ETL system not configured'
+            }), 503
+        
+        @self.flask_app.route('/api/etl/conflicts/status', methods=['GET'])
+        @self.flask_app.route('/api/etl/conflicts/status/<job_id>', methods=['GET'])
+        def api_get_etl_status_mock(job_id=None):
+            """API Mock: Obtener estado de ETL"""
+            return jsonify({
+                'error': 'Sistema ETL no disponible',
+                'mock_data': True,
+                'system_status': 'not_configured'
+            })
+        
+        @self.flask_app.route('/api/etl/conflicts/critical-events')
+        def api_get_critical_events_mock():
+            """API Mock: Obtener eventos críticos"""
+            return jsonify({
+                'error': 'Sistema ETL no disponible',
+                'mock_data': True,
+                'critical_events': []
+            })
+        
+        @self.flask_app.route('/api/etl/conflicts/analytics')
+        def api_get_conflict_analytics_mock():
+            """API Mock: Obtener análisis de conflictos"""
+            return jsonify({
+                'error': 'Sistema ETL no disponible',
+                'mock_data': True,
+                'analytics': {}
+            })
+
     def _clean_old_logs(self):
         """Limpiar logs antiguos"""
         try:
