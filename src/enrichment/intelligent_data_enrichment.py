@@ -90,15 +90,15 @@ class EnrichmentConfig:
     yolo_model_path: str = "yolov8n.pt"
     groq_model: str = "llama-3.1-8b-instant"
     
-    # Configuración de procesamiento
-    batch_size: int = 10
-    max_workers: int = 4
+    # Configuración de procesamiento - OPTIMIZADO PARA ARTÍCULOS NUEVOS
+    batch_size: int = 5  # Reducido para procesamiento más rápido
+    max_workers: int = 2  # Reducido para evitar sobrecarga
     confidence_threshold: float = 0.7
     vector_dimension: int = 384
     
-    # Intervalos de procesamiento
-    auto_enrich_interval_hours: int = 6
-    priority_processing_interval_hours: int = 2
+    # Intervalos de procesamiento - OPTIMIZADO PARA EFICIENCIA
+    auto_enrich_interval_hours: int = 2  # Cada 2 horas en lugar de 6
+    priority_processing_interval_hours: int = 1  # Cada hora para artículos nuevos
 
 class IntelligentDataEnrichment:
     """
@@ -781,17 +781,34 @@ JSON:
         start_time = time.time()
         
         if not article_ids:
-            # Obtener artículos que necesitan enriquecimiento
+            # Obtener artículos NUEVOS que necesitan enriquecimiento (últimas 48 horas)
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
+                
+                # Primero intentar artículos de las últimas 48 horas
                 cursor.execute("""
                     SELECT id FROM articles 
-                    WHERE enrichment_status IS NULL OR enrichment_status = 'pending'
+                    WHERE (enrichment_status IS NULL OR enrichment_status = 'pending')
+                    AND created_at >= datetime('now', '-48 hours')
                     ORDER BY created_at DESC
                     LIMIT ?
                 """, (limit or self.config.batch_size,))
                 
                 article_ids = [row[0] for row in cursor.fetchall()]
+                
+                # Si no hay artículos nuevos, solo procesar máximo 10 artículos antiguos
+                if not article_ids:
+                    cursor.execute("""
+                        SELECT id FROM articles 
+                        WHERE (enrichment_status IS NULL OR enrichment_status = 'pending')
+                        ORDER BY created_at DESC
+                        LIMIT 10
+                    """)
+                    article_ids = [row[0] for row in cursor.fetchall()]
+                    if article_ids:
+                        logger.info(f"⚠️ No new articles to enrich, processing {len(article_ids)} older articles (limited to 10)")
+                else:
+                    logger.info(f"✅ Found {len(article_ids)} NEW articles from last 48 hours to enrich")
         
         if not article_ids:
             logger.info("No articles need enrichment")
@@ -889,22 +906,37 @@ JSON:
         self.setup_automatic_enrichment_triggers()
         
         def enrichment_loop():
-            """Loop principal de enriquecimiento automático"""
+            """Loop principal de enriquecimiento automático - OPTIMIZADO PARA NUEVOS ARTÍCULOS"""
+            cycle_count = 0
             while not self.stop_event.is_set():
                 try:
-                    # Procesar artículos pendientes
+                    cycle_count += 1
+                    
+                    # Procesar artículos pendientes (prioriza artículos nuevos)
                     stats = self.enrich_batch_articles()
                     
                     if stats['processed'] > 0:
-                        logger.info(f"Automatic enrichment cycle: {stats}")
+                        logger.info(f"Automatic enrichment cycle #{cycle_count}: {stats}")
+                    else:
+                        logger.info(f"✅ Enrichment cycle #{cycle_count}: No new articles to process")
                     
-                    # Ejecutar detección de duplicados periódicamente
-                    if self.processing_stats['articles_processed'] % 100 == 0:
+                    # Ejecutar detección de duplicados solo cada 10 ciclos (menos frecuente)
+                    if cycle_count % 10 == 0:
                         duplicate_stats = self.detect_and_merge_duplicates()
-                        logger.info(f"Duplicate detection: {duplicate_stats}")
+                        logger.info(f"Duplicate detection (cycle #{cycle_count}): {duplicate_stats}")
+                    
+                    # Usar intervalo inteligente basado en si hay artículos nuevos
+                    if stats['processed'] > 0:
+                        # Si hay artículos nuevos, revisar más frecuentemente
+                        wait_time = self.config.priority_processing_interval_hours * 3600  # 1 hora
+                        logger.info(f"⚡ Fast cycle: next check in {self.config.priority_processing_interval_hours}h")
+                    else:
+                        # Si no hay artículos nuevos, revisar cada 6 horas
+                        wait_time = 6 * 3600  # 6 horas
+                        logger.info(f"🐌 Slow cycle: next check in 6h")
                     
                     # Esperar antes del siguiente ciclo
-                    if self.stop_event.wait(timeout=self.config.auto_enrich_interval_hours * 3600):
+                    if self.stop_event.wait(timeout=wait_time):
                         break
                         
                 except Exception as e:

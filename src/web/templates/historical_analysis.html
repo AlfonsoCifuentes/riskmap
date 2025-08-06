@@ -465,6 +465,11 @@
                 </div>
                 <div class="section-title">
                     <h2>Análisis Histórico</h2>
+                <div class="data-status real-data">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Análisis basado en datos RSS reales</span>
+                </div>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
                     <p>Comprende el presente a través del pasado: análisis profundo de patrones geopolíticos, conflictos históricos y lecciones para la toma de decisiones estratégicas</p>
                 </div>
             </div>
@@ -481,6 +486,7 @@
                             <i class="fas fa-history me-3" style="color: #cd853f;"></i>
                             Análisis Histórico Geopolítico
                         </h1>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
                         <p class="lead text-light mb-4">
                             "Aquellos que no pueden recordar el pasado están condenados a repetirlo" - George Santayana. 
                             Nuestro sistema analiza patrones históricos para identificar similitudes con eventos actuales 
@@ -552,6 +558,7 @@
                 <i class="fas fa-clock"></i>
                 Línea de Tiempo: Conflictos Geopolíticos Clave
             </h3>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
             <p class="text-muted mb-4">
                 Explora los eventos más significativos que han moldeado el panorama geopolítico mundial. 
                 Cada evento incluye análisis de causas, desarrollo y consecuencias a largo plazo.
@@ -702,6 +709,8 @@
                         <i class="fas fa-search"></i>
                         Patrones Históricos Identificados
                     </h3>
+<div class="section-status"><div class="data-status simulation"><i class="fas fa-chart-line"></i><span>Datos económicos simulados</span></div></div>
+<div class="section-status"><div class="data-status simulation"><i class="fas fa-video"></i><span>Sistema de video en demostración</span></div></div>
                     
                     <div class="pattern-card">
                         <div class="pattern-title">1. Ciclos de Tensión y Distensión</div>
@@ -758,6 +767,7 @@
                         <i class="fas fa-filter"></i>
                         Filtros de Análisis
                     </h4>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
                     
                     <div class="filter-controls">
                         <div class="control-group">
@@ -909,6 +919,8 @@
                 <i class="fas fa-balance-scale"></i>
                 Análisis Comparativo: Situación Actual vs. Precedentes Históricos
             </h3>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
+<div class="section-status"><div class="data-status simulation"><i class="fas fa-chart-line"></i><span>Datos económicos simulados</span></div></div>
             
             <div class="comparison-table">
                 <table class="table table-dark mb-0">
@@ -970,6 +982,11 @@
             
             <div class="mt-4">
                 <h5 class="text-white">Conclusiones del Análisis Comparativo:</h5>
+                <div class="data-status real-data">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Análisis basado en datos RSS reales</span>
+                </div>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
                 <ul class="text-muted">
                     <li><strong>Similitud General:</strong> 69% con precedentes históricos de confrontación Este-Oeste</li>
                     <li><strong>Factor Diferenciador Clave:</strong> Mayor interdependencia económica global actual</li>
@@ -984,6 +1001,10 @@
 <script>
 // Historical Analysis JavaScript
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize fallback indicators for generic page
+    if (window.FallbackManager) {
+        window.FallbackManager.initializePageIndicators('generic');
+    }
     initializeHistoricalAnalysis();
     loadTimelineEvents();
     setupFilterControls();

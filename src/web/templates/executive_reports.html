@@ -682,6 +682,7 @@
                         <i class="fas fa-file-contract"></i>
                         Plantillas
                     </h3>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
                 </div>
                 
                 <div class="templates-grid">
@@ -790,6 +791,7 @@
                 <i class="fas fa-search"></i>
                 Biblioteca de Reportes con Búsqueda Semántica
             </h3>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
         </div>
         
         <div class="search-form">
@@ -1037,14 +1039,15 @@
             closeModal();
             showNotification('Generando reporte...', 'info');
             
-            const response = await fetch('/api/reports/generate', {
+            const response = await fetch('/api/executive-reports/generate-real', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     type: reportType,
-                    template: template
+                    template: template,
+                    period: 'current'
                 })
             });
             
@@ -1058,6 +1061,7 @@
                 showNotification('Error generando reporte: ' + result.error, 'error');
             }
         } catch (error) {
+            console.error('Error generating report:', error);
             showNotification('Error de conexión al generar reporte', 'error');
         }
     }
@@ -1938,30 +1942,34 @@
     
     async function loadReportsData() {
         try {
-            const response = await fetch('/api/reports/recent');
+            const response = await fetch('/api/executive-reports/list');
             const data = await response.json();
-            updateReportsStats(data);
+            
+            if (data.success) {
+                updateReportsStats(data.stats);
+                updateReportsList(data.reports);
+            } else {
+                console.error('Error loading reports data:', data.error);
+                showLoadingReportsStats();
+            }
         } catch (error) {
-            console.log('Using simulated reports data');
-            updateReportsStats({
-                totalReports: 156,
-                weeklyReports: 24,
-                monthlyReports: 6,
-                specialReports: 12
-            });
+            console.error('Error fetching reports data:', error);
+            showLoadingReportsStats();
         }
     }
     
     async function loadTemplates() {
         try {
-            const response = await fetch('/api/reports/templates');
+            const response = await fetch('/api/executive-reports/templates');
             const result = await response.json();
             
             if (result.success) {
                 updateTemplatesDisplay(result.templates);
+            } else {
+                console.log('Using default templates');
             }
         } catch (error) {
-            console.log('Using default templates');
+            console.log('Error loading templates, using defaults');
         }
     }
     
@@ -1970,9 +1978,55 @@
         console.log('Templates loaded:', templates);
     }
     
-    function updateReportsStats(data) {
-        console.log('Updating reports stats with:', data);
-        // Update any stats displays if needed
+    function updateReportsStats(stats) {
+        console.log('Updating reports stats with:', stats);
+        
+        // Update stats indicators if they exist
+        const totalReportsEl = document.querySelector('[data-stat="total-reports"]');
+        const weeklyReportsEl = document.querySelector('[data-stat="weekly-reports"]');
+        const monthlyReportsEl = document.querySelector('[data-stat="monthly-reports"]');
+        const specialReportsEl = document.querySelector('[data-stat="special-reports"]');
+        
+        if (totalReportsEl) totalReportsEl.textContent = stats.total_reports || 0;
+        if (weeklyReportsEl) weeklyReportsEl.textContent = stats.weekly_reports || 0;
+        if (monthlyReportsEl) monthlyReportsEl.textContent = stats.monthly_reports || 0;
+        if (specialReportsEl) specialReportsEl.textContent = stats.special_reports || 0;
+    }
+    
+    function updateReportsList(reports) {
+        // Update reports list if container exists
+        const reportsContainer = document.getElementById('reports-list');
+        if (reportsContainer && reports && reports.length > 0) {
+            reportsContainer.innerHTML = reports.map(report => `
+                <div class="report-card" data-report-id="${report.id}">
+                    <div class="report-header">
+                        <h4>${report.title}</h4>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
+                        <span class="report-type">${report.type}</span>
+                    </div>
+                    <div class="report-meta">
+                        <span>Generado: ${new Date(report.generated_at).toLocaleDateString('es-ES')}</span>
+                        <span>Estado: ${report.status}</span>
+                    </div>
+                    <div class="report-actions">
+                        <button onclick="viewReport('${report.id}')" class="btn btn-primary btn-sm">Ver</button>
+                        <button onclick="downloadReport('${report.id}')" class="btn btn-secondary btn-sm">Descargar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+    
+    function showLoadingReportsStats() {
+        // Show loading state for stats
+        const statsElements = document.querySelectorAll('[data-stat]');
+        statsElements.forEach(el => {
+            el.textContent = 'Cargando...
+                    <div class="fallback-indicator warning">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Si no hay datos, se mostrarán valores de demostración</span>
+                    </div>';
+        });
     }
     
     // Modal utilities
@@ -2082,6 +2136,10 @@
     
     // Initialize when page loads
     document.addEventListener('DOMContentLoaded', function() {
+    // Initialize fallback indicators for generic page
+    if (window.FallbackManager) {
+        window.FallbackManager.initializePageIndicators('generic');
+    }
         initReportsSystem();
     });
 </script>

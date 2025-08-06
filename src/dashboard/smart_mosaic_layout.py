@@ -305,18 +305,31 @@ class MosaicLayoutManager:
                 for position, config in self.layout_config.items():
                     max_count = config['max_count']
                     
-                    # Consulta base
+                    # Consulta base - Priorizar artículos de alto riesgo y garantizar imagen
                     query = """
                         SELECT 
                             a.id, a.title, a.content, a.country, a.region,
                             a.risk_level, a.risk_score, a.source, a.published_at,
-                            a.summary, a.url, a.image_url, a.mosaic_position,
-                            a.visual_analysis_json, a.bert_conflict_probability,
+                            a.summary, a.url, 
+                            COALESCE(
+                                NULLIF(a.image_url, ''),
+                                CASE 
+                                    WHEN LOWER(a.title) LIKE '%conflict%' OR LOWER(a.title) LIKE '%war%' OR LOWER(a.title) LIKE '%militar%' THEN 
+                                        'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=250&fit=crop&auto=format'
+                                    WHEN LOWER(a.title) LIKE '%politic%' OR LOWER(a.title) LIKE '%gobierno%' OR LOWER(a.title) LIKE '%trump%' OR LOWER(a.title) LIKE '%putin%' THEN 
+                                        'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=400&h=250&fit=crop&auto=format'
+                                    WHEN LOWER(a.title) LIKE '%econom%' OR LOWER(a.title) LIKE '%comercio%' OR LOWER(a.title) LIKE '%arancel%' THEN 
+                                        'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=250&fit=crop&auto=format'
+                                    WHEN LOWER(a.title) LIKE '%tecnolog%' OR LOWER(a.title) LIKE '%ai%' OR LOWER(a.title) LIKE '%cyber%' THEN 
+                                        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=250&fit=crop&auto=format'
+                                    ELSE 
+                                        'https://images.unsplash.com/photo-1589578527966-fdac0f44566c?w=400&h=250&fit=crop&auto=format'
+                                END
+                            ) as image_url,
+                            a.mosaic_position, a.visual_analysis_json, a.bert_conflict_probability,
                             a.sentiment_score
                         FROM articles a
-                        WHERE a.image_url IS NOT NULL 
-                        AND a.image_url != ''
-                        AND (a.mosaic_position = ? OR a.mosaic_position IS NULL)
+                        WHERE (a.mosaic_position = ? OR a.mosaic_position IS NULL)
                         ORDER BY 
                             CASE 
                                 WHEN a.risk_level = 'high' THEN 1
@@ -324,6 +337,7 @@ class MosaicLayoutManager:
                                 WHEN a.risk_level = 'low' THEN 3
                                 ELSE 4
                             END,
+                            a.risk_score DESC,
                             a.bert_conflict_probability DESC,
                             a.published_at DESC
                         LIMIT ?
@@ -338,16 +352,28 @@ class MosaicLayoutManager:
                             SELECT 
                                 a.id, a.title, a.content, a.country, a.region,
                                 a.risk_level, a.risk_score, a.source, a.published_at,
-                                a.summary, a.url, a.image_url, a.mosaic_position,
-                                a.visual_analysis_json, a.bert_conflict_probability,
+                                a.summary, a.url, 
+                                COALESCE(
+                                    NULLIF(a.image_url, ''),
+                                    CASE 
+                                        WHEN LOWER(a.title) LIKE '%conflict%' OR LOWER(a.title) LIKE '%war%' OR LOWER(a.title) LIKE '%militar%' THEN 
+                                            'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=250&fit=crop&auto=format'
+                                        WHEN LOWER(a.title) LIKE '%politic%' OR LOWER(a.title) LIKE '%gobierno%' OR LOWER(a.title) LIKE '%trump%' OR LOWER(a.title) LIKE '%putin%' THEN 
+                                            'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=400&h=250&fit=crop&auto=format'
+                                        WHEN LOWER(a.title) LIKE '%econom%' OR LOWER(a.title) LIKE '%comercio%' OR LOWER(a.title) LIKE '%arancel%' THEN 
+                                            'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=250&fit=crop&auto=format'
+                                        WHEN LOWER(a.title) LIKE '%tecnolog%' OR LOWER(a.title) LIKE '%ai%' OR LOWER(a.title) LIKE '%cyber%' THEN 
+                                            'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=250&fit=crop&auto=format'
+                                        ELSE 
+                                            'https://images.unsplash.com/photo-1589578527966-fdac0f44566c?w=400&h=250&fit=crop&auto=format'
+                                    END
+                                ) as image_url,
+                                a.mosaic_position, a.visual_analysis_json, a.bert_conflict_probability,
                                 a.sentiment_score
                             FROM articles a
-                            WHERE a.image_url IS NOT NULL 
-                            AND a.image_url != ''
-                            AND a.id NOT IN (
+                            WHERE a.id NOT IN (
                                 SELECT DISTINCT id FROM articles 
                                 WHERE mosaic_position IN ('hero', 'featured')
-                                AND image_url IS NOT NULL
                             )
                             ORDER BY 
                                 CASE 
@@ -356,6 +382,7 @@ class MosaicLayoutManager:
                                     WHEN a.risk_level = 'low' THEN 3
                                     ELSE 4
                                 END,
+                                a.risk_score DESC,
                                 a.published_at DESC
                             LIMIT ?
                         """, (max_count - len(articles),))

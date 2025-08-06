@@ -612,6 +612,10 @@
                 </div>
                 <div class="section-title">
                     <h2>Video Vigilancia</h2>
+                <div class="data-status fallback-data">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Sistema en desarrollo - Funcionalidad limitada</span>
+                </div>
                     <p>Sistema avanzado de computer vision para análisis automatizado de feeds de video en tiempo real desde cámaras públicas, privadas y fuentes internacionales</p>
                 </div>
             </div>
@@ -685,7 +689,7 @@
             <div class="satellite-gallery" id="satellite-gallery">
                 <!-- Satellite images will be loaded here -->
                 <div class="satellite-image" data-location="Urban" onclick="updateSatelliteView('urban')">
-                    <img src="/data/satellite_images/urban_sample_40.7128_-74.0060_2025-08-01.png" alt="Imagen Satelital Urbana" onerror="this.src='/src/images/space.jpg'">
+                    <img src="/data/satellite_images/urban_sample_40.7128_-74.0060_2025-08-01.png" alt="Imagen Satelital Urbana" onerror="this.src='{{ url_for('static', filename='images/space.jpg') }}'">
                     <div class="satellite-overlay">
                         <h6 class="text-white mb-1">Zona Urbana</h6>
                         <p class="small mb-0">Nueva York - Análisis Urbano</p>
@@ -694,7 +698,7 @@
                 </div>
                 
                 <div class="satellite-image" data-location="Conflict" onclick="updateSatelliteView('conflict')">
-                    <img src="/data/satellite_images/conflict_sample_33.3152_44.3661_2025-08-01.png" alt="Imagen Satelital de Conflicto" onerror="this.src='/src/images/space.jpg'">
+                    <img src="/data/satellite_images/conflict_sample_33.3152_44.3661_2025-08-01.png" alt="Imagen Satelital de Conflicto" onerror="this.src='{{ url_for('static', filename='images/space.jpg') }}'">
                     <div class="satellite-overlay">
                         <h6 class="text-white mb-1">Zona de Conflicto</h6>
                         <p class="small mb-0">Bagdad - Monitoreo Geopolítico</p>
@@ -703,7 +707,7 @@
                 </div>
                 
                 <div class="satellite-image" data-location="Rural" onclick="updateSatelliteView('rural')">
-                    <img src="/data/satellite_images/rural_sample_35.6762_139.6503_2025-08-01.png" alt="Imagen Satelital Rural" onerror="this.src='/src/images/space.jpg'">
+                    <img src="/data/satellite_images/rural_sample_35.6762_139.6503_2025-08-01.png" alt="Imagen Satelital Rural" onerror="this.src='{{ url_for('static', filename='images/space.jpg') }}'">
                     <div class="satellite-overlay">
                         <h6 class="text-white mb-1">Zona Rural</h6>
                         <p class="small mb-0">Tokio - Análisis Ambiental</p>
@@ -726,19 +730,35 @@
         <div class="card-body">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-number" id="active-cameras">Cargando...</div>
+                    <div class="stat-number" id="active-cameras">Cargando...
+                    <div class="fallback-indicator warning">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Si no hay datos, se mostrarán valores de demostración</span>
+                    </div></div>
                     <div class="stat-label">Cámaras Activas</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="detections-today">Cargando...</div>
+                    <div class="stat-number" id="detections-today">Cargando...
+                    <div class="fallback-indicator warning">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Si no hay datos, se mostrarán valores de demostración</span>
+                    </div></div>
                     <div class="stat-label">Detecciones Hoy</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="alerts-generated">Cargando...</div>
+                    <div class="stat-number" id="alerts-generated">Cargando...
+                    <div class="fallback-indicator warning">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Si no hay datos, se mostrarán valores de demostración</span>
+                    </div></div>
                     <div class="stat-label">Alertas Generadas</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="processing-fps">Cargando...</div>
+                    <div class="stat-number" id="processing-fps">Cargando...
+                    <div class="fallback-indicator warning">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Si no hay datos, se mostrarán valores de demostración</span>
+                    </div></div>
                     <div class="stat-label">Eficiencia Procesamiento</div>
                 </div>
             </div>
@@ -922,6 +942,10 @@
                 <div class="col-md-3">
                     <div class="source-info">
                         <h5 class="text-white">Cámaras Urbanas</h5>
+                <div class="data-status fallback-data">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Sistema en desarrollo - Funcionalidad limitada</span>
+                </div>
                         <p class="text-muted small">CCTV municipales, tráfico, transporte</p>
                         <div class="coordinates">Feeds: RTSP/HTTP</div>
                         <div class="coordinates">Resolución: 1080p-4K</div>
@@ -972,6 +996,23 @@ document.addEventListener('DOMContentLoaded', function() {
     loadModelPerformance();
     initializeSatelliteGallery();
     
+    // Initialize video-specific fallback indicators
+    if (window.FallbackManager) {
+        window.FallbackManager.initializePageIndicators('video');
+        
+        // Mark satellite gallery specifically
+        const satelliteGallery = document.getElementById('satellite-gallery');
+        if (satelliteGallery) {
+            window.FallbackManager.markSatelliteAsSimulated(satelliteGallery);
+        }
+        
+        // Mark model performance section
+        const modelSection = document.getElementById('model-performance');
+        if (modelSection) {
+            window.FallbackManager.markContainerAsFallback(modelSection, 'MODELOS EN DEMOSTRACIÓN');
+        }
+    }
+    
     // Update confidence threshold display
     const confidenceSlider = document.getElementById('confidence-threshold');
     const confidenceValue = document.getElementById('confidence-value');
@@ -1013,7 +1054,10 @@ async function loadModelPerformance() {
                 <div class="text-center text-muted p-4">
                     <i class="fas fa-brain fa-2x mb-3"></i>
                     <p>No hay métricas de modelos disponibles</p>
-                    <small>Conectando con sistema de análisis RSS...</small>
+                    <div class="fallback-indicator warning">
+                        <i class="fas fa-database"></i>
+                        <span>Esperando conexión con sistema de análisis</span>
+                    </div>
                 </div>
             `;
         }
@@ -1022,8 +1066,15 @@ async function loadModelPerformance() {
         container.innerHTML = `
             <div class="text-center text-muted p-4">
                 <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
-                <p>Error al cargar métricas de modelos</p>
-                <small>Verificando conexión con base de datos RSS...</small>
+                <p>Error al cargar métricas de modelos
+                    <div class="fallback-indicator error">
+                        <i class="fas fa-wifi"></i>
+                        <span>API no disponible - Verificando conexión</span>
+                    </div></p>
+                <div class="fallback-indicator error">
+                    <i class="fas fa-wifi"></i>
+                    <span>API de modelos no disponible</span>
+                </div>
             </div>
         `;
     }
@@ -1045,7 +1096,7 @@ function initializeVideo() {
 
 async function loadRealTimeStatistics() {
     try {
-        const response = await fetch('/api/video-/statistics');
+        const response = await fetch('/api/video-surveillance/statistics');
         const data = await response.json();
         
         if (data.success) {
@@ -1053,14 +1104,33 @@ async function loadRealTimeStatistics() {
             document.getElementById('detections-today').textContent = data.stats.detections_today.toLocaleString();
             document.getElementById('alerts-generated').textContent = data.stats.alerts_generated;
             document.getElementById('processing-fps').textContent = data.stats.processing_efficiency + '%';
+            
+            // Mark as real data
+            if (window.FallbackManager) {
+                const statsContainer = document.querySelector('.stats-grid');
+                if (statsContainer) {
+                    window.FallbackManager.markAsRealData(statsContainer, 'Estadísticas de video en tiempo real');
+                }
+            }
+        } else {
+            throw new Error('API returned unsuccessful response');
         }
     } catch (error) {
-        console.error('Error loading video  statistics:', error);
-        // Show loading state instead of fake data
-        document.getElementById('active-cameras').textContent = 'Cargando...';
-        document.getElementById('detections-today').textContent = 'Cargando...';
-        document.getElementById('alerts-generated').textContent = 'Cargando...';
-        document.getElementById('processing-fps').textContent = 'Cargando...';
+        console.error('Error loading video surveillance statistics:', error);
+        
+        // Show realistic fallback based on RSS system capabilities
+        document.getElementById('active-cameras').innerHTML = '<span class="fallback-indicator simulation"><i class="fas fa-exclamation-circle"></i></span> Conectando...';
+        document.getElementById('detections-today').innerHTML = '<span class="fallback-indicator simulation"><i class="fas fa-exclamation-circle"></i></span> Procesando RSS...';
+        document.getElementById('alerts-generated').innerHTML = '<span class="fallback-indicator simulation"><i class="fas fa-exclamation-circle"></i></span> Analizando...';
+        document.getElementById('processing-fps').innerHTML = '<span class="fallback-indicator simulation"><i class="fas fa-exclamation-circle"></i></span> Calibrando...';
+        
+        // Mark container as using fallback
+        if (window.FallbackManager) {
+            const statsContainer = document.querySelector('.stats-grid');
+            if (statsContainer) {
+                window.FallbackManager.markContainerAsFallback(statsContainer, 'DATOS NO DISPONIBLES - SISTEMA EN DESARROLLO');
+            }
+        }
     }
 }
 
@@ -1111,6 +1181,10 @@ async function loadCameraFeeds() {
                     
                     <div class="p-3">
                         <h6 class="text-white mb-2">${camera.name}</h6>
+                <div class="data-status fallback-data">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Sistema en desarrollo - Funcionalidad limitada</span>
+                </div>
                         <div class="d-flex flex-wrap gap-1 mb-2">
                             ${camera.detections ? camera.detections.map(detection => `
                                 <span class="detection-type-badge detection-${detection.type}">
@@ -1139,7 +1213,11 @@ async function loadCameraFeeds() {
         container.innerHTML = `
             <div class="text-center text-muted p-4">
                 <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
-                <p>Error al cargar feeds de video</p>
+                <p>Error al cargar feeds de video
+                    <div class="fallback-indicator error">
+                        <i class="fas fa-wifi"></i>
+                        <span>API no disponible - Verificando conexión</span>
+                    </div></p>
                 <small>Verificando conexión con cámaras de vigilancia...</small>
             </div>
         `;
@@ -1283,7 +1361,11 @@ async function loadCriticalAlerts() {
         container.innerHTML = `
             <div class="text-center text-muted p-3">
                 <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                <p>Error al cargar alertas</p>
+                <p>Error al cargar alertas
+                    <div class="fallback-indicator error">
+                        <i class="fas fa-wifi"></i>
+                        <span>API no disponible - Verificando conexión</span>
+                    </div></p>
                 <small>Verificando sistemas de monitoreo...</small>
             </div>
         `;
@@ -1326,7 +1408,11 @@ async function loadDetectionHistory() {
         container.innerHTML = `
             <div class="text-center text-muted p-3">
                 <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                <p>Error al cargar historial</p>
+                <p>Error al cargar historial
+                    <div class="fallback-indicator error">
+                        <i class="fas fa-wifi"></i>
+                        <span>API no disponible - Verificando conexión</span>
+                    </div></p>
                 <small>Verificando base de datos...</small>
             </div>
         `;
@@ -1372,7 +1458,11 @@ async function loadAnalysisTimeline() {
         container.innerHTML = `
             <div class="text-center text-muted p-3">
                 <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                <p>Error al cargar timeline</p>
+                <p>Error al cargar timeline
+                    <div class="fallback-indicator error">
+                        <i class="fas fa-wifi"></i>
+                        <span>API no disponible - Verificando conexión</span>
+                    </div></p>
                 <small>Verificando sistemas de análisis...</small>
             </div>
         `;
@@ -1631,7 +1721,7 @@ function updateSatelliteGallery(images) {
              tabindex="0" role="button" 
              aria-label="Ver análisis satelital de ${image.location}">
             <img src="${image.url}" alt="Satelital ${image.location}" 
-                 onerror="this.src='/src/images/space.jpg'">
+                 onerror="this.src='{{ url_for('static', filename='images/space.jpg') }}'">
             <div class="satellite-overlay">
                 <h6 class="text-white mb-1">${image.title}</h6>
                 <p class="small mb-0">${image.description}</p>

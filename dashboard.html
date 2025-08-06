@@ -46,6 +46,41 @@
     </div>
 </div>
 
+<!-- Modal para mostrar resumen del artículo -->
+<div id="articleModal" class="article-modal" style="display: none;">
+    <button type="button" class="modal-backdrop" onclick="closeArticleModal()" onkeydown="if(event.key==='Enter'||event.key===' '){closeArticleModal();}" aria-label="Cerrar modal"></button>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Resumen del Artículo</h3>
+            <button class="modal-close" onclick="closeArticleModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="article-info">
+                <div class="article-meta-modal">
+                    <span id="modalRiskLevel" class="risk-badge"></span>
+                    <span id="modalSource" class="source-badge"></span>
+                    <span id="modalDate" class="date-badge"></span>
+                </div>
+                <h4 id="modalArticleTitle"><span class="sr-only">Título del artículo</span></h4>
+            </div>
+            <div class="summary-content">
+                <h5><i class="fas fa-brain"></i> Resumen Generado por IA</h5>
+                <div id="modalSummary" class="summary-text"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="readOriginalBtn" class="btn btn-primary" onclick="openOriginalArticle()">
+                <i class="fas fa-external-link-alt"></i> Leer Artículo Original
+            </button>
+            <button class="btn btn-secondary" onclick="closeArticleModal()">
+                <i class="fas fa-times"></i> Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
 <style>
     :root {
         --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -282,6 +317,244 @@
         transform: translateY(-5px);
         box-shadow: var(--shadow-xl);
         border-color: var(--primary-color);
+    }
+
+    /* Modal Styles */
+    .article-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: modalFadeIn 0.3s ease-out;
+    }
+
+    .modal-backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        cursor: pointer;
+    }
+
+    .modal-content {
+        position: relative;
+        background: var(--card-gradient);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        max-width: 800px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        backdrop-filter: blur(20px);
+        box-shadow: var(--shadow-xl);
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    .modal-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(102, 126, 234, 0.1);
+    }
+
+    .modal-header h3 {
+        color: var(--text-primary);
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .modal-close {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+    }
+
+    .modal-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .article-info {
+        margin-bottom: 1.5rem;
+    }
+
+    .article-meta-modal {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .risk-badge, .source-badge, .date-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .source-badge {
+        background: rgba(102, 126, 234, 0.2);
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+    }
+
+    .date-badge {
+        background: rgba(46, 213, 115, 0.2);
+        color: var(--success-color);
+        border: 1px solid var(--success-color);
+    }
+
+    #modalArticleTitle {
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.3;
+        margin: 0;
+    }
+
+    .summary-content {
+        background: rgba(22, 27, 34, 0.3);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .summary-content h5 {
+        color: var(--primary-color);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .summary-text {
+        color: var(--text-secondary);
+        line-height: 1.7;
+        font-size: 1rem;
+    }
+
+    .summary-text p {
+        margin-bottom: 1rem;
+    }
+
+    .modal-footer {
+        padding: 1.5rem 2rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        background: rgba(22, 27, 34, 0.2);
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: var(--text-primary);
+    }
+
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive modal */
+    @media (max-width: 768px) {
+        .modal-content {
+            width: 95%;
+            max-height: 90vh;
+        }
+        
+        .modal-header {
+            padding: 1rem 1.5rem;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            flex-direction: column;
+        }
+        
+        .article-meta-modal {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        #modalArticleTitle {
+            font-size: 1.25rem;
+        }
     }
 
     /* Header */
@@ -2366,6 +2639,119 @@
             font-size: 1.8rem;
         }
     }
+
+    /* Mosaico de Artículos - Estilos para las Cards */
+    .articles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+
+    .article-card {
+        background: var(--card-gradient);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        overflow: hidden;
+        transition: var(--transition);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(20px);
+        position: relative;
+    }
+
+    .article-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        border-color: var(--primary-color);
+    }
+
+    .article-card.high-risk {
+        border-color: rgba(255, 71, 87, 0.5);
+        box-shadow: 0 8px 25px rgba(255, 71, 87, 0.2);
+    }
+
+    .article-card.high-risk:hover {
+        border-color: #ff4757;
+        box-shadow: 0 15px 35px rgba(255, 71, 87, 0.4);
+    }
+
+    .article-card .article-image {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .article-card .article-image::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%);
+        z-index: 1;
+    }
+
+    .article-card .article-content h4 {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.8rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .article-card .article-content p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .article-card .article-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .article-card .article-meta .location {
+        color: var(--primary-color);
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .article-card .article-meta .risk-score {
+        background: linear-gradient(135deg, #ff4757, #ff3838);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    /* Responsive adjustments for mobile */
+    @media (max-width: 768px) {
+        .articles-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .article-card .article-content {
+            padding: 12px;
+        }
+        
+        .article-card .article-image {
+            height: 180px !important;
+        }
+    }
 </style>
 
     <script>
@@ -2376,9 +2762,31 @@
     const highRiskArticles = {{ data.high_risk_articles | tojson | safe }};
     
     console.log('✅ Dashboard loaded with pre-rendered data!');
-    console.log('� Heatmap points:', heatmapData.length);
+    console.log('🗺️ Heatmap points:', heatmapData.length);
     console.log('📰 Articles loaded:', articlesData.length);
     console.log('🔥 High-risk articles:', highRiskArticles.length);
+    
+    // Global function to normalize image URLs
+    function normalizeImageUrl(url) {
+        console.log('🔍 normalizeImageUrl llamada con:', url);
+        if (!url) {
+            console.log('⚠️ URL es null/undefined');
+            return null;
+        }
+        
+        // Si es una imagen local (comienza con data\images o data/images)
+        if (url.startsWith('data\\images\\') || url.startsWith('data/images/')) {
+            // Extraer solo el nombre del archivo
+            const filename = url.replace(/^data[\\\/]images[\\\/]/, '');
+            const normalized = `/data/images/${filename}`;
+            console.log('✅ URL normalizada:', url, '→', normalized);
+            return normalized;
+        }
+        
+        // Si ya es una URL completa, devolverla tal como está
+        console.log('ℹ️ URL no necesita normalización:', url);
+        return url;
+    }
     
     // Now render the data directly
     document.addEventListener('DOMContentLoaded', function() {
@@ -2402,8 +2810,13 @@
             if (articlesTable) {
                 const tbody = articlesTable.querySelector('tbody') || document.createElement('tbody');
                 tbody.innerHTML = articlesData.slice(0, 20).map(article => `
-                    <tr>
-                        <td>${article.title || 'No title'}</td>
+                    <tr style="cursor: pointer;" onclick="handleArticleClickById(${article.id || 0}, '${(article.title || '').replace(/'/g, "\\'")}', '${article.url || '#'}')">
+                        <td>
+                            <div style="font-weight: 500;">${article.title || 'No title'}</div>
+                            <small style="color: var(--text-muted);">
+                                <i class="fas fa-eye" style="margin-right: 5px;"></i>Click para ver resumen
+                            </small>
+                        </td>
                         <td>${article.location || 'Unknown'}</td>
                         <td><span class="risk-badge risk-${article.risk_score >= 7 ? 'high' : article.risk_score >= 5 ? 'medium' : 'low'}">${article.risk_score ? article.risk_score.toFixed(1) : 'N/A'}</span></td>
                         <td>${article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Unknown'}</td>
@@ -2423,16 +2836,36 @@
                 const articlesList = document.createElement('div');
                 articlesList.innerHTML = '<h3>High-Risk Articles (' + highRiskArticles.length + ')</h3>' +
                     '<div class="articles-grid">' + 
-                    highRiskArticles.slice(0, 6).map(article => `
-                        <div class="article-card high-risk">
-                            <h4>${article.title || 'No title'}</h4>
-                            <p>${article.summary || 'No summary available'}</p>
-                            <div class="article-meta">
-                                <span class="location">${article.location || 'Unknown'}</span>
-                                <span class="risk-score">Risk: ${article.risk_score ? article.risk_score.toFixed(1) : 'N/A'}</span>
+                    highRiskArticles.slice(0, 6).map(article => {
+                        // Garantizar imagen para cada artículo con normalización
+                        const rawImageUrl = article.image_url || article.image;
+                        console.log('🏷️ Procesando artículo:', article.id, 'rawImageUrl:', rawImageUrl);
+                        const normalizedImageUrl = normalizeImageUrl(rawImageUrl);
+                        console.log('🖼️ imageUrl final:', normalizedImageUrl);
+                        const imageUrl = normalizedImageUrl || 
+                                       'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=250&fit=crop&auto=format'; // Imagen de conflicto por defecto
+                        
+                        return `
+                        <div class="article-card high-risk" style="cursor: pointer;" onclick="handleArticleClickById(${article.id || 0}, '${(article.title || '').replace(/'/g, "\\'")}', '${article.url || '#'}')">
+                            <div class="article-image" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; height: 200px; border-radius: 10px 10px 0 0;"></div>
+                            <div class="article-content" style="padding: 15px;">
+                                <h4>${article.title || 'No title'}</h4>
+                                <p>${article.summary || article.content?.substring(0, 120) + '...' || 'No summary available'}</p>
+                                <div class="article-meta">
+                                    <span class="location">${article.location || 'Unknown'}</span>
+                                    <span class="risk-score">Risk: ${article.risk_score ? article.risk_score.toFixed(1) : 'N/A'}</span>
+                                </div>
+                                <div class="article-actions" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                    <small style="color: var(--text-muted);">
+                                        <i class="fas fa-eye"></i> Click para ver resumen
+                                        <span style="float: right;">
+                                            <i class="fas fa-external-link-alt"></i> Artículo original
+                                        </span>
+                                    </small>
+                                </div>
                             </div>
-                        </div>
-                    `).join('') +
+                        </div>`;
+                    }).join('') +
                     '</div>';
                 highRiskSection.appendChild(articlesList);
             }
@@ -3157,7 +3590,9 @@ function fetchRecentArticles(sortBy = 'published_at', sortOrder = 'desc') {
                     aiAnalysisContent.innerHTML = data.analysis_html;
                 } else if (data.analysis) {
                     // New journalistic format display
-                    const imageUrl = data.image_url || 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
+                    const rawImageUrl = data.image_url;
+                    const normalizedImageUrl = normalizeImageUrl(rawImageUrl);
+                    const imageUrl = normalizedImageUrl || 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
                     const publishedDate = data.published_date || new Date().toLocaleDateString('es-ES');
                     const wordCount = data.word_count || 0;
                     const headline = data.headline || 'Análisis Geopolítico Global';
@@ -3805,7 +4240,7 @@ function fetchRecentArticles(sortBy = 'published_at', sortOrder = 'desc') {
             data.articles.forEach(article => {
                 const row = document.createElement('tr');
                 row.style.cursor = 'pointer';
-                row.onclick = () => window.open(article.url, '_blank');
+                row.onclick = (event) => handleArticleClickById(article.id || 0, article.title || '', article.url || '#');
                 
                 const riskScore = article.risk_score || 0;
                 const riskColor = riskScore >= 7 ? '#dc2626' : riskScore >= 5 ? '#ea580c' : '#059669';
@@ -3813,7 +4248,12 @@ function fetchRecentArticles(sortBy = 'published_at', sortOrder = 'desc') {
                 row.innerHTML = `
                     <td>
                         <div style="font-weight: 500;">${article.title}</div>
-                        <div style="font-size: 0.85em; color: #666; margin-top: 4px;">${article.description ? article.description.substring(0, 100) + '...' : ''}</div>
+                        <div style="font-size: 0.85em; color: #666; margin-top: 4px;">
+                            ${article.description ? article.description.substring(0, 100) + '...' : ''}
+                            <br><small style="color: var(--text-muted);">
+                                <i class="fas fa-eye" style="margin-right: 5px;"></i>Click para ver resumen
+                            </small>
+                        </div>
                     </td>
                     <td>${article.source_name || 'Unknown'}</td>
                     <td>${article.location || 'Global'}</td>
@@ -3827,6 +4267,156 @@ function fetchRecentArticles(sortBy = 'published_at', sortOrder = 'desc') {
         } catch (error) {
             console.error('Error fetching articles:', error);
         }
+    }
+
+    // Modal Functions
+    let currentArticleUrl = '';
+
+    function openArticleModal(article) {
+        // Populate modal with article data
+        document.getElementById('modalArticleTitle').textContent = article.title || 'Sin título';
+        
+        // Set risk badge
+        const riskBadge = document.getElementById('modalRiskLevel');
+        const riskLevel = article.risk_level || 'medium';
+        riskBadge.textContent = `${riskLevel.toUpperCase()} RISK`;
+        riskBadge.className = `risk-badge risk-${riskLevel.toLowerCase()}`;
+        
+        // Set source badge
+        const sourceBadge = document.getElementById('modalSource');
+        sourceBadge.textContent = article.source || 'Fuente desconocida';
+        
+        // Set date badge
+        const dateBadge = document.getElementById('modalDate');
+        if (article.published_at) {
+            const date = new Date(article.published_at);
+            dateBadge.textContent = date.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        } else {
+            dateBadge.textContent = 'Fecha desconocida';
+        }
+        
+        // Set summary
+        const summaryDiv = document.getElementById('modalSummary');
+        const summary = article.auto_generated_summary || article.summary || article.content || 'No hay resumen disponible para este artículo.';
+        
+        // Format summary with basic HTML
+        const formattedSummary = summary
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>');
+        
+        summaryDiv.innerHTML = `<p>${formattedSummary}</p>`;
+        
+        // Store article URL for the "Read Original" button
+        currentArticleUrl = article.url || '#';
+        
+        // Show modal
+        const modal = document.getElementById('articleModal');
+        modal.style.display = 'flex';
+        
+        // Add escape key listener
+        document.addEventListener('keydown', handleModalEscape);
+        
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeArticleModal() {
+        const modal = document.getElementById('articleModal');
+        modal.style.display = 'none';
+        
+        // Remove escape key listener
+        document.removeEventListener('keydown', handleModalEscape);
+        
+        // Restore body scroll
+        document.body.style.overflow = 'auto';
+        
+        // Clear current article URL
+        currentArticleUrl = '';
+    }
+
+    function openOriginalArticle() {
+        if (currentArticleUrl && currentArticleUrl !== '#') {
+            window.open(currentArticleUrl, '_blank');
+            closeArticleModal();
+        } else {
+            alert('Lo siento, no hay URL disponible para este artículo.');
+        }
+    }
+
+    function handleModalEscape(event) {
+        if (event.key === 'Escape') {
+            closeArticleModal();
+        }
+    }
+
+    // Function to fetch article with auto_generated_summary from API
+    async function fetchArticleDetails(articleId) {
+        try {
+            const response = await fetch(`/api/article/${articleId}`);
+            if (!response.ok) {
+                throw new Error('Article not found');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching article details:', error);
+            return null;
+        }
+    }
+
+    // Enhanced click handler for articles with modal using ID
+    async function handleArticleClickById(articleId, title, url) {
+        // Prevent the default action (opening in new tab)
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Store the original URL for the "Read Original" button
+        currentArticleUrl = url;
+        
+        // If article has ID, fetch full details including auto_generated_summary
+        if (articleId && articleId > 0) {
+            const fullArticle = await fetchArticleDetails(articleId);
+            if (fullArticle) {
+                openArticleModal(fullArticle);
+                return;
+            }
+        }
+        
+        // Fallback: create basic article object from available data
+        const basicArticle = {
+            id: articleId,
+            title: title,
+            url: url,
+            auto_generated_summary: 'No hay resumen disponible. Este artículo no tiene información detallada.',
+            risk_level: 'medium',
+            source: 'Fuente no disponible',
+            published_at: new Date().toISOString()
+        };
+        
+        openArticleModal(basicArticle);
+    }
+
+    // Enhanced click handler for articles with modal
+    async function handleArticleClick(article, event) {
+        // Prevent the default action (opening in new tab)
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // If article has ID, fetch full details including auto_generated_summary
+        if (article.id) {
+            const fullArticle = await fetchArticleDetails(article.id);
+            if (fullArticle) {
+                openArticleModal(fullArticle);
+                return;
+            }
+        }
+        
+        // Fallback: use existing article data
+        openArticleModal(article);
     }
 
 </script>

@@ -1,6 +1,50 @@
 {% extends "base_navigation.html" %}
 
-{% block title %}Data Intelligence - Stratosight{% endblock %}
+{% block title %}Data Intelligence - Stratosight
+    <!-- Initialize Fallback Indicators -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.FallbackManager) {
+                // Detect page type and initialize appropriate indicators
+                const path = window.location.pathname;
+                let pageType = 'generic';
+                
+                if (path.includes('dashboard')) pageType = 'dashboard';
+                else if (path.includes('video')) pageType = 'video';
+                else if (path.includes('satellite')) pageType = 'satellite';
+                else if (path.includes('economic')) pageType = 'economic';
+                
+                window.FallbackManager.initializePageIndicators(pageType);
+                
+                // Add real-time connection status monitoring
+                setInterval(function() {
+                    // Check if RSS feeds are working
+                    fetch('/api/health-check')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.rss_active) {
+                                document.querySelectorAll('.data-status.real-data').forEach(el => {
+                                    el.style.display = 'flex';
+                                });
+                                document.querySelectorAll('.data-status.fallback-data').forEach(el => {
+                                    if (!el.classList.contains('permanent-fallback')) {
+                                        el.style.display = 'none';
+                                    }
+                                });
+                            }
+                        })
+                        .catch(() => {
+                            // RSS system not available
+                            document.querySelectorAll('.data-status.real-data').forEach(el => {
+                                el.style.display = 'none';
+                            });
+                        });
+                }, 30000); // Check every 30 seconds
+            }
+        });
+    </script>
+
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -436,6 +480,7 @@
                         <span class="card-icon">🔄</span>
                         Pipeline ETL Controller
                     </h3>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
                     <span id="etl-status" class="card-status status-info">Ready</span>
                 </div>
                 <div class="card-content">
@@ -568,6 +613,7 @@
                         <span class="card-icon">📈</span>
                         Análisis Avanzado
                     </h3>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
                     <span id="analytics-status" class="card-status status-success">Actualizado</span>
                 </div>
                 <div class="card-content">

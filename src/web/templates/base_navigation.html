@@ -11,6 +11,8 @@
     <!-- Efectos visuales eliminados: se quitó effects.css -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/articles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/scroll_fix.css') }}">
+    <!-- Fallback Data Indicators CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fallback_indicators.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -621,8 +623,6 @@
     
     <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
     
-    {% block extra_js %}{% endblock %}
-    
     <script>
         // Mobile Navigation Toggle with improved functionality
         document.addEventListener('DOMContentLoaded', function() {
@@ -762,5 +762,10 @@
             window.addEventListener('resize', adjustNotificationsPosition);
         });
     </script>
+
+    <!-- Fallback Data Management System -->
+    <script src="{{ url_for('static', filename='js/fallback_manager.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

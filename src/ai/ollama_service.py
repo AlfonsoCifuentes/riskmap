@@ -317,19 +317,45 @@ class OllamaService:
         """
         Análisis especializado de contenido geopolítico usando DeepSeek-R1
         """
-        system_prompt = """Eres un analista geopolítico experto especializado en razonamiento profundo. 
-        Analiza el siguiente contenido con pensamiento crítico y proporciona:
+        system_prompt = """Eres un analista geopolítico experto especializado en evaluación de riesgos. 
 
-1. Nivel de riesgo (high/medium/low) con justificación detallada
-2. Probabilidad de conflicto (0.0-1.0) basada en análisis histórico
-3. Países/regiones involucradas con sus roles específicos
-4. Temas clave identificados con contexto histórico
-5. Sentiment score (-1.0 a 1.0) considerando múltiples perspectivas
-6. Resumen analítico en español (máximo 250 palabras) con insights profundos
-7. Implicaciones a corto y largo plazo
-8. Recomendaciones estratégicas
+INSTRUCCIONES CRÍTICAS PARA EVALUACIÓN DE RIESGO:
 
-Responde en formato JSON válido con análisis fundamentado."""
+ALTO RIESGO (high):
+- Conflictos armados activos, terrorismo, ataques militares
+- Crisis económicas severas, colapsos financieros
+- Amenazas nucleares, armas de destrucción masiva
+- Asesinatos políticos, golpes de estado
+- Genocidio, crímenes de guerra
+- Invasiones, bombardeos, violencia masiva
+
+RIESGO MEDIO (medium):
+- Tensiones diplomáticas, sanciones económicas
+- Protestas políticas, manifestaciones
+- Elecciones controvertidas, cambios de gobierno
+- Investigaciones de corrupción de alto nivel
+- Negociaciones internacionales críticas
+- Políticas que afectan relaciones internacionales
+
+BAJO RIESGO (low):
+- Deportes, entretenimiento, cultura
+- Tecnología no militar, ciencia básica
+- Salud pública rutinaria, clima
+- Turismo, arte, educación
+- Celebridades, moda, gastronomía
+- Noticias locales sin impacto geopolítico
+
+Analiza con criterio estricto y justifica tu evaluación. Responde SOLO en JSON válido:
+{
+    "risk_level": "high/medium/low",
+    "risk_justification": "explicación detallada de por qué asignaste este nivel",
+    "conflict_probability": 0.0-1.0,
+    "geopolitical_relevance": 0.0-1.0,
+    "countries": ["lista de países"],
+    "key_topics": ["temas principales"],
+    "sentiment_score": -1.0 a 1.0,
+    "summary": "resumen analítico en español"
+}"""
 
         try:
             response = self.generate_completion(
@@ -511,13 +537,14 @@ El resumen debe ser:
         Análisis por defecto en caso de error
         """
         return {
-            'risk_level': 'medium',
-            'conflict_probability': 0.5,
+            'risk_level': 'low',  # Por defecto bajo riesgo en lugar de medio
+            'conflict_probability': 0.2,
             'countries': [],
             'key_topics': [],
             'sentiment_score': 0.0,
-            'summary': 'Análisis no disponible',
-            'raw_analysis': ''
+            'summary': 'Análisis no disponible - clasificado como bajo riesgo por defecto',
+            'raw_analysis': '',
+            'risk_justification': 'Análisis fallido - asignado bajo riesgo por seguridad'
         }
 
 # Instancia global del servicio

@@ -597,12 +597,58 @@ class GeopoliticalDataIngestion:
             if full_content:
                 article.content = full_content
             
+            # ========================================
+            # TRADUCCIÓN AUTOMÁTICA DURANTE INGESTA
+            # ========================================
+            original_title = article.title
+            original_content = article.content
+            
+            try:
+                # Importar servicio de traducción
+                from translation_service import TranslationService, get_database_connection
+                
+                # Crear servicio de traducción
+                trans_db_conn = get_database_connection()
+                if trans_db_conn:
+                    translator = TranslationService(trans_db_conn)
+                    
+                    import asyncio
+                    
+                    # Traducir título si no está en español
+                    if article.title:
+                        translated_title, detected_lang_title = asyncio.run(
+                            translator.translate_text(article.title, 'es')
+                        )
+                        if translated_title != article.title:
+                            logger.info(f"🔄 Título traducido de {detected_lang_title} → es")
+                            article.title = translated_title
+                    
+                    # Traducir contenido si no está en español
+                    if article.content:
+                        translated_content, detected_lang_content = asyncio.run(
+                            translator.translate_text(article.content, 'es')
+                        )
+                        if translated_content != article.content:
+                            logger.info(f"🔄 Contenido traducido de {detected_lang_content} → es")
+                            article.content = translated_content
+                    
+                    # Cerrar conexión de traducción
+                    trans_db_conn.close()
+                    
+            except ImportError:
+                logger.warning("⚠️ Servicio de traducción no disponible durante ingesta")
+            except Exception as e:
+                logger.error(f"❌ Error en traducción durante ingesta: {e}")
+                # Continuar con el texto original si la traducción falla
+                article.title = original_title
+                article.content = original_content
+            
             # Procesar imagen
             image_path, image_hash, image_data = "", "", b""
             if image_url:
                 image_path, image_hash, image_data = self.download_and_process_image(image_url, article.url)
             
-            # Insertar artículo
+            # Insertar artículo (ya traducido si fue necesario)
             cursor.execute('''
             INSERT INTO trained_articles (
                 title, content, url, source, published_at, language,

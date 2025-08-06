@@ -692,6 +692,7 @@
                     <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
                     Alertas de Alto Riesgo
                 </h2>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
                 <div class="section-controls">
                     <button class="btn-control active" onclick="filterHighRisk('all', this)">Todas</button>
                     <button class="btn-control" onclick="filterHighRisk('military', this)">Militares</button>
@@ -704,6 +705,7 @@
                     {% for article in high_risk_articles %}
                     <div class="high-risk-card" data-category="{{ article.conflict_type | default('general') }}">
                         <h3 class="high-risk-title">{{ article.title }}</h3>
+<div class="section-status"><div class="data-status simulation"><i class="fas fa-chart-line"></i><span>Datos económicos simulados</span></div></div>
                         <p class="high-risk-description">{{ article.summary or article.content[:200] + '...' }}</p>
                         <div class="high-risk-meta">
                             <span class="high-risk-location">
@@ -777,6 +779,10 @@
                     <div class="latest-article-card">
                         <div class="latest-article-content">
                             <h3 class="latest-article-title">No hay artículos recientes disponibles</h3>
+                <div class="data-status real-data">
+                    <i class="fas fa-rss"></i>
+                    <span>Fuentes RSS en tiempo real</span>
+                </div>
                             <p class="latest-article-description">El sistema está procesando nuevas fuentes de noticias. Por favor, actualice en unos minutos.</p>
                             <div class="latest-article-meta">
                                 <span class="latest-article-meta-item">
@@ -821,6 +827,10 @@ let mosaicData = [];
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize fallback indicators for dashboard page
+    if (window.FallbackManager) {
+        window.FallbackManager.initializePageIndicators('dashboard');
+    }
     loadMosaic('importance', null);  // Pass null for initial load
     updateStatistics();
     
@@ -887,7 +897,8 @@ function filterLatest(timeframe, buttonElement) {
 function refreshLatest() {
     // Show loading state
     const container = document.getElementById('latest-articles');
-    container.innerHTML = '<div class="latest-article-card"><div class="latest-article-content"><h3 class="latest-article-title">Actualizando...</h3><p class="latest-article-description">Obteniendo las últimas noticias...</p></div></div>';
+    container.innerHTML = '<div class="latest-article-card"><div class="latest-article-content"><h3 class="latest-article-title">Actualizando...</h3>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div><p class="latest-article-description">Obteniendo las últimas noticias...</p></div></div>';
     
     // Simulate API call
     setTimeout(() => {
@@ -994,6 +1005,7 @@ function generateMosaicTiles(mode) {
             <div class="mosaic-article ${sizeClass}" style="background-image: url('${article.image}')">
                 <div class="mosaic-content">
                     <h3 class="mosaic-title">${article.title}</h3>
+<div class="section-status"><div class="data-status simulation"><i class="fas fa-chart-line"></i><span>Datos económicos simulados</span></div></div>
                     <div class="mosaic-meta">
                         <span class="mosaic-location">
                             <i class="fas fa-map-marker-alt"></i>
