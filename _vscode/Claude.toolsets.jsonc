@@ -175,5 +175,80 @@
     ],
     "description": "Seguridad, CI/CD y calidad de código integrados con GitHub Copilot para feedback continuo.",
     "icon": "settings"
+  },
+
+  "WebDevelopmentBackend": {
+    "tools": [
+      "django",
+      "flask",
+      "fastapi",
+      "uvicorn",
+      "gunicorn",
+      "sqlalchemy",
+      "alembic"
+    ],
+    "description": "Frameworks y ORMs para construir APIs y aplicaciones web robustas y escalables.",
+    "icon": "public"
+  },
+
+  "WebScrapingAutomation": {
+    "tools": [
+      "requests",
+      "httpx",
+      "beautifulsoup4",
+      "scrapy",
+      "selenium",
+      "playwright"
+    ],
+    "description": "Extracción de datos de la web, desde simples peticiones HTTP hasta automatización de navegadores complejos.",
+    "icon": "travel_explore"
+  },
+
+  "GeospatialAnalysis": {
+    "tools": [
+      "geopandas",
+      "shapely",
+      "fiona",
+      "rasterio",
+      "pyproj",
+      "folium"
+    ],
+    "description": "Análisis de datos geoespaciales, manipulación de geometrías y visualización de mapas interactivos.",
+    "icon": "map"
+  },
+
+  "TimeSeriesForecasting": {
+    "tools": [
+      "prophet",
+      "sktime",
+      "statsforecast",
+      "darts",
+      "tsfresh"
+    ],
+    "description": "Modelado y predicción de series temporales con frameworks especializados y extracción de características.",
+    "icon": "show_chart"
+  },
+
+  "CloudInfrastructure": {
+    "tools": [
+      "boto3",
+      "google-cloud-storage",
+      "azure-storage-blob",
+      "pulumi",
+      "aws-cdk"
+    ],
+    "description": "Interactúa y gestiona infraestructura en los principales proveedores de nube (AWS, GCP, Azure) mediante código.",
+    "icon": "cloud_upload"
+  },
+
+  "QuantumComputing": {
+    "tools": [
+      "qiskit",
+      "cirq",
+      "pennylane",
+      "dwave-ocean-sdk"
+    ],
+    "description": "Explora el mundo de la computación cuántica, diseña circuitos y ejecuta algoritmos en simuladores y hardware real.",
+    "icon": "hub"
   }
 }

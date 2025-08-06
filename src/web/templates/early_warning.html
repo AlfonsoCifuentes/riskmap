@@ -761,7 +761,11 @@
             ].slice(0, 3); // Show max 3 entities
             
             if (allEntities.length > 0) {
-                entitiesDisplay = `<div style="margin-top: 8px; font-size: 0.8rem; color: rgba(255,255,255,0.6);">
+                entitiesDisplay = `
+                    <div class="fallback-indicator error">
+                        <i class="fas fa-wifi"></i>
+                        <span>API no disponible - Verificando conexión</span>
+                    </div><div style="margin-top: 8px; font-size: 0.8rem; color: rgba(255,255,255,0.6);">
                     <i class="fas fa-tags"></i> ${allEntities.join(', ')}
                 </div>`;
             }
@@ -952,22 +956,20 @@
     
     // Load alerts data
     function loadAlertsData() {
-        // Simulate loading real-time alerts data
-        fetch('/api/alerts/recent')
+        // Load real-time alerts data from API
+        fetch('/api/early-warning/real-alerts')
             .then(response => response.json())
             .then(data => {
-                updateAlertsStats(data);
+                if (data.success) {
+                    updateAlertsStats(data.stats);
+                } else {
+                    console.error('Error loading alerts data:', data.error);
+                    showLoadingAlertsStats();
+                }
             })
             .catch(error => {
-                console.log('Using simulated alerts data');
-                updateAlertsStats({
-                    criticalAlerts: 24,
-                    responseTime: 2.3,
-                    monitoredEvents: 156,
-                    systemAccuracy: 94.2,
-                    monitoredCountries: 45,
-                    activeModels: 8
-                });
+                console.error('Error fetching alerts data:', error);
+                showLoadingAlertsStats();
             });
     }
     
@@ -978,6 +980,25 @@
         // Update the indicator values
         const indicators = document.querySelectorAll('.indicator-value');
         if (indicators.length >= 6) {
+            indicators[0].textContent = data.critical_alerts || 0;
+            indicators[1].textContent = (data.avg_response_time || 0).toFixed(1) + ' min';
+            indicators[2].textContent = data.monitored_events || 0;
+            indicators[3].textContent = (data.system_accuracy || 0).toFixed(1) + '%';
+            indicators[4].textContent = data.monitored_countries || 0;
+            indicators[5].textContent = data.active_models || 0;
+        }
+    }
+    
+    function showLoadingAlertsStats() {
+        const indicators = document.querySelectorAll('.indicator-value');
+        indicators.forEach(indicator => {
+            indicator.textContent = 'Cargando...
+                    <div class="fallback-indicator warning">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Si no hay datos, se mostrarán valores de demostración</span>
+                    </div>';
+        });
+    }
             indicators[0].textContent = data.criticalAlerts || 0; // Critical alerts
             indicators[1].textContent = data.responseTime || '2.3'; // Response time
             indicators[2].textContent = data.monitoredEvents || 0; // Monitored events
@@ -1012,6 +1033,10 @@
     
     // Initialize when page loads
     document.addEventListener('DOMContentLoaded', function() {
+    // Initialize fallback indicators for generic page
+    if (window.FallbackManager) {
+        window.FallbackManager.initializePageIndicators('generic');
+    }
         initAlertSystem();
         loadAlertsData();
     });

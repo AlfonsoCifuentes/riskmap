@@ -1320,7 +1320,8 @@ function renderMosaic(articles, append = false) {
                  style="background-image: url('${backgroundImage}')"
                  data-article-id="${article.id || index}"
                  data-importance="${article.importance}"
-                 onclick="openArticleModal(${JSON.stringify(article).replace(/"/g, '&quot;')})">
+                 onclick="window.open('${article.source_url || article.url || article.link || '#'}', '_blank')"
+                 style="cursor: pointer;">
                 <div class="mosaic-content">
                     <h3 class="mosaic-title">${title}</h3>
                     <div class="mosaic-meta">
@@ -1531,7 +1532,7 @@ function updateLatestArticlesList(articles) {
     }
     
     container.innerHTML = articles.slice(0, 10).map(article => `
-        <div class="latest-article-card" onclick="openArticleModal(${JSON.stringify(article).replace(/"/g, '&quot;')})">
+        <div class="latest-article-card" onclick="window.open('${article.source_url || article.url || article.link || '#'}', '_blank')" style="cursor: pointer;">>
             <div class="latest-article-content">
                 <h4 class="latest-article-title">${article.title || 'Sin título'}</h4>
                 <p class="latest-article-description">${(article.description || article.summary || '').substring(0, 150)}...</p>
@@ -1562,7 +1563,7 @@ function updateHighRiskArticlesGrid(articles) {
     }
     
     container.innerHTML = articles.slice(0, 6).map(article => `
-        <div class="high-risk-card" onclick="openArticleModal(${JSON.stringify(article).replace(/"/g, '&quot;')})">
+        <div class="high-risk-card" onclick="window.open('${article.source_url || article.url || article.link || '#'}', '_blank')" style="cursor: pointer;">>
             <h4 class="high-risk-title">${article.title || 'Sin título'}</h4>
             <p class="high-risk-description">${(article.description || article.summary || '').substring(0, 120)}...</p>
             <div class="high-risk-meta">

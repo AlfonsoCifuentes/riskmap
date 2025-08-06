@@ -24,7 +24,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from utils.config import config
 from utils.translation import TranslationService
-from utils.bert_risk_analyzer import BERTRiskAnalyzer
+from ai.bert_risk_analyzer import bert_risk_analyzer, analyze_article_risk
 from utils.content_classifier import ContentClassifier
 
 # Setup logging
@@ -46,7 +46,8 @@ class RSSFetcher:
     def __init__(self, db_path: str):
         self.db_path = db_path
         self.translation_service = TranslationService()
-        self.risk_analyzer = BERTRiskAnalyzer()
+        # Initialize risk analyzer with our new BERT system
+        self.risk_analyzer = bert_risk_analyzer
         self.content_classifier = ContentClassifier()
         
         # Initialize advanced NLP analyzer if available
@@ -560,7 +561,53 @@ class RSSFetcher:
             conn = self.get_db_connection()
             cursor = conn.cursor()
             
-            # Insert article
+            # ========================================
+            # TRADUCCIÓN AUTOMÁTICA DURANTE INGESTA RSS
+            # ========================================
+            original_title = article_data['title']
+            original_content = article_data['content']
+            
+            try:
+                # Importar servicio de traducción
+                from translation_service import TranslationService, get_database_connection
+                
+                # Crear servicio de traducción
+                trans_db_conn = get_database_connection()
+                if trans_db_conn:
+                    translator = TranslationService(trans_db_conn)
+                    
+                    import asyncio
+                    
+                    # Traducir título si no está en español
+                    if article_data['title']:
+                        translated_title, detected_lang_title = asyncio.run(
+                            translator.translate_text(article_data['title'], 'es')
+                        )
+                        if translated_title != article_data['title']:
+                            logger.info(f"🔄 RSS Título traducido de {detected_lang_title} → es")
+                            article_data['title'] = translated_title
+                    
+                    # Traducir contenido si no está en español
+                    if article_data['content']:
+                        translated_content, detected_lang_content = asyncio.run(
+                            translator.translate_text(article_data['content'], 'es')
+                        )
+                        if translated_content != article_data['content']:
+                            logger.info(f"🔄 RSS Contenido traducido de {detected_lang_content} → es")
+                            article_data['content'] = translated_content
+                    
+                    # Cerrar conexión de traducción
+                    trans_db_conn.close()
+                    
+            except ImportError:
+                logger.warning("⚠️ Servicio de traducción no disponible durante ingesta RSS")
+            except Exception as e:
+                logger.error(f"❌ Error en traducción durante ingesta RSS: {e}")
+                # Continuar con el texto original si la traducción falla
+                article_data['title'] = original_title
+                article_data['content'] = original_content
+            
+            # Insert article (ya traducido si fue necesario)
             cursor.execute('''
                 INSERT INTO articles (
                     title, content, url, source, language, country, region,

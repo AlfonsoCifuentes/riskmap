@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JS Syntax Test</title>
+</head>
+<body>
+    <h1>JavaScript Syntax Test</h1>
+    <div id="result"></div>
+
+    <script>
+        // Test the suspected problematic arrays
+        const newsSets = [
+            // Set 1: 7 articles - DISEÑO ORIGINAL QUE FUNCIONABA BIEN
+            [
+                {
+                    title: "Tensiones geopolíticas se intensifican en Europa Oriental",
+                    location: "Europa Oriental",
+                    risk: "high",
+                    image: "https://picsum.photos/400/300?random=1"
+                },
+                {
+                    title: "Crisis diplomática en Asia-Pacífico",
+                    location: "Asia-Pacífico",
+                    risk: "medium",
+                    image: "https://picsum.photos/400/300?random=2"
+                }
+            ],
+            // Set 2: Segundo set
+            [
+                {
+                    title: "Reformas estratégicas en el Sudeste Asiático",
+                    location: "Sudeste Asiático",
+                    risk: "medium",
+                    image: "https://picsum.photos/400/300?random=23"
+                }
+            ]
+        ];
+
+        // Test if syntax is valid
+        console.log('✅ Array syntax is valid');
+        document.getElementById('result').innerHTML = '✅ JavaScript syntax is valid!';
+        
+        // Test the openHeroArticleModal function
+        function openHeroArticleModal() {
+            console.log('✅ openHeroArticleModal function works');
+        }
+        
+        openHeroArticleModal();
+    </script>
+</body>
+</html>

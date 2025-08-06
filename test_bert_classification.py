@@ -9,7 +9,7 @@ import time
 from datetime import datetime
 
 # Configuración
-API_URL = "http://localhost:5001/api/analyze-importance"
+API_URL = "http://localhost:8050/api/analyze-importance"
 
 # Artículos de prueba con diferentes niveles de importancia/riesgo
 test_articles = [
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     
     # Verificar que el servidor esté corriendo
     try:
-        response = requests.get("http://localhost:5001/api/dashboard/stats", timeout=5)
+        response = requests.get("http://localhost:8050/api/dashboard/stats", timeout=5)
         if response.status_code == 200:
             print("✅ Servidor Flask detectado y funcionando")
             test_bert_analysis()
@@ -177,4 +177,4 @@ if __name__ == "__main__":
             print("❌ Servidor Flask no responde correctamente")
     except requests.exceptions.RequestException:
         print("❌ No se puede conectar al servidor Flask")
-        print("   Asegúrate de que esté ejecutándose en http://localhost:5001")
+        print("   Asegúrate de que esté ejecutándose en http://localhost:8050")

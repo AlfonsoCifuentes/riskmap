@@ -22,10 +22,17 @@ sys.path.append(str(Path(__file__).parent.parent))
 import logging as _logging
 _logging.getLogger("transformers").setLevel(_logging.ERROR)
 try:
+    # Set environment variables before importing transformers to avoid TensorFlow issues
+    import os
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+    os.environ['TRANSFORMERS_OFFLINE'] = '0'
+    
     from transformers import logging as _transformers_logging
     _transformers_logging.set_verbosity_error()
-except ImportError:
-    pass
+    TRANSFORMERS_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Transformers import failed: {e}")
+    TRANSFORMERS_AVAILABLE = False
 from utils.config import config
 
 logger = logging.getLogger(__name__)
@@ -45,6 +52,10 @@ class BERTRiskAnalyzer:
     
     def _initialize_model(self):
         """Initialize the first available model."""
+        if not TRANSFORMERS_AVAILABLE:
+            logger.warning("Transformers library not available, will use fallback analysis")
+            return
+            
         for model_name in self.models:
             try:
                 from transformers import pipeline
@@ -80,6 +91,11 @@ class BERTRiskAnalyzer:
             Dict with risk analysis results
         """
         try:
+            # Check if transformers is available
+            if not TRANSFORMERS_AVAILABLE:
+                logger.warning("Transformers not available, using keyword analysis")
+                return self._basic_keyword_analysis(title, content)
+                
             # Prepare the text for analysis
             full_text = f"{title}. {content}"
             if country:

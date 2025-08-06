@@ -435,6 +435,11 @@
     <!-- Page Header -->
     <div class="page-header">
         <h1 class="page-title">📊 Análisis de Tendencias</h1>
+                <div class="data-status real-data">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Análisis basado en datos RSS reales</span>
+                </div>
+<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
         <p class="page-subtitle">
             Predicciones IA para 30-90 días, análisis de sentimiento global y detección de patrones
         </p>
@@ -506,6 +511,7 @@
                     <i class="fas fa-chart-area"></i>
                     Tendencias Temporales
                 </h3>
+<div class="section-status"><div class="data-status simulation"><i class="fas fa-chart-line"></i><span>Datos económicos simulados</span></div></div>
                 <div class="section-controls">
                     <button class="btn-control">
                         <i class="fas fa-calendar-week"></i> 7D
@@ -829,6 +835,10 @@
     
     // Initialize when page loads
     document.addEventListener('DOMContentLoaded', function() {
+    // Initialize fallback indicators for generic page
+    if (window.FallbackManager) {
+        window.FallbackManager.initializePageIndicators('generic');
+    }
         initTrendsChart();
         loadTrendsData();
     });

@@ -1,0 +1,111 @@
+{
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          0,
+          0
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "actors": [],
+        "ai_enhanced": false,
+        "bbox": [
+          -0.05,
+          -0.05,
+          0.05,
+          0.05
+        ],
+        "cloud_cover_max": 50,
+        "confidence": 0.9,
+        "country": "Israel",
+        "dashboard_visible": true,
+        "data_sources": [
+          "news_analysis"
+        ],
+        "data_updated": "2025-08-04T00:15:07.669662",
+        "event_types": [],
+        "fatalities": 0,
+        "id": "conflict_zone_1",
+        "is_prediction": false,
+        "latest_event": "2025-08-03 21:10:14",
+        "marker_color": "#ffcc00",
+        "marker_size": "medium",
+        "monitoring_frequency": "monthly",
+        "name": "Israel",
+        "news_articles_count": 991,
+        "prediction_base": null,
+        "recommended_resolution": "20m",
+        "region": "france",
+        "risk_level": "medium",
+        "risk_score": 0.568,
+        "sentinel_priority": "medium",
+        "total_events": 991
+      },
+      "type": "Feature"
+    }
+  ],
+  "metadata": {
+    "auto_query": {
+      "enabled": true,
+      "max_cloud_cover": 30,
+      "min_risk_score": 0.6,
+      "preferred_months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    "bbox_global": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "crs": "EPSG:4326",
+    "data_sources": [
+      "news_analysis",
+      "acled",
+      "gdelt",
+      "gpr",
+      "ai_analysis"
+    ],
+    "data_timeframe_days": 7,
+    "generated_at": "2025-08-04T00:15:07.669662",
+    "generated_by": "RiskMap Integrated Geopolitical Analyzer",
+    "monitoring_strategy": {
+      "cloud_cover_threshold": 20,
+      "critical_zones_frequency": "daily",
+      "high_zones_frequency": "weekly",
+      "medium_zones_frequency": "monthly"
+    },
+    "priority_zones": 0,
+    "recommended_collections": [
+      "sentinel-2-l2a",
+      "sentinel-1-grd",
+      "landsat-ot-l2"
+    ],
+    "total_zones": 1,
+    "version": "2.0"
+  },
+  "sentinel_hub": {
+    "monitoring_frequency": "weekly",
+    "priority_zones": [],
+    "recommended_collections": [
+      "sentinel-2-l2a",
+      "sentinel-1-grd",
+      "landsat-ot-l2"
+    ]
+  },
+  "type": "FeatureCollection"
+}
