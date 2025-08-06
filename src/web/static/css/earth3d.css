@@ -1,0 +1,135 @@
+
+/* Estilos para visualizador 3D de la Tierra */
+.earth3d-container {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    background: radial-gradient(ellipse at center, #1e3c72 0%, #2a5298 100%);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.earth3d-controls {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+}
+
+.earth3d-controls h6 {
+    margin-bottom: 10px;
+    color: #00d4ff;
+}
+
+.earth3d-controls .btn {
+    margin: 2px;
+    font-size: 0.8rem;
+}
+
+.earth3d-info {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    max-width: 300px;
+}
+
+.earth3d-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 200;
+    text-align: center;
+    color: white;
+}
+
+.earth3d-loading .spinner-border {
+    color: #00d4ff;
+}
+
+.event-marker-legend {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.legend-color.high { background-color: #ff0000; }
+.legend-color.medium { background-color: #ffaa00; }
+.legend-color.low { background-color: #00ff00; }
+
+.earth3d-stats {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+}
+
+.earth3d-stats .stat-item {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.earth3d-stats .stat-value {
+    color: #00d4ff;
+    font-weight: bold;
+}
+
+/* Animaciones */
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+
+.pulse-animation {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .earth3d-container {
+        height: 400px;
+    }
+    
+    .earth3d-controls,
+    .earth3d-info,
+    .event-marker-legend,
+    .earth3d-stats {
+        position: relative;
+        margin: 10px;
+        max-width: none;
+    }
+}
+            

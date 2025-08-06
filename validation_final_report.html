@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Final de Validación - RiskMap</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f4c75 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(#dc3545 154.872deg, #333 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            position: relative;
+        }
+        .score-inner {
+            width: 120px;
+            height: 120px;
+            background: #1a1a2e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .score-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        .score-status {
+            font-size: 1rem;
+            color: #dc3545;
+            margin-top: 5px;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .test-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid;
+        }
+        .test-excellent { border-left-color: #28a745; }
+        .test-good { border-left-color: #ffc107; }
+        .test-poor { border-left-color: #dc3545; }
+        .test-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .test-score {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .test-details {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .recommendations {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .timestamp {
+            text-align: center;
+            opacity: 0.7;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Reporte Final de Validación</h1>
+            <h2>Sistema RiskMap - Dashboard Geopolítico</h2>
+            
+            <div class="score-circle">
+                <div class="score-inner">
+                    <div class="score-number">43.0%</div>
+                    <div class="score-status">NECESITA MEJORA</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-grid">
+            <div class="test-card test-poor">
+                <div class="test-title">File Structure</div>
+                <div class="test-score" style="color: #dc3545;">33.3%</div>
+                <div class="test-details">Archivos existentes: 5<br>Archivos faltantes: 10</div>
+            </div>
+            <div class="test-card test-poor">
+                <div class="test-title">Database Schema</div>
+                <div class="test-score" style="color: #dc3545;">57.1%</div>
+                <div class="test-details">Tablas existentes: 4</div>
+            </div>
+            <div class="test-card test-good">
+                <div class="test-title">App Syntax</div>
+                <div class="test-score" style="color: #ffc107;">70.0%</div>
+                <div class="test-details">Validación completada</div>
+            </div>
+            <div class="test-card test-poor">
+                <div class="test-title">Flask Startup</div>
+                <div class="test-score" style="color: #dc3545;">50.0%</div>
+                <div class="test-details">Validación completada</div>
+            </div>
+            <div class="test-card test-poor">
+                <div class="test-title">Static Resources</div>
+                <div class="test-score" style="color: #dc3545;">33.3%</div>
+                <div class="test-details">Archivos existentes: 2<br>Archivos faltantes: 4</div>
+            </div>
+            <div class="test-card test-poor">
+                <div class="test-title">Templates</div>
+                <div class="test-score" style="color: #dc3545;">14.3%</div>
+                <div class="test-details">Validación completada</div>
+            </div>
+        </div>
+        
+        <div class="recommendations">
+            <h3>📋 Recomendaciones</h3>
+            <ul><li>Sistema requiere atención inmediata</li>
+            </ul>
+        </div>
+        
+        <div class="timestamp">
+            <p>Reporte generado el 2025-08-06T05:09:53.327305</p>
+            <p>Total de tests ejecutados: 6</p>
+        </div>
+    </div>
+</body>
+</html>

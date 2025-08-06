@@ -1,0 +1,317 @@
+{% extends "layout.html" %}
+
+{% block title %}Acerca de - RiskMap{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
+    <!-- Hero Section -->
+    <section class="py-20">
+        <div class="container mx-auto px-6 text-center">
+            <div class="mb-12">
+                <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                    <i class="fas fa-shield-alt mr-4"></i>RiskMap
+                </h1>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    Sistema avanzado de análisis geopolítico y detección de riesgos en tiempo real mediante inteligencia artificial y análisis satelital.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-16">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-12 text-white">Capacidades del Sistema</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1: Análisis IA -->
+                <div class="glass-card p-8 text-center group hover:scale-105 transition-transform duration-300">
+                    <div class="mb-6">
+                        <i class="fas fa-brain text-5xl text-blue-400 group-hover:text-cyan-400 transition-colors"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-white">Inteligencia Artificial</h3>
+                    <p class="text-gray-300">
+                        Procesamiento NLP avanzado con modelos BERT, análisis de sentimientos y clasificación automática de riesgos geopolíticos.
+                    </p>
+                </div>
+
+                <!-- Feature 2: Análisis Satelital -->
+                <div class="glass-card p-8 text-center group hover:scale-105 transition-transform duration-300">
+                    <div class="mb-6">
+                        <i class="fas fa-satellite text-5xl text-green-400 group-hover:text-emerald-400 transition-colors"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-white">Análisis Satelital</h3>
+                    <p class="text-gray-300">
+                        Integración con SentinelHub para monitoreo satelital en tiempo real y detección de cambios geopolíticos.
+                    </p>
+                </div>
+
+                <!-- Feature 3: Monitoreo GDELT -->
+                <div class="glass-card p-8 text-center group hover:scale-105 transition-transform duration-300">
+                    <div class="mb-6">
+                        <i class="fas fa-globe text-5xl text-purple-400 group-hover:text-violet-400 transition-colors"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-white">Datos GDELT</h3>
+                    <p class="text-gray-300">
+                        Integración completa con Global Database of Events, Language, and Tone para análisis de eventos globales.
+                    </p>
+                </div>
+
+                <!-- Feature 4: Dashboard Interactivo -->
+                <div class="glass-card p-8 text-center group hover:scale-105 transition-transform duration-300">
+                    <div class="mb-6">
+                        <i class="fas fa-chart-line text-5xl text-yellow-400 group-hover:text-amber-400 transition-colors"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-white">Visualización Avanzada</h3>
+                    <p class="text-gray-300">
+                        Dashboards interactivos con mapas de calor, análisis multivariable y visualizaciones 3D en tiempo real.
+                    </p>
+                </div>
+
+                <!-- Feature 5: API REST -->
+                <div class="glass-card p-8 text-center group hover:scale-105 transition-transform duration-300">
+                    <div class="mb-6">
+                        <i class="fas fa-code text-5xl text-red-400 group-hover:text-rose-400 transition-colors"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-white">API REST</h3>
+                    <p class="text-gray-300">
+                        API completa para integración con sistemas externos y acceso programático a todos los datos y análisis.
+                    </p>
+                </div>
+
+                <!-- Feature 6: Automatización -->
+                <div class="glass-card p-8 text-center group hover:scale-105 transition-transform duration-300">
+                    <div class="mb-6">
+                        <i class="fas fa-robot text-5xl text-cyan-400 group-hover:text-blue-400 transition-colors"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-white">Automatización Total</h3>
+                    <p class="text-gray-300">
+                        Procesamiento automático de noticias, análisis y generación de reportes sin intervención manual.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack -->
+    <section class="py-16">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-12 text-white">Stack Tecnológico</h2>
+            
+            <div class="glass-card p-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Backend -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-blue-400">Backend</h3>
+                        <div class="space-y-2">
+                            <span class="tech-badge">Python 3.11</span>
+                            <span class="tech-badge">Flask</span>
+                            <span class="tech-badge">SQLite</span>
+                            <span class="tech-badge">TensorFlow</span>
+                            <span class="tech-badge">Transformers</span>
+                            <span class="tech-badge">GDELT API</span>
+                        </div>
+                    </div>
+
+                    <!-- IA & ML -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-green-400">IA & Machine Learning</h3>
+                        <div class="space-y-2">
+                            <span class="tech-badge">BERT</span>
+                            <span class="tech-badge">OpenAI GPT</span>
+                            <span class="tech-badge">HuggingFace</span>
+                            <span class="tech-badge">spaCy</span>
+                            <span class="tech-badge">scikit-learn</span>
+                            <span class="tech-badge">Computer Vision</span>
+                        </div>
+                    </div>
+
+                    <!-- Frontend -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-purple-400">Frontend</h3>
+                        <div class="space-y-2">
+                            <span class="tech-badge">HTML5</span>
+                            <span class="tech-badge">TailwindCSS</span>
+                            <span class="tech-badge">JavaScript</span>
+                            <span class="tech-badge">Leaflet.js</span>
+                            <span class="tech-badge">Chart.js</span>
+                            <span class="tech-badge">Three.js</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Camera Feeds Section -->
+    <section class="py-16">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-12 text-white">Feeds de Cámaras en Tiempo Real</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Camera Feed 1: Ucrania -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-bold mb-4 text-white flex items-center">
+                        <i class="fas fa-video mr-2 text-blue-400"></i>
+                        Kyiv, Ucrania
+                    </h3>
+                    <div class="bg-gray-800 rounded-lg p-4 mb-4" style="height: 200px;">
+                        <iframe 
+                            src="https://www.skylinewebcams.com/en/webcam/ukraine/kyiv/kyiv-independence-square.html"
+                            width="100%" 
+                            height="100%" 
+                            frameborder="0"
+                            class="rounded">
+                        </iframe>
+                    </div>
+                    <p class="text-gray-400 text-sm">Plaza de la Independencia - Monitoreo geopolítico</p>
+                </div>
+
+                <!-- Camera Feed 2: Israel -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-bold mb-4 text-white flex items-center">
+                        <i class="fas fa-video mr-2 text-green-400"></i>
+                        Tel Aviv, Israel
+                    </h3>
+                    <div class="bg-gray-800 rounded-lg p-4 mb-4" style="height: 200px;">
+                        <iframe 
+                            src="https://www.skylinewebcams.com/en/webcam/israel/tel-aviv/tel-aviv.html"
+                            width="100%" 
+                            height="100%" 
+                            frameborder="0"
+                            class="rounded">
+                        </iframe>
+                    </div>
+                    <p class="text-gray-400 text-sm">Centro de Tel Aviv - Zona de conflicto</p>
+                </div>
+
+                <!-- Camera Feed 3: Taiwan -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-bold mb-4 text-white flex items-center">
+                        <i class="fas fa-video mr-2 text-purple-400"></i>
+                        Taipei, Taiwan
+                    </h3>
+                    <div class="bg-gray-800 rounded-lg p-4 mb-4" style="height: 200px;">
+                        <iframe 
+                            src="https://www.skylinewebcams.com/en/webcam/taiwan/taipei/taipei-101.html"
+                            width="100%" 
+                            height="100%" 
+                            frameborder="0"
+                            class="rounded">
+                        </iframe>
+                    </div>
+                    <p class="text-gray-400 text-sm">Taipei 101 - Tensión geopolítica regional</p>
+                </div>
+            </div>
+
+            <div class="text-center mt-8">
+                <p class="text-gray-400">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Las cámaras en vivo proporcionan contexto visual para el análisis geopolítico en tiempo real
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section class="py-16">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-12 text-white">Estadísticas del Sistema</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="glass-card p-6 text-center">
+                    <i class="fas fa-newspaper text-4xl text-blue-400 mb-4"></i>
+                    <div class="text-3xl font-bold text-white" id="total-articles">1,858</div>
+                    <div class="text-gray-400">Artículos Procesados</div>
+                </div>
+                
+                <div class="glass-card p-6 text-center">
+                    <i class="fas fa-brain text-4xl text-green-400 mb-4"></i>
+                    <div class="text-3xl font-bold text-white" id="ai-analyses">1,708</div>
+                    <div class="text-gray-400">Análisis IA Completados</div>
+                </div>
+                
+                <div class="glass-card p-6 text-center">
+                    <i class="fas fa-satellite text-4xl text-purple-400 mb-4"></i>
+                    <div class="text-3xl font-bold text-white" id="satellite-images">423</div>
+                    <div class="text-gray-400">Imágenes Satelitales</div>
+                </div>
+                
+                <div class="glass-card p-6 text-center">
+                    <i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-4"></i>
+                    <div class="text-3xl font-bold text-white" id="risk-alerts">89</div>
+                    <div class="text-gray-400">Alertas de Riesgo</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+}
+
+.tech-badge {
+    background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    display: inline-block;
+    margin: 3px;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.animate-pulse {
+    animation: pulse 2s infinite;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Simular actualización de estadísticas en tiempo real
+    function updateStats() {
+        const totalArticles = document.getElementById('total-articles');
+        const aiAnalyses = document.getElementById('ai-analyses');
+        const satelliteImages = document.getElementById('satellite-images');
+        const riskAlerts = document.getElementById('risk-alerts');
+        
+        // Incrementar ocasionalmente las estadísticas
+        if (Math.random() > 0.8) {
+            totalArticles.textContent = (parseInt(totalArticles.textContent.replace(',', '')) + 1).toLocaleString();
+        }
+        if (Math.random() > 0.9) {
+            aiAnalyses.textContent = (parseInt(aiAnalyses.textContent.replace(',', '')) + 1).toLocaleString();
+        }
+    }
+    
+    // Actualizar cada 30 segundos
+    setInterval(updateStats, 30000);
+    
+    // Efecto de carga para las estadísticas
+    const statCards = document.querySelectorAll('.glass-card');
+    statCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.6s ease';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

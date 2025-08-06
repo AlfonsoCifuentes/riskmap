@@ -1,4 +1,101 @@
-# 🌍 RISKMAP - Plataforma de Inteligencia Geopolítica
+#!/usr/bin/env python3
+"""
+BLOQUE 2E: Limpieza de Archivos + README
+========================================
+
+Automatización para:
+- Limpiar archivos obsoletos y duplicados
+- Crear README.md completo
+- Organizar estructura de directorios
+
+Fecha: Agosto 2025
+"""
+
+import os
+import sys
+import logging
+from pathlib import Path
+import shutil
+
+# Configurar logging UTF-8
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler('automation_block_2e.log', encoding='utf-8')
+    ]
+)
+logger = logging.getLogger(__name__)
+
+class CleanupAndReadmeSystem:
+    """Sistema para limpieza y creación de README"""
+    
+    def __init__(self):
+        logger.info("🚀 Iniciando Sistema Limpieza + README - BLOQUE 2E")
+        self.project_root = Path('.')
+    
+    def run_all_updates(self):
+        """Ejecutar todas las actualizaciones"""
+        try:
+            logger.info("=" * 60)
+            logger.info("🧹 BLOQUE 2E: LIMPIEZA + README")
+            logger.info("=" * 60)
+            
+            # 1. Limpiar archivos obsoletos
+            self.cleanup_obsolete_files()
+            
+            # 2. Crear README completo
+            self.create_comprehensive_readme()
+            
+            # 3. Organizar directorios
+            self.organize_directories()
+            
+            logger.info("✅ BLOQUE 2E COMPLETADO EXITOSAMENTE")
+            
+        except Exception as e:
+            logger.error(f"❌ Error en BLOQUE 2E: {e}")
+            raise e
+    
+    def cleanup_obsolete_files(self):
+        """Limpiar archivos obsoletos"""
+        try:
+            logger.info("🧹 Limpiando archivos obsoletos...")
+            
+            # Archivos a eliminar
+            obsolete_patterns = [
+                'app_BUENA - copia copy.py',
+                'app_BUENA_backupAugust_2nd.py',
+                'app_modern - copia.py',
+                'app_SIMPLE_TEST.py',
+                '*.tmp',
+                '*.bak',
+                '*~',
+                '.DS_Store'
+            ]
+            
+            cleaned_count = 0
+            for pattern in obsolete_patterns:
+                for file_path in self.project_root.glob(pattern):
+                    if file_path.is_file():
+                        try:
+                            file_path.unlink()
+                            logger.info(f"Eliminado: {file_path}")
+                            cleaned_count += 1
+                        except Exception as e:
+                            logger.warning(f"No se pudo eliminar {file_path}: {e}")
+            
+            logger.info(f"✅ Limpieza completada: {cleaned_count} archivos eliminados")
+            
+        except Exception as e:
+            logger.error(f"❌ Error en limpieza: {e}")
+    
+    def create_comprehensive_readme(self):
+        """Crear README.md completo"""
+        try:
+            logger.info("📝 Creando README.md completo...")
+            
+            readme_content = '''# 🌍 RISKMAP - Plataforma de Inteligencia Geopolítica
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)](https://flask.palletsprojects.com)
@@ -62,7 +159,7 @@ cd riskmap
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 # o
-venv\Scripts\activate   # Windows
+venv\\Scripts\\activate   # Windows
 
 # Instalar dependencias
 pip install -r requirements.txt
@@ -327,3 +424,74 @@ Este proyecto está bajo la Licencia MIT - ver [LICENSE](LICENSE) para detalles.
   <h3>🌍 Monitoreo Global • 🤖 IA Avanzada • 🛰️ Análisis Satelital</h3>
   <p>Desarrollado con ❤️ para la comunidad de inteligencia geopolítica</p>
 </div>
+'''
+            
+            # Guardar README
+            readme_file = self.project_root / 'README.md'
+            with open(readme_file, 'w', encoding='utf-8') as f:
+                f.write(readme_content)
+            
+            logger.info("✅ README.md creado exitosamente")
+            
+        except Exception as e:
+            logger.error(f"❌ Error creando README: {e}")
+    
+    def organize_directories(self):
+        """Organizar estructura de directorios"""
+        try:
+            logger.info("📁 Organizando directorios...")
+            
+            # Directorios necesarios
+            directories = [
+                'src/web/templates',
+                'src/web/static/css',
+                'src/web/static/js',
+                'src/web/static/images',
+                'src/maps',
+                'src/satellite/images',
+                'src/satellite/geojson',
+                'src/analysis',
+                'src/cache',
+                'src/upload',
+                'data',
+                'logs',
+                'reports',
+                'tests'
+            ]
+            
+            created_count = 0
+            for directory in directories:
+                dir_path = self.project_root / directory
+                if not dir_path.exists():
+                    dir_path.mkdir(parents=True, exist_ok=True)
+                    logger.info(f"Creado directorio: {directory}")
+                    created_count += 1
+            
+            logger.info(f"✅ Organización completada: {created_count} directorios creados")
+            
+        except Exception as e:
+            logger.error(f"❌ Error organizando directorios: {e}")
+
+def main():
+    """Función principal para ejecutar BLOQUE 2E"""
+    try:
+        system = CleanupAndReadmeSystem()
+        system.run_all_updates()
+        
+        print("\n" + "="*60)
+        print("🎉 BLOQUE 2E COMPLETADO EXITOSAMENTE")
+        print("="*60)
+        print("✅ Archivos obsoletos limpiados")
+        print("✅ README.md completo creado")
+        print("✅ Directorios organizados")
+        print("="*60)
+        
+    except Exception as e:
+        print(f"\n❌ ERROR EN BLOQUE 2E: {e}")
+        return False
+    
+    return True
+
+if __name__ == "__main__":
+    success = main()
+    sys.exit(0 if success else 1)

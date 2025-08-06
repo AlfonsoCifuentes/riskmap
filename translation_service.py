@@ -22,16 +22,45 @@ from datetime import datetime
 import json
 import hashlib
 
+# Configuración de logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Importar sistema robusto
 try:
-    from robust_translation import get_robust_translation, RobustTranslationService
+    from robust_translation_v3 import UltraRobustTranslationService, get_ultra_robust_translation
     ROBUST_TRANSLATOR_AVAILABLE = True
-    robust_service = RobustTranslationService()
-    logger.info("✅ Sistema de traducción robusto cargado")
+    robust_service = UltraRobustTranslationService()
+    logger.info("✅ Sistema ultra-robusto v3.0 cargado correctamente")
 except ImportError as e:
     ROBUST_TRANSLATOR_AVAILABLE = False
     robust_service = None
-    logger.warning(f"⚠️ Sistema robusto no disponible: {e}")
+    logger.warning(f"⚠️ Sistema ultra-robusto no disponible: {e}")
+
+# Función principal de traducción actualizada
+def translate_text_robust(text: str, target_language: str = 'es') -> Tuple[str, str]:
+    """
+    Función principal de traducción ultra-robusta que nunca falla.
+    
+    Args:
+        text: Texto a traducir
+        target_language: Idioma destino
+    
+    Returns:
+        Tupla con (texto_traducido, idioma_detectado)
+    """
+    try:
+        if ROBUST_TRANSLATOR_AVAILABLE and robust_service:
+            return robust_service.translate_text(text, target_language)
+        elif get_ultra_robust_translation:
+            return get_ultra_robust_translation(text, target_language)
+        else:
+            # Fallback básico
+            logger.warning("⚠️ Sistema ultra-robusto no disponible, usando fallback")
+            return text, 'unknown'
+    except Exception as e:
+        logger.error(f"Error en translate_text_robust: {e}")
+        return text, 'unknown'
 
 # Librerías para traducción
 try:
