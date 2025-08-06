@@ -1,0 +1,59 @@
+
+/* Estilos específicos para el footer de RISKMAP */
+footer {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+    border-top: 3px solid #007bff;
+    box-shadow: 0 -2px 10px rgba(0, 123, 255, 0.1);
+}
+
+footer h5 {
+    color: #007bff !important;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+footer h6 {
+    color: #ffffff !important;
+    font-weight: 600;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+footer a {
+    transition: all 0.3s ease;
+}
+
+footer a:hover {
+    color: #66b3ff !important;
+    text-shadow: 0 0 5px rgba(102, 179, 255, 0.5);
+}
+
+footer .text-muted {
+    color: #adb5bd !important;
+}
+
+footer .border-secondary {
+    border-color: #495057 !important;
+}
+
+/* Responsividad del footer */
+@media (max-width: 768px) {
+    footer .col-md-4 {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    footer .col-md-6 {
+        text-align: center !important;
+    }
+}
+
+/* Animación sutil para iconos */
+footer i {
+    transition: transform 0.2s ease;
+}
+
+footer a:hover i {
+    transform: scale(1.1);
+}

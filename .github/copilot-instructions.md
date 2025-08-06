@@ -4,3 +4,8 @@
 **Always keep the project´s full automation pipeline in mind when making changes**
 **Never use string literals when using `run_in_terminal`**
 **Never use `&&` when using `run_in_terminal`, use power shell commands instead**
+**Never use mockups, always use real data**
+**Always use the latest version of the MCP libraries**
+**Never use deprecated functions or libraries**
+**Never use simulated data for testing, always use real data**
+**Don´t simulate data, don´t use mockups, always use real data**
