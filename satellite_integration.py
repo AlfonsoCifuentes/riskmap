@@ -220,7 +220,7 @@ class SentinelHubAPI:
             
             if response.status_code == 200:
                 # Guardar preview localmente
-                preview_dir = Path("static/images/satellite/previews")
+                preview_dir = Path("src/web/static/images/satellite/previews")
                 preview_dir.mkdir(parents=True, exist_ok=True)
                 
                 preview_filename = f"preview_{image.image_id}_{int(time.time())}.png"

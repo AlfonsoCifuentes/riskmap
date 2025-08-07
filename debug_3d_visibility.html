@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug 3D Earth Visibility</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        
+        #debug-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        
+        .test-sphere {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        
+        #test-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border: 2px solid #ff0000;
+            background: url('espacio.jpg') center center no-repeat;
+            background-size: cover;
+        }
+        
+        #test-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid #ffff00;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="debug-info">
+        <h3>🔍 3D Earth Debug</h3>
+        <div id="status">Initializing...</div>
+        <div id="details"></div>
+    </div>
+    
+    <h1>Test 1: Basic Three.js Sphere</h1>
+    <div class="test-sphere">
+        <div id="test-container">
+            <canvas id="test-canvas" width="300" height="300"></canvas>
+        </div>
+    </div>
+    
+    <h1>Test 2: Material Opacity Tests</h1>
+    <div id="material-tests"></div>
+
+    <script>
+        let scene, camera, renderer, sphere;
+        
+        function updateStatus(msg) {
+            document.getElementById('status').innerHTML = msg;
+        }
+        
+        function updateDetails(msg) {
+            document.getElementById('details').innerHTML += '<br>' + msg;
+        }
+        
+        function createTestSphere() {
+            updateStatus('Creating test sphere...');
+            
+            // Basic setup
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            camera.position.z = 5;
+            
+            const canvas = document.getElementById('test-canvas');
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+            renderer.setSize(300, 300);
+            renderer.setClearColor(0x000000, 0); // Transparent background
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 1);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+            
+            // Test different materials
+            const materials = [
+                {
+                    name: 'MeshLambertMaterial (Solid)',
+                    material: new THREE.MeshLambertMaterial({ 
+                        color: 0x2266BB,
+                        transparent: false,
+                        opacity: 1.0 
+                    })
+                },
+                {
+                    name: 'MeshBasicMaterial (No lighting)',
+                    material: new THREE.MeshBasicMaterial({ 
+                        color: 0xFF4444,
+                        transparent: false,
+                        opacity: 1.0 
+                    })
+                },
+                {
+                    name: 'MeshPhongMaterial (Shiny)',
+                    material: new THREE.MeshPhongMaterial({ 
+                        color: 0x44FF44,
+                        transparent: false,
+                        opacity: 1.0 
+                    })
+                }
+            ];
+            
+            // Create spheres with different materials
+            const materialTestsDiv = document.getElementById('material-tests');
+            materials.forEach((matTest, index) => {
+                const geometry = new THREE.SphereGeometry(1, 32, 32);
+                const testSphere = new THREE.Mesh(geometry, matTest.material);
+                testSphere.position.x = (index - 1) * 2.5;
+                scene.add(testSphere);
+                
+                const testDiv = document.createElement('div');
+                testDiv.style.cssText = 'margin: 10px 0; padding: 10px; border: 1px solid #666; border-radius: 5px;';
+                testDiv.innerHTML = `
+                    <strong>${matTest.name}</strong><br>
+                    Color: ${matTest.material.color.getHexString()}<br>
+                    Transparent: ${matTest.material.transparent}<br>
+                    Opacity: ${matTest.material.opacity}
+                `;
+                materialTestsDiv.appendChild(testDiv);
+            });
+            
+            updateStatus('✅ Test sphere created');
+            updateDetails('Scene children: ' + scene.children.length);
+            updateDetails('Camera position: ' + JSON.stringify(camera.position));
+            updateDetails('Renderer size: ' + renderer.domElement.width + 'x' + renderer.domElement.height);
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Rotate all spheres
+                scene.children.forEach(child => {
+                    if (child.type === 'Mesh') {
+                        child.rotation.y += 0.01;
+                    }
+                });
+                
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus('DOM ready, checking Three.js...');
+            
+            if (typeof THREE === 'undefined') {
+                updateStatus('❌ Three.js not loaded');
+                return;
+            }
+            
+            updateDetails('Three.js version: ' + THREE.REVISION);
+            createTestSphere();
+        });
+    </script>
+</body>
+</html>

@@ -283,20 +283,19 @@ class AutomatedSatelliteMonitor:
                     SELECT 
                         id,
                         title,
-                        location,
                         country,
                         region,
                         latitude,
                         longitude,
                         risk_level,
                         risk_score,
-                        published_date
+                        published_at
                     FROM articles 
                     WHERE latitude IS NOT NULL 
                     AND longitude IS NOT NULL
                     AND risk_level IN ('high', 'medium')
-                    AND published_date >= date('now', '-30 days')
-                    ORDER BY risk_score DESC, published_date DESC
+                    AND published_at >= date('now', '-30 days')
+                    ORDER BY risk_score DESC, published_at DESC
                     LIMIT 50
                 """)
                 
@@ -307,7 +306,7 @@ class AutomatedSatelliteMonitor:
                 processed_locations = set()
                 
                 for article in articles:
-                    (article_id, title, location, country, region, 
+                    (article_id, title, country, region, 
                      lat, lon, risk_level, risk_score, published_date) = article
                     
                     # Crear identificador único de ubicación

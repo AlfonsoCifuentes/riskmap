@@ -4,10 +4,58 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        --bg-secondary: #141824;
+        --text-primary: #e8eaed;
+        --text-secondary: #b0b8c4;
+        --accent-cyan: #00d4ff;
+        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+        --border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Header Section Styling */
+    .header-section {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        top: -80px;
+        margin-bottom: -80px;
+        z-index: 0;
+        background: linear-gradient(135deg, rgba(26, 32, 64, 0.75) 0%, rgba(16, 24, 48, 0.8) 50%, rgba(20, 28, 56, 0.75) 100%);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        padding: 180px 0 80px 0;
+        text-align: center;
+    }
+
+    .page-title {
+        font-family: 'Orbitron', monospace;
+        font-size: clamp(2rem, 6vw, 4rem);
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+    }
+
     .reports-dashboard {
         padding: 30px;
         max-width: 1400px;
-        margin: 0 auto;
+        margin: 40px auto;
+        position: relative;
+        z-index: 2;
     }
     
     .page-header {
@@ -18,10 +66,10 @@
     
     .page-title {
         font-family: 'Orbitron', monospace;
-        font-size: 2.5rem;
+        font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -116,6 +164,17 @@
         display: flex;
         align-items: center;
         gap: 10px;
+    }
+
+    /* Consistent heading sizes */
+    h3.text-white {
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    h4.text-white {
+        font-size: 1.1rem;
+        font-weight: 600;
     }
     
     .section-controls {
@@ -499,15 +558,13 @@
 {% endblock %}
 
 {% block content %}
+<!-- Header Section -->
+<div class="header-section">
+    <h1 class="page-title">📄 Reportes Ejecutivos</h1>
+    <p class="page-subtitle">Generación Automática • Múltiples Plantillas • Programación Automática</p>
+</div>
+
 <div class="reports-dashboard">
-    <!-- Page Header -->
-    <div class="page-header">
-        <h1 class="page-title">📄 Reportes Ejecutivos</h1>
-        <p class="page-subtitle">
-            Generación automática de reportes, múltiples plantillas y programación automática
-        </p>
-    </div>
-    
     <!-- Reports Actions -->
     <div class="reports-actions">
         <div class="action-group">
@@ -682,7 +739,7 @@
                         <i class="fas fa-file-contract"></i>
                         Plantillas
                     </h3>
-<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
+
                 </div>
                 
                 <div class="templates-grid">
@@ -791,7 +848,7 @@
                 <i class="fas fa-search"></i>
                 Biblioteca de Reportes con Búsqueda Semántica
             </h3>
-<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
+
         </div>
         
         <div class="search-form">
@@ -2001,7 +2058,7 @@
                 <div class="report-card" data-report-id="${report.id}">
                     <div class="report-header">
                         <h4>${report.title}</h4>
-<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
+
                         <span class="report-type">${report.type}</span>
                     </div>
                     <div class="report-meta">

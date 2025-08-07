@@ -1,0 +1,120 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Gaza quadrant A1" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [34.17, 31.18],
+            [34.385, 31.18],
+            [34.385, 31.395],
+            [34.17, 31.395],
+            [34.17, 31.18]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Gaza quadrant A2" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [34.385, 31.18],
+            [34.6, 31.18],
+            [34.6, 31.395],
+            [34.385, 31.395],
+            [34.385, 31.18]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Gaza quadrant B1" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [34.17, 31.395],
+            [34.385, 31.395],
+            [34.385, 31.62],
+            [34.17, 31.62],
+            [34.17, 31.395]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Gaza quadrant B2" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [34.385, 31.395],
+            [34.6, 31.395],
+            [34.6, 31.62],
+            [34.385, 31.62],
+            [34.385, 31.395]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Russian buildup near Sumy‑Chernihiv border",
+        "description": "≈19,000 troops north border Sumy‑Chernihiv oblasts"
+      },
+      "geometry": { "type": "Point", "coordinates": [34.0, 52.8] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Russ forces near Sumy oblast incursion",
+        "description": "Advance elements of 810th Brigade, 56th Regiment, 83rd Air Assault near villages Basivka, Novenke"
+      },
+      "geometry": { "type": "Point", "coordinates": [34.5, 51.7] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Capture of Kostiantynivka (Sumy Oblast)",
+        "date": "2025-06-02",
+        "description": "≈125 km² seized by Russian forces"
+      },
+      "geometry": { "type": "Point", "coordinates": [34.85, 51.9] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tyotkino incursion (Russia’s Kursk Oblast)",
+        "start_date": "2025-05-04",
+        "status": "ongoing",
+        "description": "Ukrainian cross‑border presence in Tyotkino"
+      },
+      "geometry": { "type": "Point", "coordinates": [35.26, 51.6] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ukrainian operations in Belgorod/Kursk border regions",
+        "description": "Presence active per Zelenskyy around Belgorod & Kursk"
+      },
+      "geometry": { "type": "Point", "coordinates": [36.2, 50.6] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Frontline near Pokrovsk‑Novopavlivka‑Toretsk",
+        "description": "Area of intense Russian offensives toward Pokrovsk"
+      },
+      "geometry": { "type": "Point", "coordinates": [37.1, 48.5] }
+    }
+  ]
+}

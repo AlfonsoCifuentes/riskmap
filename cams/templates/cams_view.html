@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista en Vivo - Cámara {{ cam_id }}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 0;
+        }
+        
+        .header h1 {
+            color: white;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .main-container {
+            padding: 1rem;
+            height: calc(100vh - 100px);
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .video-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .video-container {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #videoCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            border-radius: 15px;
+        }
+        
+        .video-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .video-controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .sidebar {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .camera-info {
+            text-align: center;
+        }
+        
+        .camera-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+        }
+        
+        .status-running {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-stopped {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-error {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .detection-item {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #007bff;
+        }
+        
+        .detection-confidence {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .alert-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid;
+        }
+        
+        .alert-critical { border-left-color: #dc3545; }
+        .alert-high { border-left-color: #fd7e14; }
+        .alert-medium { border-left-color: #ffc107; }
+        .alert-low { border-left-color: #28a745; }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .stats-value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border-radius: 15px;
+        }
+        
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .btn-control {
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-control:hover {
+            transform: translateY(-1px);
+        }
+        
+        .detection-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+        
+        .fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        .recording-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .recording-indicator.active {
+            display: block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h1 id="cameraTitle">
+                        <i class="fas fa-video"></i> 
+                        Vista en Vivo - Cámara {{ cam_id }}
+                    </h1>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-light btn-sm me-2" onclick="toggleFullscreen()">
+                        <i class="fas fa-expand"></i> Pantalla Completa
+                    </button>
+                    <a href="/cams/" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left"></i> Volver al Mapa
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Video Section -->
+        <div class="video-section">
+            <!-- Video Container -->
+            <div class="video-container" id="videoContainer">
+                <canvas id="videoCanvas"></canvas>
+                <canvas id="detectionCanvas" class="detection-canvas"></canvas>
+                
+                <!-- Video Overlay -->
+                <div class="video-overlay" id="videoOverlay">
+                    <i class="fas fa-signal"></i> Conectando...
+                </div>
+                
+                <!-- Fullscreen Button -->
+                <button class="fullscreen-btn" onclick="toggleFullscreen()">
+                    <i class="fas fa-expand"></i>
+                </button>
+                
+                <!-- Recording Indicator -->
+                <div class="recording-indicator" id="recordingIndicator">
+                    <i class="fas fa-circle"></i> GRABANDO
+                </div>
+                
+                <!-- Loading Screen -->
+                <div class="loading-screen" id="loadingScreen">
+                    <div class="loading-spinner"></div>
+                    <h5>Conectando a la cámara...</h5>
+                    <p class="text-muted">Estableciendo conexión con {{ cam_id }}</p>
+                </div>
+            </div>
+            
+            <!-- Video Controls -->
+            <div class="video-controls">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-success btn-control" id="startBtn" onclick="startStream()">
+                                <i class="fas fa-play"></i> Iniciar Stream
+                            </button>
+                            <button class="btn btn-danger btn-control" id="stopBtn" onclick="stopStream()" disabled>
+                                <i class="fas fa-stop"></i> Detener Stream
+                            </button>
+                            <button class="btn btn-info btn-control" onclick="takeScreenshot()">
+                                <i class="fas fa-camera"></i> Captura
+                            </button>
+                            <button class="btn btn-warning btn-control" onclick="toggleRecording()" id="recordBtn">
+                                <i class="fas fa-record-vinyl"></i> Grabar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="detectionsToggle" checked>
+                            <label class="form-check-label" for="detectionsToggle">
+                                Mostrar Detecciones
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Camera Info -->
+            <div class="panel camera-info">
+                <h5 id="cameraName">Cámara {{ cam_id }}</h5>
+                <p class="text-muted mb-2" id="cameraLocation">Cargando información...</p>
+                <div class="camera-status status-stopped" id="cameraStatus">Detenida</div>
+            </div>
+
+            <!-- Live Statistics -->
+            <div class="panel">
+                <h6><i class="fas fa-chart-line"></i> Estadísticas en Vivo</h6>
+                <div class="stats-row">
+                    <span class="stats-label">FPS:</span>
+                    <span class="stats-value" id="fpsCounter">0</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Resolución:</span>
+                    <span class="stats-value" id="resolution">-</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Frames Procesados:</span>
+                    <span class="stats-value" id="frameCount">0</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Tiempo Activo:</span>
+                    <span class="stats-value" id="uptime">00:00:00</span>
+                </div>
+            </div>
+
+            <!-- Live Detections -->
+            <div class="panel">
+                <h6><i class="fas fa-eye"></i> Detecciones en Vivo</h6>
+                <div id="liveDetections">
+                    <p class="text-muted small">No hay detecciones activas</p>
+                </div>
+            </div>
+
+            <!-- Recent Alerts -->
+            <div class="panel">
+                <h6><i class="fas fa-exclamation-triangle"></i> Alertas Recientes</h6>
+                <div id="recentAlerts">
+                    <p class="text-muted small">Cargando alertas...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    
+    <script>
+        // Global variables
+        const camId = '{{ cam_id }}';
+        let socket;
+        let videoCanvas;
+        let detectionCanvas;
+        let videoCtx;
+        let detectionCtx;
+        let isStreaming = false;
+        let isRecording = false;
+        let frameCount = 0;
+        let startTime = null;
+        let fpsInterval;
+        let showDetections = true;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCanvas();
+            initializeWebSocket();
+            loadCameraInfo();
+            loadRecentAlerts();
+            
+            // Auto-start stream
+            setTimeout(startStream, 1000);
+        });
+        
+        function initializeCanvas() {
+            videoCanvas = document.getElementById('videoCanvas');
+            detectionCanvas = document.getElementById('detectionCanvas');
+            videoCtx = videoCanvas.getContext('2d');
+            detectionCtx = detectionCanvas.getContext('2d');
+            
+            // Set initial canvas size
+            videoCanvas.width = 640;
+            videoCanvas.height = 480;
+            detectionCanvas.width = 640;
+            detectionCanvas.height = 480;
+        }
+        
+        function initializeWebSocket() {
+            socket = io('/cams');
+            
+            socket.on('connect', () => {
+                console.log('Connected to WebSocket');
+                socket.emit('join_camera', { cam_id: camId });
+            });
+            
+            socket.on('frame', (data) => {
+                if (data.cam_id === camId) {
+                    displayFrame(data.frame);
+                    updateVideoOverlay(data.timestamp);
+                    frameCount++;
+                }
+            });
+            
+            socket.on('detections', (data) => {
+                if (data.cam_id === camId && showDetections) {
+                    drawDetections(data.detections);
+                    updateDetectionsList(data.detections);
+                }
+            });
+            
+            socket.on('new_alert', (alert) => {
+                if (alert.cam_id === camId) {
+                    loadRecentAlerts();
+                }
+            });
+            
+            socket.on('error', (error) => {
+                console.error('WebSocket error:', error);
+                updateVideoOverlay('Error: ' + error.message);
+            });
+        }
+        
+        async function loadCameraInfo() {
+            try {
+                const response = await fetch(`/cams/api/cameras/${camId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const camera = data.camera;
+                    document.getElementById('cameraName').textContent = camera.name;
+                    document.getElementById('cameraLocation').textContent = camera.location;
+                    document.getElementById('cameraTitle').innerHTML = 
+                        `<i class="fas fa-video"></i> Vista en Vivo - ${camera.name}`;
+                    
+                    updateCameraStatus(camera.status || 'stopped');
+                }
+            } catch (error) {
+                console.error('Error loading camera info:', error);
+            }
+        }
+        
+        async function loadRecentAlerts() {
+            try {
+                const response = await fetch(`/cams/api/alerts?cam_id=${camId}&limit=5`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateAlertsDisplay(data.alerts);
+                }
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+            }
+        }
+        
+        function updateAlertsDisplay(alerts) {
+            const container = document.getElementById('recentAlerts');
+            
+            if (alerts.length === 0) {
+                container.innerHTML = '<p class="text-muted small">No hay alertas recientes</p>';
+                return;
+            }
+            
+            container.innerHTML = alerts.map(alert => `
+                <div class="alert-item alert-${alert.severity}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>${alert.title}</strong>
+                            <div class="small">${new Date(alert.timestamp).toLocaleString()}</div>
+                        </div>
+                        <span class="badge bg-${getSeverityColor(alert.severity)}">${alert.severity}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function getSeverityColor(severity) {
+            const colors = {
+                'critical': 'danger',
+                'high': 'warning',
+                'medium': 'info',
+                'low': 'success'
+            };
+            return colors[severity] || 'secondary';
+        }
+        
+        async function startStream() {
+            try {
+                document.getElementById('loadingScreen').style.display = 'flex';
+                
+                const response = await fetch(`/cams/api/cameras/${camId}/start`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    isStreaming = true;
+                    startTime = Date.now();
+                    updateCameraStatus('running');
+                    updateButtons();
+                    startFPSCounter();
+                    
+                    setTimeout(() => {
+                        document.getElementById('loadingScreen').style.display = 'none';
+                    }, 2000);
+                } else {
+                    alert('Error iniciando stream: ' + data.error);
+                    document.getElementById('loadingScreen').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error starting stream:', error);
+                alert('Error iniciando stream');
+                document.getElementById('loadingScreen').style.display = 'none';
+            }
+        }
+        
+        async function stopStream() {
+            try {
+                const response = await fetch(`/cams/api/cameras/${camId}/stop`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    isStreaming = false;
+                    startTime = null;
+                    frameCount = 0;
+                    updateCameraStatus('stopped');
+                    updateButtons();
+                    stopFPSCounter();
+                    clearCanvas();
+                    updateVideoOverlay('Stream detenido');
+                } else {
+                    alert('Error deteniendo stream: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error stopping stream:', error);
+                alert('Error deteniendo stream');
+            }
+        }
+        
+        function displayFrame(frameData) {
+            const img = new Image();
+            img.onload = () => {
+                // Update canvas size if needed
+                if (videoCanvas.width !== img.width || videoCanvas.height !== img.height) {
+                    videoCanvas.width = img.width;
+                    videoCanvas.height = img.height;
+                    detectionCanvas.width = img.width;
+                    detectionCanvas.height = img.height;
+                    
+                    document.getElementById('resolution').textContent = `${img.width}x${img.height}`;
+                }
+                
+                // Clear and draw frame
+                videoCtx.clearRect(0, 0, videoCanvas.width, videoCanvas.height);
+                videoCtx.drawImage(img, 0, 0);
+            };
+            img.src = 'data:image/jpeg;base64,' + frameData;
+        }
+        
+        function drawDetections(detections) {
+            // Clear detection canvas
+            detectionCtx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
+            
+            if (!showDetections || !detections || detections.length === 0) {
+                return;
+            }
+            
+            detectionCtx.strokeStyle = '#ff0000';
+            detectionCtx.lineWidth = 2;
+            detectionCtx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+            detectionCtx.font = '14px Arial';
+            
+            detections.forEach(detection => {
+                const [x1, y1, x2, y2] = detection.bbox;
+                const width = x2 - x1;
+                const height = y2 - y1;
+                
+                // Draw bounding box
+                detectionCtx.strokeRect(x1, y1, width, height);
+                
+                // Draw label
+                const label = `${detection.class_name} (${(detection.confidence * 100).toFixed(1)}%)`;
+                const textWidth = detectionCtx.measureText(label).width;
+                
+                detectionCtx.fillRect(x1, y1 - 20, textWidth + 10, 20);
+                detectionCtx.fillStyle = '#ffffff';
+                detectionCtx.fillText(label, x1 + 5, y1 - 5);
+                detectionCtx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+            });
+        }
+        
+        function updateDetectionsList(detections) {
+            const container = document.getElementById('liveDetections');
+            
+            if (!detections || detections.length === 0) {
+                container.innerHTML = '<p class="text-muted small">No hay detecciones activas</p>';
+                return;
+            }
+            
+            // Group by class
+            const groupedDetections = {};
+            detections.forEach(detection => {
+                const className = detection.class_name;
+                if (!groupedDetections[className]) {
+                    groupedDetections[className] = [];
+                }
+                groupedDetections[className].push(detection);
+            });
+            
+            container.innerHTML = Object.entries(groupedDetections).map(([className, items]) => `
+                <div class="detection-item">
+                    <strong>${className}</strong> (${items.length})
+                    <div class="detection-confidence">
+                        Confianza promedio: ${(items.reduce((sum, item) => sum + item.confidence, 0) / items.length * 100).toFixed(1)}%
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateVideoOverlay(timestamp) {
+            const overlay = document.getElementById('videoOverlay');
+            const time = new Date(timestamp).toLocaleTimeString();
+            overlay.innerHTML = `<i class="fas fa-signal"></i> En vivo - ${time}`;
+        }
+        
+        function updateCameraStatus(status) {
+            const statusElement = document.getElementById('cameraStatus');
+            statusElement.className = `camera-status status-${status}`;
+            statusElement.textContent = {
+                'running': 'Activa',
+                'stopped': 'Detenida',
+                'error': 'Error'
+            }[status] || status;
+        }
+        
+        function updateButtons() {
+            document.getElementById('startBtn').disabled = isStreaming;
+            document.getElementById('stopBtn').disabled = !isStreaming;
+        }
+        
+        function startFPSCounter() {
+            let lastFrameCount = 0;
+            fpsInterval = setInterval(() => {
+                const fps = frameCount - lastFrameCount;
+                document.getElementById('fpsCounter').textContent = fps;
+                lastFrameCount = frameCount;
+                
+                // Update uptime
+                if (startTime) {
+                    const uptime = Date.now() - startTime;
+                    const hours = Math.floor(uptime / 3600000);
+                    const minutes = Math.floor((uptime % 3600000) / 60000);
+                    const seconds = Math.floor((uptime % 60000) / 1000);
+                    document.getElementById('uptime').textContent = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+                
+                document.getElementById('frameCount').textContent = frameCount;
+            }, 1000);
+        }
+        
+        function stopFPSCounter() {
+            if (fpsInterval) {
+                clearInterval(fpsInterval);
+                fpsInterval = null;
+            }
+            document.getElementById('fpsCounter').textContent = '0';
+            document.getElementById('uptime').textContent = '00:00:00';
+        }
+        
+        function clearCanvas() {
+            videoCtx.clearRect(0, 0, videoCanvas.width, videoCanvas.height);
+            detectionCtx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
+        }
+        
+        function takeScreenshot() {
+            const link = document.createElement('a');
+            link.download = `camera_${camId}_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`;
+            link.href = videoCanvas.toDataURL();
+            link.click();
+        }
+        
+        function toggleRecording() {
+            isRecording = !isRecording;
+            const btn = document.getElementById('recordBtn');
+            const indicator = document.getElementById('recordingIndicator');
+            
+            if (isRecording) {
+                btn.innerHTML = '<i class="fas fa-stop"></i> Parar Grabación';
+                btn.className = 'btn btn-danger btn-control';
+                indicator.classList.add('active');
+            } else {
+                btn.innerHTML = '<i class="fas fa-record-vinyl"></i> Grabar';
+                btn.className = 'btn btn-warning btn-control';
+                indicator.classList.remove('active');
+            }
+        }
+        
+        function toggleFullscreen() {
+            const container = document.getElementById('videoContainer');
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                container.requestFullscreen();
+            }
+        }
+        
+        // Toggle detections
+        document.getElementById('detectionsToggle').addEventListener('change', (e) => {
+            showDetections = e.target.checked;
+            if (!showDetections) {
+                detectionCtx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
+                document.getElementById('liveDetections').innerHTML = '<p class="text-muted small">Detecciones deshabilitadas</p>';
+            }
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (socket) {
+                socket.emit('leave_camera', { cam_id: camId });
+                socket.disconnect();
+            }
+        });
+    </script>
+</body>
+</html>
