@@ -414,19 +414,24 @@ class GeopoliticalDashboard {
     async loadDashboardData() {
         try {
             // Try to load real data from RSS/API first
-            const response = await fetch('/api/dashboard-stats');
+            const response = await fetch('/api/dashboard/stats');
             const data = await response.json();
             
             if (data.success) {
-                // Real data available
-                this.updateStats(data.stats);
+                // Real data available - map the correct fields
+                const mappedStats = {
+                    total_articles: data.stats.total_articles || 0,
+                    high_risk_events: data.stats.high_risk_articles || 0,
+                    processed_today: data.stats.articles_last_24h || 0,
+                    active_regions: data.stats.countries_affected || 0
+                };
+                this.updateStats(mappedStats);
                 if (window.FallbackManager) {
                     const statsContainer = document.querySelector('.stats-container, .dashboard-stats');
                     if (statsContainer) {
                         window.FallbackManager.markAsRealData(statsContainer, 'Estadísticas en tiempo real desde RSS');
                     }
                 }
-            } else {
             } else {
                 // Use fallback RSS-based data
                 const fallbackStats = {

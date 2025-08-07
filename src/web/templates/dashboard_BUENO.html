@@ -5,6 +5,50 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="cache-bust" content="{{ range(1, 99999999) | random }}">
+
+<!-- Three.js for 3D Earth Background - Multiple CDN fallback -->
+<script>
+window.threeJsLoaded = false;
+window.threeJsAttempts = 0;
+
+function loadThreeJS() {
+    const cdns = [
+        'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js',
+        'https://unpkg.com/three@0.128.0/build/three.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
+    ];
+    
+    function tryNextCDN() {
+        if (window.threeJsAttempts >= cdns.length) {
+            console.error('❌ Failed to load Three.js from all CDNs');
+            return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = cdns[window.threeJsAttempts];
+        script.onload = function() {
+            console.log('✅ Three.js loaded successfully from:', cdns[window.threeJsAttempts]);
+            window.threeJsLoaded = true;
+            // Initialize 3D Earth after Three.js loads
+            if (typeof init3DEarth === 'function') {
+                setTimeout(init3DEarth, 500);
+            }
+        };
+        script.onerror = function() {
+            console.warn('⚠️ Failed to load Three.js from:', cdns[window.threeJsAttempts]);
+            window.threeJsAttempts++;
+            tryNextCDN();
+        };
+        document.head.appendChild(script);
+    }
+    
+    tryNextCDN();
+}
+
+// Load Three.js immediately
+loadThreeJS();
+</script>
+
 {% endblock %},
             {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/article_cards.css') }}">
@@ -19,17 +63,56 @@
         --border-color: rgba(255, 255, 255, 0.1);
     }
 
+    /* 3D Earth Background - FIXED LAYERING */
+    #earth3d-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -10; /* Much lower z-index to ensure it stays behind everything */
+        overflow: hidden;
+        pointer-events: none; /* Prevent blocking interactions */
+    }
+
+    #earth3d-canvas {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 130vw;
+        height: 130vh;
+        opacity: 1; /* Full opacity */
+        pointer-events: none;
+    }
+
+    /* Space background as fallback */
+    .space-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -20; /* Even lower */
+        background: url('/static/espacio.jpg') center center no-repeat;
+        background-size: cover;
+        background-attachment: fixed;
+        will-change: transform;
+        pointer-events: none;
+    }
+
     html, body {
         margin: 0;
         padding: 0;
         min-height: 100vh;
-        background: #1a237e;
+        background: transparent; /* Keep transparent */
         color: var(--text-primary);
         font-family: 'Inter', sans-serif;
         position: relative;
+        overflow-x: hidden;
     }
 
-    /* News Analysis Dashboard Styles - Responsive y Mobile-First */
+    /* News Analysis Dashboard Styles - MORE TRANSPARENT */
     .news-dashboard {
         padding: 0;
         max-width: none;
@@ -40,8 +123,8 @@
         flex-direction: column;
         
         min-height: calc(100vh - 80px);
-        background: rgba(10, 15, 44, 0.08);
-        backdrop-filter: blur(2px);
+        background: rgba(10, 15, 44, 0.1); /* MUCH more transparent */
+        backdrop-filter: blur(2px); /* Less blur */
         gap: 0;
         width: 100vw;
     }
@@ -75,17 +158,17 @@
         text-align: center;
         margin: 0;
         color: #fff;
-        padding: 180px 0 80px 0; /* Aumentado el padding inferior para dar espacio al news-stats */
+        padding: 180px 0 80px 0;
         width: 100%;
         position: relative;
-        background: linear-gradient(135deg, rgba(26, 32, 64, 0.75) 0%, rgba(16, 24, 48, 0.8) 50%, rgba(20, 28, 56, 0.75) 100%);
-        backdrop-filter: blur(10px);
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        background: rgba(26, 32, 64, 0.25); /* MUCH more transparent */
+        backdrop-filter: blur(5px); /* Less blur */
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1); /* Lighter shadow */
     }
     
     .page-title {
         font-family: 'Orbitron', monospace;
-        font-size: clamp(1.5rem, 6vw, 4rem);
+        font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         margin-bottom: 10px;
         background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
@@ -101,9 +184,9 @@
     }
     
     .page-subtitle {
-        font-size: 1rem;
-        color: rgba(255, 255, 255, 0.7);
-        margin-bottom: 20px;
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-bottom: 30px;
     }
 
     /* Stats Cards - Responsive Grid */
@@ -200,15 +283,15 @@
         letter-spacing: 1px;
     }
 
-    /* Section styling - Mobile-First */
+    /* Section styling - MORE TRANSPARENT */
     .news-section {
-        background: rgba(26, 32, 64, 0.7);
+        background: rgba(26, 32, 64, 0.3); /* More transparent */
         border: 1px solid rgba(70, 234, 215, 0.3);
         border-radius: 12px;
         padding: 20px;
-        backdrop-filter: blur(15px);
+        backdrop-filter: blur(8px); /* Less blur */
         margin-bottom: 25px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Lighter shadow */
     }
     
     .section-header {
@@ -223,12 +306,23 @@
     }
     
     .section-title {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         font-weight: 600;
         color: #fff;
         display: flex;
         align-items: center;
         gap: 10px;
+    }
+
+    /* Consistent heading sizes */
+    h3.text-white {
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    h4.text-white {
+        font-size: 1.1rem;
+        font-weight: 600;
     }
     
     .section-controls {
@@ -336,7 +430,7 @@
     }
     
     .latest-article-card {
-        background: rgba(26, 32, 64, 0.7);
+        background: rgba(26, 32, 64, 0.3); /* Much more transparent */
         border: 1px solid rgba(70, 234, 215, 0.25);
         border-radius: 12px;
         padding: 15px;
@@ -349,7 +443,7 @@
     }
     
     .latest-article-card:hover {
-        background: rgba(26, 32, 64, 0.85);
+        background: rgba(26, 32, 64, 0.5); /* More transparent */
         border-color: rgba(70, 234, 215, 0.4);
         transform: translateY(-2px);
     }
@@ -425,7 +519,7 @@
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        margin-top: -60 !important;
+        margin-top: 0 !important;
         padding: 0;
         background: transparent;
         z-index: 1;
@@ -1178,7 +1272,7 @@
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px;
-        padding: 35px; /* Aumentado de 25px a 35px */
+        padding: 45px; /* Aumentado de 35px a 45px para más espacio */
         backdrop-filter: blur(15px);
         transition: all 0.3s ease;
         position: relative;
@@ -1220,6 +1314,7 @@
         position: relative;
         height: 280px;
         margin-bottom: 15px;
+        padding: 15px; /* Agregado padding interno para separar más los gráficos de los bordes */
         flex: 1;
         display: flex;
         align-items: center;
@@ -1290,31 +1385,7 @@
         flex: 1;
     }
 
-    .heatmap-container {
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
-        position: relative;
-        border-radius: 15px;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-    }
 
-    /* Leaflet map styles */
-    #conflict-heatmap {
-        width: 100%;
-        height: 100%;
-        border-radius: 15px;
-        z-index: 1;
-    }
-
-    .leaflet-container {
-        background: linear-gradient(135deg, #1a237e 0%, #283593 100%) !important;
-        border-radius: 15px;
-    }
 
     /* Custom markers for conflicts */
     .conflict-marker {
@@ -1449,13 +1520,7 @@
         color: #000;
     }
 
-    .heatmap-svg {
-        width: calc(100% - 40px);
-        height: calc(100% - 40px);
-        position: relative;
-        border-radius: 10px;
-        background: rgba(0, 0, 0, 0.1);
-    }
+
 
     .map-loading {
         position: absolute;
@@ -1500,15 +1565,7 @@
         color: #fff;
     }
 
-    .heatmap-legend {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 15px;
-        padding: 15px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
-    }
+
 
     .legend-title {
         font-weight: 600;
@@ -1810,7 +1867,7 @@
         height: 60vh;
         min-height: 400px;
         background-size: cover;
-        background-position: center;
+        background-position: center top;
         background-repeat: no-repeat;
         display: flex;
         align-items: flex-end;
@@ -2177,19 +2234,69 @@
             align-items: flex-start;
         }
     }
+
+    /* Header Section Styling */
+    .header-section {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        top: -80px;
+        margin-bottom: -80px;
+        z-index: 0;
+        background: linear-gradient(135deg, rgba(26, 32, 64, 0.75) 0%, rgba(16, 24, 48, 0.8) 50%, rgba(20, 28, 56, 0.75) 100%);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        padding: 180px 0 80px 0;
+        text-align: center;
+    }
+
+    .page-title {
+        font-family: 'Orbitron', monospace;
+        font-size: clamp(2rem, 6vw, 4rem);
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+    }
+
+    /* Content positioning after header */
+    .news-dashboard {
+        position: relative;
+        z-index: 2;
+        max-width: 95%;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
 </style>
 {% endblock %},
             {% block content %}
+<!-- 3D Earth Background -->
+<div class="space-background"></div>
+<div id="earth3d-container">
+    <canvas id="earth3d-canvas"></canvas>
+</div>
+
+<!-- Header Section -->
+<div class="header-section">
+    <h1 class="page-title">📰 Noticias</h1>
+    <p class="page-subtitle">Análisis de Noticias en Tiempo Real • Clasificación por Riesgo • Geolocalización Inteligente</p>
+</div>
+
 <div class="news-dashboard">
     <!-- Header and Statistics -->
     <div class="header-stats-container">
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">Tablero Geopolítico</h1>
-                <div class="page-subtitle">Análisis en tiempo real del panorama geopolítico mundial</div>
-            </div>
-                        
-        </div>
         <!-- Statistics Grid -->
         <div class="news-stats">
                 <div class="news-stat-card">
@@ -2216,7 +2323,7 @@
     </div>
 
     <!-- Hero Article Section - Featured Story -->
-    <section class="hero-article-section">
+    <section class="hero-article-section" id="hero-section">
         <div class="hero-article" id="hero-article" style="background-image: url('https://picsum.photos/1920/800?random=hero'); cursor: pointer;" onclick="openHeroArticleModal()">
             <div class="hero-content">
                 <h1 class="hero-title" id="hero-title">Escalada de tensiones geopolíticas marca el panorama internacional</h1>
@@ -2235,33 +2342,8 @@
     <!-- Dashboard Content -->
     <div class="dashboard-content">
 
-
-
-
         <!-- News Mosaic Section - Full Width -->
-        <section class="news-mosaic-section">
-            <div class="section-header-with-status">
-                <h2 class="text-white mb-3">
-                    <i class="fas fa-newspaper me-2" style="color: #00d4ff;"></i>
-                    Análisis de Noticias Globales
-                </h2>
-                <div class="section-status">
-                    <div class="data-status real-data">
-                        <i class="fas fa-rss"></i>
-                        <span>Fuentes RSS en tiempo real</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mosaic-controls-container">
-                <div class="mosaic-controls">
-                    <button class="btn-control active" onclick="loadMosaic('importance', this)">Por Importancia</button>
-                    <button class="btn-control" onclick="loadMosaic('geographic', this)">Por Región</button>
-                    <button class="btn-control" onclick="loadMosaic('temporal', this)">Por Tiempo</button>
-                    <button class="btn-control" onclick="loadMosaic('risk', this)">Por Riesgo</button>
-                </div>
-            </div>
-            
+        <section class="news-mosaic-section" id="news-mosaic-section">
             <div class="news-mosaic-container" id="news-mosaic">
                 <div class="mosaic-loading">
                     <i class="fas fa-spinner fa-spin"></i>
@@ -2279,7 +2361,7 @@
         </section>
 
         <!-- AI Analysis Section -->
-        <section class="ai-analysis-section">
+        <section class="ai-analysis-section" id="ai-analysis-section">
             <div class="ai-analysis-header">
                 <h2 class="ai-analysis-title">
                     <i class="fas fa-brain"></i>
@@ -2299,7 +2381,7 @@
         </section>
 
         <!-- Data Analytics Section - New Enhanced Analytics -->
-        <section class="analytics-section">
+        <section class="analytics-section" id="analytics-section">
             <div class="analytics-header">
                 <h2 class="analytics-title">
                     <i class="fas fa-chart-area"></i>
@@ -2336,12 +2418,6 @@
                     <i class="fas fa-chart-line me-2" style="color: #00d4ff;"></i>
                     Análisis y Métricas en Tiempo Real
                 </h2>
-                <div class="section-status">
-                    <div class="data-status fallback-data">
-                        <i class="fas fa-brain"></i>
-                        <span>Análisis IA basado en datos RSS</span>
-                    </div>
-                </div>
             </div>
             
             <div class="analytics-grid" id="analytics-grid">
@@ -2384,41 +2460,6 @@
                     </div>
                 </div>
 
-                <div class="chart-container wide" id="geographic-analysis">
-                    <h3 class="chart-title">
-                        Mapa de Calor de Conflictos
-                        <span class="chart-subtitle">Zonas de conflicto detectadas por IA</span>
-                    </h3>
-                    <div class="map-container">
-                        <div id="conflict-heatmap" class="heatmap-container">
-                            <div class="map-loading">
-                                <i class="fas fa-globe-americas fa-spin"></i>
-                                <p>Cargando mapa de calor...</p>
-                            </div>
-                        </div>
-                        <div class="map-controls">
-                            <button class="map-btn active" onclick="toggleMapLayer('conflicts', this)">Conflictos</button>
-                            <button class="map-btn" onclick="toggleMapLayer('tensions', this)">Tensiones</button>
-                            <button class="map-btn" onclick="toggleMapLayer('all', this)">Todo</button>
-                            <button class="map-btn" onclick="improveImages()" style="background: #28a745; margin-left: 10px;">
-                                <i class="fas fa-images"></i> Mejorar Imágenes
-                            </button>
-                        </div>
-                    </div>
-                    <div class="heatmap-legend">
-                        <div class="legend-title">Intensidad de Conflicto</div>
-                        <div class="legend-gradient">
-                            <span class="legend-min">Bajo</span>
-                            <div class="gradient-bar"></div>
-                            <span class="legend-max">Alto</span>
-                        </div>
-                    </div>
-                    <div class="auto-download-status">
-                        <i class="fas fa-download"></i>
-                        <span id="geojson-auto-status">GeoJSON guardado automáticamente</span>
-                    </div>
-                </div>
-
                 <div class="chart-container" id="conflict-categories">
                     <h3 class="chart-title">Categorías de Conflicto</h3>
                     <div class="chart-content">
@@ -2449,10 +2490,7 @@
 
                 <div class="chart-container wide" id="news-analysis">
                     <h3 class="chart-title">Análisis de Fuentes</h3>
-                <div class="data-status real-data">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Análisis basado en datos RSS reales</span>
-                </div>
+                
                     <div class="sources-grid">
                         <div class="sources-chart">
                             <canvas id="sourcesCanvas"></canvas>
@@ -2479,11 +2517,7 @@
             <div class="analytics-footer">
                 <div class="update-info">
                     <i class="fas fa-sync-alt"></i>
-                    <span>Última actualización: <span id="last-update">Cargando...
-                    <div class="fallback-indicator warning">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Si no hay datos, se mostrarán valores de demostración</span>
-                    </div></span></span>
+                    <span>Última actualización: <span id="last-update">Cargando...</span></span>
                 </div>
                 <div class="ai-status">
                     <div class="ai-indicator active" id="ai-status">
@@ -3082,30 +3116,30 @@ document.addEventListener('DOMContentLoaded', function() {
     resetUsedImages();
     
     loadRealNewsData();  // Cargar datos reales primero
-    loadHeroArticle();
-    loadMosaic('importance', null);  // Pass null for initial load
+    
+    // Cargar héroe primero, luego mosaico para evitar duplicación
+    loadHeroArticle().then(() => {
+        loadMosaic('real', null);  // Load real data excluding hero article
+    }).catch(() => {
+        // Si falla el héroe, cargar mosaico de todos modos
+        loadMosaic('real', null);
+    });
+    
     loadAiAnalysis();   // Cargar análisis periodístico por IA
     updateStatistics();
-    
-    // Initialize fallback indicators for dashboard
-    if (window.FallbackManager) {
-        window.FallbackManager.initializePageIndicators('dashboard');
-        
-        // Mark analytics section after charts are loaded
-        setTimeout(() => {
-            const analyticsGrid = document.getElementById('analytics-grid');
-            if (analyticsGrid) {
-                window.FallbackManager.markContainerAsFallback(analyticsGrid, 'ANÁLISIS EN TIEMPO REAL');
-            }
-        }, 1000);
-    }
     
     // Auto-refresh every 5 minutes
     setInterval(function() {
         loadRealNewsData();  // Recargar datos reales
         updateStatistics();
-        loadHeroArticle();
-        refreshLatest();
+        
+        // Cargar héroe primero, luego refrescar todo
+        loadHeroArticle().then(() => {
+            refreshLatest();
+        }).catch(() => {
+            refreshLatest(); // Refresh even if hero fails
+        });
+        
         loadAiAnalysis();  // Recargar análisis de IA
     }, 300000);
     
@@ -3306,15 +3340,18 @@ function loadAiAnalysis() {
 function loadHeroArticle() {
     console.log('🏆 Cargando artículo héroe...');
     
-    // Fetch real data from our API
-    fetch('/api/hero-article')
-        .then(response => response.json())
-        .then(async data => {
+    // Return a Promise to allow chaining
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Fetch real data from our API
+            const response = await fetch('/api/hero-article');
+            const data = await response.json();
+            
             if (data.success && data.article) {
                 const heroArticle = data.article;
                 console.log('📰 Artículo héroe obtenido:', heroArticle.title);
                 
-                // Store hero article data globally for modal
+                // Store hero article data globally for modal and deduplication
                 window.currentHeroArticle = heroArticle;
                 
                 // Update hero article content
@@ -3366,16 +3403,23 @@ function loadHeroArticle() {
                 heroElement.style.backgroundImage = `url('${heroImageUrl}')`;
                 
                 console.log('✅ Héroe cargado exitosamente:', finalTitle);
+                resolve(heroArticle); // Resolve with the hero article data
                 
             } else {
                 console.warn('⚠️ No se pudo cargar el artículo héroe, usando datos de fallback');
                 await loadHeroArticleFallback();
+                resolve(null); // Resolve even with fallback
             }
-        })
-        .catch(async error => {
+        } catch (error) {
             console.error('❌ Error cargando artículo héroe:', error);
-            await loadHeroArticleFallback();
-        });
+            try {
+                await loadHeroArticleFallback();
+                resolve(null); // Resolve even with fallback
+            } catch (fallbackError) {
+                reject(fallbackError);
+            }
+        }
+    });
 }
 
 // Función para obtener imagen optimizada para el héroe
@@ -3579,6 +3623,13 @@ function filterLatest(timeframe, buttonElement) {
 function refreshLatest() {
     // Show loading state
     const container = document.getElementById('latest-articles');
+    
+    // Check if container exists before modifying it
+    if (!container) {
+        console.warn('⚠️ latest-articles container not found');
+        return;
+    }
+    
     container.innerHTML = '<div class="latest-article-card"><div class="latest-article-content"><h3 class="latest-article-title">Actualizando...</h3><p class="latest-article-description">Obteniendo las últimas noticias...</p></div></div>';
     
     // Simulate API call
@@ -3916,6 +3967,15 @@ async function generateMosaicTiles(mode) {
         }
     }
     
+    // Filtrar el artículo héroe del mosaico para evitar duplicación
+    if (window.currentHeroArticle && window.currentHeroArticle.id) {
+        const originalLength = sampleArticles.length;
+        sampleArticles = sampleArticles.filter(article => article.id !== window.currentHeroArticle.id);
+        if (originalLength !== sampleArticles.length) {
+            console.log(`🎯 Artículo héroe filtrado del mosaico (ID: ${window.currentHeroArticle.id})`);
+        }
+    }
+    
     // Si no hay artículos, mostrar mensaje
     if (!sampleArticles || sampleArticles.length === 0) {
         container.innerHTML = '<div class="no-articles">No hay artículos disponibles</div>';
@@ -4077,7 +4137,7 @@ function generateTile(article, index, cvAnalyses) {
     })"`;
     
     return `
-        <div class="mosaic-article ${sizeClass}" style="background-image: url('${imageUrl}'); background-position: ${backgroundPosition}; cursor: pointer;" ${clickHandler} data-article-id="${article.id || ''}">>
+        <div class="mosaic-article ${sizeClass}" style="background-image: url('${imageUrl}'); background-position: ${backgroundPosition}; cursor: pointer;" ${clickHandler} data-article-id="${article.id || ''}">
             <div class="mosaic-content">
                 <div class="mosaic-meta">
                     <span class="mosaic-location"><i class="fas fa-map-marker-alt"></i> ${article.location || article.country || 'Global'}</span>
@@ -4118,7 +4178,7 @@ function generateArticleTile(article, sizeClass, backgroundPosition) {
     })"`;
     
     return `
-        <div class="mosaic-article ${sizeClass}" style="background-image: url('${imageUrl}'); background-position: ${backgroundPosition}; cursor: pointer;" ${clickHandler} data-article-id="${article.id || ''}">>
+        <div class="mosaic-article ${sizeClass}" style="background-image: url('${imageUrl}'); background-position: ${backgroundPosition}; cursor: pointer;" ${clickHandler} data-article-id="${article.id || ''}">
             <div class="mosaic-content">
                 <div class="mosaic-meta">
                     <span class="mosaic-location"><i class="fas fa-map-marker-alt"></i> ${article.location || article.country || 'Global'}</span>
@@ -4483,7 +4543,6 @@ function updateStatisticsFallback() {
 
 // Global analytics variables
 let analyticsCharts = {};
-let conflictHeatmapData = [];
 let currentAnalyticsMode = 'overview';
 
 // Initialize analytics components
@@ -4500,9 +4559,6 @@ function initializeAnalytics() {
     } else {
         createAnalyticsCharts();
     }
-    
-    // Initialize conflict heatmap
-    initializeConflictHeatmap();
     
     // Update analytics data
     fetchAnalyticsData();
@@ -4712,93 +4768,9 @@ function createAnalyticsCharts() {
     console.log('📊 Analytics charts created successfully');
 }
 
-// Initialize conflict heatmap with REAL AI data using Leaflet
-function initializeConflictHeatmap() {
-    console.log('🗺️ Initializing REAL AI-powered conflict heatmap with Leaflet...');
-    
-    const heatmapContainer = document.getElementById('conflict-heatmap');
-    if (!heatmapContainer) {
-        console.error('❌ Heatmap container not found!');
-        return;
-    }
-    
-    // Load Leaflet if not already loaded
-    if (typeof L === 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-        script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
-        script.crossOrigin = '';
-        script.onload = () => {
-            console.log('✅ Leaflet loaded, initializing map...');
-            initializeLeafletMap();
-        };
-        document.head.appendChild(script);
-    } else {
-        initializeLeafletMap();
-    }
-}
 
-function initializeLeafletMap() {
-    // Show loading state
-    const heatmapContainer = document.getElementById('conflict-heatmap');
-    heatmapContainer.innerHTML = `
-        <div id="map-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white; position: absolute; z-index: 1000; background: rgba(26, 35, 126, 0.9); width: 100%; border-radius: 15px;">
-            <i class="fas fa-satellite-dish fa-3x" style="color: #00d4ff; margin-bottom: 20px; animation: spin 2s linear infinite;"></i>
-            <h3>🛰️ Generando mapa satelital...</h3>
-            <p>Analizando conflictos y preparando zonas para monitoreo satelital</p>
-            <div class="loading-spinner" style="margin-top: 20px;"></div>
-        </div>
-        <div id="leaflet-map" style="width: 100%; height: 100%; border-radius: 15px;"></div>
-    `;
-    
-    // Initialize Leaflet map
-    const map = L.map('leaflet-map', {
-        center: [20, 0],
-        zoom: 2,
-        zoomControl: true,
-        scrollWheelZoom: true,
-        doubleClickZoom: true,
-        boxZoom: true,
-        keyboard: true
-    });
-    
-    // Add dark tile layer
-    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>',
-        maxZoom: 20
-    }).addTo(map);
-    
-    // Store map globally for satellite analysis
-    window.conflictMap = map;
-    window.conflictMarkers = [];
-    window.satelliteZones = [];
-    
-    // Fetch CONFLICTS from NEWS ANALYSIS ONLY (no satellites)
-    fetch('/api/news/conflicts')
-        .then(response => response.json())
-        .then(data => {
-            // Hide loading
-            const loadingDiv = document.getElementById('map-loading');
-            if (loadingDiv) loadingDiv.style.display = 'none';
-            
-            if (data.success && data.conflicts && data.conflicts.length > 0) {
-                console.log(`✅ ${data.conflicts.length} conflictos de noticias detectados (sin satélites)`);
-                renderNewsConflictsOnMap(map, data.conflicts, data.statistics);
-            } else if (data.success && data.conflicts.length === 0) {
-                console.log('📰 No hay conflictos de noticias recientes');
-                showMapMessage(map, 'No hay conflictos detectados en las noticias recientes', 'info');
-            } else {
-                console.error('❌ Error cargando conflictos de noticias:', data.error);
-                showMapMessage(map, 'Error cargando datos de conflictos', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('❌ Error conectando con API de noticias:', error);
-            const loadingDiv = document.getElementById('map-loading');
-            if (loadingDiv) loadingDiv.style.display = 'none';
-            showMapMessage(map, 'Error de conexión con el servidor', 'error');
-        });
-}
+
+
 
 function renderNewsConflictsOnMap(map, conflicts, statistics) {
     console.log('📰 Renderizando conflictos de NOTICIAS en el mapa (sin satélites)');
@@ -5032,33 +5004,7 @@ function getRiskSize(riskLevel) {
     }
 }
 
-function updateMapLegend(statistics) {
-    const legendContainer = document.querySelector('.heatmap-legend');
-    if (legendContainer && statistics) {
-        legendContainer.innerHTML = `
-            <div class="legend-title">Distribución de Conflictos (IA)</div>
-            <div class="legend-items" style="display: flex; gap: 20px; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 12px; height: 12px; background: #ef4444; border-radius: 50%;"></div>
-                    <span style="font-size: 0.9rem;">Alto Riesgo (${statistics.high_risk || 0})</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 12px; height: 12px; background: #f59e0b; border-radius: 50%;"></div>
-                    <span style="font-size: 0.9rem;">Medio Riesgo (${statistics.medium_risk || 0})</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%;"></div>
-                    <span style="font-size: 0.9rem;">Bajo Riesgo (${statistics.low_risk || 0})</span>
-                </div>
-                <div style="margin-left: auto;">
-                    <span style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">
-                        Confianza IA: ${statistics.average_confidence ? (statistics.average_confidence * 100).toFixed(1) + '%' : 'N/A'}
-                    </span>
-                </div>
-            </div>
-        `;
-    }
-}
+
 
 // Function to update map statistics display
 function updateMapStatistics(statistics) {
@@ -5138,7 +5084,6 @@ function showConnectionErrorOnMap(map) {
         .openOn(map);
 }
 
-
 function showRealConflictTooltip(element) {
     const location = element.getAttribute('data-location');
     const intensity = element.getAttribute('data-intensity');
@@ -5208,61 +5153,22 @@ function hideTooltip() {
     }
 }
 
-function showNoConflictsMessage(suggestion) {
-    const heatmapContainer = document.getElementById('conflict-heatmap');
-    heatmapContainer.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white; text-align: center; padding: 20px;">
-            <i class="fas fa-peace" style="color: #4caf50; font-size: 4rem; margin-bottom: 20px;"></i>
-            <h3 style="color: #4caf50; margin-bottom: 15px;">✅ No se detectaron conflictos activos</h3>
-            <p style="opacity: 0.8; margin-bottom: 10px;">La IA analizó los artículos recientes y no encontró zonas de conflicto significativas.</p>
-            <p style="opacity: 0.6; font-size: 14px;">${suggestion}</p>
-        </div>
-    `;
-}
 
-function showAIError(error, suggestion) {
-    const heatmapContainer = document.getElementById('conflict-heatmap');
-    heatmapContainer.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white; text-align: center; padding: 20px;">
-            <i class="fas fa-exclamation-triangle" style="color: #ff6b6b; font-size: 4rem; margin-bottom: 20px;"></i>
-            <h3 style="color: #ff6b6b; margin-bottom: 15px;">❌ Error en Análisis de IA</h3>
-            <p style="opacity: 0.8; margin-bottom: 15px; background: rgba(255,107,107,0.1); padding: 10px; border-radius: 8px;">
-                ${error}
-            </p>
-            <p style="opacity: 0.7; font-size: 14px; color: #00d4ff;">${suggestion}</p>
-            <button onclick="initializeConflictHeatmap()" 
-                    style="margin-top: 15px; padding: 10px 20px; background: #00d4ff; border: none; border-radius: 8px; color: white; cursor: pointer;">
-                🔄 Reintentar Análisis
-            </button>
-        </div>
-    `;
-}
 
-function showConnectionError() {
-    const heatmapContainer = document.getElementById('conflict-heatmap');
-    heatmapContainer.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white; text-align: center; padding: 20px;">
-            <i class="fas fa-wifi" style="color: #ff6b6b; font-size: 4rem; margin-bottom: 20px;"></i>
-            <h3 style="color: #ff6b6b; margin-bottom: 15px;">❌ Error de Conexión</h3>
-            <p style="opacity: 0.8; margin-bottom: 15px;">No se pudo conectar al servidor de análisis de conflictos.</p>
-            <button onclick="initializeConflictHeatmap()" 
-                    style="margin-top: 15px; padding: 10px 20px; background: #00d4ff; border: none; border-radius: 8px; color: white; cursor: pointer;">
-                🔄 Reintentar Conexión
-            </button>
-        </div>
-    `;
-}
+
+
+
 
 // Fetch analytics data from API
 function fetchAnalyticsData() {
-    // Fetch conflict zones data
-    fetch('/api/analytics/conflicts')
+    // Fetch conflict zones data (USING CORRECTED ENDPOINT)
+    fetch('/api/analytics/conflicts-corrected')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 updateConflictAnalytics(data.conflicts);
                 updateAnalyticsStats(data.statistics);
-                console.log('✅ Analytics data updated from API');
+                console.log('✅ Analytics data updated from CORRECTED API');
                 
                 // Auto-trigger satellite analysis for high-priority zones
                 if (data.conflicts && data.conflicts.length > 0) {
@@ -6518,5 +6424,259 @@ function showNotification(message, type = 'info') {
         }, 300);
     }, 5000);
 }
+
+// =============== SIMPLE 3D EARTH BACKGROUND - GUARANTEED VISIBLE ===============
+let earthScene, earthCamera, earthRenderer, earth3DModel, animationId;
+
+function init3DEarth() {
+    console.log('🌍 Starting 3D Earth initialization...');
+    
+    try {
+        // Check Three.js availability with multiple retries
+        if (typeof THREE === 'undefined') {
+            console.error('❌ Three.js not available');
+            if (window.threeJsLoaded) {
+                console.log('🔄 Three.js marked as loaded but not in global scope, retrying...');
+                setTimeout(init3DEarth, 1000);
+                return;
+            }
+            // Set fallback background if Three.js fails
+            document.body.style.background = 'linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%)';
+            return;
+        }
+        
+        console.log('✅ Three.js is available, proceeding...');
+        
+        // Get canvas
+        const canvas = document.getElementById('earth3d-canvas');
+        if (!canvas) {
+            console.error('❌ Canvas not found');
+            return;
+        }
+        
+        console.log('📋 Canvas found, creating scene...');
+        
+        // Scene
+        earthScene = new THREE.Scene();
+        
+        // Camera
+        earthCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        earthCamera.position.z = 6;
+        
+        // Renderer
+        earthRenderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            alpha: true,
+            antialias: true,
+            powerPreference: "high-performance"
+        });
+        earthRenderer.setSize(window.innerWidth * 1.3, window.innerHeight * 1.3);
+        earthRenderer.setClearColor(0x000000, 0);
+        earthRenderer.shadowMap.enabled = true;
+        earthRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        
+        console.log('🎬 Scene, camera, renderer created');
+        
+        // VERY BRIGHT LIGHTS for maximum visibility
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // Bright ambient light
+        earthScene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0); // Very bright directional
+        directionalLight.position.set(5, 5, 5);
+        directionalLight.castShadow = true;
+        earthScene.add(directionalLight);
+        
+        const pointLight = new THREE.PointLight(0xffffff, 1.0, 100); // Additional point light
+        pointLight.position.set(-5, -5, 5);
+        earthScene.add(pointLight);
+        
+        console.log('💡 Ultra-bright lighting added for maximum visibility');
+        
+        // CREATE REALISTIC TEXTURED EARTH
+        const geometry = new THREE.SphereGeometry(4, 128, 128); // High detail geometry
+        
+        // Load Earth texture for realistic appearance directly from CDN
+        const textureLoader = new THREE.TextureLoader();
+        
+        // Use reliable CDN Earth texture directly
+        console.log('🌍 Loading Earth texture from CDN...');
+        const earthTexture = textureLoader.load(
+            'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg',
+            // onLoad callback
+            function(texture) {
+                console.log('✅ CDN Earth texture loaded successfully');
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.minFilter = THREE.LinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                
+                // Force material update
+                if (earth3DModel && earth3DModel.material) {
+                    earth3DModel.material.map = texture;
+                    earth3DModel.material.needsUpdate = true;
+                    console.log('🔄 Earth material updated with texture');
+                }
+            },
+            // onProgress callback
+            function(xhr) {
+                if (xhr.lengthComputable) {
+                    const percentComplete = xhr.loaded / xhr.total * 100;
+                    console.log('📥 Earth texture loading: ' + percentComplete.toFixed(2) + '%');
+                }
+            },
+            // onError callback - Use fallback material
+            function(err) {
+                console.warn('⚠️ CDN Earth texture failed, using realistic Earth material...');
+                // Realistic Earth-like material without texture
+                const fallbackMaterial = new THREE.MeshLambertMaterial({
+                    color: 0x4169E1,  // Earth blue
+                    transparent: false,
+                    opacity: 1.0
+                });
+                if (earth3DModel) {
+                    earth3DModel.material = fallbackMaterial;
+                    earth3DModel.material.needsUpdate = true;
+                    console.log('🔄 Applied fallback Earth material');
+                }
+            }
+        );
+        
+        // Create realistic Earth material with texture - COMPLETELY OPAQUE
+        const material = new THREE.MeshPhongMaterial({
+            map: earthTexture,          // Apply Earth texture
+            transparent: false,         // NEVER transparent
+            opacity: 1.0,              // FULL opacity
+            wireframe: false,
+            side: THREE.FrontSide,      // Only front side for performance
+            fog: false,                 // Ignore fog
+            shininess: 30,              // Slight shine
+            specular: 0x111111          // Slight specular reflection
+        });
+        
+        earth3DModel = new THREE.Mesh(geometry, material);
+        earth3DModel.castShadow = true;
+        earth3DModel.receiveShadow = true;
+        earth3DModel.visible = true; // Explicitly set visible
+        earthScene.add(earth3DModel);
+        
+        console.log('✅ Realistic textured Earth sphere created - FULLY OPAQUE (size 4)');
+        
+        // Force immediate visibility check
+        setTimeout(() => {
+            if (earth3DModel && earthRenderer && earthCamera && earthScene) {
+                console.log('🔍 Dashboard Earth visibility check:');
+                console.log('- Earth position:', earth3DModel.position);
+                console.log('- Earth visible:', earth3DModel.visible);
+                console.log('- Earth scale:', earth3DModel.scale);
+                console.log('- Material transparent:', earth3DModel.material.transparent);
+                console.log('- Material opacity:', earth3DModel.material.opacity);
+                console.log('- Material has texture:', earth3DModel.material.map ? 'Yes' : 'No');
+                console.log('- Scene children:', earthScene.children.length);
+                console.log('- Camera position:', earthCamera.position);
+                
+                // Force a render
+                earthRenderer.render(earthScene, earthCamera);
+                console.log('🎯 Force render completed');
+            }
+        }, 500);
+        
+        // Start animation immediately
+        animate3DEarth();
+        
+        // Add resize handler
+        window.addEventListener('resize', function() {
+            if (earthCamera && earthRenderer) {
+                earthCamera.aspect = window.innerWidth / window.innerHeight;
+                earthCamera.updateProjectionMatrix();
+                earthRenderer.setSize(window.innerWidth * 1.3, window.innerHeight * 1.3);
+            }
+        });
+        
+        console.log('✅ Simple 3D Earth initialization complete');
+        
+        // Using realistic Earth texture instead of white solid
+        console.log('� Dashboard Earth using realistic texture with continents and oceans');
+        
+    } catch (error) {
+        console.error('❌ 3D Earth error:', error);
+    }
+}
+
+function animate3DEarth() {
+    animationId = requestAnimationFrame(animate3DEarth);
+    
+    if (earth3DModel) {
+        earth3DModel.rotation.y += 0.002; // Slower, more realistic rotation
+    }
+    
+    if (earthRenderer && earthCamera && earthScene) {
+        earthRenderer.render(earthScene, earthCamera);
+    }
+}
+
+// Initialize when DOM is ready and Three.js is available
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM ready, checking for Three.js...');
+    
+    function attemptInit() {
+        if (typeof THREE !== 'undefined') {
+            console.log('✅ Three.js is available, initializing 3D Earth...');
+            setTimeout(init3DEarth, 500);
+        } else if (window.threeJsLoaded) {
+            console.log('⏳ Three.js marked as loaded but not in global scope, retrying...');
+            setTimeout(attemptInit, 500);
+        } else {
+            console.log('⏳ Waiting for Three.js to load...');
+            setTimeout(attemptInit, 1000);
+        }
+    }
+    
+    attemptInit();
+});
+
+// Also try to initialize if Three.js loads after DOM
+window.addEventListener('load', function() {
+    if (typeof init3DEarth === 'function' && typeof THREE !== 'undefined' && !earthScene) {
+        console.log('🌍 Backup initialization: Three.js available after page load');
+        setTimeout(init3DEarth, 500);
+    }
+});
+
+// Cleanup
+window.addEventListener('beforeunload', function() {
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+    }
+});
+
 </script>
+
+<!-- Dashboard Scripts - NO navbar override -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔗 Dashboard loaded - navbar maintains normal route navigation');
+    
+    // Dashboard initialization completed
+    console.log('✅ Dashboard initialization completed - navbar routes preserved');
+}, 1000); // Wait 1 second after DOM load to ensure base navigation is initialized
+
+// Function to navigate programmatically (if needed for dashboard sections)
+window.navigateToSection = function(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        const navbarHeight = 80;
+        const elementPosition = section.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - navbarHeight - 20;
+        
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+        
+        section.classList.add('section-visible');
+        console.log(`🎯 Programmatically navigated to: ${sectionId}`);
+    }
+};
+</script>
+
 {% endblock %}

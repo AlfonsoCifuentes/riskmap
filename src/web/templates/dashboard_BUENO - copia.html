@@ -692,7 +692,7 @@
                     <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
                     Alertas de Alto Riesgo
                 </h2>
-<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
+
                 <div class="section-controls">
                     <button class="btn-control active" onclick="filterHighRisk('all', this)">Todas</button>
                     <button class="btn-control" onclick="filterHighRisk('military', this)">Militares</button>
@@ -898,7 +898,7 @@ function refreshLatest() {
     // Show loading state
     const container = document.getElementById('latest-articles');
     container.innerHTML = '<div class="latest-article-card"><div class="latest-article-content"><h3 class="latest-article-title">Actualizando...</h3>
-<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div><p class="latest-article-description">Obteniendo las últimas noticias...</p></div></div>';
+<p class="latest-article-description">Obteniendo las últimas noticias...</p></div></div>';
     
     // Simulate API call
     setTimeout(() => {

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema CCTV No Disponible - RiskMap</title>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+        }
+
+        .icon {
+            font-size: 5rem;
+            color: #ff6b6b;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .requirements {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-left: 4px solid #feca57;
+        }
+
+        .requirements h3 {
+            color: #feca57;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .requirements ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .requirements li {
+            padding: 0.5rem 0;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+        }
+
+        .requirements li:before {
+            content: "⚠️ ";
+            margin-right: 0.5rem;
+        }
+
+        .installation {
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-left: 4px solid #00d4ff;
+        }
+
+        .installation h3 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #00ff88;
+            overflow-x: auto;
+        }
+
+        .button {
+            background: linear-gradient(45deg, #00d4ff, #0097a7);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        .button-secondary {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .status-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .status-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-unavailable {
+            color: #ff6b6b;
+        }
+
+        .status-available {
+            color: #51cf66;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.05);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">
+            <i class="fas fa-video-slash"></i>
+        </div>
+        
+        <h1>Sistema CCTV No Disponible</h1>
+        
+        <p class="subtitle">
+            El sistema de monitoreo CCTV con IA no está disponible actualmente debido a dependencias faltantes.
+            Este módulo requiere bibliotecas especializadas para procesamiento de video y detección de objetos.
+        </p>
+
+        <div class="status-info">
+            <div class="status-card">
+                <div class="status-icon status-unavailable">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <h4>OpenCV</h4>
+                <p>No detectado</p>
+            </div>
+            
+            <div class="status-card">
+                <div class="status-icon status-unavailable">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <h4>YOLO</h4>
+                <p>No detectado</p>
+            </div>
+            
+            <div class="status-card">
+                <div class="status-icon status-unavailable">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <h4>PyTorch</h4>
+                <p>No detectado</p>
+            </div>
+            
+            <div class="status-card">
+                <div class="status-icon status-unavailable">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <h4>FFmpeg</h4>
+                <p>No detectado</p>
+            </div>
+        </div>
+
+        <div class="requirements">
+            <h3><i class="fas fa-list-check"></i> Dependencias Requeridas</h3>
+            <ul>
+                <li>OpenCV para procesamiento de video</li>
+                <li>PyTorch para modelos de IA</li>
+                <li>Ultralytics YOLO para detección de objetos</li>
+                <li>FFmpeg para manipulación de streams</li>
+                <li>Flask-SocketIO para comunicación en tiempo real</li>
+                <li>yt-dlp para resolución de URLs de video</li>
+                <li>Celery y Redis para procesamiento en segundo plano</li>
+            </ul>
+        </div>
+
+        <div class="installation">
+            <h3><i class="fas fa-download"></i> Instrucciones de Instalación</h3>
+            <p>Para habilitar el sistema CCTV, ejecute los siguientes comandos:</p>
+            
+            <div class="code-block">
+                # Instalar dependencias básicas<br>
+                pip install opencv-python ultralytics torch torchvision<br>
+                pip install flask-socketio yt-dlp ffmpeg-python<br>
+                pip install celery[redis] pillow geopandas shapely
+            </div>
+            
+            <div class="code-block">
+                # Instalar FFmpeg (Windows)<br>
+                # Descargar desde: https://ffmpeg.org/download.html<br>
+                # O usar chocolatey: choco install ffmpeg
+            </div>
+            
+            <div class="code-block">
+                # Instalar Redis (para procesamiento en segundo plano)<br>
+                # Windows: https://redis.io/download<br>
+                # O usar Docker: docker run -d -p 6379:6379 redis
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <a href="/" class="button">
+                <i class="fas fa-home"></i>
+                Volver al Inicio
+            </a>
+            
+            <a href="/dashboard" class="button button-secondary">
+                <i class="fas fa-chart-line"></i>
+                Dashboard Principal
+            </a>
+        </div>
+
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <p style="color: rgba(255, 255, 255, 0.6); font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i>
+                Una vez instaladas las dependencias, reinicie la aplicación para activar el sistema CCTV.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Check if we can detect any required libraries
+        document.addEventListener('DOMContentLoaded', function() {
+            // This would be enhanced to actually check for libraries if needed
+            console.log('Sistema CCTV no disponible - verificar dependencias');
+        });
+    </script>
+</body>
+</html>

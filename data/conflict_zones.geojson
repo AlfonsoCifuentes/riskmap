@@ -1,0 +1,143 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ukraine_conflict_zone",
+        "name": "Zona de Conflicto - Ucrania",
+        "risk_level": "high",
+        "description": "Zona de conflicto activo en Ucrania",
+        "color": "#ff4444",
+        "opacity": 0.6
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [22.0, 44.0],
+            [40.5, 44.0],
+            [40.5, 52.5],
+            [22.0, 52.5],
+            [22.0, 44.0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "middle_east_tension_zone",
+        "name": "Zona de Tensión - Medio Oriente",
+        "risk_level": "high",
+        "description": "Zona de alta tensión en Medio Oriente",
+        "color": "#ff6666",
+        "opacity": 0.5
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [34.0, 29.0],
+            [36.0, 29.0],
+            [36.0, 33.5],
+            [34.0, 33.5],
+            [34.0, 29.0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "border_monitoring_zone",
+        "name": "Zona de Monitoreo Fronterizo",
+        "risk_level": "medium",
+        "description": "Zona de monitoreo en fronteras críticas",
+        "color": "#ffaa44",
+        "opacity": 0.4
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [22.0, 49.0],
+            [24.0, 49.0],
+            [24.0, 50.5],
+            [22.0, 50.5],
+            [22.0, 49.0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "asia_monitoring",
+        "name": "Zona de Monitoreo - Asia",
+        "risk_level": "medium",
+        "description": "Área de monitoreo en Asia Oriental",
+        "color": "#ffcc44",
+        "opacity": 0.3
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [116.0, 35.0],
+            [140.0, 35.0],
+            [140.0, 42.0],
+            [116.0, 42.0],
+            [116.0, 35.0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "europe_urban_monitoring",
+        "name": "Monitoreo Urbano - Europa",
+        "risk_level": "low",
+        "description": "Monitoreo de centros urbanos europeos",
+        "color": "#44ff44",
+        "opacity": 0.2
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-5.0, 42.0],
+            [15.0, 42.0],
+            [15.0, 60.0],
+            [-5.0, 60.0],
+            [-5.0, 42.0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "americas_monitoring",
+        "name": "Monitoreo - Américas",
+        "risk_level": "low",
+        "description": "Monitoreo de centros urbanos en América",
+        "color": "#4444ff",
+        "opacity": 0.2
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-80.0, 38.0],
+            [-70.0, 38.0],
+            [-70.0, 45.0],
+            [-80.0, 45.0],
+            [-80.0, 38.0]
+          ]
+        ]
+      }
+    }
+  ]
+}

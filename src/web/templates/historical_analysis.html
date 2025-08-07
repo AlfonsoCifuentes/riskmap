@@ -3,1169 +3,1740 @@
 {% block title %}Análisis Histórico - Stratosight{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-    /* Historical Analysis Specific Styles */
-    .historical-hero {
-        background: linear-gradient(135deg, #2c1810 0%, #3d2817 50%, #1a0f08 100%);
-        padding: 3rem 0;
+    :root {
+        --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        --bg-secondary: #141824;
+        --text-primary: #e8eaed;
+        --text-secondary: #b0b8c4;
+        --accent-cyan: #00d4ff;
+        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+        --border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Header Section Styling */
+    .header-section {
+        width: 100vw;
         position: relative;
-        overflow: hidden;
-    }
-    
-    .historical-hero::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(139,69,19,0.1)"><polygon points="0,0 1000,100 1000,0"/></svg>');
-        background-size: cover;
-    }
-    
-    .historical-card {
-        background: linear-gradient(145deg, rgba(60, 40, 28, 0.95) 0%, rgba(26, 15, 8, 0.9) 100%);
-        border: 1px solid rgba(139, 69, 19, 0.3);
-        border-radius: 20px;
-        backdrop-filter: blur(20px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .historical-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #8b4513, transparent);
-        opacity: 0.6;
-    }
-    
-    .historical-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 25px 50px rgba(139, 69, 19, 0.2);
-        border-color: #8b4513;
-    }
-    
-    .timeline-container {
-        position: relative;
-        padding: 2rem 0;
-    }
-    
-    .timeline-line {
-        position: absolute;
         left: 50%;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background: linear-gradient(to bottom, #8b4513, #cd853f, #8b4513);
-        transform: translateX(-50%);
-        border-radius: 2px;
-        box-shadow: 0 0 10px rgba(139, 69, 19, 0.5);
-    }
-    
-    .timeline-event {
-        position: relative;
-        margin: 3rem 0;
-        display: flex;
-        align-items: center;
-    }
-    
-    .timeline-event:nth-child(even) {
-        flex-direction: row-reverse;
-    }
-    
-    .timeline-content {
-        width: 45%;
-        background: rgba(255, 255, 255, 0.05);
-        padding: 2rem;
-        border-radius: 15px;
-        border: 1px solid rgba(139, 69, 19, 0.3);
-        position: relative;
-    }
-    
-    .timeline-event:nth-child(even) .timeline-content {
-        margin-right: 10%;
-    }
-    
-    .timeline-event:nth-child(odd) .timeline-content {
-        margin-left: 10%;
-    }
-    
-    .timeline-marker {
-        position: absolute;
-        left: 50%;
-        width: 20px;
-        height: 20px;
-        background: #8b4513;
-        border: 4px solid #cd853f;
-        border-radius: 50%;
-        transform: translateX(-50%);
-        box-shadow: 0 0 15px rgba(139, 69, 19, 0.7);
-        z-index: 2;
-    }
-    
-    .event-date {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #cd853f;
-        margin-bottom: 0.5rem;
-        text-shadow: 0 0 10px rgba(205, 133, 63, 0.5);
-    }
-    
-    .event-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: white;
-        margin-bottom: 1rem;
-        line-height: 1.3;
-    }
-    
-    .event-description {
-        color: rgba(255, 255, 255, 0.8);
-        line-height: 1.6;
-        margin-bottom: 1rem;
-    }
-    
-    .event-image {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-        border-radius: 10px;
-        margin: 1rem 0;
-        border: 2px solid rgba(139, 69, 19, 0.3);
-        transition: transform 0.3s ease;
-    }
-    
-    .event-image:hover {
-        transform: scale(1.05);
-    }
-    
-    .impact-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.4rem 0.8rem;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 0.2rem;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        top: -80px;
+        margin-bottom: -80px;
+        z-index: 0;
+        background: linear-gradient(135deg, rgba(26, 32, 64, 0.75) 0%, rgba(16, 24, 48, 0.8) 50%, rgba(20, 28, 56, 0.75) 100%);
         backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        padding: 180px 0 80px 0;
+        text-align: center;
+    }
+
+    .page-title {
+        font-family: 'Orbitron', monospace;
+        font-size: clamp(2rem, 6vw, 4rem);
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+    }
+
+    /* Historical Analysis Specific Styles - Unified Design */
+    .historical-dashboard {
+        padding: 20px;
+        max-width: none;
+        margin: 40px auto 0 auto;
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 80px);
+        background: rgba(10, 15, 44, 0.08);
+        backdrop-filter: blur(2px);
+        gap: 0;
+        width: 100vw;
+        box-sizing: border-box;
     }
     
-    .impact-critical {
-        background: rgba(220, 38, 38, 0.2);
-        color: #dc2626;
-        border: 1px solid #dc2626;
+    .dashboard-content {
+        max-width: 96%;
+        margin: 0 auto !important;
+        padding: 50px 40px;
+        width: 100%;
+        box-sizing: border-box;
     }
     
-    .impact-high {
-        background: rgba(245, 158, 11, 0.2);
-        color: #f59e0b;
-        border: 1px solid #f59e0b;
+    /* Glass card mejorado */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+        margin-bottom: 30px;
+        padding: 40px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
     
-    .impact-medium {
-        background: rgba(59, 130, 246, 0.2);
-        color: #3b82f6;
-        border: 1px solid #3b82f6;
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+        color: #fff;
     }
-    
-    .impact-low {
-        background: rgba(34, 197, 94, 0.2);
-        color: #22c55e;
-        border: 1px solid #22c55e;
-    }
-    
+
+    /* Stats Grid */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-        margin: 2rem 0;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
     }
-    
+
     .stat-card {
-        background: linear-gradient(145deg, rgba(60, 40, 28, 0.9) 0%, rgba(26, 15, 8, 0.8) 100%);
-        padding: 2rem;
+        background: rgba(255, 255, 255, 0.03);
         border-radius: 15px;
-        border: 1px solid rgba(139, 69, 19, 0.3);
+        padding: 1.5rem;
         text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.05);
         position: relative;
         overflow: hidden;
     }
-    
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #8b4513, transparent);
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 15px 35px rgba(0, 212, 255, 0.1);
     }
+
+    .stat-icon {
+        font-size: 2.5rem;
+        color: #00d4ff;
+        margin-bottom: 1rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* Modern Dashboard Styles - Integrated from modern template */
+    .tab-navigation {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .tab-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.8);
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .tab-button:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(0, 212, 255, 0.5);
+    }
+
+    .tab-button.active {
+        color: #00d4ff;
+        background: rgba(0, 212, 255, 0.15);
+        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
+    }
+
+    .filter-panel {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .filter-group {
+        position: relative;
+    }
+
+    .filter-label {
+        display: block;
+        color: #00d4ff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-select, .filter-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 0.75rem;
+        color: #ffffff;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .filter-select:focus, .filter-input:focus {
+        outline: none;
+        border-color: #00d4ff;
+        box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    }
+
+    .content-area {
+        display: none;
+    }
+
+    .content-area.active {
+        display: block;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-container {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        min-height: 300px;
+    }
+
+    .map-container {
+        height: 400px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .data-table th {
+        background: rgba(0, 212, 255, 0.1);
+        color: #00d4ff;
+        font-weight: 600;
+    }
+
+    .data-table tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .header-controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .btn {
+        background: linear-gradient(45deg, #00d4ff, #0097a7);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .alerts-panel {
+        min-height: 300px;
+    }
+
+    .alert-item {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid;
+    }
+
+    .alert-high {
+        border-left-color: #ff4757;
+    }
+
+    .alert-medium {
+        border-left-color: #ffa726;
+    }
+
+    .alert-low {
+        border-left-color: #66bb6a;
+    }
+
+    .alert-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .alert-severity {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .severity-high {
+        background: rgba(255, 71, 87, 0.2);
+        color: #ff4757;
+    }
+
+    .severity-medium {
+        background: rgba(255, 167, 38, 0.2);
+        color: #ffa726;
+    }
+
+    .severity-low {
+        background: rgba(102, 187, 106, 0.2);
+        color: #66bb6a;
+    }
+
+    .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .spinner {
+        animation: spin 1s linear infinite;
+        margin-right: 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .heatmap-container {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        min-height: 400px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .historical-dashboard {
+            padding: 20px;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-panel {
+            grid-template-columns: 1fr;
+        }
+        
+        .tab-navigation {
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .tab-button {
+            flex-shrink: 0;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+    }
+
+    /* New styles for expanded dashboard */
     
+    /* Timeline controls */
+    .timeline-controls {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        border: 1px solid rgba(0, 212, 255, 0.2);
+    }
+
+    .time-range-selector {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .time-range-selector button {
+        padding: 0.5rem 1rem;
+        border: 1px solid rgba(0, 212, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .time-range-selector button:hover,
+    .time-range-selector button.active {
+        background: rgba(0, 212, 255, 0.3);
+        border-color: rgba(0, 212, 255, 0.8);
+    }
+
+    /* Stats grid for datasets */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(0, 212, 255, 0.3);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(0, 212, 255, 0.6);
+        box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        color: #00d4ff;
+        margin-bottom: 0.5rem;
+    }
+
     .stat-number {
         font-size: 2.5rem;
-        font-weight: 700;
-        color: #cd853f;
-        margin: 0.5rem 0;
-        text-shadow: 0 0 10px rgba(205, 133, 63, 0.5);
+        font-weight: bold;
+        color: #fff;
+        margin-bottom: 0.5rem;
     }
-    
+
     .stat-label {
-        color: rgba(255, 255, 255, 0.8);
+        color: #ccc;
         font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
-    
-    .analysis-section {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 2rem;
-        border-radius: 15px;
-        border: 1px solid rgba(139, 69, 19, 0.3);
-        margin: 2rem 0;
-    }
-    
-    .section-title {
-        font-size: 1.8rem;
-        font-weight: 600;
-        color: #cd853f;
+
+    /* AI Analysis controls */
+    .ai-analysis-controls {
+        display: flex;
+        gap: 1rem;
         margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .ai-analysis-controls .btn {
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
-    
-    .pattern-card {
-        background: rgba(0, 0, 0, 0.2);
-        padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 4px solid #8b4513;
-        margin: 1rem 0;
+
+    /* Comparison controls */
+    .comparison-controls {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        align-items: center;
+        flex-wrap: wrap;
     }
-    
-    .pattern-title {
-        font-weight: 600;
-        color: white;
-        margin-bottom: 0.5rem;
+
+    /* Scenario controls */
+    .scenario-controls {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        align-items: center;
+        flex-wrap: wrap;
     }
-    
-    .pattern-description {
-        color: rgba(255, 255, 255, 0.8);
-        line-height: 1.5;
-    }
-    
-    .chart-container {
-        background: rgba(0, 0, 0, 0.3);
-        padding: 2rem;
-        border-radius: 15px;
-        margin: 2rem 0;
-        border: 1px solid rgba(139, 69, 19, 0.3);
-    }
-    
-    .filter-controls {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 1.5rem;
-        border-radius: 15px;
-        border: 1px solid rgba(139, 69, 19, 0.3);
-        margin: 2rem 0;
-    }
-    
-    .control-group {
-        margin: 1rem 0;
-    }
-    
-    .control-label {
-        display: block;
-        color: #cd853f;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-    
-    .control-input {
-        width: 100%;
-        padding: 0.8rem;
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(139, 69, 19, 0.3);
-        border-radius: 8px;
-        color: white;
-        font-size: 0.9rem;
-    }
-    
-    .control-input:focus {
-        outline: none;
-        border-color: #8b4513;
-        box-shadow: 0 0 10px rgba(139, 69, 19, 0.3);
-    }
-    
-    .btn-historical {
-        background: linear-gradient(45deg, #8b4513, #cd853f);
-        color: white;
-        border: none;
-        padding: 0.8rem 2rem;
-        border-radius: 25px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
-    }
-    
-    .btn-historical:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
-        background: linear-gradient(45deg, #a0522d, #daa520);
-    }
-    
-    .conflict-map {
-        background: rgba(0, 0, 0, 0.4);
-        border-radius: 15px;
-        padding: 2rem;
-        margin: 2rem 0;
-        border: 1px solid rgba(139, 69, 19, 0.3);
-        min-height: 400px;
-        position: relative;
-    }
-    
-    .map-legend {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 1rem;
-        border-radius: 10px;
-        border: 1px solid rgba(139, 69, 19, 0.3);
-    }
-    
-    .legend-item {
+
+    .scenario-selector {
         display: flex;
         align-items: center;
-        margin: 0.5rem 0;
-        font-size: 0.8rem;
+        gap: 0.5rem;
     }
-    
-    .legend-color {
+
+    /* Interactive timeline */
+    #interactiveTimeline {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 212, 255, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    /* Executive summary */
+    #executiveSummary {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 212, 255, 0.2);
+        border-radius: 8px;
+        padding: 1.5rem;
+        line-height: 1.6;
+    }
+
+    /* High risk articles grid */
+    #highRiskArticlesGrid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    .article-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 0, 100, 0.3);
+        border-radius: 8px;
+        padding: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .article-card:hover {
+        border-color: rgba(255, 0, 100, 0.6);
+        transform: translateY(-2px);
+    }
+
+    .article-title {
+        color: #ff0064;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .article-meta {
+        color: #ccc;
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .article-risk-score {
+        background: rgba(255, 0, 100, 0.2);
+        color: #ff0064;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        display: inline-block;
+    }
+
+    /* Latest articles list */
+    #latestArticlesList {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .article-item {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .article-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .article-item:last-child {
+        border-bottom: none;
+    }
+
+    /* Data sources status */
+    #dataSourcesStatus {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+
+    .source-status-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 212, 255, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .source-status-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .source-name {
+        font-weight: bold;
+        color: #00d4ff;
+    }
+
+    .status-indicator {
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        margin-right: 0.5rem;
+        background: #00ff00;
     }
-    
-    .prediction-panel {
-        background: linear-gradient(145deg, rgba(139, 69, 19, 0.1) 0%, rgba(205, 133, 63, 0.05) 100%);
-        border: 1px solid rgba(139, 69, 19, 0.3);
-        border-radius: 15px;
-        padding: 2rem;
-        margin: 2rem 0;
+
+    .status-indicator.warning {
+        background: #ffaa00;
     }
-    
-    .prediction-title {
-        color: #cd853f;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
+
+    .status-indicator.error {
+        background: #ff0000;
+    }
+
+    .source-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 0.5rem;
+        margin-top: 0.5rem;
     }
-    
-    .lesson-card {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 1.5rem;
-        border-radius: 10px;
-        border: 1px solid rgba(139, 69, 19, 0.3);
-        margin: 1rem 0;
-        transition: all 0.3s ease;
-    }
-    
-    .lesson-card:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: #8b4513;
-    }
-    
-    .lesson-number {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #cd853f;
-        margin-bottom: 0.5rem;
-    }
-    
-    .lesson-title {
-        font-weight: 600;
-        color: white;
-        margin-bottom: 0.5rem;
-    }
-    
-    .lesson-description {
-        color: rgba(255, 255, 255, 0.8);
-        line-height: 1.5;
-    }
-    
-    .comparison-table {
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 15px;
-        overflow: hidden;
-        margin: 2rem 0;
-        border: 1px solid rgba(139, 69, 19, 0.3);
-    }
-    
-    .comparison-table th {
-        background: rgba(139, 69, 19, 0.3);
-        color: #cd853f;
-        padding: 1rem;
-        font-weight: 600;
-        text-align: center;
-    }
-    
-    .comparison-table td {
-        padding: 1rem;
-        color: rgba(255, 255, 255, 0.8);
-        border-bottom: 1px solid rgba(139, 69, 19, 0.2);
-        text-align: center;
-    }
-    
-    .similarity-score {
-        font-weight: 700;
-        padding: 0.3rem 0.8rem;
-        border-radius: 15px;
+
+    .metric-item {
         font-size: 0.8rem;
+        color: #ccc;
     }
-    
-    .similarity-high {
-        background: rgba(220, 38, 38, 0.2);
-        color: #dc2626;
+
+    .metric-value {
+        color: #fff;
+        font-weight: bold;
     }
-    
-    .similarity-medium {
-        background: rgba(245, 158, 11, 0.2);
-        color: #f59e0b;
+
+    /* Patterns and analysis */
+    #identifiedPatterns {
+        display: grid;
+        gap: 1rem;
     }
-    
-    .similarity-low {
-        background: rgba(34, 197, 94, 0.2);
-        color: #22c55e;
+
+    .pattern-item {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 212, 255, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .pattern-title {
+        color: #00d4ff;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .pattern-description {
+        color: #ccc;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
+    }
+
+    .pattern-confidence {
+        background: rgba(0, 212, 255, 0.2);
+        color: #00d4ff;
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        display: inline-block;
+    }
+
+    /* Additional responsive design for new elements */
+    @media (max-width: 768px) {
+        .tab-button {
+            min-width: auto;
+            width: 100%;
+        }
+        
+        .comparison-controls,
+        .scenario-controls,
+        .ai-analysis-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        #highRiskArticlesGrid {
+            grid-template-columns: 1fr;
+        }
+        
+        #dataSourcesStatus {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Section Header with Dot Matrix Icon -->
-    <div class="glass-card section-spacing">
-        <div class="card-body">
-            <div class="section-header historical-analysis">
-                <div class="dot-matrix-icon">
-                    <i class="fas fa-history"></i>
+<!-- Header Section -->
+<div class="header-section">
+    <h1 class="page-title">🏛️ Análisis Histórico</h1>
+    <p class="page-subtitle">Patrones Geopolíticos • Conflictos Históricos • Lecciones Estratégicas</p>
+</div>
+
+<div class="historical-dashboard">
+    <div class="dashboard-content">
+        <!-- Header Controls -->
+        <div class="glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <i class="fas fa-chart-line" style="color: #00d4ff; font-size: 2rem;"></i>
+                    <h1 style="color: #00d4ff; margin: 0;">Análisis Histórico Avanzado</h1>
                 </div>
-                <div class="section-title">
-                    <h2>Análisis Histórico</h2>
-                <div class="data-status real-data">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Análisis basado en datos RSS reales</span>
+                <div class="header-controls">
+                    <button class="btn" onclick="triggerETLUpdate()">
+                        <i class="fas fa-sync-alt"></i>
+                        Actualizar Datos
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportData()">
+                        <i class="fas fa-download"></i>
+                        Exportar
+                    </button>
                 </div>
-<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
-                    <p>Comprende el presente a través del pasado: análisis profundo de patrones geopolíticos, conflictos históricos y lecciones para la toma de decisiones estratégicas</p>
+            </div>
+
+            <!-- Filter Panel -->
+            <div class="filter-panel">
+                <div class="filter-group">
+                    <label class="filter-label">Fecha Desde</label>
+                    <input type="date" id="dateFrom" class="filter-input">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Fecha Hasta</label>
+                    <input type="date" id="dateTo" class="filter-input">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Países</label>
+                    <select id="countryFilter" class="filter-select" multiple>
+                        <option value="">Todos los Países</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Categorías</label>
+                    <select id="categoryFilter" class="filter-select" multiple>
+                        <option value="">Todas las Categorías</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Acciones</label>
+                    <button class="btn" onclick="applyFilters()" style="width: 100%;">
+                        <i class="fas fa-filter"></i>
+                        Aplicar Filtros
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Hero Section -->
-    <div class="glass-card section-spacing">
-        <div class="card-body">
-            <div class="historical-hero">
-                <div class="row align-items-center">
-                    <div class="col-lg-8">
-                        <h1 class="display-4 fw-bold text-white mb-3">
-                            <i class="fas fa-history me-3" style="color: #cd853f;"></i>
-                            Análisis Histórico Geopolítico
-                        </h1>
-<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
-                        <p class="lead text-light mb-4">
-                            "Aquellos que no pueden recordar el pasado están condenados a repetirlo" - George Santayana. 
-                            Nuestro sistema analiza patrones históricos para identificar similitudes con eventos actuales 
-                            y proporcionar contexto estratégico para la toma de decisiones.
-                        </p>
-                        <div class="d-flex flex-wrap gap-2">
-                            <span class="impact-badge impact-critical">Análisis de Patrones</span>
-                            <span class="impact-badge impact-high">Comparación Histórica</span>
-                            <span class="impact-badge impact-medium">Predicción de Tendencias</span>
-                            <span class="impact-badge impact-low">Lecciones Aprendidas</span>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 text-center">
-                        <div class="historical-card p-4">
-                            <h3 class="text-white mb-3">Base de Conocimiento</h3>
-                            <div class="stats-grid">
-                                <div class="text-center">
-                                    <div class="stat-number">2,847</div>
-                                    <div class="stat-label small">Eventos Analizados</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="stat-number">156</div>
-                                    <div class="stat-label small">Conflictos Estudiados</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Statistics Overview -->
-    <div class="glass-card section-spacing">
-        <div class="card-body">
-            <h3 class="section-title">
-                <i class="fas fa-chart-bar"></i>
-                Panorama Histórico Global
-            </h3>
+        <!-- Statistics Cards -->
+        <div class="glass-card">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-number">156</div>
-                    <div class="stat-label">Conflictos Analizados</div>
-                    <small class="text-muted">Desde 1945 hasta hoy</small>
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-number" id="totalEvents">-</div>
+                    <div class="stat-label">Total de Eventos</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">89%</div>
-                    <div class="stat-label">Precisión Predictiva</div>
-                    <small class="text-muted">En análisis de patrones</small>
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number" id="recentEvents">-</div>
+                    <div class="stat-label">Recientes (7 días)</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">2,847</div>
-                    <div class="stat-label">Eventos Documentados</div>
-                    <small class="text-muted">Crisis y resoluciones</small>
+                    <div class="stat-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="stat-number" id="countriesAffected">-</div>
+                    <div class="stat-label">Países Afectados</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">73</div>
-                    <div class="stat-label">Países Estudiados</div>
-                    <small class="text-muted">Análisis detallado</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Timeline of Major Conflicts -->
-    <div class="glass-card section-spacing">
-        <div class="card-body">
-            <h3 class="section-title">
-                <i class="fas fa-clock"></i>
-                Línea de Tiempo: Conflictos Geopolíticos Clave
-            </h3>
-<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
-            <p class="text-muted mb-4">
-                Explora los eventos más significativos que han moldeado el panorama geopolítico mundial. 
-                Cada evento incluye análisis de causas, desarrollo y consecuencias a largo plazo.
-            </p>
-            
-            <div class="timeline-container">
-                <div class="timeline-line"></div>
-                
-                <div class="timeline-event">
-                    <div class="timeline-marker"></div>
-                    <div class="timeline-content">
-                        <div class="event-date">1962</div>
-                        <div class="event-title">Crisis de los Misiles en Cuba</div>
-                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Crisis de Cuba" class="event-image">
-                        <div class="event-description">
-                            La crisis que llevó al mundo al borde de una guerra nuclear. Durante 13 días, Estados Unidos y la Unión Soviética 
-                            se enfrentaron por la instalación de misiles soviéticos en Cuba. Este evento estableció protocolos de comunicación 
-                            directa entre superpotencias y demostró la importancia de la diplomacia en momentos críticos.
-                        </div>
-                        <div class="d-flex gap-2 mt-2">
-                            <span class="impact-badge impact-critical">Impacto Global</span>
-                            <span class="impact-badge impact-high">Diplomacia Nuclear</span>
-                        </div>
-                        <div class="mt-3">
-                            <strong>Lecciones Aprendidas:</strong>
-                            <ul class="mt-2">
-                                <li>La comunicación directa entre líderes es crucial en crisis</li>
-                                <li>Las demostraciones de fuerza pueden escalar rápidamente</li>
-                                <li>Los canales diplomáticos alternativos son esenciales</li>
-                            </ul>
-                        </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-bar"></i>
                     </div>
-                </div>
-
-                <div class="timeline-event">
-                    <div class="timeline-marker"></div>
-                    <div class="timeline-content">
-                        <div class="event-date">1991</div>
-                        <div class="event-title">Disolución de la Unión Soviética</div>
-                        <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Caída URSS" class="event-image">
-                        <div class="event-description">
-                            El fin de la Guerra Fría marcó el inicio de un nuevo orden mundial unipolar. La desintegración pacífica de una superpotencia 
-                            nuclear creó un precedente histórico y liberó fuerzas nacionalistas que aún influyen en la geopolítica actual, 
-                            especialmente en Europa del Este y Asia Central.
-                        </div>
-                        <div class="d-flex gap-2 mt-2">
-                            <span class="impact-badge impact-critical">Cambio de Orden Mundial</span>
-                            <span class="impact-badge impact-high">Transición Pacífica</span>
-                        </div>
-                        <div class="mt-3">
-                            <strong>Patrones Identificados:</strong>
-                            <ul class="mt-2">
-                                <li>Las reformas internas pueden acelerar cambios sistémicos</li>
-                                <li>El nacionalismo emerge tras la desintegración de imperios</li>
-                                <li>Los vacíos de poder generan nuevas dinámicas regionales</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="timeline-event">
-                    <div class="timeline-marker"></div>
-                    <div class="timeline-content">
-                        <div class="event-date">2001</div>
-                        <div class="event-title">Ataques del 11 de Septiembre</div>
-                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="11-S" class="event-image">
-                        <div class="event-description">
-                            Los ataques terroristas redefinieron la seguridad global y marcaron el inicio de la "Guerra contra el Terror". 
-                            Este evento demostró cómo actores no estatales pueden influir significativamente en la política internacional 
-                            y cambiar las prioridades de seguridad de las grandes potencias.
-                        </div>
-                        <div class="d-flex gap-2 mt-2">
-                            <span class="impact-badge impact-critical">Terrorismo Global</span>
-                            <span class="impact-badge impact-high">Seguridad Nacional</span>
-                        </div>
-                        <div class="mt-3">
-                            <strong>Transformaciones Resultantes:</strong>
-                            <ul class="mt-2">
-                                <li>Redefinición de amenazas asimétricas</li>
-                                <li>Expansión de capacidades de vigilancia</li>
-                                <li>Nuevas alianzas antiterroristas</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="timeline-event">
-                    <div class="timeline-marker"></div>
-                    <div class="timeline-content">
-                        <div class="event-date">2014</div>
-                        <div class="event-title">Anexión de Crimea</div>
-                        <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Crimea" class="event-image">
-                        <div class="event-description">
-                            La anexión rusa de Crimea marcó el retorno de la política de esferas de influencia en Europa. 
-                            Este evento desafió el orden internacional establecido tras la Guerra Fría y demostró la efectividad 
-                            de las operaciones híbridas que combinan elementos militares, informativos y diplomáticos.
-                        </div>
-                        <div class="d-flex gap-2 mt-2">
-                            <span class="impact-badge impact-critical">Guerra Híbrida</span>
-                            <span class="impact-badge impact-high">Derecho Internacional</span>
-                        </div>
-                        <div class="mt-3">
-                            <strong>Nuevas Dinámicas:</strong>
-                            <ul class="mt-2">
-                                <li>Uso de "hombres verdes" sin identificación</li>
-                                <li>Guerra de información y desinformación</li>
-                                <li>Sanciones económicas como herramienta de respuesta</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="timeline-event">
-                    <div class="timeline-marker"></div>
-                    <div class="timeline-content">
-                        <div class="event-date">2022</div>
-                        <div class="event-title">Invasión de Ucrania</div>
-                        <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Ucrania" class="event-image">
-                        <div class="event-description">
-                            La invasión rusa de Ucrania representa el mayor conflicto convencional en Europa desde la Segunda Guerra Mundial. 
-                            Ha redefinido las alianzas occidentales, acelerado la transición energética europea y demostrado la importancia 
-                            de la resistencia popular en conflictos asimétricos.
-                        </div>
-                        <div class="d-flex gap-2 mt-2">
-                            <span class="impact-badge impact-critical">Conflicto Activo</span>
-                            <span class="impact-badge impact-high">Orden Europeo</span>
-                        </div>
-                        <div class="mt-3">
-                            <strong>Análisis en Curso:</strong>
-                            <ul class="mt-2">
-                                <li>Resiliencia de instituciones democráticas bajo presión</li>
-                                <li>Papel de las redes sociales en conflictos modernos</li>
-                                <li>Importancia de la unidad occidental</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pattern Analysis -->
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="glass-card section-spacing">
-                <div class="card-body">
-                    <h3 class="section-title">
-                        <i class="fas fa-search"></i>
-                        Patrones Históricos Identificados
-                    </h3>
-<div class="section-status"><div class="data-status simulation"><i class="fas fa-chart-line"></i><span>Datos económicos simulados</span></div></div>
-<div class="section-status"><div class="data-status simulation"><i class="fas fa-video"></i><span>Sistema de video en demostración</span></div></div>
-                    
-                    <div class="pattern-card">
-                        <div class="pattern-title">1. Ciclos de Tensión y Distensión</div>
-                        <div class="pattern-description">
-                            Los análisis revelan que las relaciones internacionales siguen ciclos predecibles de aproximadamente 15-20 años. 
-                            Períodos de alta tensión (como la Guerra Fría) son seguidos por fases de cooperación relativa, 
-                            antes de que nuevas tensiones emerjan por cambios en el equilibrio de poder.
-                        </div>
-                        <div class="mt-2">
-                            <strong>Ejemplos:</strong> Détente (1970s) → Nueva Guerra Fría (1980s) → Fin Guerra Fría (1990s) → Cooperación post-9/11 → Rivalidad actual
-                        </div>
-                    </div>
-
-                    <div class="pattern-card">
-                        <div class="pattern-title">2. Transiciones de Poder</div>
-                        <div class="pattern-description">
-                            Cuando una potencia emergente desafía a una establecida, la probabilidad de conflicto aumenta significativamente. 
-                            Este patrón, conocido como "Trampa de Tucídides", se ha observado en 12 de 16 casos históricos analizados.
-                        </div>
-                        <div class="mt-2">
-                            <strong>Casos Actuales:</strong> China vs. EE.UU., India vs. China, Irán vs. Arabia Saudí
-                        </div>
-                    </div>
-
-                    <div class="pattern-card">
-                        <div class="pattern-title">3. Factores Desencadenantes</div>
-                        <div class="pattern-description">
-                            Los conflictos rara vez surgen de una sola causa. Nuestro análisis identifica que se requieren típicamente 
-                            3-4 factores convergentes: tensiones territoriales, crisis económica, cambio de liderazgo y eventos catalizadores.
-                        </div>
-                        <div class="mt-2">
-                            <strong>Indicadores de Alerta:</strong> Retórica nacionalista, ejercicios militares, sanciones económicas, incidentes fronterizos
-                        </div>
-                    </div>
-
-                    <div class="pattern-card">
-                        <div class="pattern-title">4. Duración y Resolución</div>
-                        <div class="pattern-description">
-                            Los conflictos modernos tienden a ser más prolongados pero menos letales que los históricos. 
-                            La resolución exitosa requiere típicamente mediación de terceros, incentivos económicos y garantías de seguridad.
-                        </div>
-                        <div class="mt-2">
-                            <strong>Factores de Éxito:</strong> Mediación neutral, beneficios mutuos, verificación internacional, gradualismo
-                        </div>
-                    </div>
+                    <div class="stat-number" id="avgEventsPerDay">-</div>
+                    <div class="stat-label">Promedio Eventos/Día</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="glass-card section-spacing">
-                <div class="card-body">
-                    <h4 class="section-title">
-                        <i class="fas fa-filter"></i>
-                        Filtros de Análisis
-                    </h4>
-<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
-                    
-                    <div class="filter-controls">
-                        <div class="control-group">
-                            <label class="control-label">Período Histórico</label>
-                            <select class="control-input" id="period-filter">
-                                <option value="all">Todos los Períodos</option>
-                                <option value="cold-war">Guerra Fría (1945-1991)</option>
-                                <option value="post-cold-war">Post-Guerra Fría (1991-2001)</option>
-                                <option value="war-on-terror">Guerra contra Terror (2001-2014)</option>
-                                <option value="modern">Era Moderna (2014-presente)</option>
-                            </select>
+        <!-- Tab Navigation -->
+        <div class="glass-card">
+            <div class="tab-navigation">
+                <button class="tab-button active" onclick="switchTab('overview')">
+                    <i class="fas fa-chart-pie"></i>
+                    Panorama General
+                </button>
+                <button class="tab-button" onclick="switchTab('timeline')">
+                    <i class="fas fa-clock"></i>
+                    Línea Temporal
+                </button>
+                <button class="tab-button" onclick="switchTab('events')">
+                    <i class="fas fa-calendar-alt"></i>
+                    Eventos Históricos
+                </button>
+                <button class="tab-button" onclick="switchTab('patterns')">
+                    <i class="fas fa-search-plus"></i>
+                    Patrones & Tendencias
+                </button>
+                <button class="tab-button" onclick="switchTab('geography')">
+                    <i class="fas fa-globe"></i>
+                    Análisis Geográfico
+                </button>
+                <button class="tab-button" onclick="switchTab('predictions')">
+                    <i class="fas fa-crystal-ball"></i>
+                    Predicciones
+                </button>
+                <button class="tab-button" onclick="switchTab('intelligence')">
+                    <i class="fas fa-brain"></i>
+                    Inteligencia IA
+                </button>
+                <button class="tab-button" onclick="switchTab('datasets')">
+                    <i class="fas fa-database"></i>
+                    Fuentes de Datos
+                </button>
+                <button class="tab-button" onclick="switchTab('comparisons')">
+                    <i class="fas fa-balance-scale"></i>
+                    Comparativas
+                </button>
+                <button class="tab-button" onclick="switchTab('scenarios')">
+                    <i class="fas fa-road"></i>
+                    Escenarios
+                </button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overviewTab" class="content-area active">
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Cronología Global de Eventos</h3>
+                        <div id="globalTimelineChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Intensidad de Conflictos</h3>
+                        <div id="conflictIntensityChart"></div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Distribución Regional</h3>
+                        <div id="regionalDistributionChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Tendencias de Sentimiento</h3>
+                        <div id="sentimentTrendsChart"></div>
+                    </div>
+                </div>
+                <div class="map-container" id="overviewMap"></div>
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Resumen Ejecutivo Últimas 24h</h3>
+                    <div id="executiveSummary"></div>
+                </div>
+            </div>
+
+            <!-- Timeline Tab -->
+            <div id="timelineTab" class="content-area">
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Línea Temporal Interactiva</h3>
+                    <div class="timeline-controls">
+                        <div class="time-range-selector">
+                            <button class="btn btn-secondary" onclick="setTimeRange('1d')">24h</button>
+                            <button class="btn btn-secondary" onclick="setTimeRange('7d')">7 días</button>
+                            <button class="btn btn-secondary" onclick="setTimeRange('30d')">30 días</button>
+                            <button class="btn btn-secondary" onclick="setTimeRange('90d')">90 días</button>
+                            <button class="btn btn-secondary" onclick="setTimeRange('1y')">1 año</button>
+                            <button class="btn btn-secondary" onclick="setTimeRange('all')">Todo</button>
                         </div>
-                        
-                        <div class="control-group">
-                            <label class="control-label">Tipo de Conflicto</label>
-                            <select class="control-input" id="conflict-type">
-                                <option value="all">Todos los Tipos</option>
-                                <option value="interstate">Entre Estados</option>
-                                <option value="civil">Guerras Civiles</option>
-                                <option value="proxy">Guerras Proxy</option>
-                                <option value="hybrid">Conflictos Híbridos</option>
-                                <option value="cyber">Guerra Cibernética</option>
-                            </select>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label class="control-label">Región Geográfica</label>
-                            <select class="control-input" id="region-filter">
-                                <option value="all">Global</option>
-                                <option value="europe">Europa</option>
-                                <option value="middle-east">Medio Oriente</option>
-                                <option value="asia-pacific">Asia-Pacífico</option>
-                                <option value="africa">África</option>
-                                <option value="americas">Américas</option>
-                            </select>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label class="control-label">Nivel de Impacto</label>
-                            <select class="control-input" id="impact-level">
-                                <option value="all">Todos los Niveles</option>
-                                <option value="global">Impacto Global</option>
-                                <option value="regional">Impacto Regional</option>
-                                <option value="bilateral">Impacto Bilateral</option>
-                                <option value="local">Impacto Local</option>
-                            </select>
-                        </div>
-                        
-                        <button class="btn-historical w-100 mt-3" onclick="applyFilters()">
-                            <i class="fas fa-search me-2"></i>
-                            Aplicar Filtros
+                    </div>
+                    <div id="interactiveTimeline" style="height: 400px;"></div>
+                </div>
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Eventos por Período</h3>
+                        <div id="eventsByPeriodChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Correlación Temporal</h3>
+                        <div id="temporalCorrelationChart"></div>
+                    </div>
+                </div>
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Cronología Detallada</h3>
+                    <div id="detailedTimeline"></div>
+                </div>
+            </div>
+
+            <!-- Events Tab -->
+            <div id="eventsTab" class="content-area">
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Cronología de Eventos</h3>
+                        <div id="eventsTimeChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Distribución por Categoría</h3>
+                        <div id="categoryChart"></div>
+                    </div>
+                </div>
+                <div class="map-container" id="eventsMap"></div>
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Eventos Recientes</h3>
+                    <div id="eventsTable"></div>
+                </div>
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Análisis de Impacto</h3>
+                    <div id="impactAnalysis"></div>
+                </div>
+            </div>
+
+            <!-- Patterns Tab -->
+            <div id="patternsTab" class="content-area">
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Patrones Cíclicos</h3>
+                        <div id="cyclicalPatternsChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Anomalías Detectadas</h3>
+                        <div id="anomaliesChart"></div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Tendencias Emergentes</h3>
+                        <div id="emergingTrendsChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Análisis de Frecuencia</h3>
+                        <div id="frequencyAnalysisChart"></div>
+                    </div>
+                </div>
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Patrones Identificados</h3>
+                    <div id="identifiedPatterns"></div>
+                </div>
+            </div>
+
+            <!-- Geography Tab -->
+            <div id="geographyTab" class="content-area">
+                <div class="map-container" id="geographyMap" style="height: 500px;"></div>
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Mapa de Calor Regional</h3>
+                        <div id="regionalHeatmapChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Flujos Migratorios</h3>
+                        <div id="migrationFlowsChart"></div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Índices de Estabilidad</h3>
+                        <div id="stabilityIndicesChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Conexiones Geopolíticas</h3>
+                        <div id="geopoliticalConnectionsChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictions Tab -->
+            <div id="predictionsTab" class="content-area">
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Modelos Predictivos</h3>
+                        <div id="predictiveModelsChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Probabilidades de Escenarios</h3>
+                        <div id="scenarioProbabilitiesChart"></div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Tendencias Futuras</h3>
+                        <div id="futureTrendsChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Factores de Riesgo</h3>
+                        <div id="riskFactorsChart"></div>
+                    </div>
+                </div>
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Predicciones IA</h3>
+                    <div id="aiPredictions"></div>
+                </div>
+            </div>
+
+            <!-- Intelligence Tab -->
+            <div id="intelligenceTab" class="content-area">
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Análisis de Inteligencia Artificial</h3>
+                    <div class="ai-analysis-controls">
+                        <button class="btn" onclick="generateAIAnalysis()">
+                            <i class="fas fa-brain"></i>
+                            Generar Análisis IA
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportAIReport()">
+                            <i class="fas fa-file-pdf"></i>
+                            Exportar Reporte
                         </button>
                     </div>
+                    <div id="aiAnalysisContent"></div>
+                </div>
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Análisis de Sentimiento</h3>
+                        <div id="aiSentimentChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Extracción de Entidades</h3>
+                        <div id="entityExtractionChart"></div>
+                    </div>
+                </div>
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Artículos de Alto Riesgo</h3>
+                    <div id="highRiskArticlesGrid"></div>
+                </div>
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Últimos Artículos Analizados</h3>
+                    <div id="latestArticlesList"></div>
                 </div>
             </div>
 
-            <div class="prediction-panel">
-                <div class="prediction-title">
-                    <i class="fas fa-crystal-ball"></i>
-                    Predicciones Basadas en Patrones
-                </div>
-                <div class="mb-3">
-                    <strong>Probabilidad de Escalada en Europa Oriental:</strong>
-                    <div class="progress mt-2" style="height: 10px;">
-                        <div class="progress-bar bg-warning" style="width: 73%"></div>
+            <!-- Datasets Tab -->
+            <div id="datasetsTab" class="content-area">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-newspaper"></i></div>
+                        <div class="stat-number" id="articlesCount">-</div>
+                        <div class="stat-label">Artículos Procesados</div>
                     </div>
-                    <small class="text-muted">73% - Basado en 12 precedentes históricos</small>
-                </div>
-                
-                <div class="mb-3">
-                    <strong>Duración Estimada del Conflicto Actual:</strong>
-                    <div class="progress mt-2" style="height: 10px;">
-                        <div class="progress-bar bg-info" style="width: 45%"></div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-satellite"></i></div>
+                        <div class="stat-number" id="gdeltRecords">-</div>
+                        <div class="stat-label">Registros GDELT</div>
                     </div>
-                    <small class="text-muted">2-4 años - Promedio de conflictos similares</small>
-                </div>
-                
-                <div class="mb-3">
-                    <strong>Probabilidad de Mediación Exitosa:</strong>
-                    <div class="progress mt-2" style="height: 10px;">
-                        <div class="progress-bar bg-success" style="width: 67%"></div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-number" id="acledEvents">-</div>
+                        <div class="stat-label">Eventos ACLED</div>
                     </div>
-                    <small class="text-muted">67% - Con mediación internacional activa</small>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="stat-number" id="gprIndicators">-</div>
+                        <div class="stat-label">Indicadores GPR</div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Cobertura de Fuentes</h3>
+                        <div id="sourceCoverageChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Calidad de Datos</h3>
+                        <div id="dataQualityChart"></div>
+                    </div>
+                </div>
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Estado de Fuentes de Datos</h3>
+                    <div id="dataSourcesStatus"></div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Lessons Learned -->
-    <div class="glass-card section-spacing">
-        <div class="card-body">
-            <h3 class="section-title">
-                <i class="fas fa-graduation-cap"></i>
-                Lecciones Estratégicas para Tomadores de Decisiones
-            </h3>
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="lesson-card">
-                        <div class="lesson-number">01</div>
-                        <div class="lesson-title">La Importancia de la Comunicación Directa</div>
-                        <div class="lesson-description">
-                            Los canales de comunicación directa entre líderes han evitado escaladas en el 89% de las crisis analizadas. 
-                            La Crisis de los Misiles de Cuba estableció el precedente del "teléfono rojo" que sigue siendo relevante hoy.
-                        </div>
+            <!-- Comparisons Tab -->
+            <div id="comparisonsTab" class="content-area">
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Comparativas Históricas</h3>
+                    <div class="comparison-controls">
+                        <select id="comparisonType" class="filter-select">
+                            <option value="regions">Comparar Regiones</option>
+                            <option value="periods">Comparar Períodos</option>
+                            <option value="categories">Comparar Categorías</option>
+                            <option value="countries">Comparar Países</option>
+                        </select>
+                        <button class="btn" onclick="generateComparison()">
+                            <i class="fas fa-chart-bar"></i>
+                            Generar Comparativa
+                        </button>
                     </div>
+                    <div id="comparisonResults"></div>
                 </div>
-                
-                <div class="col-md-6">
-                    <div class="lesson-card">
-                        <div class="lesson-number">02</div>
-                        <div class="lesson-title">Gradualismo vs. Acciones Decisivas</div>
-                        <div class="lesson-description">
-                            Las respuestas graduales permiten de-escalación pero pueden ser percibidas como debilidad. 
-                            El equilibrio entre firmeza y flexibilidad es crucial para mantener la credibilidad disuasoria.
-                        </div>
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Análisis Comparativo</h3>
+                        <div id="comparativeAnalysisChart"></div>
                     </div>
-                </div>
-                
-                <div class="col-md-6">
-                    <div class="lesson-card">
-                        <div class="lesson-number">03</div>
-                        <div class="lesson-title">El Papel de las Alianzas</div>
-                        <div class="lesson-description">
-                            Las alianzas sólidas disuaden agresiones en el 78% de los casos, pero también pueden crear 
-                            compromisos que limitan opciones diplomáticas. La gestión de alianzas requiere equilibrio constante.
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6">
-                    <div class="lesson-card">
-                        <div class="lesson-number">04</div>
-                        <div class="lesson-title">Factores Económicos como Estabilizadores</div>
-                        <div class="lesson-description">
-                            La interdependencia económica reduce la probabilidad de conflicto en un 65%, pero no la elimina completamente. 
-                            Los costos económicos deben ser inmediatos y significativos para ser efectivos.
-                        </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Métricas de Rendimiento</h3>
+                        <div id="performanceMetricsChart"></div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Comparative Analysis -->
-    <div class="glass-card section-spacing">
-        <div class="card-body">
-            <h3 class="section-title">
-                <i class="fas fa-balance-scale"></i>
-                Análisis Comparativo: Situación Actual vs. Precedentes Históricos
-            </h3>
-<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
-<div class="section-status"><div class="data-status simulation"><i class="fas fa-chart-line"></i><span>Datos económicos simulados</span></div></div>
-            
-            <div class="comparison-table">
-                <table class="table table-dark mb-0">
-                    <thead>
-                        <tr>
-                            <th>Aspecto</th>
-                            <th>Crisis de Cuba (1962)</th>
-                            <th>Invasión de Afganistán (1979)</th>
-                            <th>Situación Actual (2024)</th>
-                            <th>Similitud</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Superpotencias Involucradas</strong></td>
-                            <td>EE.UU. vs. URSS</td>
-                            <td>URSS vs. Occidente</td>
-                            <td>EE.UU./OTAN vs. Rusia</td>
-                            <td><span class="similarity-score similarity-high">Alta (85%)</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Territorio Disputado</strong></td>
-                            <td>Cuba (proxy)</td>
-                            <td>Afganistán</td>
-                            <td>Ucrania</td>
-                            <td><span class="similarity-score similarity-medium">Media (70%)</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Duración de Crisis</strong></td>
-                            <td>13 días</td>
-                            <td>10 años</td>
-                            <td>2+ años (en curso)</td>
-                            <td><span class="similarity-score similarity-medium">Media (60%)</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Apoyo Internacional</strong></td>
-                            <td>Bloques definidos</td>
-                            <td>Occidente unido</td>
-                            <td>Occidente mayormente unido</td>
-                            <td><span class="similarity-score similarity-high">Alta (80%)</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Sanciones Económicas</strong></td>
-                            <td>Limitadas</td>
-                            <td>Significativas</td>
-                            <td>Extensivas</td>
-                            <td><span class="similarity-score similarity-medium">Media (65%)</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Riesgo Nuclear</strong></td>
-                            <td>Muy Alto</td>
-                            <td>Bajo</td>
-                            <td>Moderado</td>
-                            <td><span class="similarity-score similarity-medium">Media (55%)</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="mt-4">
-                <h5 class="text-white">Conclusiones del Análisis Comparativo:</h5>
-                <div class="data-status real-data">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Análisis basado en datos RSS reales</span>
+            <!-- Scenarios Tab -->
+            <div id="scenariosTab" class="content-area">
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Simulación de Escenarios</h3>
+                    <div class="scenario-controls">
+                        <div class="scenario-selector">
+                            <label class="filter-label">Tipo de Escenario:</label>
+                            <select id="scenarioType" class="filter-select">
+                                <option value="conflict_escalation">Escalada de Conflicto</option>
+                                <option value="economic_crisis">Crisis Económica</option>
+                                <option value="climate_change">Cambio Climático</option>
+                                <option value="political_instability">Inestabilidad Política</option>
+                                <option value="pandemic">Pandemia</option>
+                                <option value="cyber_attack">Ataque Cibernético</option>
+                            </select>
+                        </div>
+                        <button class="btn" onclick="runScenarioSimulation()">
+                            <i class="fas fa-play"></i>
+                            Ejecutar Simulación
+                        </button>
+                    </div>
+                    <div id="scenarioSimulation"></div>
                 </div>
-<div class="section-status"><div class="data-status fallback-data"><i class="fas fa-brain"></i><span>Análisis basado en datos RSS</span></div></div>
-                <ul class="text-muted">
-                    <li><strong>Similitud General:</strong> 69% con precedentes históricos de confrontación Este-Oeste</li>
-                    <li><strong>Factor Diferenciador Clave:</strong> Mayor interdependencia económica global actual</li>
-                    <li><strong>Predicción Basada en Patrones:</strong> Resolución probable en 2-4 años con mediación internacional</li>
-                    <li><strong>Riesgo Principal:</strong> Escalada por malentendidos o incidentes no planificados</li>
-                </ul>
+                <div class="content-grid">
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Impacto Proyectado</h3>
+                        <div id="projectedImpactChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Línea Temporal del Escenario</h3>
+                        <div id="scenarioTimelineChart"></div>
+                    </div>
+                </div>
+                <div class="glass-panel">
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Recomendaciones de Mitigación</h3>
+                    <div id="mitigationRecommendations"></div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/plotly.js@2.29.1/dist/plotly.min.js"></script>
 <script>
-// Historical Analysis JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize fallback indicators for generic page
-    if (window.FallbackManager) {
-        window.FallbackManager.initializePageIndicators('generic');
+    // Global variables
+    let currentData = null;
+    let maps = {};
+    let charts = {};
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeDashboard();
+        loadFilters();
+        loadDashboardData();
+    });
+
+    // Initialize dashboard components
+    function initializeDashboard() {
+        // Set default date range (last 90 days)
+        const today = new Date();
+        const ninetyDaysAgo = new Date(today.getTime() - (90 * 24 * 60 * 60 * 1000));
+        
+        document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+        document.getElementById('dateFrom').value = ninetyDaysAgo.toISOString().split('T')[0];
+
+        // Initialize maps for each tab
+        initializeMaps();
     }
-    initializeHistoricalAnalysis();
-    loadTimelineEvents();
-    setupFilterControls();
-    generatePredictions();
-});
 
-function initializeHistoricalAnalysis() {
-    console.log('📚 Initializing Historical Analysis System...');
-    
-    // Animate timeline events on scroll
-    observeTimelineEvents();
-    
-    // Update statistics periodically
-    setInterval(updateStatistics, 60000); // Update every minute
-}
-
-function observeTimelineEvents() {
-    const timelineEvents = document.querySelectorAll('.timeline-event');
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+    // Initialize maps
+    function initializeMaps() {
+        const mapContainers = ['eventsMap', 'resourcesMap', 'risksMap', 'displacementMap'];
+        
+        mapContainers.forEach(mapId => {
+            const mapElement = document.getElementById(mapId);
+            if (mapElement) {
+                const map = L.map(mapId).setView([20, 0], 2);
+                
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                maps[mapId] = map;
             }
         });
-    }, { threshold: 0.3 });
-    
-    timelineEvents.forEach(event => {
-        event.style.opacity = '0';
-        event.style.transform = 'translateY(50px)';
-        event.style.transition = 'all 0.6s ease';
-        observer.observe(event);
-    });
-}
+    }
 
-function loadTimelineEvents() {
-    // Timeline events are already loaded in HTML
-    // This function could be used to load additional events dynamically
-    console.log('Timeline events loaded');
-}
+    // Load filter options
+    async function loadFilters() {
+        try {
+            const response = await fetch('/api/historical/filters');
+            const result = await response.json();
+            
+            if (result.success) {
+                populateFilterSelects(result.data);
+            }
+        } catch (error) {
+            console.error('Failed to load filters:', error);
+        }
+    }
 
-function setupFilterControls() {
-    const filters = ['period-filter', 'conflict-type', 'region-filter', 'impact-level'];
-    
-    filters.forEach(filterId => {
-        const filter = document.getElementById(filterId);
-        if (filter) {
-            filter.addEventListener('change', function() {
-                console.log(`Filter ${filterId} changed to: ${this.value}`);
-                // In a real implementation, this would filter the timeline events
+    // Populate filter select elements
+    function populateFilterSelects(filterData) {
+        // Countries
+        const countrySelect = document.getElementById('countryFilter');
+        if (filterData.countries) {
+            filterData.countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country.iso3;
+                option.textContent = country.country;
+                countrySelect.appendChild(option);
             });
         }
-    });
-}
 
-function applyFilters() {
-    const periodFilter = document.getElementById('period-filter').value;
-    const conflictType = document.getElementById('conflict-type').value;
-    const regionFilter = document.getElementById('region-filter').value;
-    const impactLevel = document.getElementById('impact-level').value;
-    
-    console.log('Applying filters:', {
-        period: periodFilter,
-        type: conflictType,
-        region: regionFilter,
-        impact: impactLevel
-    });
-    
-    // Show loading state
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Filtrando...';
-    button.disabled = true;
-    
-    // Simulate filtering process
-    setTimeout(() => {
-        // Reset button
-        button.innerHTML = originalText;
-        button.disabled = false;
-        
-        // Show success message
-        showNotification('Filtros aplicados correctamente', 'success');
-        
-        // In a real implementation, this would update the timeline and analysis
-        updateAnalysisResults();
-    }, 1500);
-}
-
-function updateAnalysisResults() {
-    // Simulate updating analysis results based on filters
-    const patterns = document.querySelectorAll('.pattern-card');
-    patterns.forEach(pattern => {
-        pattern.style.opacity = '0.7';
-        setTimeout(() => {
-            pattern.style.opacity = '1';
-        }, 300);
-    });
-}
-
-function generatePredictions() {
-    // Predictions are already in HTML
-    // This function could be used to update predictions based on new data
-    console.log('Predictions generated based on historical patterns');
-}
-
-function updateStatistics() {
-    // Simulate updating statistics
-    const statNumbers = document.querySelectorAll('.stat-number');
-    statNumbers.forEach(stat => {
-        const currentValue = parseInt(stat.textContent.replace(/,/g, ''));
-        if (Math.random() > 0.8) { // 20% chance of update
-            const increment = Math.floor(Math.random() * 5) + 1;
-            stat.textContent = (currentValue + increment).toLocaleString();
-        }
-    });
-}
-
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
-    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    notification.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-        }
-    }, 5000);
-}
-
-// Interactive timeline functionality
-document.addEventListener('click', function(e) {
-    if (e.target.closest('.timeline-event')) {
-        const event = e.target.closest('.timeline-event');
-        const content = event.querySelector('.timeline-content');
-        
-        // Toggle expanded view
-        content.classList.toggle('expanded');
-        
-        if (content.classList.contains('expanded')) {
-            content.style.maxHeight = content.scrollHeight + 'px';
-        } else {
-            content.style.maxHeight = '';
+        // Categories
+        const categorySelect = document.getElementById('categoryFilter');
+        if (filterData.categories) {
+            filterData.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.category;
+                option.textContent = category.category.charAt(0).toUpperCase() + category.category.slice(1);
+                categorySelect.appendChild(option);
+            });
         }
     }
-});
 
-// Smooth scrolling for timeline navigation
-function scrollToEvent(eventId) {
-    const event = document.getElementById(eventId);
-    if (event) {
-        event.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Load dashboard data
+    async function loadDashboardData() {
+        try {
+            showLoading();
+            
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const countries = Array.from(document.getElementById('countryFilter').selectedOptions).map(o => o.value);
+            const categories = Array.from(document.getElementById('categoryFilter').selectedOptions).map(o => o.value);
+
+            const params = new URLSearchParams();
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            countries.forEach(c => params.append('countries', c));
+            categories.forEach(c => params.append('categories', c));
+
+            const response = await fetch(`/api/historical/dashboard?${params}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                currentData = result.data;
+                updateDashboard(result.data);
+            } else {
+                showError('Failed to load dashboard data: ' + result.message);
+            }
+        } catch (error) {
+            showError('Network error: ' + error.message);
+        } finally {
+            hideLoading();
+        }
     }
-}
+
+    // Update dashboard with new data
+    function updateDashboard(data) {
+        updateStatistics(data.summary_stats || {});
+        updateEventsTab(data);
+        updateResourcesTab(data);
+        updateRisksTab(data);
+        updateDisplacementTab(data);
+        updateAlertsTab(data.alerts || []);
+        updateCorrelationsTab();
+    }
+
+    // Update statistics cards
+    function updateStatistics(stats) {
+        document.getElementById('totalEvents').textContent = (stats.total_events || 0).toLocaleString();
+        document.getElementById('recentEvents').textContent = (stats.recent_events || 0).toLocaleString();
+        document.getElementById('countriesAffected').textContent = (stats.countries_affected || 0).toLocaleString();
+        document.getElementById('avgEventsPerDay').textContent = stats.avg_events_per_day || '0';
+    }
+
+    // Update events tab
+    function updateEventsTab(data) {
+        // Events timeline chart
+        if (data.time_series) {
+            const timelineData = [];
+            Object.keys(data.time_series).forEach(category => {
+                const series = data.time_series[category];
+                timelineData.push({
+                    x: series.dates,
+                    y: series.counts,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: category.charAt(0).toUpperCase() + category.slice(1),
+                    line: { width: 3 }
+                });
+            });
+
+            Plotly.newPlot('eventsTimeChart', timelineData, {
+                title: '',
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { color: '#ffffff' },
+                xaxis: { 
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    zerolinecolor: 'rgba(255,255,255,0.1)'
+                },
+                yaxis: { 
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    zerolinecolor: 'rgba(255,255,255,0.1)'
+                }
+            });
+        }
+
+        // Category breakdown pie chart
+        if (data.category_breakdown) {
+            const categoryData = [{
+                values: data.category_breakdown.map(c => c.count),
+                labels: data.category_breakdown.map(c => c.category),
+                type: 'pie',
+                textinfo: 'label+percent',
+                textposition: 'outside',
+                marker: {
+                    colors: ['#00d4ff', '#0097a7', '#00695c', '#004d40', '#26a69a']
+                }
+            }];
+
+            Plotly.newPlot('categoryChart', categoryData, {
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { color: '#ffffff' }
+            });
+        }
+
+        // Update events map
+        if (data.geographic_data) {
+            updateEventsMap(data.geographic_data);
+        }
+
+        // Update events table
+        if (data.recent_events) {
+            updateEventsTable(data.recent_events);
+        }
+    }
+
+    // Update events map
+    function updateEventsMap(geoData) {
+        const map = maps['eventsMap'];
+        if (!map) return;
+        
+        // Clear existing markers
+        map.eachLayer(layer => {
+            if (layer instanceof L.Marker) {
+                map.removeLayer(layer);
+            }
+        });
+
+        // Add new markers
+        geoData.forEach(location => {
+            if (location.avg_lat && location.avg_lon) {
+                const marker = L.marker([location.avg_lat, location.avg_lon])
+                    .bindPopup(`
+                        <strong>${location.country}</strong><br>
+                        Category: ${location.category}<br>
+                        Events: ${location.event_count}<br>
+                        Last Activity: ${location.last_activity}
+                    `);
+                marker.addTo(map);
+            }
+        });
+    }
+
+    // Update events table
+    function updateEventsTable(events) {
+        const container = document.getElementById('eventsTable');
+        
+        if (events.length === 0) {
+            container.innerHTML = '<p style="color: rgba(255,255,255,0.7);">No se encontraron eventos para los criterios seleccionados.</p>';
+            return;
+        }
+
+        let tableHTML = `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>País</th>
+                        <th>Categoría</th>
+                        <th>Indicador</th>
+                        <th>Valor</th>
+                        <th>Fuente</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        events.slice(0, 20).forEach(event => {
+            tableHTML += `
+                <tr>
+                    <td>${event.date}</td>
+                    <td>${event.country || 'Desconocido'}</td>
+                    <td>${event.category}</td>
+                    <td>${event.indicator}</td>
+                    <td>${typeof event.value === 'number' ? event.value.toLocaleString() : event.value}</td>
+                    <td>${event.source}</td>
+                </tr>
+            `;
+        });
+
+        tableHTML += '</tbody></table>';
+        container.innerHTML = tableHTML;
+    }
+
+    // Update resources tab
+    function updateResourcesTab(data) {
+        // Filter resource data
+        const resourceData = (data.recent_events || []).filter(e => e.category === 'energy');
+        
+        if (resourceData.length > 0) {
+            // Energy trends chart
+            const energyByDate = {};
+            resourceData.forEach(event => {
+                if (!energyByDate[event.date]) {
+                    energyByDate[event.date] = 0;
+                }
+                energyByDate[event.date] += event.value || 0;
+            });
+
+            const energyChartData = [{
+                x: Object.keys(energyByDate),
+                y: Object.values(energyByDate),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Energy Supply',
+                line: { color: '#00d4ff', width: 3 }
+            }];
+
+            Plotly.newPlot('energyChart', energyChartData, {
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { color: '#ffffff' },
+                xaxis: { gridcolor: 'rgba(255,255,255,0.1)' },
+                yaxis: { gridcolor: 'rgba(255,255,255,0.1)' }
+            });
+        }
+    }
+
+    // Update risks tab
+    function updateRisksTab(data) {
+        // Filter risk data
+        const riskData = (data.recent_events || []).filter(e => 
+            e.category === 'governance' || e.indicator.includes('stability')
+        );
+        
+        if (riskData.length > 0) {
+            // Stability chart
+            const stabilityByCountry = {};
+            riskData.forEach(event => {
+                if (event.indicator.includes('stability')) {
+                    stabilityByCountry[event.country] = event.value;
+                }
+            });
+
+            const stabilityChartData = [{
+                x: Object.keys(stabilityByCountry),
+                y: Object.values(stabilityByCountry),
+                type: 'bar',
+                marker: { color: '#00d4ff' }
+            }];
+
+            Plotly.newPlot('stabilityChart', stabilityChartData, {
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { color: '#ffffff' },
+                xaxis: { gridcolor: 'rgba(255,255,255,0.1)' },
+                yaxis: { gridcolor: 'rgba(255,255,255,0.1)' }
+            });
+        }
+    }
+
+    // Update displacement tab
+    function updateDisplacementTab(data) {
+        // Filter displacement data
+        const displacementData = (data.recent_events || []).filter(e => e.category === 'displacement');
+        
+        if (displacementData.length > 0) {
+            // Displacement trends
+            const displacementByDate = {};
+            displacementData.forEach(event => {
+                if (!displacementByDate[event.date]) {
+                    displacementByDate[event.date] = 0;
+                }
+                displacementByDate[event.date] += event.value || 0;
+            });
+
+            const displacementChartData = [{
+                x: Object.keys(displacementByDate),
+                y: Object.values(displacementByDate),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Displaced Population',
+                line: { color: '#ffa726', width: 3 }
+            }];
+
+            Plotly.newPlot('displacementChart', displacementChartData, {
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { color: '#ffffff' },
+                xaxis: { gridcolor: 'rgba(255,255,255,0.1)' },
+                yaxis: { gridcolor: 'rgba(255,255,255,0.1)' }
+            });
+        }
+    }
+
+    // Update alerts tab
+    function updateAlertsTab(alerts) {
+        const container = document.getElementById('alertsPanel');
+        
+        if (!alerts || alerts.length === 0) {
+            container.innerHTML = '<p style="color: rgba(255,255,255,0.7); text-align: center; padding: 2rem;">No hay alertas activas</p>';
+            return;
+        }
+
+        let alertsHTML = '';
+        alerts.forEach(alert => {
+            alertsHTML += `
+                <div class="alert-item alert-${alert.severity}">
+                    <div class="alert-header">
+                        <div>
+                            <strong>${alert.country}</strong>
+                            <span class="alert-severity severity-${alert.severity}">${alert.severity}</span>
+                        </div>
+                        <small>${new Date(alert.timestamp).toLocaleDateString()}</small>
+                    </div>
+                    <p>${alert.message}</p>
+                </div>
+            `;
+        });
+
+        container.innerHTML = alertsHTML;
+    }
+
+    // Update correlations tab
+    async function updateCorrelationsTab() {
+        try {
+            const indicators = ['political_stability', 'violence_events', 'energy_supply', 'displacement'];
+            
+            const response = await fetch('/api/historical/correlation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ indicators, time_window: 90 })
+            });
+
+            const result = await response.json();
+            
+            if (result.success && result.data.correlations) {
+                displayCorrelationHeatmap(result.data.correlations, indicators);
+                displayStrongCorrelations(result.data.strong_correlations);
+            }
+        } catch (error) {
+            console.error('Failed to load correlation data:', error);
+        }
+    }
+
+    // Display correlation heatmap
+    function displayCorrelationHeatmap(correlations, indicators) {
+        const z = [];
+        const x = indicators;
+        const y = indicators;
+
+        indicators.forEach(ind1 => {
+            const row = [];
+            indicators.forEach(ind2 => {
+                row.push(correlations[ind1] ? correlations[ind1][ind2] || 0 : 0);
+            });
+            z.push(row);
+        });
+
+        const data = [{
+            z: z,
+            x: x,
+            y: y,
+            type: 'heatmap',
+            colorscale: [
+                [0, '#000051'],
+                [0.5, '#00d4ff'],
+                [1, '#ffffff']
+            ]
+        }];
+
+        Plotly.newPlot('correlationHeatmap', data, {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            font: { color: '#ffffff' }
+        });
+    }
+
+    // Display strong correlations
+    function displayStrongCorrelations(strongCorrelations) {
+        const container = document.getElementById('correlationList');
+        
+        if (!strongCorrelations || strongCorrelations.length === 0) {
+            container.innerHTML = '<p style="color: rgba(255,255,255,0.7);">No se encontraron correlaciones fuertes</p>';
+            return;
+        }
+
+        let html = '<div style="padding: 1rem;">';
+        strongCorrelations.forEach(corr => {
+            const strength = corr.strength === 'strong' ? 'high' : 'medium';
+            html += `
+                <div class="alert-item alert-${strength}" style="margin-bottom: 1rem;">
+                    <strong>${corr.indicator1}</strong> ↔ <strong>${corr.indicator2}</strong>
+                    <br>
+                    <span style="color: #00d4ff;">Correlación: ${corr.correlation}</span>
+                    <span class="alert-severity severity-${strength}">${corr.strength}</span>
+                </div>
+            `;
+        });
+        html += '</div>';
+        
+        container.innerHTML = html;
+    }
+
+    // Tab switching
+    function switchTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        // Update content areas
+        document.querySelectorAll('.content-area').forEach(area => area.classList.remove('active'));
+        const targetTab = document.getElementById(tabName + 'Tab');
+        if (targetTab) {
+            targetTab.classList.add('active');
+        }
+
+        // Refresh map if switching to a map tab
+        if (maps[tabName + 'Map']) {
+            setTimeout(() => {
+                maps[tabName + 'Map'].invalidateSize();
+            }, 100);
+        }
+    }
+
+    // Apply filters
+    function applyFilters() {
+        loadDashboardData();
+    }
+
+    // Trigger ETL update
+    async function triggerETLUpdate() {
+        try {
+            showLoading();
+            
+            const response = await fetch('/api/historical/etl/trigger', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ force_refresh: true })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                showSuccess('¡Datos actualizados exitosamente!');
+                loadDashboardData();
+            } else {
+                showError('Error al actualizar datos: ' + result.message);
+            }
+        } catch (error) {
+            showError('Error de red: ' + error.message);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // Export data
+    function exportData() {
+        if (!currentData) {
+            showError('No hay datos para exportar');
+            return;
+        }
+
+        const dataStr = JSON.stringify(currentData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `analisis_historico_${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+    }
+
+    // Utility functions
+    function showLoading() {
+        document.body.style.cursor = 'wait';
+    }
+
+    function hideLoading() {
+        document.body.style.cursor = 'default';
+    }
+
+    function showError(message) {
+        alert('Error: ' + message);
+    }
+
+    function showSuccess(message) {
+        alert('Éxito: ' + message);
+    }
 </script>
+
+<!-- Chart.js for visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Historical Dashboard Expanded JavaScript -->
+<script src="{{ url_for('static', filename='js/historical_dashboard_expanded.js') }}"></script>
 {% endblock %}

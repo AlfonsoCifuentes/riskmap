@@ -15,3 +15,4 @@ Provide project context and coding guidelines that AI should follow when generat
 **Never use deprecated functions or libraries**
 **Never use simulated data for testing, always use real data**
 **Don´t simulate data, don´t use mockups, always use real data**
+**Always check the database and list all tables and columns before making changes**

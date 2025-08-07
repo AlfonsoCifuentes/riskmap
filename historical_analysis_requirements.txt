@@ -1,0 +1,37 @@
+# Additional dependencies for Historical Analysis System
+# Add these to your existing requirements.txt or install with:
+# pip install -r historical_analysis_requirements.txt
+
+# Data processing and analysis
+schedule>=1.2.0          # Task scheduling
+plotly>=5.17.0          # Interactive charts
+geopandas>=0.14.0       # Geospatial data processing
+
+# Testing
+pytest>=7.4.0           # Testing framework
+pytest-asyncio>=0.21.0  # Async testing support
+
+# HTTP requests and data fetching
+requests>=2.31.0        # HTTP library (usually already installed)
+
+# Database
+sqlite3                 # Built into Python, no separate install needed
+
+# Scientific computing (usually already installed)
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Date/time handling
+python-dateutil>=2.8.0  # Usually already installed with pandas
+
+# Logging and utilities
+pathlib                 # Built into Python
+typing-extensions       # Usually already installed
+
+# Development and documentation
+black>=23.0.0           # Code formatter (optional)
+isort>=5.12.0           # Import sorter (optional)
+mypy>=1.5.0             # Type checker (optional)
+
+# Environment variables
+python-dotenv>=1.0.0    # For .env file support

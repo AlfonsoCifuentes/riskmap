@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conflict API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a2e; color: #fff; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .result { background: rgba(255,255,255,0.1); padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .success { border-left: 4px solid #22c55e; }
+        .error { border-left: 4px solid #ef4444; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .stat-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: #667eea; }
+        .stat-label { font-size: 0.9rem; color: rgba(255,255,255,0.7); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Conflict Monitoring API Test</h1>
+        <p>Testing the conflict monitoring API response structure and data mapping...</p>
+        
+        <button onclick="testConflictAPI()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Test API
+        </button>
+        
+        <div id="results"></div>
+        
+        <div id="stats" class="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-value" id="activeConflicts">-</div>
+                <div class="stat-label">Conflictos Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="involvedActors">-</div>
+                <div class="stat-label">Fuentes Activas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="humanitarianImpact">-</div>
+                <div class="stat-label">Países Afectados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="riskLevel">-</div>
+                <div class="stat-label">Nivel de Riesgo</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addResult(message, isSuccess = true) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${isSuccess ? 'success' : 'error'}`;
+            resultDiv.innerHTML = message;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function updateConflictStats(data) {
+            document.getElementById('activeConflicts').textContent = data.total_conflicts || 0;
+            document.getElementById('involvedActors').textContent = data.active_sources || 0;
+            document.getElementById('humanitarianImpact').textContent = data.affected_countries ? data.affected_countries + 'M' : '0';
+            document.getElementById('riskLevel').textContent = data.high_risk_conflicts > 50 ? 'Alto' : data.high_risk_conflicts > 20 ? 'Medio' : 'Bajo';
+        }
+
+        async function testConflictAPI() {
+            document.getElementById('results').innerHTML = '';
+            addResult('🔄 Starting API test...');
+            
+            try {
+                const response = await fetch('/api/conflict-monitoring/real-data');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                addResult(`✅ API Response received successfully`);
+                addResult(`📊 Success: ${data.success}`);
+                addResult(`🗃️ Data source: ${data.data_source}`);
+                addResult(`📅 Timestamp: ${data.timestamp}`);
+                
+                if (data.statistics) {
+                    addResult('📈 Statistics object found in response');
+                    addResult(`🎯 Total conflicts: ${data.statistics.total_conflicts}`);
+                    addResult(`⚠️ High risk conflicts: ${data.statistics.high_risk_conflicts}`);
+                    addResult(`📊 Active sources: ${data.statistics.active_sources}`);
+                    addResult(`🌍 Affected countries: ${data.statistics.affected_countries}`);
+                    
+                    // Update the stats display
+                    updateConflictStats(data.statistics);
+                    document.getElementById('stats').style.display = 'grid';
+                    
+                    addResult('✅ Statistics successfully mapped to UI elements');
+                } else {
+                    addResult('❌ No statistics object found in response', false);
+                }
+                
+                if (data.conflicts && Array.isArray(data.conflicts)) {
+                    addResult(`🎯 Conflicts array found with ${data.conflicts.length} items`);
+                    
+                    if (data.conflicts.length > 0) {
+                        const sample = data.conflicts[0];
+                        addResult(`📝 Sample conflict has properties: ${Object.keys(sample).join(', ')}`);
+                        
+                        if (sample.importance_score !== undefined) {
+                            addResult('✅ importance_score property is available in conflict data');
+                        } else {
+                            addResult('❌ importance_score property is missing from conflict data', false);
+                        }
+                    }
+                } else {
+                    addResult('❌ No conflicts array found in response', false);
+                }
+                
+                addResult('🎉 API test completed successfully!');
+                
+            } catch (error) {
+                addResult(`❌ Error: ${error.message}`, false);
+                console.error('API Test Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

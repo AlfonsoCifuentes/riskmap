@@ -5,17 +5,74 @@
 {% block extra_css %}
 <style>
     :root {
-        --bg-primary: #000814;
-        --bg-secondary: #001d3d;
+        --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        --bg-secondary: #141824;
         --bg-tertiary: #003566;
         --accent-cyan: #00d4ff;
         --accent-blue: #0077b6;
-        --text-primary: #ffffff;
-        --text-secondary: #94a3b8;
+        --text-primary: #e8eaed;
+        --text-secondary: #b0b8c4;
         --warning: #ffd60a;
         --danger: #dc2626;
         --success: #10b981;
         --border-color: rgba(255, 255, 255, 0.1);
+        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+    }
+
+    /* Header Section Styling */
+    .header-section {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        top: -80px;
+        margin-bottom: -80px;
+        z-index: 0;
+        background: linear-gradient(135deg, rgba(26, 32, 64, 0.75) 0%, rgba(16, 24, 48, 0.8) 50%, rgba(20, 28, 56, 0.75) 100%);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        padding: 180px 0 80px 0;
+        text-align: center;
+    }
+
+    .page-title {
+        font-family: 'Orbitron', monospace;
+        font-size: clamp(2rem, 6vw, 4rem);
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+    }
+
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Consistent heading sizes */
+    h3.text-white {
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    h4.text-white {
+        font-size: 1.1rem;
+        font-weight: 600;
     }
 
     /* Main container with proper margins for wide screens */
@@ -24,6 +81,8 @@
         min-height: calc(100vh - 80px);
         padding: 40px 0;
         color: var(--text-primary);
+        position: relative;
+        z-index: 2;
     }
 
     .container-wide {
@@ -45,7 +104,7 @@
 
     .page-title {
         font-family: 'Orbitron', monospace;
-        font-size: 2.5rem;
+        font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%);
         -webkit-background-clip: text;
@@ -55,10 +114,9 @@
     }
 
     .page-subtitle {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         color: var(--text-secondary);
-        max-width: 600px;
-        margin: 0 auto;
+        margin-bottom: 30px;
     }
 
     /* Grid Layout - Responsive */
@@ -161,6 +219,314 @@
         box-shadow: none;
     }
 
+    .btn-satellite-main {
+        background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%);
+        border: 3px solid var(--accent-cyan);
+        color: white;
+        padding: 25px 45px;
+        border-radius: 15px;
+        font-weight: 700;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        min-width: 350px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+    }
+
+    .btn-satellite-main::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s;
+    }
+
+    .btn-satellite-main:hover::before {
+        left: 100%;
+    }
+
+    .btn-satellite-main:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 212, 255, 0.4);
+        color: white;
+        background: linear-gradient(135deg, #00b8e6 0%, #005f8a 100%);
+        border-color: #00b8e6;
+    }
+
+    .btn-satellite-main .btn-text {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .btn-satellite-main .btn-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        font-weight: 400;
+        text-shadow: none;
+    }
+
+    .btn-satellite-main i {
+        font-size: 1.8rem;
+        margin-bottom: 8px;
+    }
+
+    .btn-satellite.btn-primary {
+        background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%);
+        border: 2px solid var(--accent-cyan);
+        font-weight: 600;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-satellite.btn-primary:hover {
+        background: linear-gradient(135deg, #00b8e6 0%, #005f8a 100%);
+        border-color: #00b8e6;
+        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+    }
+
+    .btn-satellite.btn-mosaic {
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        border: 2px solid #ff6b35;
+        color: white;
+        font-weight: 600;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-satellite.btn-mosaic:hover {
+        background: linear-gradient(135deg, #ff8555 0%, #f9a541 100%);
+        border-color: #ff8555;
+        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+    }
+
+    .btn-satellite.btn-ultra-hd {
+        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        border: 2px solid #8b5cf6;
+        color: white;
+        font-weight: 600;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-satellite.btn-ultra-hd::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-satellite.btn-ultra-hd:hover::before {
+        left: 100%;
+    }
+
+    .btn-satellite.btn-ultra-hd:hover {
+        background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+        border-color: #a78bfa;
+        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* Multi-API Ultra HD button */
+    .btn-satellite.btn-multi-api {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: 2px solid #10b981;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-satellite.btn-multi-api::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-satellite.btn-multi-api:hover::before {
+        left: 100%;
+    }
+
+    .btn-satellite.btn-multi-api:hover {
+        background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        border-color: #34d399;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* Best Resolution button */
+    .btn-satellite.btn-best-res {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        border: 2px solid #f59e0b;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-satellite.btn-best-res::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-satellite.btn-best-res:hover::before {
+        left: 100%;
+    }
+
+    .btn-satellite.btn-best-res:hover {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        border-color: #fbbf24;
+        box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* Commercial Satellites button */
+    .btn-satellite.btn-commercial {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        border: 2px solid #ef4444;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-satellite.btn-commercial::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-satellite.btn-commercial:hover::before {
+        left: 100%;
+    }
+
+    .btn-satellite.btn-commercial:hover {
+        background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+        border-color: #f87171;
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* Google Earth Engine buttons */
+    .btn-satellite.btn-gee {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: 2px solid #10b981;
+        color: white;
+        font-weight: 600;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-satellite.btn-gee::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-satellite.btn-gee:hover::before {
+        left: 100%;
+    }
+
+    .btn-satellite.btn-gee:hover {
+        background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        border-color: #34d399;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .btn-satellite.btn-gee-batch {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        border: 2px solid #8b5cf6;
+        color: white;
+        font-weight: 600;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-satellite.btn-gee-batch::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-satellite.btn-gee-batch:hover::before {
+        left: 100%;
+    }
+
+    .btn-satellite.btn-gee-batch:hover {
+        background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+        border-color: #a78bfa;
+        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .btn-satellite.btn-gee-mosaic {
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        border: 2px solid #f97316;
+        color: white;
+        font-weight: 600;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-satellite.btn-gee-mosaic::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-satellite.btn-gee-mosaic:hover::before {
+        left: 100%;
+    }
+
+    .btn-satellite.btn-gee-mosaic:hover {
+        background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+        border-color: #fb923c;
+        box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
+        transform: translateY(-2px);
+    }
+
     /* Statistics Cards */
     .stats-grid {
         display: grid;
@@ -236,6 +602,106 @@
     .gallery-meta {
         font-size: 0.85rem;
         color: var(--text-secondary);
+    }
+
+    /* Destacar mosaico Gaza */
+    .mosaic-highlight {
+        border: 3px solid #ff6b35;
+        background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(255, 107, 53, 0.05));
+        transform: scale(1.02);
+        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+    }
+
+    .mosaic-highlight .gallery-title {
+        color: #ff6b35;
+        font-weight: 700;
+        font-size: 1.1em;
+    }
+
+    .mosaic-highlight::before {
+        content: "⭐";
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 20px;
+        z-index: 10;
+    }
+
+    /* Detection Gallery Styles */
+    .detection-highlight {
+        border: 2px solid #8b5cf6;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+    }
+
+    .detection-highlight:hover {
+        border-color: #a78bfa;
+        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+    }
+
+    .threat-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        z-index: 10;
+    }
+
+    .threat-critical { background: #dc2626; color: white; }
+    .threat-high { background: #ea580c; color: white; }
+    .threat-medium { background: #d97706; color: white; }
+    .threat-low { background: #16a34a; color: white; }
+    .threat-unknown { background: #6b7280; color: white; }
+
+    .detection-count {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(139, 92, 246, 0.9);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        z-index: 10;
+    }
+
+    .detection-summary {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .military-count, .civilian-count, .infrastructure-count {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+    }
+
+    .military-count { color: #ff6b6b; }
+    .civilian-count { color: #4ecdc4; }
+    .infrastructure-count { color: #45b7d1; }
+
+    .capture-time, .confidence-level {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+    }
+
+    .no-images, .error-message {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-secondary);
+    }
+
+    .no-images i, .error-message i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: var(--accent-cyan);
     }
 
     /* Progress Bar */
@@ -383,19 +849,14 @@
 {% endblock %}
 
 {% block content %}
+<!-- Header Section -->
+<div class="header-section">
+    <h1 class="page-title">🛰️ Análisis Satelital Avanzado</h1>
+    <p class="page-subtitle">Monitoreo en Tiempo Real • Imágenes de Alta Resolución • Detección de Eventos Críticos</p>
+</div>
+
 <div class="satellite-dashboard">
     <div class="container-wide">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h1 class="page-title">
-                <i class="fas fa-satellite"></i>
-                Análisis Satelital Avanzado
-            </h1>
-            <p class="page-subtitle">
-                Monitoreo en tiempo real de conflictos y eventos críticos mediante imágenes satelitales de alta resolución
-            </p>
-        </div>
-
         <!-- Control Panel -->
         <div class="analysis-card control-panel">
             <div class="card-header">
@@ -406,14 +867,11 @@
                     Panel de Control
                 </h3>
             </div>
-            <div class="d-flex flex-wrap gap-3">
-                <button id="triggerAnalysis" class="btn-satellite">
-                    <i class="fas fa-rocket"></i>
-                    Iniciar Análisis Satelital
-                </button>
-                <button id="refreshData" class="btn-satellite">
-                    <i class="fas fa-sync-alt"></i>
-                    Actualizar Datos
+            <div class="d-flex justify-content-center" style="padding: 40px 0;">
+                <button id="startComprehensiveAnalysis" class="btn-satellite-main">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span class="btn-text">Iniciar Análisis Satelital Completo</span>
+                    <small class="btn-subtitle">Sentinel Hub + Google Earth Engine + IA</small>
                 </button>
             </div>
             
@@ -482,12 +940,29 @@
                     <div class="card-icon">
                         <i class="fas fa-images"></i>
                     </div>
-                    Galería de Imágenes Satelitales
+                    Galería de Imágenes Satelitales (<span id="imageCount">0</span>)
                 </h3>
             </div>
             <div id="galleryImages" class="gallery-grid loading">
                 <div class="spinner"></div>
                 <p>Cargando galería de imágenes...</p>
+            </div>
+        </div>
+
+        <!-- Ultra HD Detection Gallery Section -->
+        <div class="analysis-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <div class="card-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    Galería Ultra HD - Solo Detecciones
+                </h3>
+                <p class="text-secondary small mt-1">Imágenes con objetos detectados por análisis YOLO</p>
+            </div>
+            <div id="galleryDetections" class="gallery-grid loading">
+                <div class="spinner"></div>
+                <p>Cargando galería de detecciones...</p>
             </div>
         </div>
 
@@ -574,14 +1049,9 @@ class SatelliteAnalysisManager {
     }
 
     bindEvents() {
-        // Trigger Analysis Button
-        document.getElementById('triggerAnalysis').addEventListener('click', () => {
-            this.startAnalysis();
-        });
-
-        // Refresh Data Button
-        document.getElementById('refreshData').addEventListener('click', () => {
-            this.loadInitialData();
+        // Comprehensive Analysis Button
+        document.getElementById('startComprehensiveAnalysis').addEventListener('click', () => {
+            this.startComprehensiveAnalysis();
         });
     }
 
@@ -591,6 +1061,7 @@ class SatelliteAnalysisManager {
             this.loadStatistics(),
             this.loadCriticalAlerts(),
             this.loadGallery(),
+            this.loadDetectionGallery(),
             this.loadTimeline(),
             this.loadPredictions()
         ]);
@@ -631,6 +1102,933 @@ class SatelliteAnalysisManager {
         } finally {
             triggerBtn.disabled = false;
             triggerBtn.innerHTML = '<i class="fas fa-rocket"></i> Iniciar Análisis Satelital';
+        }
+    }
+
+    async startComprehensiveAnalysis() {
+        const analysisBtn = document.getElementById('startComprehensiveAnalysis');
+        const progressContainer = document.getElementById('progressContainer');
+        
+        try {
+            analysisBtn.disabled = true;
+            analysisBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span class="btn-text">Ejecutando Análisis...</span><small class="btn-subtitle">Procesando datos en tiempo real</small>';
+            
+            // Show progress container
+            progressContainer.style.display = 'block';
+            this.updateProgress(0, 'Iniciando análisis satelital completo...');
+
+            // Step 1: Get conflict zones from integrated pipeline
+            this.updateProgress(10, 'Obteniendo zonas de conflicto del pipeline integrado...');
+            const conflictsResponse = await fetch('/api/analytics/conflicts?timeframe=7d&predictions=true');
+            
+            if (!conflictsResponse.ok) {
+                throw new Error(`Error obteniendo zonas de conflicto: ${conflictsResponse.status}`);
+            }
+            
+            const conflictsData = await conflictsResponse.json();
+            
+            if (!conflictsData.success) {
+                throw new Error(conflictsData.error || 'Error en datos de conflictos');
+            }
+
+            this.updateProgress(20, `${conflictsData.satellite_zones.length} zonas detectadas, iniciando análisis satelital...`);
+
+            // Step 2: Execute comprehensive satellite analysis
+            const analysisResponse = await fetch('/api/satellite/comprehensive-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    satellite_zones: conflictsData.satellite_zones,
+                    max_zoom: true, // Maximum resolution
+                    use_sentinel_hub: true,
+                    use_google_earth: true,
+                    ai_analysis: true,
+                    gaza_focus: true, // Special focus on Gaza strip
+                    cloud_coverage_max: 10, // Very low cloud coverage for better quality
+                    resolution_priority: 'ultra_high' // 0.5m resolution when possible
+                })
+            });
+
+            if (!analysisResponse.ok) {
+                throw new Error(`Error en análisis satelital: ${analysisResponse.status}`);
+            }
+
+            const analysisData = await analysisResponse.json();
+            
+            if (analysisData.success) {
+                this.updateProgress(50, 'Procesando imágenes con máxima resolución...');
+                
+                // Monitor progress if the backend provides it
+                if (analysisData.job_id) {
+                    await this.monitorAnalysisProgress(analysisData.job_id);
+                } else {
+                    // Simulate progress for immediate results
+                    setTimeout(() => {
+                        this.updateProgress(75, 'Aplicando análisis de IA...');
+                        setTimeout(() => {
+                            this.updateProgress(100, `Análisis completado: ${analysisData.images_processed || 0} imágenes procesadas`);
+                            
+                            const message = analysisData.fallback_mode ? 
+                                `✅ Análisis satelital completado con datos de demostración. ${analysisData.images_processed || 0} imágenes de alta resolución procesadas.` :
+                                `✅ Análisis satelital completo exitoso. ${analysisData.images_processed || 0} imágenes en tiempo real procesadas con IA.`;
+                            
+                            this.showSuccess(message);
+                            
+                            // Hide progress and refresh
+                            setTimeout(() => {
+                                progressContainer.style.display = 'none';
+                                this.loadGallery();
+                                this.loadStatistics();
+                                this.loadDetectionGallery();
+                            }, 3000);
+                            
+                        }, 1500);
+                    }, 1500);
+                }
+                
+            } else {
+                throw new Error(analysisData.error || 'Error en análisis satelital completo');
+            }
+            
+        } catch (error) {
+            console.error('Error in comprehensive analysis:', error);
+            this.showError('Error en análisis satelital: ' + error.message);
+            progressContainer.style.display = 'none';
+        } finally {
+            analysisBtn.disabled = false;
+            analysisBtn.innerHTML = '<i class="fas fa-satellite-dish"></i><span class="btn-text">Iniciar Análisis Satelital Completo</span><small class="btn-subtitle">Sentinel Hub + Google Earth Engine + IA</small>';
+        }
+    }
+
+    async monitorAnalysisProgress(jobId) {
+        const maxAttempts = 30; // Maximum 5 minutes
+        let attempts = 0;
+        
+        const checkProgress = async () => {
+            try {
+                const response = await fetch(`/api/satellite/progress/${jobId}`);
+                const data = await response.json();
+                
+                if (data.status === 'completed') {
+                    this.updateProgress(100, `Análisis completado: ${data.images_processed} imágenes procesadas`);
+                    return true;
+                } else if (data.status === 'error') {
+                    throw new Error(data.error);
+                } else if (data.status === 'processing') {
+                    const progress = Math.min(50 + (data.progress || 0) * 0.5, 95);
+                    this.updateProgress(progress, data.message || 'Procesando imágenes...');
+                }
+                
+                return false;
+            } catch (error) {
+                console.error('Error checking progress:', error);
+                return false;
+            }
+        };
+        
+        while (attempts < maxAttempts) {
+            const completed = await checkProgress();
+            if (completed) break;
+            
+            await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+            attempts++;
+        }
+    }
+
+    async generateGazaMosaic() {
+        const mosaicBtn = document.getElementById('generateGazaMosaic');
+        const progressContainer = document.getElementById('progressContainer');
+        
+        try {
+            mosaicBtn.disabled = true;
+            mosaicBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando Mosaico HR...';
+            
+            // Show progress container
+            progressContainer.style.display = 'block';
+            this.updateProgress(0, 'Iniciando generación de mosaico de alta resolución...');
+
+            const response = await fetch('/api/satellite/generate-gaza-mosaic', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateProgress(25, 'Dividiendo Gaza en sectores...');
+                
+                // Simulate progress for user feedback
+                setTimeout(() => {
+                    this.updateProgress(50, 'Obteniendo imágenes Sentinel-2...');
+                }, 1000);
+                
+                setTimeout(() => {
+                    this.updateProgress(75, 'Ensamblando mosaico...');
+                }, 2000);
+                
+                setTimeout(() => {
+                    this.updateProgress(100, `Mosaico generado: ${data.dimensions} (${data.file_size_mb?.toFixed(1)} MB)`);
+                    
+                    // Show success message with details
+                    const message = `✅ Mosaico de Gaza generado exitosamente!\n` +
+                                  `📏 Dimensiones: ${data.dimensions}\n` +
+                                  `🗺️ Cobertura: ${data.coverage_area}\n` +
+                                  `🔍 Resolución: ${data.resolution}\n` +
+                                  `📁 Tamaño: ${data.file_size_mb?.toFixed(1)} MB`;
+                    
+                    this.showSuccess(message);
+                    
+                    // Hide progress after delay and refresh data
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        this.loadGallery(); // Refresh gallery to show new mosaic
+                        this.loadStatistics(); // Update statistics
+                    }, 4000);
+                    
+                }, 3000);
+                
+            } else {
+                throw new Error(data.error || 'Error generando mosaico de Gaza');
+            }
+            
+        } catch (error) {
+            console.error('Error generating Gaza mosaic:', error);
+            this.showError('Error generando mosaico de Gaza: ' + error.message);
+            progressContainer.style.display = 'none';
+        } finally {
+            mosaicBtn.disabled = false;
+            mosaicBtn.innerHTML = '<i class="fas fa-map"></i> Generar Mosaico Gaza HR';
+        }
+    }
+
+    async runUltraHdAnalysis() {
+        const ultraBtn = document.getElementById('ultraHdAnalysis');
+        const progressContainer = document.getElementById('progressContainer');
+        
+        try {
+            ultraBtn.disabled = true;
+            ultraBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Análisis Ultra HD en curso...';
+            
+            // Show progress container
+            progressContainer.style.display = 'block';
+            this.updateProgress(0, 'Iniciando análisis Ultra HD con YOLO...');
+
+            const response = await fetch('/api/satellite/ultra-hd/auto-execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateProgress(20, 'Autenticando con SentinelHub...');
+                
+                setTimeout(() => {
+                    this.updateProgress(40, 'Descargando imágenes de máxima resolución...');
+                }, 1000);
+                
+                setTimeout(() => {
+                    this.updateProgress(65, 'Ejecutando análisis YOLO...');
+                }, 2500);
+                
+                setTimeout(() => {
+                    this.updateProgress(85, 'Procesando detecciones...');
+                }, 4000);
+                
+                setTimeout(() => {
+                    this.updateProgress(100, `Análisis completado: ${data.zones_processed} zonas procesadas`);
+                    
+                    // Show detailed success message
+                    const stats = data.statistics || {};
+                    const predictions = data.predictions || {};
+                    
+                    const message = `🎯 Análisis Ultra HD completado!\n\n` +
+                                  `📡 Zonas procesadas: ${data.zones_processed}\n` +
+                                  `🔍 Total detecciones: ${stats.total_objects_detected || 0}\n` +
+                                  `🪖 Objetos militares: ${stats.military_objects_total || 0}\n` +
+                                  `🏘️ Objetos civiles: ${stats.civilian_objects_total || 0}\n` +
+                                  `🏗️ Infraestructura: ${stats.infrastructure_total || 0}\n` +
+                                  `⚠️ Nivel de amenaza: ${stats.overall_threat_level || 'BAJO'}\n` +
+                                  `📈 Tendencia militar: ${predictions.military_activity_trend || 'ESTABLE'}`;
+                    
+                    this.showSuccess(message);
+                    
+                    // Hide progress after delay and refresh data
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        this.loadAllGalleries(); // Load both galleries
+                        this.loadUltraHdStatistics(); // Load Ultra HD statistics
+                        this.loadUltraHdPredictions(); // Load Ultra HD predictions
+                    }, 5000);
+                    
+                }, 5500);
+                
+            } else {
+                throw new Error(data.error || 'Error en análisis Ultra HD');
+            }
+            
+        } catch (error) {
+            console.error('Error running Ultra HD analysis:', error);
+            this.showError('Error en análisis Ultra HD: ' + error.message);
+            progressContainer.style.display = 'none';
+        } finally {
+            ultraBtn.disabled = false;
+            ultraBtn.innerHTML = '<i class="fas fa-eye"></i> Análisis Ultra HD + YOLO';
+        }
+    }
+
+    async startMultiApiUltraHd() {
+        const btn = document.getElementById('multiApiUltraHd');
+        const progressContainer = document.getElementById('progressContainer');
+        
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ejecutando Multi-API Ultra HD...';
+            
+            // Show progress container
+            progressContainer.style.display = 'block';
+            this.updateProgress(0, 'Iniciando análisis Multi-API Ultra HD (0.5m)...');
+
+            const response = await fetch('/api/satellite/ultra-hd/auto-execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    target_resolution_m: 0.5,  // Objetivo: 50cm por pixel
+                    max_zones: 15
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateProgress(25, 'Conectando a múltiples APIs satelitales...');
+                
+                setTimeout(() => {
+                    this.updateProgress(50, 'Procesando imágenes SentinelHub y Google Earth Engine...');
+                    
+                    setTimeout(() => {
+                        this.updateProgress(75, 'Obteniendo imágenes de WorldView/SPOT...');
+                        
+                        setTimeout(() => {
+                            this.updateProgress(100, 'Análisis Multi-API completado!');
+                            
+                            // Show success message with detailed statistics
+                            const summary = data.analysis_summary;
+                            const message = `🛰️ Análisis Multi-API Ultra HD completado!\n\n` +
+                                          `📊 Zonas procesadas: ${summary.total_zones_processed}/${summary.total_zones_requested}\n` +
+                                          `🔍 Ultra HD (≤1m): ${summary.ultra_hd_zones} zonas\n` +
+                                          `📷 Alta resolución (≤2m): ${summary.high_resolution_zones} zonas\n` +
+                                          `🎯 Resolución objetivo: ${summary.target_resolution_m}m/pixel`;
+                            
+                            this.showSuccess(message);
+                            
+                            // Hide progress after delay and refresh data
+                            setTimeout(() => {
+                                progressContainer.style.display = 'none';
+                                this.loadGallery();
+                                this.loadStatistics();
+                            }, 4000);
+                            
+                        }, 2500);
+                    }, 2000);
+                }, 2000);
+                
+            } else {
+                throw new Error(data.error || 'Error en análisis Multi-API Ultra HD');
+            }
+            
+        } catch (error) {
+            console.error('Error running Multi-API Ultra HD analysis:', error);
+            this.showError('Error en análisis Multi-API Ultra HD: ' + error.message);
+            progressContainer.style.display = 'none';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-satellite-dish"></i> Multi-API Ultra HD (0.5m)';
+        }
+    }
+
+    async startBestResolutionSearch() {
+        const btn = document.getElementById('bestResolutionSearch');
+        
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando mejor resolución...';
+            
+            // Show input dialog for coordinates
+            const coordsDialog = prompt('Ingrese coordenadas (formato: lat,lon) o deje en blanco para usar Gaza:', '31.5017,34.4668');
+            if (coordsDialog === null) {
+                return; // User cancelled
+            }
+            
+            let latitude = 31.5017;  // Gaza default
+            let longitude = 34.4668;
+            let locationName = 'Gaza Strip';
+            
+            if (coordsDialog.trim()) {
+                const coords = coordsDialog.split(',');
+                if (coords.length === 2) {
+                    latitude = parseFloat(coords[0].trim());
+                    longitude = parseFloat(coords[1].trim());
+                    locationName = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                }
+            }
+
+            const response = await fetch('/api/satellite/ultra-hd/best-resolution', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude,
+                    location_name: locationName,
+                    target_resolution_m: 0.5
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                const result = data.result;
+                const message = `✅ Mejor imagen encontrada!\n\n` +
+                              `🛰️ Fuente: ${result.source}\n` +
+                              `🔍 Resolución: ${result.resolution_m}m/pixel\n` +
+                              `📏 Tamaño: ${(result.size_bytes / 1024 / 1024).toFixed(1)} MB\n` +
+                              `📍 Ubicación: ${locationName}`;
+                
+                this.showSuccess(message);
+                
+                // Refresh gallery to show new image
+                setTimeout(() => {
+                    this.loadGallery();
+                }, 2000);
+                
+            } else {
+                throw new Error(data.error || 'Error buscando mejor resolución');
+            }
+            
+        } catch (error) {
+            console.error('Error searching best resolution:', error);
+            this.showError('Error buscando mejor resolución: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-search-plus"></i> Buscar Mejor Resolución';
+        }
+    }
+
+    async startCommercialSatelliteAnalysis() {
+        const btn = document.getElementById('commercialSatellites');
+        const progressContainer = document.getElementById('progressContainer');
+        
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accediendo satélites comerciales...';
+            
+            // Show progress container
+            progressContainer.style.display = 'block';
+            this.updateProgress(0, 'Conectando a satélites comerciales...');
+
+            const response = await fetch('/api/satellite/ultra-hd/auto-execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    target_resolution_m: 0.3,  // Objetivo: 30cm por pixel (WorldView)
+                    max_zones: 8,              // Menos zonas para comerciales
+                    commercial_only: true
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateProgress(30, 'Autenticando con proveedores comerciales...');
+                
+                setTimeout(() => {
+                    this.updateProgress(60, 'Descargando imágenes WorldView/DigitalGlobe...');
+                    
+                    setTimeout(() => {
+                        this.updateProgress(85, 'Procesando imágenes de alta resolución...');
+                        
+                        setTimeout(() => {
+                            this.updateProgress(100, 'Análisis comercial completado!');
+                            
+                            const summary = data.analysis_summary;
+                            const message = `🏢 Análisis Satélites Comerciales completado!\n\n` +
+                                          `📊 Zonas procesadas: ${summary.total_zones_processed}\n` +
+                                          `🔍 Resolución sub-métrica: ${summary.ultra_hd_zones} zonas\n` +
+                                          `💰 Calidad comercial alcanzada\n` +
+                                          `🎯 Resolución objetivo: ${summary.target_resolution_m}m/pixel`;
+                            
+                            this.showSuccess(message);
+                            
+                            // Hide progress after delay and refresh data
+                            setTimeout(() => {
+                                progressContainer.style.display = 'none';
+                                this.loadGallery();
+                                this.loadStatistics();
+                            }, 4000);
+                            
+                        }, 2000);
+                    }, 2500);
+                }, 2000);
+                
+            } else {
+                throw new Error(data.error || 'Error en análisis de satélites comerciales');
+            }
+            
+        } catch (error) {
+            console.error('Error running commercial satellite analysis:', error);
+            this.showError('Error en análisis comercial: ' + error.message);
+            progressContainer.style.display = 'none';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-industry"></i> Satélites Comerciales';
+        }
+    }
+
+    async startGeeBatchExport() {
+        const btn = document.getElementById('geeBatchExport');
+        const progressContainer = document.getElementById('progressContainer');
+        
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exportando con GEE...';
+            
+            // Show progress container
+            progressContainer.style.display = 'block';
+            this.updateProgress(0, 'Conectando a Google Earth Engine...');
+
+            // Use Gaza coordinates from fallback GeoJSON
+            const geometry = {
+                type: "Polygon",
+                coordinates: [[
+                    [34.1, 31.2],
+                    [34.6, 31.2],
+                    [34.6, 31.6],
+                    [34.1, 31.6],
+                    [34.1, 31.2]
+                ]]
+            };
+
+            const response = await fetch('/api/satellite/gee/batch-export', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    geometry: geometry,
+                    date_range: {
+                        start: '2024-01-01',
+                        end: '2024-12-31'
+                    },
+                    max_cloud_cover: 20,
+                    collection: 'LANDSAT/LC08/C02/T1_L2'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateProgress(50, 'Iniciando tareas de exportación...');
+                
+                setTimeout(() => {
+                    this.updateProgress(100, 'Exportación por lotes iniciada!');
+                    
+                    const message = `🌍 Exportación GEE iniciada exitosamente!\n\n` +
+                                  `📤 Tareas creadas: ${data.result.task_count || 'N/A'}\n` +
+                                  `☁️ Nubosidad máxima: 20%\n` +
+                                  `📅 Período: 2024 completo\n` +
+                                  `🗂️ Colección: Landsat 8`;
+                    
+                    this.showSuccess(message);
+                    
+                    // Hide progress after delay
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                    }, 3000);
+                    
+                }, 2000);
+                
+            } else {
+                throw new Error(data.error || 'Error en exportación por lotes de GEE');
+            }
+            
+        } catch (error) {
+            console.error('Error running GEE batch export:', error);
+            this.showError('Error en exportación GEE: ' + error.message);
+            progressContainer.style.display = 'none';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> GEE Exportación Lote';
+        }
+    }
+
+    async startGeeBestImage() {
+        const btn = document.getElementById('geeBestImage');
+        const progressContainer = document.getElementById('progressContainer');
+        
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando con GEE...';
+            
+            // Show progress container
+            progressContainer.style.display = 'block';
+            this.updateProgress(0, 'Autenticando con Google Earth Engine...');
+
+            // Gaza coordinates (center)
+            const latitude = 31.4;
+            const longitude = 34.35;
+
+            const response = await fetch('/api/satellite/gee/best-image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude,
+                    date_range: {
+                        start: '2024-01-01',
+                        end: '2024-12-31'
+                    },
+                    max_cloud_cover: 10,
+                    target_resolution: 10
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateProgress(70, 'Analizando catálogo de imágenes...');
+                
+                setTimeout(() => {
+                    this.updateProgress(100, 'Mejor imagen GEE encontrada!');
+                    
+                    const imageInfo = data.result.image_info;
+                    const message = `🎯 Mejor imagen GEE encontrada!\n\n` +
+                                  `🆔 ID: ${imageInfo.id || 'N/A'}\n` +
+                                  `☁️ Nubosidad: ${imageInfo.cloud_cover || 'N/A'}%\n` +
+                                  `📅 Fecha: ${imageInfo.date || 'N/A'}\n` +
+                                  `📐 Resolución: ${data.result.resolution || 'N/A'}m`;
+                    
+                    this.showSuccess(message);
+                    
+                    // Hide progress after delay and refresh gallery
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        this.loadGallery();
+                    }, 3000);
+                    
+                }, 2000);
+                
+            } else {
+                throw new Error(data.error || 'No se encontró imagen adecuada en GEE');
+            }
+            
+        } catch (error) {
+            console.error('Error running GEE best image search:', error);
+            this.showError('Error buscando imagen GEE: ' + error.message);
+            progressContainer.style.display = 'none';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fab fa-google"></i> GEE Mejor Imagen';
+        }
+    }
+
+    async startGeeUltraHdMosaic() {
+        const btn = document.getElementById('geeUltraHdMosaic');
+        const progressContainer = document.getElementById('progressContainer');
+        
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando mosaico GEE...';
+            
+            // Show progress container
+            progressContainer.style.display = 'block';
+            this.updateProgress(0, 'Iniciando mosaico ultra HD con GEE...');
+
+            // Gaza geometry for mosaic
+            const geometry = {
+                type: "Polygon",
+                coordinates: [[
+                    [34.1, 31.2],
+                    [34.6, 31.2],
+                    [34.6, 31.6],
+                    [34.1, 31.6],
+                    [34.1, 31.2]
+                ]]
+            };
+
+            const response = await fetch('/api/satellite/gee/ultra-hd-mosaic', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    geometry: geometry,
+                    date_range: {
+                        start: '2024-01-01',
+                        end: '2024-12-31'
+                    },
+                    max_cloud_cover: 5,
+                    target_resolution: 1  // 1m objetivo
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateProgress(30, 'Seleccionando mejores imágenes...');
+                
+                setTimeout(() => {
+                    this.updateProgress(60, 'Creando mosaico sin nubes...');
+                    
+                    setTimeout(() => {
+                        this.updateProgress(85, 'Aplicando realce ultra HD...');
+                        
+                        setTimeout(() => {
+                            this.updateProgress(100, 'Mosaico ultra HD GEE completado!');
+                            
+                            const mosaicInfo = data.result.mosaic_info;
+                            const message = `🗺️ Mosaico Ultra HD GEE generado!\n\n` +
+                                          `📐 Resolución final: ${mosaicInfo.resolution || 'N/A'}m\n` +
+                                          `🌤️ Sin nubes: < 5%\n` +
+                                          `📊 Calidad: Ultra Alta Definición\n` +
+                                          `🎯 Área: Franja de Gaza completa`;
+                            
+                            this.showSuccess(message);
+                            
+                            // Hide progress after delay and refresh data
+                            setTimeout(() => {
+                                progressContainer.style.display = 'none';
+                                this.loadGallery();
+                                this.loadStatistics();
+                            }, 4000);
+                            
+                        }, 2000);
+                    }, 2500);
+                }, 2000);
+                
+            } else {
+                throw new Error(data.error || 'Error generando mosaico ultra HD con GEE');
+            }
+            
+        } catch (error) {
+            console.error('Error running GEE ultra HD mosaic:', error);
+            this.showError('Error en mosaico GEE: ' + error.message);
+            progressContainer.style.display = 'none';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-layer-group"></i> GEE Mosaico Ultra HD';
+        }
+    }
+
+    async loadAllGalleries() {
+        await Promise.all([
+            this.loadGallery(),
+            this.loadDetectionGallery()
+        ]);
+    }
+
+    async loadDetectionGallery() {
+        try {
+            const response = await fetch('/api/satellite/ultra-hd/gallery-detections');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const data = await response.json();
+            const galleryContainer = document.getElementById('galleryDetections');
+            
+            if (data.success && data.images && data.images.length > 0) {
+                galleryContainer.innerHTML = '';
+                galleryContainer.classList.remove('loading');
+                
+                data.images.forEach((image, index) => {
+                    const imageElement = document.createElement('div');
+                    imageElement.className = 'gallery-item detection-highlight';
+                    
+                    const threatClass = this.getThreatClass(image.threat_level);
+                    const created = new Date(image.created_at).toLocaleString('es-ES');
+                    const coords = `${image.coordinates?.lat?.toFixed(3) || 'N/A'}, ${image.coordinates?.lon?.toFixed(3) || 'N/A'}`;
+                    
+                    // Función para generar nombres más profesionales
+                    const getRegionName = (zoneId, imageIndex) => {
+                        if (zoneId.toLowerCase().includes('gaza')) {
+                            return `🎯 GAZA - Detección ${String(imageIndex + 1).padStart(2, '0')}`;
+                        } else if (zoneId.toLowerCase().includes('ucrania') || zoneId.toLowerCase().includes('ukraine')) {
+                            return `🛰️ UCRANIA - Detección ${String(imageIndex + 1).padStart(2, '0')}`;
+                        } else if (zoneId.toLowerCase().includes('siria') || zoneId.toLowerCase().includes('syria')) {
+                            return `🔍 SIRIA - Detección ${String(imageIndex + 1).padStart(2, '0')}`;
+                        }
+                        
+                        // Para otros casos
+                        return `🛰️ ${zoneId.toUpperCase()} - Detección ${String(imageIndex + 1).padStart(2, '0')}`;
+                    };
+                    
+                    const region = getRegionName(image.zone_id, index);
+                    
+                    imageElement.innerHTML = `
+                        <div class="gallery-image" style="background-image: url('${image.image_path || '/static/images/satellite/placeholder.jpg'}');">
+                            <div class="threat-badge ${threatClass}">${image.threat_level}</div>
+                            <div class="detection-count">${image.detection_count} detecciones</div>
+                        </div>
+                        <div class="gallery-info">
+                            <h4 class="gallery-title">${region}</h4>
+                            <div class="gallery-meta">
+                                <div class="detection-summary">
+                                    <span class="military-count">🪖 ${image.military_objects?.length || 0}</span>
+                                    <span class="destruction-count">💥 ${image.destruction_indicators?.length || 0}</span>
+                                    <span class="confidence-count">📊 ${(image.confidence_score * 100).toFixed(0)}%</span>
+                                </div>
+                                <div class="capture-time">
+                                    <i class="fas fa-clock"></i> ${created}
+                                </div>
+                                <div class="coordinates">
+                                    <i class="fas fa-map-marker-alt"></i> ${coords}
+                                </div>
+                                <div class="detection-explanation" style="margin-top: 8px; font-size: 11px; color: var(--text-secondary); font-style: italic;">
+                                    ${image.detection_summary || 'Sin resumen disponible'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Click event for modal - show detailed detection info
+                    imageElement.addEventListener('click', () => {
+                        this.showDetectionModal(image, region, created, coords);
+                    });
+                    
+                    galleryContainer.appendChild(imageElement);
+                });
+                
+                // Actualizar contador de detecciones
+                document.getElementById('detectionsCount').textContent = data.total_images;
+            } else {
+                galleryContainer.innerHTML = '<div class="no-images"><i class="fas fa-search"></i><p>No hay imágenes con detecciones militares/conflicto disponibles. Ejecuta el análisis completo primero.</p></div>';
+                galleryContainer.classList.remove('loading');
+                document.getElementById('detectionsCount').textContent = '0';
+            }
+            
+        } catch (error) {
+            console.error('Error loading detection gallery:', error);
+            const galleryContainer = document.getElementById('galleryDetections');
+            galleryContainer.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-triangle"></i><p>Error cargando galería de detecciones</p></div>';
+            galleryContainer.classList.remove('loading');
+        }
+    }
+
+    getThreatClass(threatLevel) {
+        switch(threatLevel) {
+            case 'CRÍTICO': return 'threat-critical';
+            case 'ALTO': return 'threat-high';
+            case 'MEDIO': return 'threat-medium';
+            case 'BAJO': return 'threat-low';
+            default: return 'threat-unknown';
+        }
+    }
+
+    async loadUltraHdStatistics() {
+        try {
+            const response = await fetch('/api/satellite/ultra-hd/statistics');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const data = await response.json();
+            
+            if (data.success && data.statistics) {
+                const stats = data.statistics;
+                
+                // Update statistics display with Ultra HD data
+                document.getElementById('totalImages').textContent = stats.total_analyses || '0';
+                document.getElementById('detectionsCount').textContent = stats.total_objects_detected || '0';
+                document.getElementById('regionsCount').textContent = stats.analyses_with_detections || '0';
+                document.getElementById('lastUpdate').textContent = new Date(stats.last_updated).toLocaleString();
+            }
+            
+        } catch (error) {
+            console.error('Error loading Ultra HD statistics:', error);
+        }
+    }
+
+    async loadUltraHdPredictions() {
+        try {
+            const response = await fetch('/api/satellite/ultra-hd/predictions');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const data = await response.json();
+            
+            if (data.success && data.predictions) {
+                const predictions = data.predictions;
+                
+                // Update predictions display with Ultra HD data
+                const predictionsContainer = document.getElementById('evolutionPredictions');
+                if (predictionsContainer) {
+                    predictionsContainer.innerHTML = `
+                        <div class="prediction-summary">
+                            <div class="prediction-item">
+                                <h5>📈 Actividad Militar</h5>
+                                <span class="trend ${predictions.military_activity_trend?.toLowerCase()}">${predictions.military_activity_trend}</span>
+                            </div>
+                            <div class="prediction-item">
+                                <h5>⚠️ Probabilidad de Escalación</h5>
+                                <span class="probability ${predictions.escalation_probability?.toLowerCase()}">${predictions.escalation_probability}</span>
+                            </div>
+                            <div class="prediction-item">
+                                <h5>🔍 Frecuencia Recomendada</h5>
+                                <span class="frequency">${predictions.recommended_monitoring_frequency}</span>
+                            </div>
+                            <div class="prediction-item">
+                                <h5>🎯 Confianza del Modelo</h5>
+                                <span class="confidence">${(predictions.prediction_confidence * 100).toFixed(0)}%</span>
+                            </div>
+                        </div>
+                    `;
+                    predictionsContainer.classList.remove('loading');
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error loading Ultra HD predictions:', error);
         }
     }
 
@@ -725,7 +2123,8 @@ class SatelliteAnalysisManager {
 
     async loadGallery() {
         try {
-            const response = await fetch('/api/satellite/gallery-images');
+            // Cargar galería principal (todas las imágenes)
+            const response = await fetch('/api/satellite/gallery');
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             
             const data = await response.json();
@@ -741,23 +2140,51 @@ class SatelliteAnalysisManager {
                 </svg>
             `);
             
-            if (data.images && data.images.length > 0) {
+            if (data.success && data.images && data.images.length > 0) {
                 container.className = 'gallery-grid';
-                container.innerHTML = data.images.map((image, index) => `
-                    <div class="gallery-item" onclick="window.satelliteManager.showImageModal('${image.url || ''}', '${image.region || 'Región desconocida'}', '${image.date || 'Fecha desconocida'}', '${image.coordinates || 'Coordenadas no disponibles'}', '${image.detections || '0'}')">
-                        <img src="${image.url || placeholderSvg}" alt="${image.region || 'Imagen satelital'}" class="gallery-image" onerror="if(this.src !== '${placeholderSvg}') this.src='${placeholderSvg}';">
+                container.innerHTML = data.images.map((image, index) => {
+                    const imageUrl = image.image_path ? `${image.image_path}` : placeholderSvg;
+                    
+                    // Función para generar nombres más profesionales
+                    const getRegionName = (zoneId, imageIndex) => {
+                        if (zoneId.toLowerCase().includes('gaza')) {
+                            return `🎯 GAZA - Zona ${String(imageIndex + 1).padStart(2, '0')}`;
+                        } else if (zoneId.toLowerCase().includes('ucrania') || zoneId.toLowerCase().includes('ukraine')) {
+                            return `🛰️ UCRANIA - Zona ${String(imageIndex + 1).padStart(2, '0')}`;
+                        } else if (zoneId.toLowerCase().includes('siria') || zoneId.toLowerCase().includes('syria')) {
+                            return `� SIRIA - Zona ${String(imageIndex + 1).padStart(2, '0')}`;
+                        }
+                        
+                        // Para otros casos
+                        return `🛰️ ${zoneId.toUpperCase()} - ${String(imageIndex + 1).padStart(2, '0')}`;
+                    };
+                    
+                    const region = getRegionName(image.zone_id, index);
+                    const coords = `${image.coordinates?.lat?.toFixed(3) || 'N/A'}, ${image.coordinates?.lon?.toFixed(3) || 'N/A'}`;
+                    const source = image.source === 'sentinel' ? 'Sentinel Hub' : 'Google Maps';
+                    const created = new Date(image.created_at).toLocaleString('es-ES');
+                    
+                    return `
+                    <div class="gallery-item" onclick="window.satelliteManager.showImageModal('${imageUrl}', '${region}', '${created}', '${coords}', '${source}')">
+                        <img src="${imageUrl}" alt="${region}" class="gallery-image" onerror="if(this.src !== '${placeholderSvg}') this.src='${placeholderSvg}';">
                         <div class="gallery-info">
-                            <div class="gallery-title">${image.region || 'Región desconocida'}</div>
+                            <div class="gallery-title">${region}</div>
                             <div class="gallery-meta">
-                                <small><i class="fas fa-map-marker-alt"></i> ${image.coordinates || 'Coordenadas no disponibles'}</small><br>
-                                <small><i class="fas fa-calendar"></i> ${image.date || 'Fecha desconocida'}</small><br>
-                                <small><i class="fas fa-search"></i> ${image.detections || '0'} detecciones</small>
+                                <small><i class="fas fa-map-marker-alt"></i> ${coords}</small><br>
+                                <small><i class="fas fa-calendar"></i> ${created}</small><br>
+                                <small><i class="fas fa-satellite"></i> ${source}</small><br>
+                                <small><i class="fas fa-expand-arrows-alt"></i> ${image.resolution}</small>
                             </div>
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
+                
+                // Actualizar contador
+                document.getElementById('imageCount').textContent = data.total_images;
             } else {
                 container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); grid-column: 1 / -1;">No hay imágenes disponibles</p>';
+                document.getElementById('imageCount').textContent = '0';
             }
             
         } catch (error) {
@@ -852,6 +2279,66 @@ class SatelliteAnalysisManager {
         modal.show();
     }
 
+    showDetectionModal(image, region, date, coordinates) {
+        // Crear modal específico para detecciones con explicaciones detalladas
+        const placeholderSvg = 'data:image/svg+xml;base64,' + btoa(`
+            <svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+                <rect width="100%" height="100%" fill="#1a237e"/>
+                <rect x="20" y="20" width="560" height="360" fill="none" stroke="#ff6b35" stroke-width="3" stroke-dasharray="10,5"/>
+                <text x="300" y="170" text-anchor="middle" fill="#ff6b35" font-family="Arial" font-size="24">Detección Militar</text>
+                <text x="300" y="200" text-anchor="middle" fill="#ff6b35" font-family="Arial" font-size="18">Análisis IA</text>
+                <text x="300" y="230" text-anchor="middle" fill="#ff6b35" font-family="Arial" font-size="16">Imagen No Disponible</text>
+            </svg>
+        `);
+        
+        const modalImage = document.getElementById('modalImage');
+        modalImage.src = image.image_path || placeholderSvg;
+        modalImage.onerror = function() {
+            if(this.src !== placeholderSvg) {
+                this.src = placeholderSvg;
+            }
+        };
+        
+        // Actualizar información básica
+        document.getElementById('modalRegion').textContent = region;
+        document.getElementById('modalDate').textContent = date;
+        document.getElementById('modalCoords').textContent = coordinates;
+        
+        // Crear descripción detallada de detecciones
+        let detectionText = '';
+        if (image.detections && image.detections.length > 0) {
+            detectionText = `DETECCIONES ENCONTRADAS:\n\n`;
+            image.detections.forEach((detection, index) => {
+                detectionText += `${index + 1}. ${detection.class_name || 'Objeto desconocido'}\n`;
+                detectionText += `   Confianza: ${(detection.confidence * 100).toFixed(1)}%\n`;
+                if (detection.explanation) {
+                    detectionText += `   Explicación: ${detection.explanation}\n`;
+                }
+                detectionText += `\n`;
+            });
+        }
+        
+        if (image.detection_summary) {
+            detectionText += `\nRESUMEN DEL ANÁLISIS:\n${image.detection_summary}`;
+        }
+        
+        if (image.military_objects && image.military_objects.length > 0) {
+            detectionText += `\n\nOBJETOS MILITARES: ${image.military_objects.length}`;
+        }
+        
+        if (image.destruction_indicators && image.destruction_indicators.length > 0) {
+            detectionText += `\nINDICADORES DE DESTRUCCIÓN: ${image.destruction_indicators.length}`;
+        }
+        
+        detectionText += `\n\nNIVEL DE AMENAZA: ${image.threat_level}`;
+        detectionText += `\nPUNTUACIÓN DE CONFIANZA: ${(image.confidence_score * 100).toFixed(1)}%`;
+        
+        document.getElementById('modalDetections').textContent = detectionText || 'Sin detecciones disponibles';
+        
+        const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+        modal.show();
+    }
+
     getSeverityClass(severity) {
         switch(severity?.toLowerCase()) {
             case 'high': return 'bg-danger';
@@ -897,6 +2384,31 @@ class SatelliteAnalysisManager {
         setTimeout(() => {
             if (errorDiv.parentNode) {
                 errorDiv.parentNode.removeChild(errorDiv);
+            }
+        }, 5000);
+    }
+
+    showSuccess(message) {
+        // Create temporary success notification
+        const successDiv = document.createElement('div');
+        successDiv.style.cssText = `
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(16, 185, 129, 0.95);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 9999;
+            font-weight: 500;
+        `;
+        successDiv.textContent = message;
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            if (successDiv.parentNode) {
+                successDiv.parentNode.removeChild(successDiv);
             }
         }, 5000);
     }

@@ -349,14 +349,7 @@ class FallbackManager {
         // Generic fallback for any page
         const mainContent = document.querySelector('main, .main-content, .dashboard-content');
         if (mainContent) {
-            // Add general notice
-            const notice = document.createElement('div');
-            notice.className = 'data-status fallback-data mb-3';
-            notice.innerHTML = `
-                <i class="fas fa-info-circle"></i>
-                <span>Sistema en modo demostración - Algunos datos pueden ser simulados</span>
-            `;
-            mainContent.insertBefore(notice, mainContent.firstChild);
+            // Skip adding general notice - remove fallback indicators
         }
     }
 
