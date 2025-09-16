@@ -1,0 +1,96 @@
+/* RTL (Right-to-Left) Styles for Arabic Language */
+
+body.rtl {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Navigation adjustments */
+.rtl .navbar-content {
+    flex-direction: row-reverse;
+}
+
+.rtl .logo {
+    flex-direction: row-reverse;
+}
+
+.rtl .nav-controls {
+    flex-direction: row-reverse;
+}
+
+/* Stats grid adjustments */
+.rtl .stat-header {
+    flex-direction: row-reverse;
+}
+
+.rtl .stat-change {
+    flex-direction: row-reverse;
+}
+
+/* Section headers */
+.rtl .section-header {
+    flex-direction: row-reverse;
+}
+
+/* Map controls */
+.rtl .map-controls {
+    flex-direction: row-reverse;
+}
+
+/* Alert items */
+.rtl .alert-item {
+    flex-direction: row-reverse;
+}
+
+.rtl .alert-item.critical,
+.rtl .alert-item.high,
+.rtl .alert-item.medium {
+    border-left: none;
+    border-right: 4px solid;
+}
+
+.rtl .alert-item.critical {
+    border-right-color: var(--risk-critical);
+}
+
+.rtl .alert-item.high {
+    border-right-color: var(--risk-high);
+}
+
+.rtl .alert-item.medium {
+    border-right-color: var(--risk-medium);
+}
+
+/* Language dropdown */
+.rtl .language-dropdown {
+    right: auto;
+    left: 0;
+}
+
+.rtl .language-option {
+    flex-direction: row-reverse;
+}
+
+/* Mini map position */
+.rtl .mini-map {
+    right: auto;
+    left: 20px;
+}
+
+/* Tooltips */
+.rtl .tooltip {
+    text-align: right;
+}
+
+/* Charts adjustments */
+.rtl .chart-container {
+    direction: ltr; /* Keep charts LTR for proper rendering */
+}
+
+/* Animations */
+.rtl @keyframes loading {
+    to {
+        right: 100%;
+        left: auto;
+    }
+}

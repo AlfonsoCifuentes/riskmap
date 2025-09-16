@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Noticias - Stratosight</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/css/modern_dashboard.css">
+    <link rel="stylesheet" href="/static/css/rtl.css">
+    <!-- Efectos visuales eliminados: se quitó effects.css -->
+    <link rel="stylesheet" href="/static/css/articles.css">
+    <link rel="stylesheet" href="/static/css/scroll_fix.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    
+<link rel="stylesheet" href="/static/css/article_cards.css">
+<style>
+    :root {
+        --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        --bg-secondary: #141824;
+        --text-primary: #e8eaed;
+        --text-secondary: #b0b8c4;
+        --accent-cyan: #00d4ff;
+        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+        --border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: #1a237e;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        position: relative;
+    }
+
+    /* News Analysis Dashboard Styles - Responsive y Mobile-First */
+    .news-dashboard {
+        padding: 0;
+        max-width: none;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 80px);
+        background: rgba(10, 15, 44, 0.08);
+        backdrop-filter: blur(2px);
+        gap: 0;
+        width: 100vw;
+    }
+    
+    .dashboard-content {
+        max-width: 96%;
+        margin: 0 auto !important;
+        margin-top: 0 !important;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Header and Stats Container */
+    .header-stats-container {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        margin-bottom: 0;
+        top: -80px;
+        z-index: 0;
+        background: transparent;
+        border-radius: 0;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin: 0;
+        color: #fff;
+        padding: 180px 0 100px 0;
+        width: 100%;
+        position: relative;
+        background: linear-gradient(135deg, rgba(26, 32, 64, 0.75) 0%, rgba(16, 24, 48, 0.8) 50%, rgba(20, 28, 56, 0.75) 100%);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .page-title {
+        font-family: 'Orbitron', monospace;
+        font-size: clamp(1.5rem, 6vw, 4rem);
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        width: 75%;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.2;
+        word-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    .page-subtitle {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 20px;
+    }
+
+    /* Stats Cards - Responsive Grid */
+    .news-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0;
+        margin: 0;
+        width: 100%;
+        position: relative;
+    }
+    
+    .news-stat-card {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(3px);
+        box-shadow: none;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .news-stat-card:last-child {
+        border-right: none;
+    }
+    
+    .news-stat-card:nth-child(1) {
+        background: linear-gradient(135deg, rgba(0, 119, 255, 0.4) 0%, rgba(30, 144, 255, 0.35) 100%);
+    }
+    
+    .news-stat-card:nth-child(2) {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.45) 0%, rgba(239, 68, 68, 0.4) 100%);
+    }
+    
+    .news-stat-card:nth-child(3) {
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.4) 0%, rgba(45, 212, 191, 0.35) 100%);
+    }
+    
+    .news-stat-card:nth-child(4) {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(37, 99, 235, 0.35) 100%);
+    }
+    
+    .news-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .news-stat-card:nth-child(1):hover {
+        background: linear-gradient(135deg, rgba(0, 119, 255, 0.6) 0%, rgba(30, 144, 255, 0.5) 100%);
+    }
+    
+    .news-stat-card:nth-child(2):hover {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.65) 0%, rgba(239, 68, 68, 0.55) 100%);
+    }
+    
+    .news-stat-card:nth-child(3):hover {
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.6) 0%, rgba(45, 212, 191, 0.5) 100%);
+    }
+    
+    .news-stat-card:nth-child(4):hover {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.6) 0%, rgba(37, 99, 235, 0.5) 100%);
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto 15px;
+        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: #fff;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 5px;
+        font-family: 'Orbitron', monospace;
+    }
+    
+    .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Section styling - Mobile-First */
+    .news-section {
+        background: rgba(26, 32, 64, 0.7);
+        border: 1px solid rgba(70, 234, 215, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        backdrop-filter: blur(15px);
+        margin-bottom: 25px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .section-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+        gap: 15px;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+    }
+    
+    .btn-control {
+        flex: 1 1 auto;
+        max-width: 140px;
+        min-width: 80px;
+        text-align: center;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-control:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .btn-control.active {
+        background: rgba(70, 234, 215, 0.3);
+        border-color: rgba(70, 234, 215, 0.5);
+        color: #fff;
+    }
+
+    /* High Risk Articles Grid - Responsive */
+    .high-risk-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .high-risk-card {
+        background: linear-gradient(145deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.08));
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        border-radius: 12px;
+        padding: 15px;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(15px);
+    }
+    
+    .high-risk-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+        border-color: rgba(239, 68, 68, 0.5);
+    }
+    
+    .high-risk-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+    
+    .high-risk-description {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+    
+    .high-risk-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .high-risk-location {
+        color: rgba(255, 255, 255, 0.6);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .high-risk-badge {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.65rem;
+    }
+
+    /* Latest Articles - Full width cards - Mobile-First */
+    .latest-articles-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .latest-article-card {
+        background: rgba(26, 32, 64, 0.7);
+        border: 1px solid rgba(70, 234, 215, 0.25);
+        border-radius: 12px;
+        padding: 15px;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(15px);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .latest-article-card:hover {
+        background: rgba(26, 32, 64, 0.85);
+        border-color: rgba(70, 234, 215, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    .latest-article-content {
+        flex: 1;
+    }
+    
+    .latest-article-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 6px;
+        line-height: 1.3;
+    }
+    
+    .latest-article-description {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 8px;
+    }
+    
+    .latest-article-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .latest-article-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .latest-article-sidebar {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+    
+    .latest-risk-badge {
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.65rem;
+    }
+    
+    .latest-risk-badge.high {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+    }
+    
+    .latest-risk-badge.medium {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+    }
+    
+    .latest-risk-badge.low {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+    }
+
+    /* News Mosaic Section - Dynamic Collage Layout */
+    .news-mosaic-section {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        margin-top: 0 !important;
+        padding: 0;
+        background: transparent;
+        z-index: 1;
+    }
+
+    .mosaic-controls-container {
+        width: 100%;
+        padding: 20px;
+        background: rgba(10, 15, 44, 0.5);
+        backdrop-filter: blur(5px);
+        z-index: 5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        width: 100vw;
+        box-sizing: border-box;
+    }
+    
+    .mosaic-controls {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+    
+    .news-mosaic-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-auto-rows: calc(25vw / 1.618);
+        gap: 0;
+        grid-auto-flow: dense;
+        width: 100vw;
+        min-height: 100vh;
+        background: rgba(0, 0, 0, 0.1);
+        padding: 0;
+    }
+    
+    /* Mosaic Article Tiles - Irregular Sizes */
+    .mosaic-article {
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        border: 1px solid #0a0f2c;
+        box-sizing: border-box;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+    }
+    
+    .mosaic-article::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            135deg,
+            rgba(0, 0, 0, 0.2) 0%,
+            rgba(0, 0, 0, 0.1) 40%,
+            rgba(0, 0, 0, 0.5) 100%
+        );
+        border-radius: 0;
+        z-index: 1;
+    }
+    
+    .mosaic-article:hover {
+        transform: scale(1.02);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        z-index: 5;
+        border: 1px solid var(--accent-cyan);
+    }
+    
+    .mosaic-article:hover::before {
+        background: linear-gradient(
+            135deg,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0.05) 40%,
+            rgba(0, 0, 0, 0.4) 100%
+        );
+    }
+    
+    /* Irregular size variants based on importance score */
+    .mosaic-article.size-1 { grid-column: span 2; grid-row: span 2; } /* Golden ratio-like */
+    .mosaic-article.size-2 { grid-column: span 1; grid-row: span 2; } /* Vertical */
+    .mosaic-article.size-3 { grid-column: span 1; grid-row: span 1; } /* Small Square 1 */
+    .mosaic-article.size-4 { grid-column: span 1; grid-row: span 1; } /* Small Square 2 */
+    .mosaic-article.size-5 { grid-column: span 1; grid-row: span 1; }
+    .mosaic-article.size-6 { grid-column: span 1; grid-row: span 1; }
+    .mosaic-article.size-7 { grid-column: span 2; grid-row: span 1; }
+    .mosaic-article.size-8 { grid-column: span 1; grid-row: span 1; }
+    .mosaic-article.size-9 { grid-column: span 1; grid-row: span 1; }
+    .mosaic-article.size-10 { grid-column: span 1; grid-row: span 1; }
+    .mosaic-article.size-11 { grid-column: span 1; grid-row: span 1; }
+    .mosaic-article.size-12 { grid-column: span 2; grid-row: span 1; }
+
+    /* Fallback sizes for additional articles */
+    .mosaic-article.size-default-lg-wide { grid-column: span 2; grid-row: span 1; }
+    .mosaic-article.size-default-lg-tall { grid-column: span 1; grid-row: span 2; }
+    .mosaic-article.size-default-md-sq { grid-column: span 1; grid-row: span 1; }
+    
+    /* Article content overlay with fixed padding */
+    .mosaic-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 15px;
+        z-index: 2;
+        color: white;
+        background: linear-gradient(
+            transparent 0%,
+            rgba(0, 0, 0, 0.3) 20%,
+            rgba(0, 0, 0, 0.7) 70%,
+            rgba(0, 0, 0, 0.9) 100%
+        );
+        border-radius: 0;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+    
+    .mosaic-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 1.3;
+        margin: 0 0 8px 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .mosaic-article.size-1 .mosaic-title {
+        font-size: 1.6rem;
+        -webkit-line-clamp: 4;
+    }
+    .mosaic-article.size-2 .mosaic-title {
+        font-size: 1.2rem;
+        -webkit-line-clamp: 3;
+    }
+    
+    .mosaic-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: auto;
+    }
+    
+    .mosaic-location {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(0, 0, 0, 0.4);
+        padding: 6px 10px;
+        border-radius: 15px;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .mosaic-risk-badge {
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 6px 10px;
+        border-radius: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-shadow: none;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .mosaic-risk-badge.hero {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        color: white;
+        font-size: 0.8rem;
+        padding: 8px 12px;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+    }
+    
+    .mosaic-risk-badge.high {
+        background: rgba(220, 38, 38, 0.9);
+        color: white;
+        box-shadow: 0 2px 10px rgba(220, 38, 38, 0.3);
+    }
+    
+    .mosaic-risk-badge.medium {
+        background: rgba(245, 158, 11, 0.9);
+        color: white;
+        box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+    }
+    
+    .mosaic-risk-badge.low {
+        background: rgba(34, 197, 94, 0.9);
+        color: white;
+        box-shadow: 0 2px 10px rgba(34, 197, 94, 0.3);
+    }
+    
+    /* Loading state */
+    .mosaic-loading {
+        grid-column: 1 / -1;
+        grid-row: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1.2rem;
+    }
+    
+    .mosaic-loading i {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: #46ead7;
+    }
+</style>
+
+    
+    <style>
+        /* Navigation Styles */
+        .main-navigation {
+            background: linear-gradient(135deg, #0f0f0f 0%, #191919 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Main Navigation - Mobile First Approach */
+        .main-navigation {
+            background: linear-gradient(135deg, rgba(15, 15, 15, 0.8) 0%, rgba(25, 25, 25, 0.9) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 80px;
+        }
+        
+        .nav-container {
+            max-width: 100%;
+            margin: 0;
+            padding: 0 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 80px;
+            width: 100%;
+        }
+        
+        /* Logo/Brand - Always left aligned */
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            margin-left: 0;
+        }
+        
+        .nav-brand .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+        
+        /* Mobile First - Hidden menu by default */
+        .nav-menu {
+            position: fixed;
+            top: 80px;
+            left: -100%;
+            width: 100%;
+            height: calc(100vh - 80px);
+            background: linear-gradient(135deg, rgba(26, 32, 64, 0.95) 0%, rgba(26, 32, 64, 0.98) 100%);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 20px;
+            gap: 8px;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            list-style: none;
+            margin: 0;
+        }
+        
+        .nav-menu.active {
+            left: 0;
+        }
+        
+        .nav-item {
+            width: 100%;
+            position: relative;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+            width: 100%;
+            justify-content: flex-start;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            line-height: 1.2;
+        }
+        
+        .nav-link:hover {
+            color: #fff;
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            transform: translateX(4px);
+        }
+        
+        .nav-link.active {
+            color: #fff;
+            background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .nav-link i {
+            margin-right: 12px;
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            color: #00d4ff;
+        }
+        
+        .nav-link.active i {
+            color: #fff;
+        }
+        
+        /* Right side controls */
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            margin-right: 0;
+        }
+        
+        .nav-control-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-control-btn:hover {
+            background: rgba(0, 212, 255, 0.15);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        
+        /* Mobile Navigation Toggle - Visible by default */
+        .mobile-nav-toggle {
+            display: flex;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-nav-toggle:hover {
+            background: rgba(0, 212, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        /* Tablet Design */
+        @media (min-width: 768px) {
+            .nav-container {
+                padding: 0 25px;
+            }
+            
+            .nav-menu {
+                width: 300px;
+            }
+            
+            .nav-controls {
+                gap: 8px;
+            }
+        }
+        
+        /* Desktop Design - Horizontal layout with equidistant, smaller nav buttons */
+        @media (min-width: 1024px) {
+            .nav-container {
+                padding: 0 25px;
+                justify-content: space-between;
+            }
+            
+            .nav-menu {
+                position: static;
+                width: auto;
+                height: auto;
+                background: none;
+                backdrop-filter: none;
+                border: none;
+                flex-direction: row;
+                align-items: center;
+                padding: 0;
+                gap: 10px;
+                transition: none;
+                overflow: visible;
+                margin-left: auto;
+                margin-right: 0;
+            }
+            
+            .nav-item {
+                width: auto;
+            }
+            
+            .nav-link {
+                padding: 6px 16px;
+                font-size: 0.8rem;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                min-width: 120px;
+                max-width: 120px;
+                justify-content: center;
+                text-align: center;
+                flex: 0 0 120px;
+                border-radius: 16px;
+                line-height: 1.2;
+            }
+            
+            .nav-link:hover {
+                transform: translateY(-2px);
+            }
+            
+            .nav-link i {
+                margin-right: 6px;
+                width: auto;
+                font-size: 0.85rem;
+            }
+            
+            .mobile-nav-toggle {
+                display: none;
+            }
+            
+            .nav-controls {
+                gap: 10px;
+            }
+        }
+        
+        /* Large Desktop - More spacing and larger equal-width buttons */
+        @media (min-width: 1200px) {
+            .nav-container {
+                padding: 0 35px;
+            }
+            
+            .nav-menu {
+                gap: 12px;
+            }
+            
+            .nav-link {
+                padding: 7px 18px;
+                font-size: 0.85rem;
+                min-width: 140px;
+                max-width: 140px;
+                flex: 0 0 140px;
+                border-radius: 16px;
+                line-height: 1.2;
+            }
+            
+            .nav-link i {
+                margin-right: 7px;
+                font-size: 0.9rem;
+            }
+            
+            .nav-controls {
+                gap: 12px;
+            }
+            
+            .nav-control-btn {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* Extra Large Desktop - Maximum edge alignment */
+        @media (min-width: 1400px) {
+            .nav-container {
+                padding: 0 45px;
+                max-width: none;
+            }
+            
+            .nav-brand {
+                margin-left: 0;
+            }
+            
+            .nav-controls {
+                margin-right: 0;
+            }
+        }
+
+        /* Notifications - Always below navbar */
+        .notification,
+        .alert,
+        .toast,
+        .flash-message,
+        .success-message,
+        .error-message,
+        .info-message,
+        .warning-message {
+            position: fixed !important;
+            top: 85px !important; /* 5px below the 80px navbar */
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 9999 !important; /* Higher than navbar but below modals */
+            max-width: 500px !important;
+            width: auto !important;
+            margin: 0 20px !important;
+            padding: 12px 20px !important;
+            background: rgba(26, 32, 64, 0.95) !important;
+            backdrop-filter: blur(15px) !important;
+            border: 1px solid rgba(70, 234, 215, 0.3) !important;
+            border-radius: 12px !important;
+            color: #fff !important;
+            font-size: 0.9rem !important;
+            font-weight: 500 !important;
+            text-align: center !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+            animation: slideDownFade 0.3s ease-out !important;
+        }
+
+        .notification.success,
+        .success-message {
+            border-color: rgba(34, 197, 94, 0.5) !important;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        .notification.error,
+        .error-message {
+            border-color: rgba(239, 68, 68, 0.5) !important;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        .notification.warning,
+        .warning-message {
+            border-color: rgba(245, 158, 11, 0.5) !important;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        .notification.info,
+        .info-message {
+            border-color: rgba(59, 130, 246, 0.5) !important;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(26, 32, 64, 0.95)) !important;
+        }
+
+        @keyframes slideDownFade {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Responsive notifications */
+        @media (max-width: 768px) {
+            .notification,
+            .alert,
+            .toast,
+            .flash-message,
+            .success-message,
+            .error-message,
+            .info-message,
+            .warning-message {
+                top: 85px !important;
+                left: 10px !important;
+                right: 10px !important;
+                transform: none !important;
+                max-width: none !important;
+                margin: 0 !important;
+            }
+        }
+        
+        /* Page Content */
+        .page-content {
+            min-height: calc(100vh - 80px);
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            padding-top: 80px;
+        }
+
+        /* Ensure any dynamically added content respects navbar */
+        .page-content > *:first-child {
+            margin-top: 10px;
+        }
+
+        /* Common notification library classes */
+        .swal2-container,
+        .toastr-container,
+        .noty_layout,
+        .humane,
+        .growl-container {
+            z-index: 9999 !important;
+        }
+
+        .swal2-popup {
+            margin-top: 90px !important;
+        }
+
+        /* Toastr specific positioning */
+        #toast-container {
+            top: 90px !important;
+        }
+
+        /* Noty specific positioning */
+        .noty_layout.topCenter {
+            top: 90px !important;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .breadcrumb-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .breadcrumb-list {
+            display: flex;
+            align-items: center;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb-item:not(:last-child)::after {
+            content: '/';
+            margin: 0 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .breadcrumb-link {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .breadcrumb-link:hover {
+            color: #667eea;
+        }
+        
+        .breadcrumb-current {
+            color: #fff;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Main Navigation -->
+    <nav class="main-navigation">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <div class="brand-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <span>Stratosight</span>
+            </a>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="/news-analysis" class="nav-link active">
+                        <i class="fas fa-newspaper"></i>
+                        Análisis de Noticias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/conflict-monitoring" class="nav-link ">
+                        <i class="fas fa-shield-alt"></i>
+                        Monitor de conflictos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/trends-analysis" class="nav-link ">
+                        <i class="fas fa-chart-line"></i>
+                        Análisis de Tendencias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/early-warning" class="nav-link ">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Alertas Tempranas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/executive-reports" class="nav-link ">
+                        <i class="fas fa-file-alt"></i>
+                        Reportes Ejecutivos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/satellite-analysis" class="nav-link ">
+                        <i class="fas fa-satellite"></i>
+                        Análisis Satelital
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/video-surveillance" class="nav-link ">
+                        <i class="fas fa-video"></i>
+                        Video Vigilancia
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/historical-analysis" class="nav-link ">
+                        <i class="fas fa-history"></i>
+                        Análisis Histórico
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="nav-controls">
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-nav-toggle" id="mobileNavToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Breadcrumb -->
+    
+    
+    <!-- Page Content -->
+    <div class="page-content">
+        
+<div class="news-dashboard">
+    <!-- Header and Statistics -->
+    <div class="header-stats-container">
+        <div class="page-header">
+            <h1 class="page-title">Tablero Geopolítico</h1>
+            <div class="page-subtitle">Análisis en tiempo real del panorama geopolítico mundial</div>
+            
+            <!-- Statistics Grid -->
+            <div class="news-stats">
+                <div class="news-stat-card">
+                    <div class="stat-icon">📰</div>
+                    <div class="stat-value" id="total-articles">0</div>
+                    <div class="stat-label">Artículos Analizados</div>
+                </div>
+                <div class="news-stat-card">
+                    <div class="stat-icon">🚨</div>
+                    <div class="stat-value" id="high-risk-count">0</div>
+                    <div class="stat-label">Alertas Críticas</div>
+                </div>
+                <div class="news-stat-card">
+                    <div class="stat-icon">🌍</div>
+                    <div class="stat-value" id="countries-monitored">0</div>
+                    <div class="stat-label">Regiones</div>
+                </div>
+                <div class="news-stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value" id="sources-count">0</div>
+                    <div class="stat-label">Fuentes Activas</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+        <!-- High Risk Articles Section -->
+        <section class="news-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                    Alertas de Alto Riesgo
+                </h2>
+                <div class="section-controls">
+                    <button class="btn-control active" onclick="filterHighRisk('all', this)">Todas</button>
+                    <button class="btn-control" onclick="filterHighRisk('military', this)">Militares</button>
+                    <button class="btn-control" onclick="filterHighRisk('political', this)">Políticas</button>
+                    <button class="btn-control" onclick="filterHighRisk('economic', this)">Económicas</button>
+                </div>
+            </div>
+            <div class="high-risk-grid" id="high-risk-articles">
+                
+                    <div class="high-risk-card">
+                        <h3 class="high-risk-title">No hay alertas críticas en este momento</h3>
+                        <p class="high-risk-description">El sistema está monitoreando constantemente las fuentes de noticias para identificar eventos de alto riesgo.</p>
+                        <div class="high-risk-meta">
+                            <span class="high-risk-location">
+                                <i class="fas fa-shield-alt"></i>
+                                Estado: Monitoreo Activo
+                            </span>
+                            <span class="high-risk-badge">OK</span>
+                        </div>
+                    </div>
+                
+            </div>
+        </section>
+
+        <!-- Latest Articles Section -->
+        <section class="news-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-clock" style="color: #46ead7;"></i>
+                    Últimas Noticias Analizadas
+                </h2>
+                <div class="section-controls">
+                    <button class="btn-control active" onclick="filterLatest('all', this)">Todas</button>
+                    <button class="btn-control" onclick="filterLatest('today', this)">Hoy</button>
+                    <button class="btn-control" onclick="filterLatest('week', this)">Esta Semana</button>
+                    <button class="btn-control" onclick="refreshLatest()">Actualizar</button>
+                </div>
+            </div>
+            <div class="latest-articles-grid" id="latest-articles">
+                
+                    <div class="latest-article-card">
+                        <div class="latest-article-content">
+                            <h3 class="latest-article-title">No hay artículos recientes disponibles</h3>
+                            <p class="latest-article-description">El sistema está procesando nuevas fuentes de noticias. Por favor, actualice en unos minutos.</p>
+                            <div class="latest-article-meta">
+                                <span class="latest-article-meta-item">
+                                    <i class="fas fa-sync-alt"></i>
+                                    Sistema en proceso de análisis
+                                </span>
+                            </div>
+                        </div>
+                        <div class="latest-article-sidebar">
+                            <span class="latest-risk-badge low">INFO</span>
+                        </div>
+                    </div>
+                
+            </div>
+        </section>
+    </div>
+
+    <!-- News Mosaic Section - Full Width -->
+    <section class="news-mosaic-section">
+        <div class="mosaic-controls-container">
+            <div class="mosaic-controls">
+                <button class="btn-control active" onclick="loadMosaic('importance', this)">Por Importancia</button>
+                <button class="btn-control" onclick="loadMosaic('geographic', this)">Por Región</button>
+                <button class="btn-control" onclick="loadMosaic('temporal', this)">Por Tiempo</button>
+                <button class="btn-control" onclick="loadMosaic('risk', this)">Por Riesgo</button>
+            </div>
+        </div>
+        
+        <div class="news-mosaic-container" id="news-mosaic">
+            <div class="mosaic-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <div>Cargando mosaico de noticias...</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<!-- Dashboard-specific scripts loaded here -->
+
+
+<script>
+// Global variables
+let currentFilter = 'all';
+let mosaicData = [];
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadMosaic('importance', null);  // Pass null for initial load
+    updateStatistics();
+    
+    // Auto-refresh every 5 minutes
+    setInterval(function() {
+        updateStatistics();
+        refreshLatest();
+    }, 300000);
+});
+
+// High risk articles filtering
+function filterHighRisk(category, buttonElement) {
+    currentFilter = category;
+    
+    // Update button states
+    document.querySelectorAll('.section-controls .btn-control').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    if (buttonElement) {
+        buttonElement.classList.add('active');
+    }
+    
+    // Filter articles
+    const articles = document.querySelectorAll('.high-risk-card');
+    articles.forEach(article => {
+        const articleCategory = article.dataset.category || 'general';
+        if (category === 'all' || articleCategory === category) {
+            article.style.display = 'block';
+        } else {
+            article.style.display = 'none';
+        }
+    });
+}
+
+// Latest articles filtering
+function filterLatest(timeframe, buttonElement) {
+    const articles = document.querySelectorAll('.latest-article-card');
+    const now = new Date();
+    
+    // Update button states
+    if (buttonElement) {
+        buttonElement.parentElement.querySelectorAll('.btn-control').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        buttonElement.classList.add('active');
+    }
+    
+    articles.forEach(article => {
+        const articleDate = new Date(article.dataset.date);
+        let show = true;
+        
+        if (timeframe === 'today') {
+            show = articleDate.toDateString() === now.toDateString();
+        } else if (timeframe === 'week') {
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            show = articleDate >= weekAgo;
+        }
+        
+        article.style.display = show ? 'flex' : 'none';
+    });
+}
+
+// Refresh latest articles
+function refreshLatest() {
+    // Show loading state
+    const container = document.getElementById('latest-articles');
+    container.innerHTML = '<div class="latest-article-card"><div class="latest-article-content"><h3 class="latest-article-title">Actualizando...</h3><p class="latest-article-description">Obteniendo las últimas noticias...</p></div></div>';
+    
+    // Simulate API call
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+
+// Load news mosaic
+function loadMosaic(mode, buttonElement) {
+    const container = document.getElementById('news-mosaic');
+    
+    // Update button states
+    document.querySelectorAll('.mosaic-controls .btn-control').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to the clicked button
+    if (buttonElement) {
+        buttonElement.classList.add('active');
+    } else {
+        // Fallback: find button by mode
+        const activeButton = document.querySelector(`.btn-control[onclick*="${mode}"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+    }
+    
+    // Show loading
+    container.innerHTML = `
+        <div class="mosaic-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <div>Cargando mosaico ${mode}...</div>
+        </div>
+    `;
+    
+    // Simulate loading and populate with sample data
+    setTimeout(() => {
+        generateMosaicTiles(mode);
+    }, 1500);
+}
+
+// Generate mosaic tiles
+function generateMosaicTiles(mode) {
+    const container = document.getElementById('news-mosaic');
+    let tilesHTML = '';
+    
+    // Sample articles for the mosaic
+    const sampleArticles = [
+        {
+            title: "Tensiones geopolíticas se intensifican en Europa Oriental",
+            location: "Europa Oriental",
+            risk: "high",
+            image: "https://picsum.photos/400/300?random=1"
+        },
+        {
+            title: "Crisis diplomática en Asia-Pacífico",
+            location: "Asia-Pacífico",
+            risk: "medium",
+            image: "https://picsum.photos/400/300?random=2"
+        },
+        {
+            title: "Movimientos económicos estratégicos en Medio Oriente",
+            location: "Medio Oriente",
+            risk: "medium",
+            image: "https://picsum.photos/400/300?random=3"
+        },
+        {
+            title: "Desarrollos significativos en América Latina",
+            location: "América Latina",
+            risk: "low",
+            image: "https://picsum.photos/400/300?random=4"
+        },
+        {
+            title: "Cambios en las alianzas africanas",
+            location: "África",
+            risk: "medium",
+            image: "https://picsum.photos/400/300?random=5"
+        },
+        {
+            title: "Nuevas políticas en América del Norte",
+            location: "América del Norte",
+            risk: "low",
+            image: "https://picsum.photos/400/300?random=6"
+        },
+        {
+            title: "Desarrollos en el Ártico",
+            location: "Ártico",
+            risk: "medium",
+            image: "https://picsum.photos/400/300?random=7"
+        },
+        {
+            title: "Situación en Oceanía",
+            location: "Oceanía",
+            risk: "low",
+            image: "https://picsum.photos/400/300?random=8"
+        }
+    ];
+    
+    sampleArticles.forEach((article, index) => {
+        const sizeClass = `size-${(index % 12) + 1}`;
+        const riskClass = article.risk === 'high' ? 'hero' : article.risk;
+        
+        tilesHTML += `
+            <div class="mosaic-article ${sizeClass}" style="background-image: url('${article.image}')">
+                <div class="mosaic-content">
+                    <h3 class="mosaic-title">${article.title}</h3>
+                    <div class="mosaic-meta">
+                        <span class="mosaic-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            ${article.location}
+                        </span>
+                        <span class="mosaic-risk-badge ${riskClass}">${article.risk.toUpperCase()}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = tilesHTML;
+}
+
+// Update statistics
+function updateStatistics() {
+    // This would typically fetch from an API
+    // For now, we'll use sample data
+    const stats = {
+        totalArticles: Math.floor(Math.random() * 1000) + 500,
+        highRiskCount: Math.floor(Math.random() * 20) + 5,
+        countriesMonitored: Math.floor(Math.random() * 50) + 120,
+        sourcesCount: Math.floor(Math.random() * 100) + 50
+    };
+    
+    document.getElementById('total-articles').textContent = stats.totalArticles;
+    document.getElementById('high-risk-count').textContent = stats.highRiskCount;
+    document.getElementById('countries-monitored').textContent = stats.countriesMonitored;
+    document.getElementById('sources-count').textContent = stats.sourcesCount;
+}
+</script>
+
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.2/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <!-- Dashboard-specific scripts (only loaded on dashboard pages) -->
+    
+<!-- Dashboard-specific scripts loaded here -->
+
+    
+    <script src="/static/js/i18n.js"></script>
+    
+    
+    
+    <script>
+        // Mobile Navigation Toggle with improved functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileNavToggle = document.getElementById('mobileNavToggle');
+            const navMenu = document.getElementById('navMenu');
+            const body = document.body;
+            
+            if (mobileNavToggle && navMenu) {
+                // Toggle mobile menu
+                mobileNavToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    navMenu.classList.toggle('active');
+                    
+                    // Update hamburger icon
+                    const icon = mobileNavToggle.querySelector('i');
+                    if (navMenu.classList.contains('active')) {
+                        icon.className = 'fas fa-times';
+                        body.style.overflow = 'hidden'; // Prevent body scroll when menu is open
+                    } else {
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+                
+                // Close mobile menu when clicking on a link
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    });
+                });
+                
+                // Close mobile menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!navMenu.contains(e.target) && !mobileNavToggle.contains(e.target)) {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+                
+                // Close mobile menu on escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+                
+                // Handle window resize
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth >= 1024) {
+                        navMenu.classList.remove('active');
+                        const icon = mobileNavToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                        body.style.overflow = '';
+                    }
+                });
+            }
+
+            // Auto-adjust notifications positioning
+            function adjustNotificationsPosition() {
+                const navbarHeight = 80;
+                const offset = 5;
+                const totalOffset = navbarHeight + offset;
+
+                // Common notification selectors
+                const notificationSelectors = [
+                    '.notification', '.alert', '.toast', '.flash-message',
+                    '.success-message', '.error-message', '.info-message', '.warning-message',
+                    '.swal2-container', '.toastr-container', '.noty_layout', '.humane', '.growl-container',
+                    '#toast-container', '.noty_layout.topCenter'
+                ];
+
+                notificationSelectors.forEach(selector => {
+                    const elements = document.querySelectorAll(selector);
+                    elements.forEach(element => {
+                        if (element.style.position === 'fixed' || window.getComputedStyle(element).position === 'fixed') {
+                            const currentTop = parseInt(element.style.top) || 0;
+                            if (currentTop < totalOffset) {
+                                element.style.top = totalOffset + 'px';
+                                element.style.zIndex = '9999';
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Initial adjustment
+            adjustNotificationsPosition();
+
+            // Observer for dynamically added notifications
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.nodeType === 1) { // Element node
+                                // Check if the added node is a notification
+                                const isNotification = [
+                                    'notification', 'alert', 'toast', 'flash-message',
+                                    'success-message', 'error-message', 'info-message', 'warning-message'
+                                ].some(className => node.classList && node.classList.contains(className));
+
+                                if (isNotification) {
+                                    setTimeout(adjustNotificationsPosition, 10);
+                                }
+
+                                // Also check child notifications
+                                const childNotifications = node.querySelectorAll && node.querySelectorAll([
+                                    '.notification', '.alert', '.toast', '.flash-message',
+                                    '.success-message', '.error-message', '.info-message', '.warning-message'
+                                ].join(','));
+
+                                if (childNotifications && childNotifications.length > 0) {
+                                    setTimeout(adjustNotificationsPosition, 10);
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Start observing
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+
+            // Adjust on window resize
+            window.addEventListener('resize', adjustNotificationsPosition);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiskMap - Sistema de Detección Satelital</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #34495e;
+        }
+        input, select, button {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px 20px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        .btn-success {
+            background-color: #27ae60;
+        }
+        .btn-success:hover {
+            background-color: #229954;
+        }
+        #map {
+            height: 500px;
+            width: 100%;
+            margin: 20px 0;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .result-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .risk-high {
+            border-left: 5px solid #e74c3c;
+        }
+        .risk-medium {
+            border-left: 5px solid #f39c12;
+        }
+        .risk-low {
+            border-left: 5px solid #27ae60;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .image-gallery {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .gallery-image {
+            flex: 1;
+            max-height: 200px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .gallery-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        .gallery-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+        .gallery-title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛰️ RiskMap - Sistema de Detección de Peligros Satelitales</h1>
+        
+        <!-- Galería de Imágenes Satelitales -->
+        <div class="gallery-container">
+            <div class="gallery-title">📸 Imágenes Satelitales de Ejemplo</div>
+            <div class="image-gallery" id="imageGallery">
+                <img id="urbanImage" class="gallery-image" alt="Área Urbana" title="Nueva York - Área Urbana (Riesgo Medio)">
+                <img id="ruralImage" class="gallery-image" alt="Área Rural" title="Japón - Área Rural (Riesgo Bajo)">
+                <img id="conflictImage" class="gallery-image" alt="Zona de Conflicto" title="Oriente Medio - Zona de Conflicto (Riesgo Medio)">
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="lat">Latitud:</label>
+                <input type="number" id="lat" value="40.7128" step="0.0001" placeholder="Ej: 40.7128">
+            </div>
+            <div class="control-group">
+                <label for="lon">Longitud:</label>
+                <input type="number" id="lon" value="-74.0060" step="0.0001" placeholder="Ej: -74.0060">
+            </div>
+            <div class="control-group">
+                <label for="date">Fecha:</label>
+                <input type="date" id="date" value="2025-08-01">
+            </div>
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button onclick="getImage()">📥 Obtener Imagen</button>
+                <button onclick="detectThreats()" class="btn-danger">🔍 Detectar Peligros</button>
+                <button onclick="loadSampleData()" class="btn-success">📊 Cargar Datos de Prueba</button>
+                <button onclick="downloadCSV()">💾 Descargar CSV</button>
+            </div>
+        </div>
+
+        <div id="status"></div>
+
+        <div id="map"></div>
+
+        <div class="results">
+            <h3>📋 Resultados de Detección</h3>
+            <div id="results-container">
+                <p>Haz clic en "Cargar Datos de Prueba" para ver los resultados de las imágenes de ejemplo generadas.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Inicializar mapa
+        let map = L.map('map').setView([40.7128, -74.0060], 10);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let markersLayer = L.layerGroup().addTo(map);
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        function getImage() {
+            const lat = document.getElementById('lat').value;
+            const lon = document.getElementById('lon').value;
+            const date = document.getElementById('date').value;
+            
+            showStatus('📥 Descargando imagen satelital...', 'info');
+            
+            fetch(`/get_image?lat=${lat}&lon=${lon}&date=${date}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    showStatus('✅ Imagen descargada exitosamente', 'success');
+                    console.log('Imagen descargada:', data.image_path);
+                })
+                .catch(error => {
+                    showStatus(`❌ Error descargando imagen: ${error.message}`, 'error');
+                });
+        }
+
+        function detectThreats() {
+            const lat = document.getElementById('lat').value;
+            const lon = document.getElementById('lon').value;
+            const date = document.getElementById('date').value;
+            
+            showStatus('🔍 Analizando imagen para detectar peligros...', 'info');
+            
+            fetch('/detect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({lat: parseFloat(lat), lon: parseFloat(lon), date: date})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    showStatus('✅ Análisis completado', 'success');
+                    displayResults([data]);
+                    updateMap([data]);
+                })
+                .catch(error => {
+                    showStatus(`❌ Error en detección: ${error.message}`, 'error');
+                });
+        }
+
+        async function loadSampleData() {
+            showStatus('📊 Cargando datos de prueba...', 'info');
+            
+            try {
+                const response = await fetch('data/satellite_images/sample_detections.json');
+                const data = await response.json();
+                
+                showStatus('✅ Datos de prueba cargados exitosamente', 'success');
+                displayResults(data);
+                updateMap(data);
+            } catch (error) {
+                showStatus(`❌ Error cargando datos: ${error.message}`, 'error');
+            }
+        }
+
+        function displayResults(results) {
+            const container = document.getElementById('results-container');
+            container.innerHTML = '';
+            
+            results.forEach((result, index) => {
+                const riskLevel = result.risk_score > 0.5 ? 'high' : result.risk_score > 0.2 ? 'medium' : 'low';
+                const riskText = result.risk_score > 0.5 ? 'ALTO' : result.risk_score > 0.2 ? 'MEDIO' : 'BAJO';
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `result-item risk-${riskLevel}`;
+                resultDiv.innerHTML = `
+                    <h4>📍 Ubicación ${index + 1}: ${result.lat}, ${result.lon}</h4>
+                    <p><strong>🎯 Nivel de Riesgo:</strong> ${riskText} (${(result.risk_score * 100).toFixed(1)}%)</p>
+                    <p><strong>📊 Intensidad Media:</strong> ${result.mean_intensity?.toFixed(2) || 'N/A'}</p>
+                    <p><strong>🔍 Densidad de Bordes:</strong> ${result.edge_density?.toFixed(3) || 'N/A'}</p>
+                    ${result.detected_objects ? `<p><strong>🚨 Objetos Detectados:</strong> ${result.detected_objects.length} objetos</p>` : ''}
+                    ${result.analysis_summary ? `<p><strong>📝 Resumen:</strong> ${result.analysis_summary}</p>` : ''}
+                    ${result.image_path ? `<p><strong>🖼️ Imagen:</strong> ${result.image_path.split('/').pop()}</p>` : ''}
+                `;
+                container.appendChild(resultDiv);
+            });
+        }
+
+        function updateMap(results) {
+            markersLayer.clearLayers();
+            
+            results.forEach((result, index) => {
+                const lat = parseFloat(result.lat);
+                const lon = parseFloat(result.lon);
+                
+                const riskLevel = result.risk_score > 0.5 ? 'high' : result.risk_score > 0.2 ? 'medium' : 'low';
+                const riskText = result.risk_score > 0.5 ? 'ALTO' : result.risk_score > 0.2 ? 'MEDIO' : 'BAJO';
+                
+                const color = result.risk_score > 0.5 ? 'red' : result.risk_score > 0.2 ? 'orange' : 'green';
+                
+                const marker = L.circleMarker([lat, lon], {
+                    radius: 8 + (result.risk_score * 12),
+                    fillColor: color,
+                    color: color,
+                    weight: 2,
+                    opacity: 0.8,
+                    fillOpacity: 0.6
+                });
+                
+                marker.bindPopup(`
+                    <strong>📍 Ubicación ${index + 1}</strong><br>
+                    🎯 Riesgo: ${riskText} (${(result.risk_score * 100).toFixed(1)}%)<br>
+                    📊 Intensidad: ${result.mean_intensity?.toFixed(2) || 'N/A'}<br>
+                    🔍 Bordes: ${result.edge_density?.toFixed(3) || 'N/A'}<br>
+                    ${result.detected_objects ? `🚨 Objetos: ${result.detected_objects.length}` : ''}
+                `);
+                
+                markersLayer.addLayer(marker);
+            });
+            
+            if (results.length > 0) {
+                const group = new L.featureGroup(markersLayer.getLayers());
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        function downloadCSV() {
+            window.open('/download_csv', '_blank');
+        }
+
+        // Actualizar ubicación del mapa al hacer clic
+        map.on('click', function(e) {
+            document.getElementById('lat').value = e.latlng.lat.toFixed(6);
+            document.getElementById('lon').value = e.latlng.lng.toFixed(6);
+            showStatus(`📍 Coordenadas actualizadas: ${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`, 'info');
+        });
+
+        // Cargar datos de prueba automáticamente al cargar la página
+        window.addEventListener('load', function() {
+            loadImageGallery();
+            setTimeout(() => {
+                loadSampleData();
+            }, 1000);
+        });
+
+        function loadImageGallery() {
+            // Cargar las imágenes generadas en la galería
+            const imageFiles = [
+                'data/satellite_images/urban_sample_40.7128_-74.0060_2025-08-01.png',
+                'data/satellite_images/rural_sample_35.6762_139.6503_2025-08-01.png',
+                'data/satellite_images/conflict_sample_33.3152_44.3661_2025-08-01.png'
+            ];
+            
+            const imageIds = ['urbanImage', 'ruralImage', 'conflictImage'];
+            
+            imageFiles.forEach((file, index) => {
+                const img = document.getElementById(imageIds[index]);
+                if (img) {
+                    img.src = file;
+                    img.onerror = function() {
+                        // Si la imagen no se puede cargar, usar un placeholder
+                        this.src = 'data:image/svg+xml;base64,' + btoa(`
+                            <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="100%" height="100%" fill="#f8f9fa"/>
+                                <text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#6c757d" font-size="14">
+                                    ${index === 0 ? '🏢 Área Urbana' : index === 1 ? '🌿 Área Rural' : '🔥 Zona de Conflicto'}
+                                </text>
+                            </svg>
+                        `);
+                    };
+                    
+                    // Agregar evento de clic para actualizar las coordenadas
+                    img.addEventListener('click', function() {
+                        const coords = [
+                            {lat: 40.7128, lon: -74.0060},
+                            {lat: 35.6762, lon: 139.6503},
+                            {lat: 33.3152, lon: 44.3661}
+                        ];
+                        
+                        document.getElementById('lat').value = coords[index].lat;
+                        document.getElementById('lon').value = coords[index].lon;
+                        map.setView([coords[index].lat, coords[index].lon], 10);
+                        showStatus(`📍 Coordenadas actualizadas a: ${coords[index].lat}, ${coords[index].lon}`, 'info');
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

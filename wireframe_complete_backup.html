@@ -1,0 +1,310 @@
+<!-- BACKUP COMPLETO del sistema wireframe 3D - Fecha: 2025-07-30 -->
+<!-- Estado funcional antes de eliminar por problemas de scroll -->
+
+<!-- CSS completo del wireframe 3D -->
+<style>
+    /* 3D Earth Wireframe Background - Solo meridianos en movimiento */
+    #earth-wireframe {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 120vw;
+        height: 120vw;
+        transform: translate(-50%, -50%);
+        transform-style: preserve-3d;
+        z-index: 0;
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    
+    /* Anillos de Latitud - Círculos horizontales */
+    .latitude-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        border-radius: 50%;
+        border: 2px solid rgba(0, 255, 150, 1.0);
+        transform-origin: center;
+        transform-style: preserve-3d;
+    }
+    
+    /* Ecuador - Círculo principal horizontal */
+    .ring-equator {
+        width: 100%;
+        height: 100%;
+        transform: translate(-50%, -50%) rotateX(0deg);
+        border-color: rgba(0, 255, 150, 1.0);
+        border-width: 3px;
+        box-shadow: 
+            inset 0 0 20px rgba(0, 255, 150, 0.5),
+            0 0 30px rgba(0, 255, 150, 0.4);
+    }
+    
+    /* Trópicos Norte - 15° y 30° */
+    .ring-tropic-north-1 {
+        width: 96.6%; /* cos(15°) ≈ 0.966 */
+        height: 96.6%;
+        transform: translate(-50%, -50%) rotateX(0deg) translateY(-12.5%);
+        border-color: rgba(0, 255, 150, 0.95);
+    }
+    
+    .ring-tropic-north-2 {
+        width: 86.6%; /* cos(30°) ≈ 0.866 */
+        height: 86.6%;
+        transform: translate(-50%, -50%) rotateX(0deg) translateY(-25%);
+        border-color: rgba(0, 255, 150, 0.95);
+    }
+    
+    /* Círculos Árticos Norte - 45° y 60° */
+    .ring-arctic-north-1 {
+        width: 70.7%; /* cos(45°) ≈ 0.707 */
+        height: 70.7%;
+        transform: translate(-50%, -50%) rotateX(0deg) translateY(-35%);
+        border-color: rgba(0, 255, 150, 0.85);
+    }
+    
+    .ring-arctic-north-2 {
+        width: 50%; /* cos(60°) = 0.5 */
+        height: 50%;
+        transform: translate(-50%, -50%) rotateX(0deg) translateY(-43%);
+        border-color: rgba(0, 255, 150, 0.8);
+    }
+    
+    /* Trópicos Sur - 15° y 30° */
+    .ring-tropic-south-1 {
+        width: 96.6%; /* cos(15°) ≈ 0.966 */
+        height: 96.6%;
+        transform: translate(-50%, -50%) rotateX(0deg) translateY(12.5%);
+        border-color: rgba(0, 255, 150, 0.95);
+    }
+    
+    .ring-tropic-south-2 {
+        width: 86.6%; /* cos(30°) ≈ 0.866 */
+        height: 86.6%;
+        transform: translate(-50%, -50%) rotateX(0deg) translateY(25%);
+        border-color: rgba(0, 255, 150, 0.95);
+    }
+    
+    /* Círculos Árticos Sur - 45° y 60° */
+    .ring-arctic-south-1 {
+        width: 70.7%; /* cos(45°) ≈ 0.707 */
+        height: 70.7%;
+        transform: translate(-50%, -50%) rotateX(0deg) translateY(35%);
+        border-color: rgba(0, 255, 150, 0.85);
+    }
+    
+    .ring-arctic-south-2 {
+        width: 50%; /* cos(60°) = 0.5 */
+        height: 50%;
+        transform: translate(-50%, -50%) rotateX(0deg) translateY(43%);
+        border-color: rgba(0, 255, 150, 0.8);
+    }
+    
+    /* Círculo Polar - 75° */
+    .ring-polar {
+        width: 25.9%; /* cos(75°) ≈ 0.259 */
+        height: 25.9%;
+        transform: translate(-50%, -50%) rotateX(0deg) translateY(-48%);
+        border-color: rgba(0, 255, 150, 0.75);
+    }
+    
+    /* Líneas de Longitud - Solo estos círculos rotan */
+    .longitude-line {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 2px solid rgba(0, 255, 150, 1.0);
+        transform-origin: center center;
+        transform-style: preserve-3d;
+        animation: meridianRotation 500s linear infinite;
+    }
+    
+    .line-0 {
+        transform: translate(-50%, -50%) rotateY(0deg);
+        border-color: rgba(0, 255, 150, 0.95);
+    }
+    
+    .line-15 {
+        transform: translate(-50%, -50%) rotateY(15deg);
+        border-color: rgba(0, 255, 150, 0.85);
+    }
+    
+    .line-30 {
+        transform: translate(-50%, -50%) rotateY(30deg);
+        border-color: rgba(0, 255, 150, 0.85);
+    }
+    
+    .line-45 {
+        transform: translate(-50%, -50%) rotateY(45deg);
+        border-color: rgba(0, 255, 150, 0.8);
+    }
+    
+    .line-60 {
+        transform: translate(-50%, -50%) rotateY(60deg);
+        border-color: rgba(0, 255, 150, 0.8);
+    }
+    
+    .line-75 {
+        transform: translate(-50%, -50%) rotateY(75deg);
+        border-color: rgba(0, 255, 150, 0.85);
+    }
+    
+    .line-90 {
+        transform: translate(-50%, -50%) rotateY(90deg);
+        border-color: rgba(0, 255, 150, 0.95);
+    }
+    
+    .line-105 {
+        transform: translate(-50%, -50%) rotateY(105deg);
+        border-color: rgba(0, 255, 150, 0.85);
+    }
+    
+    .line-120 {
+        transform: translate(-50%, -50%) rotateY(120deg);
+        border-color: rgba(0, 255, 150, 0.85);
+    }
+    
+    .line-135 {
+        transform: translate(-50%, -50%) rotateY(135deg);
+        border-color: rgba(0, 255, 150, 0.8);
+    }
+    
+    .line-150 {
+        transform: translate(-50%, -50%) rotateY(150deg);
+        border-color: rgba(0, 255, 150, 0.8);
+    }
+    
+    .line-165 {
+        transform: translate(-50%, -50%) rotateY(165deg);
+        border-color: rgba(0, 255, 150, 0.85);
+    }
+    
+    /* Resplandor Central de la Esfera */
+    .sphere-glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 80%;
+        height: 80%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: radial-gradient(
+            circle at 30% 30%,
+            rgba(0, 255, 150, 0.6) 0%,
+            rgba(0, 255, 150, 0.35) 40%,
+            rgba(0, 255, 150, 0.1) 70%,
+            transparent 85%
+        );
+        animation: glowPulse 8s ease-in-out infinite;
+    }
+    
+    /* Animaciones */
+    @keyframes meridianRotation {
+        from { 
+            transform: translate(-50%, -50%) rotateY(var(--initial-rotation, 0deg));
+        }
+        to { 
+            transform: translate(-50%, -50%) rotateY(calc(var(--initial-rotation, 0deg) - 360deg));
+        }
+    }
+    
+    /* Variables CSS para cada meridiano */
+    .line-0 { --initial-rotation: 0deg; }
+    .line-15 { --initial-rotation: 15deg; }
+    .line-30 { --initial-rotation: 30deg; }
+    .line-45 { --initial-rotation: 45deg; }
+    .line-60 { --initial-rotation: 60deg; }
+    .line-75 { --initial-rotation: 75deg; }
+    .line-90 { --initial-rotation: 90deg; }
+    .line-105 { --initial-rotation: 105deg; }
+    .line-120 { --initial-rotation: 120deg; }
+    .line-135 { --initial-rotation: 135deg; }
+    .line-150 { --initial-rotation: 150deg; }
+    .line-165 { --initial-rotation: 165deg; }
+    
+    @keyframes glowPulse {
+        0%, 100% { 
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        50% { 
+            opacity: 0.6;
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+    }
+    
+    /* Efectos adicionales para realismo */
+    .latitude-ring {
+        box-shadow: 
+            inset 0 0 20px rgba(0, 255, 150, 0.6),
+            0 0 15px rgba(0, 255, 150, 0.7),
+            0 0 30px rgba(0, 255, 150, 0.4);
+    }
+    
+    .longitude-line {
+        box-shadow: 
+            inset 0 0 15px rgba(0, 255, 150, 0.5),
+            0 0 10px rgba(0, 255, 150, 0.6),
+            0 0 25px rgba(0, 255, 150, 0.3);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        #earth-wireframe {
+            opacity: 0.3;
+        }
+        
+        .latitude-ring,
+        .longitude-line {
+            border-width: 0.5px;
+        }
+        
+        .ring-equator {
+            border-width: 1px;
+        }
+    }
+</style>
+
+<!-- HTML Structure -->
+<div id="earth-wireframe">
+    <!-- Anillos de Latitud - 10 círculos horizontales -->
+    <div class="latitude-ring ring-equator"></div>
+    <div class="latitude-ring ring-tropic-north-1"></div>
+    <div class="latitude-ring ring-tropic-north-2"></div>
+    <div class="latitude-ring ring-arctic-north-1"></div>
+    <div class="latitude-ring ring-arctic-north-2"></div>
+    <div class="latitude-ring ring-tropic-south-1"></div>
+    <div class="latitude-ring ring-tropic-south-2"></div>
+    <div class="latitude-ring ring-arctic-south-1"></div>
+    <div class="latitude-ring ring-arctic-south-2"></div>
+    <div class="latitude-ring ring-polar"></div>
+    
+    <!-- Líneas de Longitud - 12 meridianos que rotan -->
+    <div class="longitude-line line-0"></div>
+    <div class="longitude-line line-15"></div>
+    <div class="longitude-line line-30"></div>
+    <div class="longitude-line line-45"></div>
+    <div class="longitude-line line-60"></div>
+    <div class="longitude-line line-75"></div>
+    <div class="longitude-line line-90"></div>
+    <div class="longitude-line line-105"></div>
+    <div class="longitude-line line-120"></div>
+    <div class="longitude-line line-135"></div>
+    <div class="longitude-line line-150"></div>
+    <div class="longitude-line line-165"></div>
+    
+    <!-- Resplandor Central -->
+    <div class="sphere-glow"></div>
+</div>
+
+<!-- NOTAS TÉCNICAS:
+- Solo los meridianos (longitude-line) rotan
+- Los paralelos (latitude-ring) permanecen fijos horizontalmente
+- Geometría calculada con cosenos para realismo matemático
+- Animación suave de 500s por rotación completa
+- Z-index 0 para estar detrás del contenido pero visible
+- Pointer-events none para no interferir con el scroll
+-->

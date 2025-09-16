@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="{{ lang|default('en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RISKMAP{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard_v2.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-900 text-gray-100 font-mono">
+    <div id="particles-js"></div>
+
+    <div class="flex">
+        <aside class="w-64 bg-gray-900/70 backdrop-blur-lg p-4 fixed h-full">
+            <h1 class="text-3xl font-bold text-sky-400 mb-8">RISKMAP</h1>
+            <nav class="flex flex-col gap-4">
+                <a href="/" class="nav-link">Dashboard</a>
+                <a href="/analysis" class="nav-link">Analysis</a>
+                <a href="/reports" class="nav-link">Reports</a>
+                <a href="/alerts" class="nav-link">Alerts</a>
+                <a href="/about" class="nav-link">About</a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 ml-64 p-8">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {"value": 80, "density": {"enable": true, "value_area": 800}},
+                "color": {"value": "#38bdf8"},
+                "shape": {"type": "circle"},
+                "opacity": {"value": 0.5, "random": true},
+                "size": {"value": 3, "random": true},
+                "line_linked": {"enable": true, "distance": 150, "color": "#38bdf8", "opacity": 0.4, "width": 1},
+                "move": {"enable": true, "speed": 1, "direction": "none", "out_mode": "out"}
+            },
+            "interactivity": {"detect_on": "canvas", "events": {"onhover": {"enable": true, "mode": "grab"}, "onclick": {"enable": true, "mode": "push"}, "resize": true}},
+            "retina_detect": true
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

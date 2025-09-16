@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="glass-card p-8 rounded-lg">
+    <h2 class="text-2xl mb-4">Generated Reports</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="table-header">
+                <tr>
+                    <th class="p-2">Report Name</th>
+                    <th class="p-2">Date Generated</th>
+                    <th class="p-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Las filas de la tabla se generarán dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

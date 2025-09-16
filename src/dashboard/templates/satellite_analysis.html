@@ -1,0 +1,1454 @@
+{% extends "base_navigation.html" %}
+
+{% block title %}Análisis de Imágenes Satelitales - Sistema de Inteligencia Geopolítica{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Satellite Analysis Specific Styles */
+    .satellite-hero {
+        background: linear-gradient(135deg, #0f1419 0%, #1a2332 50%, #0d1b2a 100%);
+        padding: 3rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .satellite-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(0,255,255,0.1)"><polygon points="0,0 1000,100 1000,0"/></svg>');
+        background-size: cover;
+    }
+    
+    .satellite-card {
+        background: linear-gradient(145deg, rgba(15, 20, 25, 0.95) 0%, rgba(26, 35, 50, 0.9) 100%);
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .satellite-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #00ffff, transparent);
+        opacity: 0.6;
+    }
+    
+    .satellite-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(0, 255, 255, 0.2);
+        border-color: #00ffff;
+    }
+    
+    .detection-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0.25rem;
+        backdrop-filter: blur(10px);
+    }
+    
+    .detection-military {
+        background: rgba(255, 51, 51, 0.2);
+        color: #ff3333;
+        border: 1px solid #ff3333;
+    }
+    
+    .detection-infrastructure {
+        background: rgba(255, 165, 0, 0.2);
+        color: #ffa500;
+        border: 1px solid #ffa500;
+    }
+    
+    .detection-natural {
+        background: rgba(46, 213, 115, 0.2);
+        color: #2ed573;
+        border: 1px solid #2ed573;
+    }
+    
+    .detection-movement {
+        background: rgba(116, 185, 255, 0.2);
+        color: #74b9ff;
+        border: 1px solid #74b9ff;
+    }
+    
+    .ai-model-badge {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin: 0.2rem;
+        display: inline-block;
+    }
+    
+    .confidence-meter {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+    }
+    
+    .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ff4757, #ffa502, #2ed573);
+        border-radius: 4px;
+        transition: width 0.8s ease;
+    }
+    
+    .satellite-image-container {
+        position: relative;
+        border-radius: 15px;
+        overflow: hidden;
+        background: #000;
+        aspect-ratio: 16/9;
+    }
+    
+    .satellite-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .satellite-image:hover {
+        transform: scale(1.05);
+    }
+    
+    .detection-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 30%, rgba(0, 255, 255, 0.1) 50%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .satellite-image-container:hover .detection-overlay {
+        opacity: 1;
+    }
+    
+    .analysis-timeline {
+        position: relative;
+        padding: 2rem 0;
+    }
+    
+    .timeline-item {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        position: relative;
+    }
+    
+    .timeline-marker {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #00ffff;
+        margin-right: 1rem;
+        flex-shrink: 0;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+    
+    .timeline-content {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        border-radius: 10px;
+        border-left: 3px solid #00ffff;
+        flex-grow: 1;
+    }
+    
+    .processing-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    .status-active {
+        background: #2ed573;
+    }
+    
+    .status-processing {
+        background: #ffa502;
+    }
+    
+    .status-error {
+        background: #ff4757;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .model-performance {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+    
+    .model-card {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+    }
+    
+    .model-accuracy {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #00ffff;
+        margin: 0.5rem 0;
+    }
+    
+    .detection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .source-info {
+        background: rgba(0, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        margin: 1rem 0;
+    }
+    
+    .coordinates {
+        font-family: 'Courier New', monospace;
+        color: #00ffff;
+        font-weight: 600;
+    }
+    
+    .real-time-feed {
+        max-height: 400px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        padding: 1rem;
+    }
+    
+    .feed-item {
+        display: flex;
+        align-items: center;
+        padding: 0.8rem;
+        margin: 0.5rem 0;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        border-left: 3px solid #00ffff;
+    }
+    
+    .feed-time {
+        color: #00ffff;
+        font-size: 0.8rem;
+        margin-right: 1rem;
+        min-width: 60px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .stat-card {
+        background: linear-gradient(145deg, rgba(15, 20, 25, 0.9) 0%, rgba(26, 35, 50, 0.8) 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #00ffff, transparent);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #00ffff;
+        margin: 0.5rem 0;
+        text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+    
+    .stat-label {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .analysis-controls {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2rem;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin: 2rem 0;
+    }
+    
+    .control-group {
+        margin: 1rem 0;
+    }
+    
+    .control-label {
+        display: block;
+        color: #00ffff;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .control-input {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: white;
+        font-size: 0.9rem;
+    }
+    
+    .control-input:focus {
+        outline: none;
+        border-color: #00ffff;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    }
+    
+    .btn-satellite {
+        background: linear-gradient(45deg, #00ffff, #0099cc);
+        color: #000;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+    }
+    
+    .btn-satellite:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 255, 255, 0.4);
+        background: linear-gradient(45deg, #33ffff, #00ccff);
+    }
+    
+    .alert-panel {
+        background: linear-gradient(145deg, rgba(255, 51, 51, 0.1) 0%, rgba(255, 71, 87, 0.05) 100%);
+        border: 1px solid rgba(255, 51, 51, 0.3);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .alert-title {
+        color: #ff3333;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .prediction-panel {
+        background: linear-gradient(145deg, rgba(116, 185, 255, 0.1) 0%, rgba(116, 185, 255, 0.05) 100%);
+        border: 1px solid rgba(116, 185, 255, 0.3);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .prediction-title {
+        color: #74b9ff;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Image Gallery Styles */
+    .image-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .gallery-item {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .gallery-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 255, 255, 0.2);
+        border-color: #00ffff;
+    }
+    
+    .gallery-image-container {
+        position: relative;
+        aspect-ratio: 16/10;
+        overflow: hidden;
+        background: #000;
+    }
+    
+    .gallery-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .gallery-item:hover .gallery-image {
+        transform: scale(1.1);
+    }
+    
+    .detection-bounding-box {
+        position: absolute;
+        border: 2px solid #ff3333;
+        background: rgba(255, 51, 51, 0.1);
+        border-radius: 4px;
+        pointer-events: none;
+        animation: pulse-box 2s infinite;
+    }
+    
+    .detection-bounding-box.military {
+        border-color: #ff3333;
+        background: rgba(255, 51, 51, 0.1);
+    }
+    
+    .detection-bounding-box.infrastructure {
+        border-color: #ffa500;
+        background: rgba(255, 165, 0, 0.1);
+    }
+    
+    .detection-bounding-box.natural {
+        border-color: #2ed573;
+        background: rgba(46, 213, 115, 0.1);
+    }
+    
+    .detection-bounding-box.movement {
+        border-color: #74b9ff;
+        background: rgba(116, 185, 255, 0.1);
+    }
+    
+    @keyframes pulse-box {
+        0% { opacity: 0.8; }
+        50% { opacity: 1; }
+        100% { opacity: 0.8; }
+    }
+    
+    .detection-label {
+        position: absolute;
+        top: -25px;
+        left: 0;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .gallery-info {
+        padding: 1.5rem;
+    }
+    
+    .gallery-title {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+    
+    .gallery-meta {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin: 1rem 0;
+    }
+    
+    .gallery-coordinates {
+        font-family: 'Courier New', monospace;
+        color: #00ffff;
+        font-size: 0.8rem;
+    }
+    
+    .gallery-confidence {
+        background: linear-gradient(45deg, #00ffff, #0099cc);
+        color: #000;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    
+    .gallery-details {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin: 1rem 0;
+    }
+    
+    .gallery-source {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .source-badge {
+        background: rgba(0, 255, 255, 0.2);
+        color: #00ffff;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+    
+    .analysis-timestamp {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Section Header with Dot Matrix Icon -->
+    <div class="glass-card section-spacing">
+        <div class="card-body">
+            <div class="section-header satellite-analysis">
+                <div class="dot-matrix-icon">
+                    <i class="fas fa-satellite"></i>
+                </div>
+                <div class="section-title">
+                    <h2>Análisis Satelital</h2>
+                    <p>Sistema avanzado de computer vision y redes neuronales profundas para análisis automatizado de imágenes satelitales de alta resolución</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="glass-card section-spacing">
+        <div class="card-body">
+            <div class="satellite-hero">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold text-white mb-3">
+                        <i class="fas fa-satellite me-3" style="color: #00ffff;"></i>
+                        Análisis de Imágenes Satelitales
+                    </h1>
+                    <p class="lead text-light mb-4">
+                        Sistema avanzado de computer vision y redes neuronales profundas para análisis automatizado 
+                        de imágenes satelitales de alta resolución desde Sentinel Hub, NASA y Copernicus.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="ai-model-badge">YOLOv8</span>
+                        <span class="ai-model-badge">Detectron2</span>
+                        <span class="ai-model-badge">Segment Anything</span>
+                        <span class="ai-model-badge">ResNet</span>
+                        <span class="ai-model-badge">Vision Transformers</span>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="satellite-card p-4">
+                        <h3 class="text-white mb-3">Estado del Sistema</h3>
+                        <div class="processing-status">
+                            <div class="status-indicator status-active"></div>
+                            <span class="text-light">Procesamiento Activo</span>
+                        </div>
+                        <div class="processing-status">
+                            <div class="status-indicator status-processing"></div>
+                            <span class="text-light">Análisis en Tiempo Real</span>
+                        </div>
+                        <div class="processing-status">
+                            <div class="status-indicator status-active"></div>
+                            <span class="text-light">Modelos de IA Operativos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Dashboard -->
+    <div class="glass-card section-spacing">
+        <div class="card-body">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="images-processed">Cargando...</div>
+                <div class="stat-label">Imágenes Procesadas Hoy</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="detections-made">Cargando...</div>
+                <div class="stat-label">Detecciones Confirmadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="active-models">Cargando...</div>
+                <div class="stat-label">Modelos de IA Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="coverage-area">Cargando...</div>
+                <div class="stat-label">Cobertura Global</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Analysis Dashboard -->
+    <div class="container">
+        <div class="row">
+            <!-- Recent Detections with Images -->
+            <div class="col-lg-8">
+                <div class="satellite-card p-4 mb-4">
+                    <h3 class="text-white mb-4">
+                        <i class="fas fa-crosshairs me-2" style="color: #00ffff;"></i>
+                        Detecciones Recientes con Análisis Visual
+                    </h3>
+                    
+                    <div class="detection-grid" id="recent-detections">
+                        <!-- Detection items will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Image Analysis Gallery -->
+                <div class="satellite-card p-4 mb-4">
+                    <h3 class="text-white mb-4">
+                        <i class="fas fa-images me-2" style="color: #00ffff;"></i>
+                        Galería de Análisis de Imágenes Satelitales
+                    </h3>
+                    
+                    <div class="image-gallery" id="satellite-gallery">
+                        <!-- Satellite images with detections will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Model Performance -->
+                <div class="satellite-card p-4 mb-4">
+                    <h3 class="text-white mb-4">
+                        <i class="fas fa-brain me-2" style="color: #00ffff;"></i>
+                        Rendimiento de Modelos de IA
+                    </h3>
+                    
+                    <div class="model-performance" id="model-performance">
+                        <!-- Model performance metrics will be loaded from API -->
+                        <div class="text-center text-muted p-4">
+                            <i class="fas fa-brain fa-2x mb-3"></i>
+                            <p>Cargando métricas de rendimiento...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Feed & Controls -->
+            <div class="col-lg-4">
+                <!-- Real-time Analysis Feed -->
+                <div class="satellite-card p-4 mb-4">
+                    <h4 class="text-white mb-3">
+                        <i class="fas fa-rss me-2" style="color: #00ffff;"></i>
+                        Feed en Tiempo Real
+                    </h4>
+                    
+                    <div class="real-time-feed" id="real-time-feed">
+                        <!-- Feed items will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Analysis Controls -->
+                <div class="satellite-card p-4 mb-4">
+                    <h4 class="text-white mb-3">
+                        <i class="fas fa-cogs me-2" style="color: #00ffff;"></i>
+                        Controles de Análisis
+                    </h4>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Región de Interés</label>
+                        <select class="control-input" id="region-selector">
+                            <option value="global">Global</option>
+                            <option value="ukraine">Ucrania</option>
+                            <option value="middle-east">Medio Oriente</option>
+                            <option value="south-china-sea">Mar del Sur de China</option>
+                            <option value="sahel">Región del Sahel</option>
+                            <option value="balkans">Balcanes</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Tipo de Detección</label>
+                        <select class="control-input" id="detection-type">
+                            <option value="all">Todas las Detecciones</option>
+                            <option value="military">Actividad Militar</option>
+                            <option value="infrastructure">Infraestructura</option>
+                            <option value="natural">Fenómenos Naturales</option>
+                            <option value="movement">Movimientos de Población</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Resolución Temporal</label>
+                        <select class="control-input" id="temporal-resolution">
+                            <option value="realtime">Tiempo Real</option>
+                            <option value="hourly">Cada Hora</option>
+                            <option value="daily">Diario</option>
+                            <option value="weekly">Semanal</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Umbral de Confianza</label>
+                        <input type="range" class="control-input" id="confidence-threshold" min="0.5" max="1.0" step="0.05" value="0.85">
+                        <small class="text-muted">Actual: <span id="confidence-value">85%</span></small>
+                    </div>
+                    
+                    <button class="btn-satellite w-100 mt-3" onclick="updateAnalysis()">
+                        <i class="fas fa-sync-alt me-2"></i>
+                        Actualizar Análisis
+                    </button>
+                </div>
+
+                <!-- Alert Panel -->
+                <div class="alert-panel">
+                    <div class="alert-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Alertas Críticas
+                    </div>
+                    <div id="critical-alerts">
+                        <!-- Critical alerts will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Analysis Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="satellite-card p-4">
+                    <h3 class="text-white mb-4">
+                        <i class="fas fa-chart-line me-2" style="color: #00ffff;"></i>
+                        Análisis Temporal y Predicciones
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="prediction-panel">
+                                <div class="prediction-title">
+                                    <i class="fas fa-crystal-ball"></i>
+                                    Predicciones de Evolución
+                                </div>
+                                <div id="evolution-predictions">
+                                    <!-- Predictions will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="analysis-timeline">
+                                <h5 class="text-white mb-3">Timeline de Análisis</h5>
+                                <div id="analysis-timeline">
+                                    <!-- Timeline items will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Sources Information -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="satellite-card p-4">
+                    <h3 class="text-white mb-4">
+                        <i class="fas fa-database me-2" style="color: #00ffff;"></i>
+                        Fuentes de Datos y Cobertura
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="source-info">
+                                <h5 class="text-white">Sentinel Hub</h5>
+                                <p class="text-muted small">Imágenes de alta resolución de la ESA</p>
+                                <div class="coordinates">Resolución: 10m - 60m</div>
+                                <div class="coordinates">Frecuencia: Cada 5 días</div>
+                                <div class="coordinates">Cobertura: Global</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="source-info">
+                                <h5 class="text-white">NASA Landsat</h5>
+                                <p class="text-muted small">Archivo histórico y datos actuales</p>
+                                <div class="coordinates">Resolución: 15m - 30m</div>
+                                <div class="coordinates">Frecuencia: Cada 16 días</div>
+                                <div class="coordinates">Cobertura: Global</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="source-info">
+                                <h5 class="text-white">Copernicus</h5>
+                                <p class="text-muted small">Programa de observación terrestre de la UE</p>
+                                <div class="coordinates">Resolución: 10m - 300m</div>
+                                <div class="coordinates">Frecuencia: Tiempo real</div>
+                                <div class="coordinates">Cobertura: Global</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Satellite Analysis JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSatelliteAnalysis();
+    startRealTimeFeed();
+    loadRecentDetections();
+    loadSatelliteGallery();
+    loadCriticalAlerts();
+    loadEvolutionPredictions();
+    loadAnalysisTimeline();
+    loadModelPerformance();
+    
+    // Update confidence threshold display
+    const confidenceSlider = document.getElementById('confidence-threshold');
+    const confidenceValue = document.getElementById('confidence-value');
+    
+    confidenceSlider.addEventListener('input', function() {
+        confidenceValue.textContent = Math.round(this.value * 100) + '%';
+    });
+});
+
+async function loadModelPerformance() {
+    const container = document.getElementById('model-performance');
+    
+    try {
+        const response = await fetch('/api/satellite/model-performance');
+        const data = await response.json();
+        
+        if (data.success && data.models && data.models.length > 0) {
+            container.innerHTML = data.models.map(model => `
+                <div class="model-card">
+                    <h5 class="text-white">${model.name}</h5>
+                    <div class="model-accuracy">${model.accuracy}%</div>
+                    <p class="text-muted small">${model.task}</p>
+                    <div class="confidence-meter">
+                        <div class="confidence-fill" style="width: ${model.accuracy}%;"></div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-brain fa-2x mb-3"></i>
+                    <p>No hay métricas de modelos disponibles</p>
+                    <small>Esperando evaluación de modelos...</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading model performance:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <p>Error al cargar métricas de modelos</p>
+                <small>Verificando sistemas de evaluación...</small>
+            </div>
+        `;
+    }
+}
+});
+
+function initializeSatelliteAnalysis() {
+    console.log('🛰️ Initializing Satellite Analysis System...');
+    
+    // Load real statistics from API
+    loadRealTimeStatistics();
+    
+    // Initialize WebSocket connection for real-time updates
+    initializeRealWebSocketConnection();
+    
+    // Refresh statistics every 5 minutes
+    setInterval(loadRealTimeStatistics, 300000);
+}
+
+async function loadRealTimeStatistics() {
+    try {
+        const response = await fetch('/api/satellite/statistics');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('images-processed').textContent = data.stats.images_processed_today.toLocaleString();
+            document.getElementById('detections-made').textContent = data.stats.detections_confirmed;
+            document.getElementById('active-models').textContent = data.stats.active_models;
+            document.getElementById('coverage-area').textContent = data.stats.coverage_percentage + '%';
+        }
+    } catch (error) {
+        console.error('Error loading satellite statistics:', error);
+        // Show loading state instead of fake data
+        document.getElementById('images-processed').textContent = 'Cargando...';
+        document.getElementById('detections-made').textContent = 'Cargando...';
+        document.getElementById('active-models').textContent = 'Cargando...';
+        document.getElementById('coverage-area').textContent = 'Cargando...';
+    }
+}
+
+async function loadRecentDetections() {
+    const container = document.getElementById('recent-detections');
+    
+    try {
+        const response = await fetch('/api/satellite/recent-detections');
+        const data = await response.json();
+        
+        if (data.success && data.detections && data.detections.length > 0) {
+            container.innerHTML = data.detections.map(detection => `
+                <div class="satellite-card p-3 mb-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="satellite-image-container">
+                                <img src="${detection.image_url}" alt="${detection.title}" class="satellite-image" 
+                                     onerror="this.style.display='none'">
+                                <div class="detection-overlay"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="text-white mb-1">${detection.title}</h5>
+                                <span class="detection-badge detection-${detection.type}">
+                                    ${getDetectionTypeLabel(detection.type)}
+                                </span>
+                            </div>
+                            
+                            <p class="text-muted small mb-2">${detection.details}</p>
+                            
+                            <div class="row text-sm">
+                                <div class="col-6">
+                                    <div class="text-muted">Ubicación:</div>
+                                    <div class="text-white">${detection.location}</div>
+                                    <div class="coordinates">${detection.coordinates}</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-muted">Modelo:</div>
+                                    <div class="text-white">${detection.model}</div>
+                                    <div class="text-muted">Confianza: <span class="text-success">${detection.confidence}%</span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="confidence-meter mt-2">
+                                <div class="confidence-fill" style="width: ${detection.confidence}%;"></div>
+                            </div>
+                            
+                            <div class="text-muted small mt-2">
+                                <i class="fas fa-clock me-1"></i>
+                                ${formatTimestamp(detection.timestamp)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-satellite fa-2x mb-3"></i>
+                    <p>No hay detecciones recientes disponibles</p>
+                    <small>Los datos se actualizan en tiempo real desde las APIs satelitales</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading recent detections:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <p>Error al cargar detecciones</p>
+                <small>Verificando conexión con APIs satelitales...</small>
+            </div>
+        `;
+    }
+}
+
+function startRealTimeFeed() {
+    const feedContainer = document.getElementById('real-time-feed');
+    
+    function addFeedItem(message, type = 'info') {
+        const time = new Date().toLocaleTimeString('es-ES', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        const feedItem = document.createElement('div');
+        feedItem.className = 'feed-item';
+        feedItem.innerHTML = `
+            <div class="feed-time">${time}</div>
+            <div class="flex-grow-1">
+                <div class="text-white small">${message}</div>
+            </div>
+        `;
+        
+        feedContainer.insertBefore(feedItem, feedContainer.firstChild);
+        
+        // Keep only last 20 items
+        while (feedContainer.children.length > 20) {
+            feedContainer.removeChild(feedContainer.lastChild);
+        }
+    }
+    
+    // Load real-time feed from API
+    loadRealTimeFeed();
+    
+    // Refresh feed every 30 seconds
+    setInterval(loadRealTimeFeed, 30000);
+    
+    // Add initial message
+    addFeedItem('Sistema de análisis satelital iniciado - Conectando APIs...');
+}
+
+async function loadRealTimeFeed() {
+    try {
+        const response = await fetch('/api/satellite/real-time-feed');
+        const data = await response.json();
+        
+        if (data.success && data.feed_items && data.feed_items.length > 0) {
+            const feedContainer = document.getElementById('real-time-feed');
+            
+            data.feed_items.forEach(item => {
+                const time = new Date(item.timestamp).toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                const feedItem = document.createElement('div');
+                feedItem.className = 'feed-item';
+                feedItem.innerHTML = `
+                    <div class="feed-time">${time}</div>
+                    <div class="flex-grow-1">
+                        <div class="text-white small">${item.message}</div>
+                    </div>
+                `;
+                
+                feedContainer.insertBefore(feedItem, feedContainer.firstChild);
+            });
+            
+            // Keep only last 20 items
+            while (feedContainer.children.length > 20) {
+                feedContainer.removeChild(feedContainer.lastChild);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading real-time feed:', error);
+        const feedContainer = document.getElementById('real-time-feed');
+        feedContainer.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-wifi fa-2x mb-2"></i>
+                <p>Conectando con feed en tiempo real...</p>
+            </div>
+        `;
+    }
+}
+
+async function loadCriticalAlerts() {
+    const container = document.getElementById('critical-alerts');
+    
+    try {
+        const response = await fetch('/api/satellite/critical-alerts');
+        const data = await response.json();
+        
+        if (data.success && data.alerts && data.alerts.length > 0) {
+            container.innerHTML = data.alerts.map(alert => `
+                <div class="mb-3 p-2 rounded" style="background: rgba(255, 255, 255, 0.05);">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="text-white small fw-bold">${alert.message}</div>
+                            <div class="text-muted small">${alert.location}</div>
+                        </div>
+                        <div class="text-muted small">${alert.time_ago}</div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                    <p>No hay alertas críticas activas</p>
+                    <small>Sistema en monitoreo continuo</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading critical alerts:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Error al cargar alertas</p>
+                <small>Verificando sistemas de monitoreo...</small>
+            </div>
+        `;
+    }
+}
+
+async function loadEvolutionPredictions() {
+    const container = document.getElementById('evolution-predictions');
+    
+    try {
+        const response = await fetch('/api/satellite/evolution-predictions');
+        const data = await response.json();
+        
+        if (data.success && data.predictions && data.predictions.length > 0) {
+            container.innerHTML = data.predictions.map(pred => `
+                <div class="mb-3 p-3 rounded" style="background: rgba(255, 255, 255, 0.05);">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-white mb-0">${pred.type}</h6>
+                        <span class="badge bg-info">${pred.confidence_level}</span>
+                    </div>
+                    <div class="text-muted small mb-2">Probabilidad en ${pred.timeframe}</div>
+                    <div class="confidence-meter">
+                        <div class="confidence-fill" style="width: ${pred.probability}%;"></div>
+                    </div>
+                    <div class="text-center mt-1">
+                        <span class="text-white fw-bold">${pred.probability}%</span>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-crystal-ball fa-2x mb-2"></i>
+                    <p>No hay predicciones disponibles</p>
+                    <small>Analizando patrones históricos...</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading evolution predictions:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Error al cargar predicciones</p>
+                <small>Verificando modelos predictivos...</small>
+            </div>
+        `;
+    }
+}
+
+async function loadSatelliteGallery() {
+    const container = document.getElementById('satellite-gallery');
+    
+    try {
+        const response = await fetch('/api/satellite/gallery-images');
+        const data = await response.json();
+        
+        if (data.success && data.gallery_images && data.gallery_images.length > 0) {
+            container.innerHTML = data.gallery_images.map(item => `
+                <div class="gallery-item">
+                    <div class="gallery-image-container">
+                        <img src="${item.image_url}" alt="${item.title}" class="gallery-image" 
+                             onerror="this.parentElement.style.display='none'">
+                        
+                        <!-- Detection Bounding Boxes -->
+                        ${item.detections ? item.detections.map(detection => `
+                            <div class="detection-bounding-box ${item.type}" 
+                                 style="left: ${detection.x}%; top: ${detection.y}%; width: ${detection.w}%; height: ${detection.h}%;">
+                                <div class="detection-label">${detection.label} (${detection.confidence}%)</div>
+                            </div>
+                        `).join('') : ''}
+                    </div>
+                    
+                    <div class="gallery-info">
+                        <div class="gallery-title">${item.title}</div>
+                        
+                        <div class="gallery-meta">
+                            <div class="gallery-coordinates">${item.coordinates}</div>
+                            <div class="gallery-confidence">${item.confidence}%</div>
+                        </div>
+                        
+                        <div class="gallery-details">${item.details}</div>
+                        
+                        <div class="gallery-source">
+                            <div>
+                                <span class="source-badge">${item.source}</span>
+                                <span class="ai-model-badge">${item.model}</span>
+                            </div>
+                            <div class="analysis-timestamp">${formatTimestamp(item.timestamp)}</div>
+                        </div>
+                        
+                        ${item.detections && item.detections.length > 0 ? `
+                        <div class="mt-3">
+                            <div class="text-muted small mb-1">Detecciones Identificadas:</div>
+                            ${item.detections.map(detection => `
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-white small">${detection.label}</span>
+                                    <span class="text-success small">${detection.confidence}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-images fa-2x mb-3"></i>
+                    <p>No hay imágenes satelitales disponibles</p>
+                    <small>Esperando análisis de nuevas imágenes desde las APIs satelitales</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading satellite gallery:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <p>Error al cargar galería de imágenes</p>
+                <small>Verificando conexión con fuentes satelitales...</small>
+            </div>
+        `;
+    }
+}
+                
+                <div class="gallery-source">
+                    <div>
+                        <span class="source-badge">${item.source}</span>
+                        <span class="ai-model-badge">${item.model}</span>
+                    </div>
+                    <div class="analysis-timestamp">${formatTimestamp(item.timestamp)}</div>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="text-muted small mb-1">Detecciones Identificadas:</div>
+                    ${item.detections.map(detection => `
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-white small">${detection.label}</span>
+                            <span class="text-success small">${detection.confidence}%</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function loadAnalysisTimeline() {
+    const container = document.getElementById('analysis-timeline');
+    
+    try {
+        const response = await fetch('/api/satellite/analysis-timeline');
+        const data = await response.json();
+        
+        if (data.success && data.timeline_items && data.timeline_items.length > 0) {
+            container.innerHTML = data.timeline_items.map(item => `
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-white small">${item.event}</div>
+                            <div class="text-muted small">${item.time}</div>
+                        </div>
+                        <div class="mt-1">
+                            <span class="badge ${item.status === 'completed' ? 'bg-success' : 'bg-warning'}">
+                                ${item.status === 'completed' ? 'Completado' : 'En Proceso'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <p>No hay eventos recientes en el timeline</p>
+                    <small>Esperando nuevos análisis...</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading analysis timeline:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Error al cargar timeline</p>
+                <small>Verificando sistemas de análisis...</small>
+            </div>
+        `;
+    }
+}
+
+function getDetectionTypeLabel(type) {
+    const labels = {
+        'military': 'Militar',
+        'infrastructure': 'Infraestructura',
+        'natural': 'Natural',
+        'movement': 'Movimiento'
+    };
+    return labels[type] || type;
+}
+
+function formatTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    
+    if (diffMins < 60) {
+        return `hace ${diffMins} minutos`;
+    } else if (diffHours < 24) {
+        return `hace ${diffHours} horas`;
+    } else {
+        return date.toLocaleDateString('es-ES');
+    }
+}
+
+async function updateAnalysis() {
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Actualizando...';
+    button.disabled = true;
+    
+    try {
+        // Refresh all data from APIs
+        await Promise.all([
+            loadRecentDetections(),
+            loadCriticalAlerts(),
+            loadRealTimeStatistics(),
+            loadSatelliteGallery(),
+            loadEvolutionPredictions(),
+            loadAnalysisTimeline(),
+            loadModelPerformance()
+        ]);
+        
+        // Reset button
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Show success message
+        showNotification('Análisis actualizado desde APIs satelitales', 'success');
+    } catch (error) {
+        console.error('Error updating analysis:', error);
+        
+        // Reset button
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Show error message
+        showNotification('Error al actualizar análisis - Verificando conexión con APIs', 'error');
+    }
+}
+
+function initializeRealWebSocketConnection() {
+    // Initialize real WebSocket connection for satellite data updates
+    try {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${protocol}//${window.location.host}/ws/satellite-updates`);
+        
+        ws.onopen = function(event) {
+            console.log('🛰️ WebSocket connected to satellite data stream');
+            showNotification('Conectado al feed satelital en tiempo real', 'success');
+        };
+        
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            if (data.type === 'new_detection') {
+                showNotification(`Nueva detección: ${data.message}`, 'info');
+                loadRecentDetections(); // Refresh detections
+            } else if (data.type === 'alert') {
+                showNotification(data.message, 'warning');
+                loadCriticalAlerts(); // Refresh alerts
+            } else if (data.type === 'statistics_update') {
+                loadRealTimeStatistics(); // Refresh statistics
+            }
+        };
+        
+        ws.onclose = function(event) {
+            console.log('🛰️ WebSocket disconnected from satellite data stream');
+            showNotification('Conexión con feed satelital perdida - Reintentando...', 'warning');
+            
+            // Attempt to reconnect after 5 seconds
+            setTimeout(initializeRealWebSocketConnection, 5000);
+        };
+        
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+            showNotification('Error en conexión con APIs satelitales', 'error');
+        };
+        
+    } catch (error) {
+        console.error('Error initializing WebSocket:', error);
+        showNotification('WebSocket no disponible - Usando actualizaciones periódicas', 'warning');
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

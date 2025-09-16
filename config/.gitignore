@@ -1,0 +1,9 @@
+# Encrypted API Keys - NEVER COMMIT
+encrypted_keys.dat
+key.salt
+*.key
+*.secret
+
+# Configuration with sensitive data
+*_config.json
+*_secrets.json
