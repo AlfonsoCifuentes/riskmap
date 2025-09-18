@@ -9,8 +9,7 @@ This is a geopolitical intelligence platform that combines data ingestion, NLP p
 ## 🏗️ Architecture Overview
 
 **Main Application Entry Points:**
-- `app_CORREGIDO.py` - CURRENT WORKING APPLICATION (USER RUNS THIS)
-- `app_BUENA.py` - Legacy application with dependency issues (DO NOT USE)
+- `app_BUENA.py` - CURRENT WORKING APPLICATION (USER RUNS THIS)
 - `app_SIMPLE.py` - Basic fallback application
 - `main.py` - CLI interface for testing components
 - Database: SQLite at `./data/geopolitical_intel.db`
@@ -23,7 +22,7 @@ This is a geopolitical intelligence platform that combines data ingestion, NLP p
 ## 🔧 Development Conventions
 
 **❌ SERVER EXECUTION RULES:**
-- NEVER execute servers with `run_in_terminal` (app_BUENA.py, app_CORREGIDO.py, etc.)
+- NEVER execute servers with `run_in_terminal` (app_BUENA.py, etc.)
 - NEVER use `python app_*.py` commands
 - User handles server execution in separate process
 - Only create/modify files and test endpoints if needed
@@ -35,7 +34,7 @@ This is a geopolitical intelligence platform that combines data ingestion, NLP p
 
 **Current Working Application:**
 ```
-app_CORREGIDO.py - Fixed version with proper SQL column handling
+app_BUENA.py - Primary working application with all features
 ```
 
 **Configuration:**
@@ -150,7 +149,7 @@ except ImportError as e:
 - **NEVER execute server applications** - User runs server in separate process
 - **NEVER use `python app_*.py` commands**
 - **NEVER use `run_in_terminal` for server startup**
-- Current working application: `app_CORREGIDO.py` (user runs this)
+- Current working application: `app_BUENA.py` (user runs this)
 - All API keys in `.env` - never hardcode credentials  
 - Keep automation pipeline in mind - changes affect background processes
 - Use latest MCP libraries, avoid deprecated functions

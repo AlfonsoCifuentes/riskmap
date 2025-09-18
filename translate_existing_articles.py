@@ -1,53 +1,69 @@
 #!/usr/bin/env python3
 """
-Script para traducir todos los artículos en inglés de la base de datos al español.
-Utiliza el sistema de traducción existente con LibreTranslate, Groq, OpenAI y DeepSeek.
+Traducir Artículos Existentes usando RobustTranslationSystem
+Aplica traducción a todos los artículos existentes para mejorar rendimiento.
 """
 
 import sqlite3
-import logging
 import sys
-from pathlib import Path
-import time
-from typing import List, Tuple
+import os
+from datetime import datetime
 
-# Add parent directory to path
-sys.path.append(str(Path(__file__).parent))
+# Añadir el directorio principal al path para importar módulos
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from src.utils.translation import TranslationService
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('translation_log.txt'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-
-class ArticleTranslator:
-    """Traductor de artículos en la base de datos."""
+def translate_existing_articles():
+    """Traduce artículos existentes en la base de datos"""
     
-    def __init__(self, db_path: str = "data/geopolitical_intel.db"):
-        self.db_path = db_path
-        self.translation_service = TranslationService()
+    try:
+        # Importar el sistema de traducción
+        from robust_translation_v3 import RobustTranslationSystem
         
-    def get_english_articles(self) -> List[Tuple]:
-        """Obtiene todos los artículos en inglés de la base de datos."""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            # Buscar artículos en inglés que no han sido traducidos
-            query = """
-            SELECT id, title, content, summary, auto_generated_summary, language
+        print("🚀 TRADUCCIÓN MASIVA DE ARTÍCULOS EXISTENTES")
+        print("=" * 60)
+        print(f"🕒 Iniciado: {datetime.now().strftime('%H:%M:%S')}")
+        
+        # Inicializar sistema de traducción
+        translation_system = RobustTranslationSystem()
+        print("✅ Sistema de traducción inicializado")
+        
+        # Conectar a la base de datos
+        db_path = "./data/geopolitical_intel.db"
+        if not os.path.exists(db_path):
+            print(f"❌ Base de datos no encontrada: {db_path}")
+            return
+        
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        print(f"✅ Conectado a base de datos: {db_path}")
+        
+        # Obtener artículos que necesitan traducción
+        cursor.execute("""
+            SELECT id, title, content, summary
             FROM articles 
-            WHERE language = 'en' 
-            OR language = 'English'
-            OR language LIKE '%en%'
-            OR language IS NULL
+            WHERE title IS NOT NULL 
+            AND content IS NOT NULL
+            AND (title_es IS NULL OR content_es IS NULL)
+            LIMIT 50
+        """)
+        
+        articles = cursor.fetchall()
+        print(f"📊 Artículos a traducir: {len(articles)}")
+        
+        if not articles:
+            print("✅ No hay artículos que requieran traducción")
+            conn.close()
+            return
+        
+        # Añadir columnas de traducción si no existen
+        try:
+            cursor.execute("ALTER TABLE articles ADD COLUMN title_es TEXT")
+            cursor.execute("ALTER TABLE articles ADD COLUMN content_es TEXT") 
+            cursor.execute("ALTER TABLE articles ADD COLUMN summary_es TEXT")
+            print("✅ Columnas de traducción añadidas")
+        except sqlite3.OperationalError:
+            print("✅ Columnas de traducción ya existen")
             ORDER BY id DESC
             """
             

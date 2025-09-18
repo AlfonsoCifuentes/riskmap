@@ -23,7 +23,7 @@ def test_corrected_query():
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        # Consulta SQL CORREGIDA (mismo código del app_CORREGIDO.py arreglado)
+        # Consulta SQL CORREGIDA (mismo código del app_BUENA.py arreglado)
         query = """
             SELECT 
                 id, title, 
@@ -173,7 +173,7 @@ def main():
         print(f"✅ La consulta SQL corregida FUNCIONA")
         print(f"🚨 DEBES REINICIAR TU SERVIDOR:")
         print(f"   1. Detén el servidor actual (Ctrl+C)")
-        print(f"   2. Ejecuta: python app_CORREGIDO.py")
+        print(f"   2. Ejecuta: python app_BUENA.py")
         print(f"   3. Recarga la página web (F5)")
         print(f"   4. ¡Verás TODAS las imágenes originales!")
     else:

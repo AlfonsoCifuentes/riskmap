@@ -295,13 +295,14 @@ class GeopoliticalIntelligenceOrchestrator:
         cursor = conn.cursor()
         
         try:
-            # Get articles that need advanced NLP processing
+            # Get articles that need advanced NLP processing - OPTIMIZED QUERY
             query = """
                 SELECT a.id, a.title, a.content, a.country, a.language
                 FROM articles a
-                LEFT JOIN processed_data pd ON a.url = pd.url
-                WHERE (pd.advanced_nlp IS NULL OR pd.advanced_nlp = '' OR pd.id IS NULL)
+                LEFT JOIN processed_data pd ON a.id = pd.article_id
+                WHERE (pd.advanced_nlp IS NULL OR pd.advanced_nlp = '' OR pd.article_id IS NULL)
                 AND a.is_excluded = 0
+                AND a.created_at > datetime('now', '-7 days')
                 ORDER BY a.created_at DESC
                 LIMIT ?
             """
@@ -377,6 +378,10 @@ class GeopoliticalIntelligenceOrchestrator:
                     
                     if existing:
                         # Update existing record with advanced NLP data
+                        # Safely handle content for summary generation
+                        safe_content = content or ''
+                        summary_text = safe_content[:300] + '...' if len(safe_content) > 300 else safe_content
+                        
                         cursor.execute("""
                             UPDATE processed_data 
                             SET 
@@ -388,7 +393,7 @@ class GeopoliticalIntelligenceOrchestrator:
                                 advanced_nlp = ?
                             WHERE article_id = ?
                         """, (
-                            content[:300] + '...' if len(content) > 300 else content,
+                            summary_text,
                             'geopolitical_analysis',
                             json.dumps(nlp_results['key_persons'] + nlp_results['key_locations']),
                             nlp_results['sentiment']['score'],
@@ -398,13 +403,17 @@ class GeopoliticalIntelligenceOrchestrator:
                         ))
                     else:
                         # Insert new processed data record
+                        # Safely handle content for summary generation
+                        safe_content = content or ''
+                        summary_text = safe_content[:300] + '...' if len(safe_content) > 300 else safe_content
+                        
                         cursor.execute("""
                             INSERT INTO processed_data (
                                 article_id, summary, category, keywords, sentiment, entities, advanced_nlp
                             ) VALUES (?, ?, ?, ?, ?, ?, ?)
                         """, (
                             article_id,
-                            content[:300] + '...' if len(content) > 300 else content,
+                            summary_text,
                             'geopolitical_analysis',
                             json.dumps(nlp_results['key_persons'] + nlp_results['key_locations']),
                             nlp_results['sentiment']['score'],
@@ -894,3 +903,197 @@ class GeopoliticalIntelligenceOrchestrator:
                 continue
         
         conn.commit()
+
+    def run_batch_nlp_processing(self, batch_size: int = 100, max_batches: int = 10) -> Dict:
+        """Ejecuta procesamiento NLP en lotes optimizado para grandes volúmenes."""
+        start_time = datetime.now()
+        logger.info(f"🔄 Iniciando procesamiento NLP por lotes: {batch_size} artículos por lote, máximo {max_batches} lotes")
+        
+        try:
+            if not ADVANCED_NLP_AVAILABLE:
+                logger.warning("⚠️ Procesamiento avanzado NLP no disponible, usando método estándar")
+                processed = self._run_nlp_processing(limit=batch_size * max_batches)
+                return {
+                    'success': True,
+                    'processed_count': processed,
+                    'batches_completed': 1,
+                    'processing_time': (datetime.now() - start_time).total_seconds()
+                }
+            
+            nlp_analyzer = AdvancedNLPAnalyzer()
+            total_processed = 0
+            batches_completed = 0
+            batch_results = []
+            
+            for batch_num in range(max_batches):
+                logger.info(f"📦 Procesando lote {batch_num + 1}/{max_batches}")
+                
+                # Get batch of unprocessed articles
+                from src.utils.config import DatabaseManager
+                db_manager = DatabaseManager()
+                
+                with db_manager.get_connection() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT id, title, content, url, published_at, country, source_name
+                        FROM articles 
+                        WHERE processed = 0 
+                        ORDER BY published_at DESC
+                        LIMIT ?
+                    """, (batch_size,))
+                    
+                    articles_data = []
+                    for row in cursor.fetchall():
+                        articles_data.append({
+                            'id': row[0],
+                            'title': row[1],
+                            'content': row[2],
+                            'url': row[3],
+                            'published_at': row[4],
+                            'country': row[5],
+                            'source_name': row[6]
+                        })
+                
+                if not articles_data:
+                    logger.info("✅ No hay más artículos para procesar")
+                    break
+                
+                # Process batch
+                batch_start = datetime.now()
+                try:
+                    batch_result = nlp_analyzer.analyze_batch(articles_data, batch_size=len(articles_data))
+                    
+                    if isinstance(batch_result, dict) and 'processed_count' in batch_result:
+                        processed_count = batch_result['processed_count']
+                    else:
+                        # Fallback: assume all articles were processed
+                        processed_count = len(articles_data)
+                    
+                    total_processed += processed_count
+                    batches_completed += 1
+                    
+                    batch_time = (datetime.now() - batch_start).total_seconds()
+                    
+                    batch_info = {
+                        'batch_number': batch_num + 1,
+                        'processed_count': processed_count,
+                        'processing_time': batch_time,
+                        'articles_per_second': processed_count / batch_time if batch_time > 0 else 0
+                    }
+                    batch_results.append(batch_info)
+                    
+                    logger.info(f"📊 Lote {batch_num + 1}: {processed_count} artículos procesados en {batch_time:.2f}s")
+                    
+                except Exception as batch_error:
+                    logger.error(f"❌ Error procesando lote {batch_num + 1}: {batch_error}")
+                    # Mark articles as processed to avoid infinite loop
+                    with db_manager.get_connection() as conn:
+                        cursor = conn.cursor()
+                        article_ids = [article['id'] for article in articles_data]
+                        cursor.executemany("UPDATE articles SET processed = 1 WHERE id = ?", 
+                                         [(aid,) for aid in article_ids])
+                        conn.commit()
+                
+                # Health check after each batch
+                try:
+                    health = nlp_analyzer.check_processing_health()
+                    if health.get('status') != 'healthy':
+                        logger.warning(f"⚠️ Alerta de salud del sistema después del lote {batch_num + 1}: {health.get('status', 'unknown')}")
+                        for alert in health.get('alerts', []):
+                            logger.warning(f"🔔 {alert}")
+                except Exception as health_error:
+                    logger.warning(f"⚠️ No se pudo verificar salud del sistema: {health_error}")
+            
+            processing_time = (datetime.now() - start_time).total_seconds()
+            
+            # Generate summary statistics
+            overall_stats = {
+                'success': True,
+                'processed_count': total_processed,
+                'batches_completed': batches_completed,
+                'processing_time': processing_time,
+                'avg_time_per_batch': processing_time / batches_completed if batches_completed > 0 else 0,
+                'avg_articles_per_second': total_processed / processing_time if processing_time > 0 else 0,
+                'batch_details': batch_results
+            }
+            
+            logger.info(f"🎯 Procesamiento por lotes completado: {total_processed} artículos en {batches_completed} lotes")
+            logger.info(f"⏱️ Tiempo total: {processing_time:.2f}s, velocidad: {overall_stats['avg_articles_per_second']:.1f} art/s")
+            
+            # Update system stats
+            self.stats['successful_analyses'] += total_processed
+            
+            return overall_stats
+            
+        except Exception as e:
+            logger.error(f"❌ Error crítico en procesamiento por lotes: {e}")
+            logger.error(traceback.format_exc())
+            return {
+                'success': False,
+                'error': str(e),
+                'processed_count': 0,
+                'batches_completed': 0,
+                'processing_time': (datetime.now() - start_time).total_seconds()
+            }
+    
+    def get_nlp_processing_stats(self) -> Dict:
+        """Obtiene estadísticas detalladas del procesamiento NLP."""
+        try:
+            stats = {
+                'system_version': getattr(self, 'version', '2.1.0'),
+                'timestamp': datetime.now().isoformat(),
+                'system_stats': self.stats.copy()
+            }
+            
+            # Get NLP analyzer stats if available
+            if ADVANCED_NLP_AVAILABLE:
+                try:
+                    nlp_analyzer = AdvancedNLPAnalyzer()
+                    analyzer_stats = nlp_analyzer.get_processing_stats()
+                    stats['nlp_analyzer'] = analyzer_stats
+                except Exception as e:
+                    logger.warning(f"No se pudieron obtener estadísticas del analizador NLP: {e}")
+                    stats['nlp_analyzer'] = {'error': str(e)}
+            
+            # Database statistics
+            from src.utils.config import DatabaseManager
+            db_manager = DatabaseManager()
+            
+            with db_manager.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Total articles
+                cursor.execute("SELECT COUNT(*) FROM articles")
+                total_articles = cursor.fetchone()[0]
+                
+                # Processed articles
+                cursor.execute("SELECT COUNT(*) FROM articles WHERE processed = 1")
+                processed_articles = cursor.fetchone()[0]
+                
+                # Articles with advanced NLP
+                cursor.execute("SELECT COUNT(*) FROM processed_data WHERE advanced_nlp IS NOT NULL")
+                advanced_nlp_count = cursor.fetchone()[0] if cursor.fetchone() else 0
+                
+                # Recent processing (last 24h)
+                cursor.execute("""
+                    SELECT COUNT(*) FROM articles 
+                    WHERE processed = 1 AND created_at > datetime('now', '-1 day')
+                """)
+                recent_processed = cursor.fetchone()[0]
+                
+                stats['database_stats'] = {
+                    'total_articles': total_articles,
+                    'processed_articles': processed_articles,
+                    'advanced_nlp_articles': advanced_nlp_count,
+                    'recent_processed_24h': recent_processed,
+                    'processing_rate': round((processed_articles / total_articles * 100) if total_articles > 0 else 0, 1)
+                }
+            
+            return stats
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo estadísticas NLP: {e}")
+            return {
+                'error': str(e),
+                'timestamp': datetime.now().isoformat()
+            }

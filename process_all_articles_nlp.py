@@ -95,36 +95,48 @@ def process_all_articles_with_advanced_nlp():
             
             # Perform comprehensive NLP analysis
             print(f"   🧠 Ejecutando análisis NLP completo...")
-            nlp_results = nlp_analyzer.analyze_article_comprehensive(article_data)
+            try:
+                nlp_results = nlp_analyzer.analyze_article_comprehensive(article_data)
+                if nlp_results is None:
+                    nlp_results = {}  # Provide safe default
+            except Exception as e:
+                logger.error(f"Error en análisis NLP para artículo {article_id}: {e}")
+                nlp_results = {}  # Provide safe default
             
             # Perform BERT risk analysis
             print(f"   🤖 Ejecutando análisis BERT/RoBERTa...")
-            bert_results = bert_analyzer.analyze_risk(
-                title=title or '',
-                content=content or '',
-                country=country
-            )
+            try:
+                bert_results = bert_analyzer.analyze_risk(
+                    title=title or '',
+                    content=content or '',
+                    country=country
+                )
+                if bert_results is None:
+                    bert_results = {}  # Provide safe default
+            except Exception as e:
+                logger.error(f"Error en análisis BERT para artículo {article_id}: {e}")
+                bert_results = {}  # Provide safe default
             
             # Combine results
             combined_analysis = {
-                'nlp_entities': nlp_results['entities'],
-                'sentiment_analysis': nlp_results['sentiment'],
-                'title_sentiment': nlp_results['title_sentiment'],
-                'nlp_risk_score': nlp_results['risk_score'],
-                'bert_risk_level': bert_results['level'],
-                'bert_risk_score': bert_results['score'],
-                'bert_confidence': bert_results['confidence'],
-                'bert_reasoning': bert_results['reasoning'],
-                'key_factors': bert_results.get('key_factors', []),
-                'geographic_impact': bert_results.get('geographic_impact', 'Unknown'),
-                'escalation_potential': bert_results.get('potential_escalation', 'Unknown'),
-                'key_persons': nlp_results['key_persons'],
-                'key_locations': nlp_results['key_locations'],
-                'conflict_indicators': nlp_results['conflict_indicators'],
-                'total_entities': nlp_results['total_entities'],
-                'ai_powered': bert_results['ai_powered'],
-                'model_used': bert_results['model_used'],
-                'analysis_timestamp': nlp_results['analysis_timestamp'],
+                'nlp_entities': nlp_results.get('entities', []) or [],
+                'sentiment_analysis': nlp_results.get('sentiment', {}) or {},
+                'title_sentiment': nlp_results.get('title_sentiment', {}) or {},
+                'nlp_risk_score': nlp_results.get('risk_score', 0.0) or 0.0,
+                'bert_risk_level': bert_results.get('level', 'MEDIUM') or 'MEDIUM',
+                'bert_risk_score': bert_results.get('score', 0.0) or 0.0,
+                'bert_confidence': bert_results.get('confidence', 0.0) or 0.0,
+                'bert_reasoning': bert_results.get('reasoning', 'No reasoning available') or 'No reasoning available',
+                'key_factors': bert_results.get('key_factors', []) or [],
+                'geographic_impact': bert_results.get('geographic_impact', 'Unknown') or 'Unknown',
+                'escalation_potential': bert_results.get('potential_escalation', 'Unknown') or 'Unknown',
+                'key_persons': nlp_results.get('key_persons', []) or [],
+                'key_locations': nlp_results.get('key_locations', []) or [],
+                'conflict_indicators': nlp_results.get('conflict_indicators', []) or [],
+                'total_entities': nlp_results.get('total_entities', 0) or 0,
+                'ai_powered': bert_results.get('ai_powered', False) or False,
+                'model_used': bert_results.get('model_used', 'unknown') or 'unknown',
+                'analysis_timestamp': nlp_results.get('analysis_timestamp', datetime.now().isoformat()) or datetime.now().isoformat(),
                 'processing_batch': 'complete_database_processing',
                 'processing_date': datetime.now().isoformat()
             }
@@ -145,6 +157,12 @@ def process_all_articles_with_advanced_nlp():
             
             if existing:
                 # Update existing record with advanced NLP data
+                # Safely handle potentially None values
+                safe_key_persons = nlp_results.get('key_persons') or []
+                safe_key_locations = nlp_results.get('key_locations') or []
+                safe_entities = nlp_results.get('entities') or {}
+                safe_sentiment = nlp_results.get('sentiment') or {'score': 0.0}
+                
                 cursor.execute('''
                     UPDATE processed_data 
                     SET 
@@ -156,28 +174,34 @@ def process_all_articles_with_advanced_nlp():
                         advanced_nlp = ?
                     WHERE article_id = ?
                 ''', (
-                    content[:300] + '...' if len(content) > 300 else content,
+                    (content[:300] + '...' if len(content or '') > 300 else content) or '',
                     category or 'geopolitical_analysis',
-                    json.dumps(nlp_results['key_persons'] + nlp_results['key_locations']),
-                    nlp_results['sentiment']['score'],
-                    json.dumps(nlp_results['entities']),
+                    json.dumps(safe_key_persons + safe_key_locations),
+                    safe_sentiment['score'],
+                    json.dumps(safe_entities),
                     json.dumps(combined_analysis),
                     article_id
                 ))
                 updated_count += 1
             else:
                 # Insert new processed data record
+                # Safely handle potentially None values
+                safe_key_persons = nlp_results.get('key_persons') or []
+                safe_key_locations = nlp_results.get('key_locations') or []
+                safe_entities = nlp_results.get('entities') or {}
+                safe_sentiment = nlp_results.get('sentiment') or {'score': 0.0}
+                
                 cursor.execute('''
                     INSERT INTO processed_data (
                         article_id, summary, category, keywords, sentiment, entities, advanced_nlp
                     ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     article_id,
-                    content[:300] + '...' if len(content) > 300 else content,
+                    (content[:300] + '...' if len(content or '') > 300 else content) or '',
                     category or 'geopolitical_analysis',
-                    json.dumps(nlp_results['key_persons'] + nlp_results['key_locations']),
-                    nlp_results['sentiment']['score'],
-                    json.dumps(nlp_results['entities']),
+                    json.dumps(safe_key_persons + safe_key_locations),
+                    safe_sentiment['score'],
+                    json.dumps(safe_entities),
                     json.dumps(combined_analysis)
                 ))
             
@@ -185,7 +209,9 @@ def process_all_articles_with_advanced_nlp():
             
             print(f"   ✅ ANÁLISIS COMPLETADO:")
             print(f"      🎯 Riesgo BERT: {bert_results['level']} ({bert_results['score']:.3f})")
-            print(f"      😊 Sentimiento: {nlp_results['sentiment']['label']} ({nlp_results['sentiment']['score']:.3f})")
+            sentiment_label = nlp_results.get('sentiment', {}).get('label', 'neutral') if nlp_results.get('sentiment') else 'neutral'
+            sentiment_score = nlp_results.get('sentiment', {}).get('score', 0.0) if nlp_results.get('sentiment') else 0.0
+            print(f"      😊 Sentimiento: {sentiment_label} ({sentiment_score:.3f})")
             print(f"      👥 Entidades: {nlp_results['total_entities']}")
             print(f"      🏛️  Personas: {', '.join(nlp_results['key_persons'][:3])}")
             print(f"      🌍 Ubicaciones: {', '.join(nlp_results['key_locations'][:3])}")

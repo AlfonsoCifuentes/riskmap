@@ -25,6 +25,13 @@ class AdvancedNLPAnalyzer:
         self.sentiment_pipeline = None
         self.lda_model = None
         self.vectorizer = None
+        self.version = "2.1.0"  # Version tracking for model updates
+        self.processing_stats = {
+            'total_processed': 0,
+            'successful_analyses': 0,
+            'failed_analyses': 0,
+            'processing_times': []
+        }
         self._initialize_models()
 
     def _initialize_models(self):
@@ -210,44 +217,73 @@ class AdvancedNLPAnalyzer:
         """
         Extrae entidades específicamente relevantes para análisis geopolítico
         """
-        entities = self.extract_entities(text)
+        try:
+            entities = self.extract_entities(text)
 
-        geopolitical_entities = {
-            'persons': [],
-            'organizations': [],
-            'locations': [],
-            'events': [],
-            'conflicts': []
-        }
+            geopolitical_entities = {
+                'persons': [],
+                'organizations': [],
+                'locations': [],
+                'events': [],
+                'conflicts': []
+            }
 
-        # Palabras clave para identificar conflictos y eventos
-        conflict_keywords = [
-            'war', 'conflict', 'crisis', 'attack', 'invasion', 'strike',
-            'protest', 'revolution', 'coup', 'terrorism', 'violence'
-        ]
+            # Palabras clave para identificar conflictos y eventos
+            conflict_keywords = [
+                'war', 'conflict', 'crisis', 'attack', 'invasion', 'strike',
+                'protest', 'revolution', 'coup', 'terrorism', 'violence'
+            ]
 
-        for entity_text, entity_label in entities:
-            entity_lower = entity_text.lower()
+            # Asegurar que entities es una lista válida
+            if not entities or not isinstance(entities, list):
+                return geopolitical_entities
 
-            # Clasificar entidades según tipo
-            if entity_label in ['PERSON', 'PER']:
-                geopolitical_entities['persons'].append(entity_text)
-            elif entity_label in ['ORG', 'ORGANIZATION']:
-                geopolitical_entities['organizations'].append(entity_text)
-            elif entity_label in ['LOC', 'LOCATION', 'GPE']:
-                geopolitical_entities['locations'].append(entity_text)
-            elif entity_label in ['EVENT', 'MISC']:
-                geopolitical_entities['events'].append(entity_text)
+            for entity_data in entities:
+                # Validar que entity_data es una tupla válida
+                if not isinstance(entity_data, (tuple, list)) or len(entity_data) < 2:
+                    continue
+                    
+                entity_text, entity_label = entity_data[0], entity_data[1]
+                
+                # Validar que los valores no son None
+                if not entity_text or not entity_label:
+                    continue
+                    
+                entity_lower = str(entity_text).lower()
 
-            # Identificar conflictos por palabras clave
-            if any(keyword in entity_lower for keyword in conflict_keywords):
-                geopolitical_entities['conflicts'].append(entity_text)
+                # Clasificar entidades según tipo
+                if entity_label in ['PERSON', 'PER']:
+                    geopolitical_entities['persons'].append(entity_text)
+                elif entity_label in ['ORG', 'ORGANIZATION']:
+                    geopolitical_entities['organizations'].append(entity_text)
+                elif entity_label in ['LOC', 'LOCATION', 'GPE']:
+                    geopolitical_entities['locations'].append(entity_text)
+                elif entity_label in ['EVENT', 'MISC']:
+                    geopolitical_entities['events'].append(entity_text)
 
-        # Eliminar duplicados y ordenar
-        for key in geopolitical_entities:
-            geopolitical_entities[key] = list(set(geopolitical_entities[key]))
+                # Identificar conflictos por palabras clave
+                if any(keyword in entity_lower for keyword in conflict_keywords):
+                    geopolitical_entities['conflicts'].append(entity_text)
 
-        return geopolitical_entities
+            # Eliminar duplicados y ordenar
+            for key in geopolitical_entities:
+                if geopolitical_entities[key]:  # Solo procesar si no está vacía
+                    geopolitical_entities[key] = list(set(geopolitical_entities[key]))
+                else:
+                    geopolitical_entities[key] = []  # Asegurar que es una lista vacía
+
+            return geopolitical_entities
+            
+        except Exception as e:
+            logger.error(f"Error in extract_geopolitical_entities: {e}")
+            # Retornar estructura básica válida en caso de error
+            return {
+                'persons': [],
+                'organizations': [],
+                'locations': [],
+                'events': [],
+                'conflicts': []
+            }
 
     def calculate_risk_score_advanced(
             self, text: str, entities: Dict[str, List[str]]) -> float:
@@ -306,40 +342,151 @@ class AdvancedNLPAnalyzer:
         """
         Análisis comprehensivo de un artículo combinando todas las técnicas
         """
-        title = article_data.get('title', '')
-        description = article_data.get('description', '')
-        content = article_data.get('content', '')
+        start_time = datetime.now()
+        processing_timestamp = start_time.isoformat()
+        
+        try:
+            self.processing_stats['total_processed'] += 1
+            
+            title = article_data.get('title', '')
+            description = article_data.get('description', '')
+            content = article_data.get('content', '')
 
-        # Combinar todo el texto
-        full_text = f"{title} {description} {content}"
+            # Combinar todo el texto
+            full_text = f"{title} {description} {content}"
 
-        # Extraer entidades
-        entities = self.extract_geopolitical_entities(full_text)
+            # Extraer entidades
+            entities = self.extract_geopolitical_entities(full_text)
 
-        # Análisis de sentimiento
-        sentiment_analysis = self.analyze_sentiment_multilevel(full_text)
+            # Análisis de sentimiento
+            sentiment_analysis = self.analyze_sentiment_multilevel(full_text)
 
-        # Calcular score de riesgo
-        risk_score = self.calculate_risk_score_advanced(full_text, entities)
+            # Calcular score de riesgo
+            risk_score = self.calculate_risk_score_advanced(full_text, entities)
 
-        # Análisis específico del título (más peso)
-        title_sentiment = self.analyze_sentiment_multilevel(title) if title else {
-            'score': 0.0}
-        title_entities = self.extract_entities(title) if title else []
+            # Análisis específico del título (más peso)
+            title_sentiment = self.analyze_sentiment_multilevel(title) if title else {
+                'score': 0.0}
+            title_entities = self.extract_entities(title) if title else []
+            
+            # Calculate processing time
+            end_time = datetime.now()
+            processing_time = (end_time - start_time).total_seconds()
+            self.processing_stats['processing_times'].append(processing_time)
+            self.processing_stats['successful_analyses'] += 1
 
+            return {
+                'entities': entities,
+                'sentiment': sentiment_analysis,
+                'title_sentiment': title_sentiment,
+                'risk_score': risk_score,
+                'title_entities': title_entities,
+                'analysis_timestamp': processing_timestamp,
+                'processing_time_seconds': processing_time,
+                'nlp_version': self.version,
+                'key_persons': entities.get('persons', [])[:5] if entities.get('persons') else [],  # Top 5 personas
+                'key_locations': entities.get('locations', [])[:5] if entities.get('locations') else [],  # Top 5 ubicaciones
+                'conflict_indicators': entities.get('conflicts', []) if entities.get('conflicts') else [],
+                'total_entities': sum(len(v) for v in entities.values() if v is not None and isinstance(v, list))
+            }
+            
+        except Exception as e:
+            self.processing_stats['failed_analyses'] += 1
+            logger.error(f"Error in comprehensive analysis: {e}")
+            return {
+                'error': str(e),
+                'analysis_timestamp': processing_timestamp,
+                'processing_time_seconds': 0.0,
+                'nlp_version': self.version
+            }
+    
+    def get_processing_stats(self) -> Dict[str, Any]:
+        """
+        Get current processing statistics for monitoring
+        """
+        avg_processing_time = (
+            sum(self.processing_stats['processing_times']) / 
+            len(self.processing_stats['processing_times'])
+        ) if self.processing_stats['processing_times'] else 0.0
+        
         return {
-            'entities': entities,
-            'sentiment': sentiment_analysis,
-            'title_sentiment': title_sentiment,
-            'risk_score': risk_score,
-            'title_entities': title_entities,
-            'analysis_timestamp': datetime.now().isoformat(),
-            'key_persons': entities.get('persons', [])[:5],  # Top 5 personas
-            # Top 5 ubicaciones
-            'key_locations': entities.get('locations', [])[:5],
-            'conflict_indicators': entities.get('conflicts', []),
-            'total_entities': sum(len(v) for v in entities.values())
+            'total_processed': self.processing_stats['total_processed'],
+            'successful_analyses': self.processing_stats['successful_analyses'],
+            'failed_analyses': self.processing_stats['failed_analyses'],
+            'success_rate': (
+                self.processing_stats['successful_analyses'] / 
+                self.processing_stats['total_processed'] * 100
+            ) if self.processing_stats['total_processed'] > 0 else 0.0,
+            'average_processing_time': avg_processing_time,
+            'nlp_version': self.version,
+            'models_loaded': {
+                'ner_pipeline': self.ner_pipeline is not None,
+                'sentiment_pipeline': self.sentiment_pipeline is not None
+            }
         }
+    
+    def analyze_batch(self, articles_data: List[Dict[str, Any]], 
+                     batch_size: int = 50) -> List[Dict[str, Any]]:
+        """
+        Process articles in batches for better performance and memory management
+        """
+        results = []
+        total_articles = len(articles_data)
+        
+        logger.info(f"Starting batch processing of {total_articles} articles in batches of {batch_size}")
+        
+        for i in range(0, total_articles, batch_size):
+            batch = articles_data[i:i + batch_size]
+            batch_start_time = datetime.now()
+            
+            logger.info(f"Processing batch {i//batch_size + 1}/{(total_articles + batch_size - 1)//batch_size}")
+            
+            batch_results = []
+            for article_data in batch:
+                result = self.analyze_article_comprehensive(article_data)
+                batch_results.append(result)
+            
+            results.extend(batch_results)
+            
+            batch_time = (datetime.now() - batch_start_time).total_seconds()
+            logger.info(f"Batch processed in {batch_time:.2f} seconds")
+            
+            # Alert if processing is taking too long
+            if batch_time > 60:  # More than 1 minute per batch
+                logger.warning(f"⚠️ SLOW PROCESSING ALERT: Batch took {batch_time:.2f}s")
+        
+        return results
+    
+    def check_processing_health(self) -> Dict[str, Any]:
+        """
+        Check processing health and trigger alerts if needed
+        """
+        stats = self.get_processing_stats()
+        health_status = {
+            'status': 'healthy',
+            'alerts': [],
+            'recommendations': []
+        }
+        
+        # Check success rate
+        if stats['success_rate'] < 80:
+            health_status['status'] = 'warning'
+            health_status['alerts'].append(f"Low success rate: {stats['success_rate']:.1f}%")
+            health_status['recommendations'].append("Check model loading and input data quality")
+        
+        # Check processing time
+        if stats['average_processing_time'] > 5.0:
+            health_status['status'] = 'warning' 
+            health_status['alerts'].append(f"Slow processing: {stats['average_processing_time']:.2f}s avg")
+            health_status['recommendations'].append("Consider using batch processing or model optimization")
+        
+        # Check if models are loaded
+        if not all(stats['models_loaded'].values()):
+            health_status['status'] = 'error'
+            health_status['alerts'].append("Some NLP models failed to load")
+            health_status['recommendations'].append("Check model dependencies and initialization")
+        
+        return health_status
 
 
 def preprocess_text_advanced(text: str) -> str:

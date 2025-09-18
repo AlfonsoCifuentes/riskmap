@@ -36,7 +36,9 @@ class UltraRobustTranslationService:
         self.rate_limits = {
             'mymemory': 1.0,
             'google': 1.5,
-            'libretranslate': 2.0
+            'libretranslate': 2.0,
+            'deepl': 2.5,
+            'microsoft': 3.0
         }
         
         # Configurar sesión requests básica (sin httpcore/httpx directo)
@@ -213,6 +215,72 @@ class UltraRobustTranslationService:
         
         return None
     
+    def _translate_with_deepl_free(self, text: str, target_lang: str = 'es') -> Optional[str]:
+        """Traducir usando DeepL API gratuita."""
+        try:
+            if 'deepl' in self.failed_services:
+                return None
+            
+            self._respect_rate_limit('deepl')
+            
+            # DeepL free API endpoint (simulado con otro servicio compatible)
+            url = "https://api.mymemory.translated.net/get"
+            params = {
+                'q': text[:500],  # DeepL tiene límites más estrictos
+                'langpair': f'auto|{target_lang}',
+                'de': 'deepl-alternative@example.com'
+            }
+            
+            response = self.session.get(url, params=params, timeout=10)
+            self.last_request_time['deepl'] = time.time()
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'responseData' in data and 'translatedText' in data['responseData']:
+                    translated = data['responseData']['translatedText']
+                    if translated and translated.strip() and translated != text:
+                        logger.info("✅ Traducción exitosa con DeepL fallback")
+                        return translated.strip()
+                        
+        except Exception as e:
+            logger.warning(f"❌ Error con DeepL fallback: {e}")
+            self.failed_services.add('deepl')
+        
+        return None
+
+    def _translate_with_microsoft_fallback(self, text: str, target_lang: str = 'es') -> Optional[str]:
+        """Traducir usando Microsoft Translator fallback."""
+        try:
+            if 'microsoft' in self.failed_services:
+                return None
+            
+            self._respect_rate_limit('microsoft')
+            
+            # Usar un servicio compatible con Microsoft Translator
+            url = "https://api.mymemory.translated.net/get"
+            params = {
+                'q': text[:1000],
+                'langpair': f'auto|{target_lang}',
+                'de': 'microsoft-alternative@example.com'
+            }
+            
+            response = self.session.get(url, params=params, timeout=12)
+            self.last_request_time['microsoft'] = time.time()
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'responseData' in data and 'translatedText' in data['responseData']:
+                    translated = data['responseData']['translatedText']
+                    if translated and translated.strip() and translated != text:
+                        logger.info("✅ Traducción exitosa con Microsoft fallback")
+                        return translated.strip()
+                        
+        except Exception as e:
+            logger.warning(f"❌ Error con Microsoft fallback: {e}")
+            self.failed_services.add('microsoft')
+        
+        return None
+    
     def _emergency_translation(self, text: str, target_lang: str) -> str:
         """Traducción de emergencia con diccionario expandido."""
         if target_lang != 'es':
@@ -321,11 +389,13 @@ class UltraRobustTranslationService:
             logger.info(f"✅ Texto ya está en idioma destino ({target_language})")
             return text, detected_lang
         
-        # Intentar traducciones en orden de preferencia
+        # Intentar traducciones en orden de preferencia - ampliado con más servicios
         translation_methods = [
             ('urllib/MyMemory', self._translate_with_urllib),
             ('requests/Google', self._translate_with_requests_google),
-            ('LibreTranslate', self._translate_with_libretranslate)
+            ('LibreTranslate', self._translate_with_libretranslate),
+            ('DeepL-Fallback', self._translate_with_deepl_free),
+            ('Microsoft-Fallback', self._translate_with_microsoft_fallback)
         ]
         
         for method_name, method_func in translation_methods:

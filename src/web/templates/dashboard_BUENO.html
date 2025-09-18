@@ -561,37 +561,29 @@ loadThreeJS();
         padding: 0;
     }
     
-    /* Mosaic Article Tiles - Irregular Sizes */
+    /* Mosaic Article Tiles - NUEVA ESTRUCTURA LIMPIA CON FLEX */
     .mosaic-article {
-        position: relative;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        border: 1px solid #0a0f2c;
-        box-sizing: border-box;
+        background: rgba(26, 32, 64, 0.8);
+        border: 1px solid rgba(70, 234, 215, 0.3);
+        border-radius: 8px;
         overflow: hidden;
-        cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(2px);
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        
+        /* FLEX LAYOUT: imagen arriba, título abajo */
+        display: flex;
+        flex-direction: column;
+        height: 100%; /* Ocupar toda la altura del grid */
+        min-height: 200px;
+        position: relative;
+        box-sizing: border-box;
+        
+        /* ELIMINAMOS background-image, background-size - ahora usamos <img> */
     }
     
-    .mosaic-article::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(
-            135deg,
-            rgba(0, 0, 0, 0.2) 0%,
-            rgba(0, 0, 0, 0.1) 40%,
-            rgba(0, 0, 0, 0.5) 100%
-        );
-        border-radius: 0;
-        z-index: 1;
-    }
+    /* ELIMINAMOS el overlay ::before ya que no lo necesitamos con la nueva estructura */
     
     .mosaic-article:hover {
         transform: scale(1.02);
@@ -687,47 +679,85 @@ loadThreeJS();
     .mosaic-article.size-default-lg-tall { grid-column: span 1; grid-row: span 2; }
     .mosaic-article.size-default-md-sq { grid-column: span 1; grid-row: span 1; }
     
-    /* Article content overlay with fixed padding */
-    .mosaic-content {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
+    /* DISEÑO FLEXBOX: TÍTULO EN LA PARTE INFERIOR */
+    .mosaic-title-container {
+        margin-top: auto;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0.3) 80%, transparent 100%);
         padding: 15px;
-        z-index: 2;
-        color: white;
-        background: linear-gradient(
-            transparent 0%,
-            rgba(0, 0, 0, 0.3) 20%,
-            rgba(0, 0, 0, 0.7) 70%,
-            rgba(0, 0, 0, 0.9) 100%
-        );
-        border-radius: 0;
-        min-height: 80px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-    }
-    
-    .mosaic-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        line-height: 1.3;
-        margin: 0 0 8px 0;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        border-radius: 0 0 8px 8px;
     }
 
-    .mosaic-article.size-1 .mosaic-title {
-        font-size: 1.6rem;
-        -webkit-line-clamp: 4;
+    .mosaic-title-only {
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.3;
+        margin: 0;
+        color: #ffffff;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-wrap: break-word;
+        hyphens: auto;
     }
-    .mosaic-article.size-2 .mosaic-title {
-        font-size: 1.2rem;
+
+    .mosaic-article.size-1 .mosaic-title-only {
+        font-size: 1.5rem;
         -webkit-line-clamp: 3;
+        line-clamp: 3;
+        font-weight: 800;
+        text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.9);
+    }
+    .mosaic-article.size-2 .mosaic-title-only {
+        font-size: 1.1rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        font-weight: 700;
+    }
+    /* REGLAS DE SEGURIDAD ABSOLUTA: SOLO TÍTULO EN EL MOSAICO */
+    .mosaic-article * {
+        /* Ocultar cualquier elemento que no sea el contenedor del título */
+        display: none !important;
+    }
+
+    .mosaic-article .mosaic-title-container,
+    .mosaic-article .mosaic-title-container * {
+        /* Mostrar solo el contenedor del título y sus hijos */
+        display: block !important;
+    }
+
+    .mosaic-article .mosaic-title-only {
+        /* Asegurar que el título sea visible */
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    /* Ocultar cualquier pseudo-elemento que pueda contener texto */
+    .mosaic-article::before,
+    .mosaic-article::after {
+        content: none !important;
+        display: none !important;
+    }
+
+    /* Ocultar cualquier indicador de calidad o elemento adicional */
+    .cv-quality-indicator,
+    .mosaic-article .cv-quality-indicator {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    /* REGLAS DE SEGURIDAD: EVITAR CONTENIDO EXTRA EN EL MOSAICO */
+    .mosaic-article p:not(.mosaic-title-only),
+    .mosaic-article span:not(.mosaic-title-only),
+    .mosaic-article div:not(.mosaic-title-container):not(.mosaic-title-only) {
+        /* Ocultar cualquier párrafo, span o div que no sea el contenedor o título */
+        display: none !important;
+    }
+
+    .mosaic-article::before,
+    .mosaic-article::after {
+        /* Eliminar cualquier pseudo-elemento que pueda añadir contenido */
+        content: none !important;
     }
     
     .mosaic-meta {
@@ -1045,13 +1075,13 @@ loadThreeJS();
         }
     }
     
-    /* Móvil - 1 columna */
+    /* Móvil - 1 columna - DISEÑO ORIGINAL CON BACKGROUND-IMAGE */
     @media (max-width: 768px) {
         .news-mosaic-container {
             grid-template-columns: 1fr; /* Una sola columna */
-            grid-auto-rows: 250px; /* Altura fija más manejable */
+            grid-auto-rows: 220px; /* Altura optimizada para imagen + título */
             padding: 5px;
-            gap: 3px;
+            gap: 8px;
         }
         
         /* Todos los artículos ocupan 1 columna en móvil */
@@ -1060,13 +1090,23 @@ loadThreeJS();
         .mosaic-article.normal {
             grid-column: span 1;
             grid-row: span 1;
+            min-height: 200px;
         }
         
-        /* Ajustar contenido para móvil */
+        /* Título optimizado para móvil */
         .mosaic-title {
             font-size: 0.9rem;
             line-height: 1.3;
+            margin: 0;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
         }
+        
+        .mosaic-content {
+            padding: 12px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 50%, transparent 100%);
+        }
+    }
         
         .mosaic-meta {
             font-size: 0.8rem;
@@ -1700,41 +1740,60 @@ loadThreeJS();
     .sources-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 30px;
+        gap: 25px;
         align-items: center;
+        padding: 15px;
+        min-height: 280px;
     }
 
     .sources-chart {
         height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .sources-stats {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 15px;
+        padding: 10px;
     }
 
     .source-stat {
         text-align: center;
-        padding: 20px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 15px 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        border: 1px solid rgba(70, 234, 215, 0.2);
+        min-height: 70px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .source-stat:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(70, 234, 215, 0.4);
+        transform: translateY(-2px);
     }
 
     .stat-number {
         display: block;
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         font-weight: 700;
         color: #46ead7;
         margin-bottom: 5px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
     .stat-desc {
-        font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.8);
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        font-weight: 500;
     }
 
     /* Analytics Footer */
@@ -1816,6 +1875,31 @@ loadThreeJS();
 
         .sources-grid {
             grid-template-columns: 1fr;
+            gap: 20px;
+            padding: 10px;
+        }
+        
+        .sources-chart {
+            order: 2;
+            height: 200px;
+        }
+        
+        .sources-stats {
+            order: 1;
+            gap: 12px;
+        }
+        
+        .source-stat {
+            padding: 12px 10px;
+            min-height: 60px;
+        }
+        
+        .stat-number {
+            font-size: 1.8rem;
+        }
+        
+        .stat-desc {
+            font-size: 0.8rem;
         }
 
         .analytics-footer {
@@ -1916,14 +2000,13 @@ loadThreeJS();
     }
 
     .hero-text {
-        font-size: clamp(1rem, 2vw, 1.2rem);
-        line-height: 1.6;
-        margin: 0 0 20px 0;
-        color: rgba(255, 255, 255, 0.9);
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-        max-width: 55%; /* Reducido para mejor lectura alineado a la izquierda */
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
+        /* OCULTAR COMPLETAMENTE EL TEXTO DEL HÉROE - SOLO MOSTRAR TÍTULO */
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-align: left;
@@ -2017,8 +2100,9 @@ loadThreeJS();
         }
         
         .hero-text {
-            max-width: 80%; /* Ajustado para móviles pero manteniendo alineación izquierda */
-            text-align: left;
+            /* OCULTAR COMPLETAMENTE EN MOBILE TAMBIÉN */
+            display: none !important;
+            visibility: hidden !important;
         }
         
         .hero-meta {
@@ -2042,7 +2126,7 @@ loadThreeJS();
         background: rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(5px);
         z-index: 10000;
-        display: flex;
+        display: none !important; /* FORCE HIDE BY DEFAULT */
         justify-content: center;
         align-items: center;
         opacity: 0;
@@ -2050,6 +2134,7 @@ loadThreeJS();
     }
 
     .article-modal-overlay.show {
+        display: flex !important; /* ONLY SHOW WHEN .show CLASS */
         opacity: 1;
     }
 
@@ -2719,7 +2804,8 @@ class ImageDeduplicationSystem {
     }
     
     detectImageTopic(article) {
-        const text = `${article.title || ''} ${article.content || ''} ${article.summary || ''}`.toLowerCase();
+        // SOLO usar el título para detectar el tópico - NO SUMMARY
+        const text = `${article.title || ''}`.toLowerCase();
         
         const topicKeywords = {
             'conflict': ['conflict', 'war', 'military', 'army', 'battle', 'fight', 'violence', 'soldier'],
@@ -3082,25 +3168,15 @@ async function translateMosaicContent() {
     try {
         // Translate article titles in mosaic
         const titleElements = document.querySelectorAll('.mosaic-title');
+        console.log(`📖 Encontrados ${titleElements.length} títulos para traducir`);
+        
         for (const titleElement of titleElements) {
-            if (titleElement.textContent) {
-                await translateAndUpdateElement(titleElement, titleElement.textContent);
-            }
-        }
-        
-        // Translate article descriptions in mosaic
-        const descriptionElements = document.querySelectorAll('.mosaic-description');
-        for (const descElement of descriptionElements) {
-            if (descElement.textContent) {
-                await translateAndUpdateElement(descElement, descElement.textContent);
-            }
-        }
-        
-        // Translate location elements in mosaic
-        const locationElements = document.querySelectorAll('.mosaic-location');
-        for (const locElement of locationElements) {
-            if (locElement.textContent) {
-                await translateAndUpdateElement(locElement, locElement.textContent);
+            const originalText = titleElement.textContent;
+            if (originalText && needsTranslation(originalText)) {
+                console.log(`📖 Traduciendo título: "${originalText}"`);
+                await translateAndUpdateElement(titleElement, originalText);
+            } else {
+                console.log(`✅ Título ya en español: "${originalText}"`);
             }
         }
         
@@ -3369,12 +3445,9 @@ function loadHeroArticle() {
                     finalTitle = await translateText(heroArticle.title);
                 }
                 
-                // Traducir texto/resumen si es necesario
-                let finalText = heroArticle.text || heroArticle.auto_generated_summary || heroArticle.summary;
-                if (needsTranslation(finalText)) {
-                    console.log('🔄 Traduciendo texto del héroe...');
-                    finalText = await translateText(finalText);
-                }
+                // NO MOSTRAR SUMMARY/CONTENT - SOLO TÍTULO
+                // ELIMINADO: finalText = heroArticle.text || heroArticle.auto_generated_summary || heroArticle.summary;
+                let finalText = ''; // NO mostrar texto adicional, solo título
                 
                 // Traducir ubicación si es necesario
                 let finalLocation = heroArticle.location;
@@ -3547,9 +3620,9 @@ async function loadHeroArticleFallback() {
     // Seleccionar artículo héroe aleatorio
     const heroArticle = heroArticles[Math.floor(Math.random() * heroArticles.length)];
     
-    // Actualizar contenido del héroe
+    // Actualizar contenido del héroe - SOLO TÍTULO
     document.getElementById('hero-title').textContent = heroArticle.title;
-    document.getElementById('hero-text').textContent = heroArticle.text;
+    document.getElementById('hero-text').textContent = ''; // NO mostrar texto adicional
     document.getElementById('hero-location-text').textContent = heroArticle.location;
     
     // Actualizar badge de riesgo
@@ -3974,6 +4047,17 @@ async function generateMosaicTiles(mode) {
         if (originalLength !== sampleArticles.length) {
             console.log(`🎯 Artículo héroe filtrado del mosaico (ID: ${window.currentHeroArticle.id})`);
         }
+    } else if (window.currentHeroArticle && window.currentHeroArticle.title) {
+        // Fallback: filtrar por título si no hay ID
+        const heroTitle = window.currentHeroArticle.title.toLowerCase().trim();
+        const originalLength = sampleArticles.length;
+        sampleArticles = sampleArticles.filter(article => {
+            const articleTitle = (article.title || '').toLowerCase().trim();
+            return articleTitle !== heroTitle;
+        });
+        if (originalLength !== sampleArticles.length) {
+            console.log(`🎯 Artículo héroe filtrado por título del mosaico: "${heroTitle}"`);
+        }
     }
     
     // Si no hay artículos, mostrar mensaje
@@ -4028,9 +4112,10 @@ async function generateMosaicTiles(mode) {
         await translateMosaicContent();
         
         // Apply computer vision optimization after translation
-        setTimeout(() => {
-            applyComputerVisionToMosaic();
-        }, 500);
+        // DISABLED: Solo mostrar imagen y título en el mosaico
+        // setTimeout(() => {
+        //     applyComputerVisionToMosaic();
+        // }, 500);
     }, 200);
 }
 
@@ -4130,8 +4215,6 @@ function generateTile(article, index, cvAnalyses) {
     const clickHandler = `onclick="openArticleModal({
         id: ${article.id || 'null'},
         title: ${JSON.stringify((article.title || '').replace(/"/g, '\\"'))},
-        auto_generated_summary: ${JSON.stringify((article.auto_generated_summary || '').replace(/"/g, '\\"'))},
-        summary: ${JSON.stringify((article.summary || '').replace(/"/g, '\\"'))},
         original_url: ${JSON.stringify(article.original_url || article.url || '')},
         risk_level: ${JSON.stringify(article.risk_level || article.risk || 'medium')}
     })"`;
@@ -4139,18 +4222,13 @@ function generateTile(article, index, cvAnalyses) {
     return `
         <div class="mosaic-article ${sizeClass}" style="background-image: url('${imageUrl}'); background-position: ${backgroundPosition}; cursor: pointer;" ${clickHandler} data-article-id="${article.id || ''}">
             <div class="mosaic-content">
-                <div class="mosaic-meta">
-                    <span class="mosaic-location"><i class="fas fa-map-marker-alt"></i> ${article.location || article.country || 'Global'}</span>
-                    <span class="mosaic-risk-badge ${riskClass}">${(riskClass || 'medium').toUpperCase()}</span>
-                </div>
                 <h3 class="mosaic-title">${article.title || 'Noticia importante'}</h3>
             </div>
-            ${cvIndicator}
         </div>
     `;
 }
     
-// Función auxiliar para generar un tile individual
+// Función auxiliar para generar un tile individual - NUEVA ESTRUCTURA LIMPIA
 function generateArticleTile(article, sizeClass, backgroundPosition) {
     // Determinar clase de riesgo
     const riskClass = article.risk_level || article.risk || 'medium';
@@ -4171,20 +4249,15 @@ function generateArticleTile(article, sizeClass, backgroundPosition) {
     const clickHandler = `onclick="openArticleModal({
         id: ${article.id || 'null'},
         title: ${JSON.stringify((article.title || '').replace(/"/g, '\\"'))},
-        auto_generated_summary: ${JSON.stringify((article.auto_generated_summary || '').replace(/"/g, '\\"'))},
-        summary: ${JSON.stringify((article.summary || '').replace(/"/g, '\\"'))},
         original_url: ${JSON.stringify(article.original_url || article.url || '')},
         risk_level: ${JSON.stringify(riskClass)}
     })"`;
     
+    // DISEÑO FLEXBOX: IMAGEN DE FONDO + TÍTULO ABAJO (SIN CONTENIDO EXTRA)
     return `
-        <div class="mosaic-article ${sizeClass}" style="background-image: url('${imageUrl}'); background-position: ${backgroundPosition}; cursor: pointer;" ${clickHandler} data-article-id="${article.id || ''}">
-            <div class="mosaic-content">
-                <div class="mosaic-meta">
-                    <span class="mosaic-location"><i class="fas fa-map-marker-alt"></i> ${article.location || article.country || 'Global'}</span>
-                    <span class="mosaic-risk-badge ${riskClass}">${riskClass.toUpperCase()}</span>
-                </div>
-                <h3 class="mosaic-title">${article.title || 'Noticia importante'}</h3>
+        <div class="mosaic-article ${sizeClass}" data-article-id="${article.id || ''}" style="cursor: pointer; background-image: url('${imageUrl}'); background-size: cover; background-position: center;" ${clickHandler}>
+            <div class="mosaic-title-container">
+                <div class="mosaic-title-only">${(article.title || 'Noticia importante').substring(0, 100)}${(article.title && article.title.length > 100) ? '...' : ''}</div>
             </div>
         </div>
     `;
@@ -5223,9 +5296,24 @@ function updateConflictAnalytics(conflicts) {
 // Update analytics stats
 function updateAnalyticsStats(stats) {
     if (stats) {
+        // Update source statistics
         document.getElementById('total-sources').textContent = stats.total_sources || 0;
         document.getElementById('active-sources').textContent = stats.active_sources || 0;
         document.getElementById('reliability-score').textContent = (stats.reliability_score || 0) + '%';
+        
+        // Update region statistics  
+        document.getElementById('high-risk-regions').textContent = stats.regions_in_conflict || 0;
+        
+        // Update medium risk regions (can be calculated or estimated)
+        const mediumRiskRegions = Math.max(0, (stats.regions_in_conflict || 0) - 2);
+        document.getElementById('medium-risk-regions').textContent = mediumRiskRegions;
+        
+        console.log('✅ Analytics stats updated:', {
+            total_sources: stats.total_sources,
+            active_sources: stats.active_sources,
+            reliability_score: stats.reliability_score,
+            regions_in_conflict: stats.regions_in_conflict
+        });
     }
 }
 
@@ -5557,7 +5645,8 @@ class ArticleTranslator {
     }
     
     needsTranslation(articleData) {
-        const textToCheck = `${articleData.title || ''} ${articleData.content || ''} ${articleData.summary || ''}`;
+        // SOLO revisar el título para traducción - NO SUMMARY
+        const textToCheck = `${articleData.title || ''}`;
         
         // Palabras indicadoras de español
         const spanishIndicators = [
@@ -5576,7 +5665,8 @@ class ArticleTranslator {
     
     async translateArticleContent(articleData) {
         try {
-            const fieldsToTranslate = ['title', 'content', 'summary', 'description'];
+            // SOLO traducir el título - NO SUMMARY
+            const fieldsToTranslate = ['title'];
             const translatedData = { ...articleData };
             
             for (const field of fieldsToTranslate) {
@@ -5697,10 +5787,9 @@ async function openArticleModal(articleData) {
     // Store original URL for later use
     currentArticleUrl = translatedArticle.original_url || translatedArticle.url || '#';
     
-    // Load summary with priority: auto_generated_summary > summary > default
-    const summaryToLoad = translatedArticle.auto_generated_summary || 
-                         translatedArticle.summary || 
-                         null;
+    // NO CARGAR SUMMARY - SOLO TÍTULO
+    // ELIMINADO: Load summary with priority
+    const summaryToLoad = null; // NO mostrar summary
     
     loadArticleSummary(translatedArticle.id, summaryToLoad);
     

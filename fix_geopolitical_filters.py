@@ -166,11 +166,11 @@ def main():
     else:
         print("❌ PROBLEMA PERSISTE")
         print("💡 SOLUCIÓN REQUERIDA:")
-        print("   1. Los filtros SQL se han actualizado en app_CORREGIDO.py")
+        print("   1. Los filtros SQL se han actualizado en app_BUENA.py")
         print("   2. El servidor necesita reiniciar para cargar cambios:")
         print("      - Detén servidor: Ctrl+C") 
-        print("      - Inicia nuevamente: python app_CORREGIDO.py")
-        print("   3. O usa 'python app_BUENA.py' para versión completa")
+        print("      - Inicia nuevamente: python app_BUENA.py")
+        print("   3. La versión completa está en app_BUENA.py")
     
     print(f"\n🕒 Finalizado: {datetime.now().strftime('%H:%M:%S')}")
 

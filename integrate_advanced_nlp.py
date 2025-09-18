@@ -114,11 +114,11 @@ def integrate_advanced_nlp():
                         advanced_nlp = ?
                     WHERE article_id = ?
                 ''', (
-                    content[:300] + '...' if len(content) > 300 else content,
+                    (content[:300] + '...' if len(content or '') > 300 else content) or '',
                     category or 'geopolitical_analysis',
-                    json.dumps(nlp_results['key_persons'] + nlp_results['key_locations']),
-                    nlp_results['sentiment']['score'],
-                    json.dumps(nlp_results['entities']),
+                    json.dumps((nlp_results.get('key_persons', []) or []) + (nlp_results.get('key_locations', []) or [])),
+                    nlp_results.get('sentiment', {}).get('score') if nlp_results.get('sentiment') else 0.0,
+                    json.dumps(nlp_results.get('entities', []) or []),
                     json.dumps(combined_analysis),
                     article_id
                 ))
@@ -130,11 +130,11 @@ def integrate_advanced_nlp():
                     ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     article_id,
-                    content[:300] + '...' if len(content) > 300 else content,
+                    (content[:300] + '...' if len(content or '') > 300 else content) or '',
                     category or 'geopolitical_analysis',
-                    json.dumps(nlp_results['key_persons'] + nlp_results['key_locations']),
-                    nlp_results['sentiment']['score'],
-                    json.dumps(nlp_results['entities']),
+                    json.dumps((nlp_results.get('key_persons', []) or []) + (nlp_results.get('key_locations', []) or [])),
+                    nlp_results.get('sentiment', {}).get('score') if nlp_results.get('sentiment') else 0.0,
+                    json.dumps(nlp_results.get('entities', []) or []),
                     json.dumps(combined_analysis)
                 ))
             
@@ -155,7 +155,9 @@ def integrate_advanced_nlp():
             
             print(f"   ✅ Análisis completado:")
             print(f"      - Riesgo BERT: {bert_results['level']} ({bert_results['score']:.3f})")
-            print(f"      - Sentimiento: {nlp_results['sentiment']['label']} ({nlp_results['sentiment']['score']:.3f})")
+            sentiment_label = nlp_results.get('sentiment', {}).get('label', 'neutral') if nlp_results.get('sentiment') else 'neutral'
+            sentiment_score = nlp_results.get('sentiment', {}).get('score', 0.0) if nlp_results.get('sentiment') else 0.0
+            print(f"      - Sentimiento: {sentiment_label} ({sentiment_score:.3f})")
             print(f"      - Entidades: {nlp_results['total_entities']}")
             print(f"      - Personas clave: {', '.join(nlp_results['key_persons'][:3])}")
             print(f"      - Ubicaciones: {', '.join(nlp_results['key_locations'][:3])}")

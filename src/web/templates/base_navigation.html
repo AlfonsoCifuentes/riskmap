@@ -570,6 +570,18 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="/dashboard" class="nav-link {% if request.endpoint == 'dashboard_redirect' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard Histórico
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/multivariate" class="nav-link {% if request.endpoint == 'multivariate_redirect' %}active{% endif %}">
+                        <i class="fas fa-project-diagram"></i>
+                        Análisis Multivariable
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="/about" class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">
                         <i class="fas fa-info-circle"></i>
                         Acerca de

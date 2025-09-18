@@ -2850,7 +2850,7 @@
                             <div class="article-image" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; height: 200px; border-radius: 10px 10px 0 0;"></div>
                             <div class="article-content" style="padding: 15px;">
                                 <h4>${article.title || 'No title'}</h4>
-                                <p>${article.summary || article.content?.substring(0, 120) + '...' || 'No summary available'}</p>
+                                <p>Click para ver más detalles</p>
                                 <div class="article-meta">
                                     <span class="location">${article.location || 'Unknown'}</span>
                                     <span class="risk-score">Risk: ${article.risk_score ? article.risk_score.toFixed(1) : 'N/A'}</span>
@@ -3047,7 +3047,7 @@ function updateArticleOfDay() {
                     <div class="fw-semibold article-title-link mb-1" style="font-size: 0.9rem; line-height: 1.3; cursor: pointer;" ${titleClick}>
                         ${article.title && article.title.length > 80 ? article.title.substring(0, 80) + '...' : (article.title || 'Sin título')}
                     </div>
-                    ${article.content ? `<small style="color: #87ceeb;">${article.content.substring(0, 100)}...</small>` : ''}
+                    ${'' /* No mostrar contenido */}
                 </div>
             </td>
             <td>

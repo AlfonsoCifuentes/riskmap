@@ -184,7 +184,7 @@ def main():
     print(f"\n" + "=" * 50)
     print(f"💡 CONCLUSIÓN:")
     print(f"   Si las imágenes están en BD pero no en API:")
-    print(f"   1. Revisar consulta SQL en app_CORREGIDO.py")
+    print(f"   1. Revisar consulta SQL en app_BUENA.py")
     print(f"   2. Reiniciar el servidor si es necesario")
     print(f"   3. Verificar filtros de la API")
 
