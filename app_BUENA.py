@@ -891,6 +891,47 @@ class RiskMapUnifiedApplication:
         signal.signal(signal.SIGTERM, signal_handler)
         atexit.register(self.stop_application)
     
+    def _calculate_intensity_score(self, title, content, risk_level):
+        """Calculate intensity score based on content analysis and risk level"""
+        try:
+            # Base score from risk level
+            risk_scores = {'alto': 0.8, 'medio': 0.5, 'bajo': 0.2}
+            base_score = risk_scores.get(risk_level, 0.5)
+            
+            # Keywords that increase intensity
+            high_intensity_keywords = [
+                'guerra', 'conflicto armado', 'bombardeo', 'ataque', 'invasión',
+                'crisis', 'emergencia', 'urgent', 'crítico', 'escalation',
+                'militar', 'tropas', 'ejército', 'violencia', 'víctimas'
+            ]
+            
+            medium_intensity_keywords = [
+                'tensión', 'disputa', 'negociaciones', 'diplomático',
+                'sanción', 'protesta', 'manifestación', 'político'
+            ]
+            
+            # Analyze text content
+            text_content = (title + ' ' + content).lower()
+            
+            # Count keyword matches
+            high_matches = sum(1 for keyword in high_intensity_keywords if keyword in text_content)
+            medium_matches = sum(1 for keyword in medium_intensity_keywords if keyword in text_content)
+            
+            # Calculate intensity boost
+            intensity_boost = min((high_matches * 0.2) + (medium_matches * 0.1), 0.4)
+            
+            # Final score (0.0 to 1.0)
+            final_score = min(base_score + intensity_boost, 1.0)
+            
+            # Convert to percentage
+            return round(final_score * 100)
+            
+        except Exception as e:
+            logger.warning(f"Error calculating intensity score: {e}")
+            # Fallback based on risk level only
+            fallback_scores = {'alto': 85, 'medio': 50, 'bajo': 25}
+            return fallback_scores.get(risk_level, 50)
+    
     def _setup_flask_routes(self):
         """Configurar todas las rutas de Flask"""
         
@@ -2334,6 +2375,91 @@ class RiskMapUnifiedApplication:
                 return jsonify({
                     'error': f'Error generando análisis: {str(e)}',
                     'success': False
+                }), 500
+
+        @self.flask_app.route('/api/ai-analysis', methods=['POST'])
+        def api_ai_analysis():
+            """API: Generate AI-powered analysis for conflict descriptions and intensity"""
+            try:
+                data = request.get_json()
+                
+                if not data:
+                    return jsonify({
+                        'success': False,
+                        'error': 'No data provided'
+                    }), 400
+                
+                title = data.get('title', '')
+                content = data.get('content', '')
+                location = data.get('location', '')
+                task = data.get('task', 'general_analysis')
+                risk_level = data.get('risk_level', 'medio')
+                
+                # Calculate intensity based on content analysis
+                intensity_score = self._calculate_intensity_score(title, content, risk_level)
+                
+                # Generate analysis based on task type
+                if task == 'conflict_description':
+                    prompt = f"""
+Basándote en este artículo geopolítico, genera una descripción concisa (máximo 150 palabras) del contexto de conflicto en {location}.
+
+Título: {title}
+Contenido: {content[:500]}...
+
+Enfócate en:
+- Situación actual en la región
+- Actores involucrados
+- Posibles implicaciones geopolíticas
+- Nivel de tensión actual
+
+Responde solo con la descripción, sin preámbulos ni explicaciones adicionales."""
+                
+                else:
+                    prompt = f"Analiza este contenido geopolítico: {title}\n{content[:500]}..."
+                
+                # Try Groq first, then fallback
+                description = None
+                
+                # Try with Groq
+                try:
+                    if hasattr(self, 'groq_client') and self.groq_client:
+                        response = self.groq_client.chat.completions.create(
+                            messages=[
+                                {"role": "system", "content": "Eres un analista geopolítico experto que genera descripciones precisas y concisas."},
+                                {"role": "user", "content": prompt}
+                            ],
+                            model="llama-3.1-70b-versatile",
+                            max_tokens=200,
+                            temperature=0.3
+                        )
+                        description = response.choices[0].message.content.strip()
+                except Exception as groq_error:
+                    logger.warning(f"Groq analysis failed: {groq_error}")
+                
+                # Fallback to simple analysis
+                if not description:
+                    risk_keywords = ['conflicto', 'guerra', 'crisis', 'tensión', 'ataque', 'militar']
+                    has_conflict_keywords = any(keyword in (title + ' ' + content).lower() for keyword in risk_keywords)
+                    
+                    if has_conflict_keywords:
+                        description = f"Situación de tensión geopolítica detectada en {location}. El análisis indica actividad relacionada con conflictos o crisis en la región, requiriendo monitoreo continuo de la evolución de los eventos."
+                    else:
+                        description = f"Evento geopolítico en {location}. Situación que requiere seguimiento para evaluar posibles implicaciones en la estabilidad regional."
+                
+                return jsonify({
+                    'success': True,
+                    'description': description,
+                    'intensity': intensity_score,
+                    'task': task,
+                    'location': location
+                })
+                
+            except Exception as e:
+                logger.error(f"Error in AI analysis: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': 'Error generating AI analysis',
+                    'details': str(e)
                 }), 500
 
         # ========================================
