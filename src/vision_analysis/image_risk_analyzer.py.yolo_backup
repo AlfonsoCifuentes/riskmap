@@ -69,42 +69,18 @@ class ImageRiskAnalyzer:
         self._initialize_model()
 
     def _initialize_model(self):
-        """Inicializa el modelo YOLO con manejo robusto de errores"""
+        """Inicializa el modelo YOLO"""
         if not YOLO_AVAILABLE:
             logger.warning("YOLO no disponible, usando análisis OpenCV básico")
             return
 
         try:
-            # Usar YOLOv8 pre-entrenado con carga robusta
+            # Usar YOLOv8 pre-entrenado
             model_path = self.config.get('yolo_model_path', 'yolov8n.pt')
-            
-            # Configurar entorno para carga segura
-            import warnings
-            warnings.filterwarnings("ignore", category=FutureWarning)
-            
-            # Intentar carga con manejo de errores
-            try:
-                self.model = YOLO(model_path)
-                logger.info("✅ Modelo YOLO inicializado correctamente")
-            except Exception as torch_error:
-                if 'weights_only' in str(torch_error):
-                    logger.warning("⚠️ Error weights_only detectado, usando carga alternativa...")
-                    # Configurar PyTorch temporalmente
-                    import torch
-                    original_setting = getattr(torch.serialization, '_use_new_zipfile_serialization', None)
-                    try:
-                        torch.serialization._use_new_zipfile_serialization = False
-                        self.model = YOLO(model_path)
-                        logger.info("✅ Modelo YOLO cargado con configuración alternativa")
-                    finally:
-                        if original_setting is not None:
-                            torch.serialization._use_new_zipfile_serialization = original_setting
-                else:
-                    raise torch_error
-                    
+            self.model = YOLO(model_path)
+            logger.info("Modelo YOLO inicializado correctamente")
         except Exception as e:
-            logger.error(f"❌ Error inicializando YOLO: {e}")
-            logger.info("🔄 Usando análisis OpenCV básico como fallback")
+            logger.error(f"Error inicializando YOLO: {e}")
             self.model = None
 
     def analyze_image_risk(

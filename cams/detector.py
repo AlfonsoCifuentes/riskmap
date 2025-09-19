@@ -27,11 +27,20 @@ except ImportError:
     YOLO_AVAILABLE = False
 
 try:
-    from sort import Sort
+    from motpy import Detection, MultiObjectTracker
     SORT_AVAILABLE = True
 except ImportError:
-    print("⚠️ sort-tracker no disponible. Tracking deshabilitado.")
-    SORT_AVAILABLE = False
+    try:
+        # Fallback a SORT original si está disponible
+        from sort import Sort
+        SORT_AVAILABLE = True
+        USING_MOTPY = False
+    except ImportError:
+        print("⚠️ Ni motpy ni sort-tracker están disponibles. Tracking deshabilitado.")
+        SORT_AVAILABLE = False
+        USING_MOTPY = False
+else:
+    USING_MOTPY = True
 
 logger = logging.getLogger(__name__)
 
@@ -148,12 +157,18 @@ class RiskDetector:
     def _init_tracker(self):
         """Inicializar tracker de objetos"""
         if not SORT_AVAILABLE:
-            logger.warning("SORT tracker no disponible")
+            logger.warning("Tracker no disponible")
             return
         
         try:
-            self.tracker = Sort(max_age=20, min_hits=3)
-            logger.info("✅ Tracker SORT inicializado")
+            if USING_MOTPY:
+                # Usar motpy (más moderno)
+                self.tracker = MultiObjectTracker(dt=0.1)  # 10 FPS
+                logger.info("✅ Tracker motpy inicializado")
+            else:
+                # Fallback a SORT
+                self.tracker = Sort(max_age=20, min_hits=3)
+                logger.info("✅ Tracker SORT inicializado")
         except Exception as e:
             logger.error(f"❌ Error inicializando tracker: {e}")
             self.tracker = None
