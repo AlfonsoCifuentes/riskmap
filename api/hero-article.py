@@ -5,6 +5,7 @@ Returns the single most important geopolitical article (highest risk_score).
 
 from http.server import BaseHTTPRequestHandler
 from api._db import neon_get, json_response, error_response, send_response
+from api._og_image import enrich_articles_with_images
 
 
 class handler(BaseHTTPRequestHandler):
@@ -25,6 +26,8 @@ class handler(BaseHTTPRequestHandler):
             )
 
             if articles:
+                # Enrich hero if missing image
+                enrich_articles_with_images(articles)
                 article = articles[0]
                 resp = json_response({
                     'success': True,

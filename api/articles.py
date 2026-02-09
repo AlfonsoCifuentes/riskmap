@@ -6,6 +6,7 @@ Query params: limit (default 20), offset (default 0), country, risk_level
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 from api._db import neon_get, json_response, error_response, send_response
+from api._og_image import enrich_articles_with_images
 
 
 class handler(BaseHTTPRequestHandler):
@@ -37,6 +38,9 @@ class handler(BaseHTTPRequestHandler):
                 limit=limit,
                 offset=offset,
             )
+
+            # Enrich articles missing images with og:image from source
+            enrich_articles_with_images(articles)
 
             resp = json_response({
                 'success': True,

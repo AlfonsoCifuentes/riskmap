@@ -3547,34 +3547,9 @@ class ImageDeduplicationSystem {
         this.usedImageHashes = new Set();
         this.imageHashCache = new Map();
         this.fallbackImageIndex = 0;
-        this.fallbackImages = [
-            'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=300&fit=crop', // News
-            'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=300&fit=crop', // Conference
-            'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=400&h=300&fit=crop', // World
-            'https://images.unsplash.com/photo-1523995462485-3d171b5c8fa9?w=400&h=300&fit=crop', // Security
-            'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400&h=300&fit=crop', // Politics
-            'https://images.unsplash.com/photo-1459347268516-3ed71100e718?w=400&h=300&fit=crop', // International
-            'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=300&fit=crop', // Global
-            'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop', // Economy
-        ];
-        this.topicBasedImages = {
-            'conflict': [
-                'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=300&fit=crop',
-                'https://images.unsplash.com/photo-1523995462485-3d171b5c8fa9?w=400&h=300&fit=crop'
-            ],
-            'politics': [
-                'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400&h=300&fit=crop',
-                'https://images.unsplash.com/photo-1459347268516-3ed71100e718?w=400&h=300&fit=crop'
-            ],
-            'economy': [
-                'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop',
-                'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=300&fit=crop'
-            ],
-            'International': [
-                'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=300&fit=crop',
-                'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=400&h=300&fit=crop'
-            ]
-        };
+        // No stock/Unsplash fallback images — articles without images use CSS gradient placeholder
+        this.fallbackImages = [];
+        this.topicBasedImages = {};
     }
     
     async getImageHash(imageUrl) {
@@ -3719,12 +3694,8 @@ class ImageDeduplicationSystem {
     }
     
     generateDynamicImage(article) {
-        // Crear URL única basada en el artículo
-        const seed = this.hashCode(article.title || article.id || Math.random().toString());
-        const size = 400 + (seed % 200); // Variar tamaño
-        const color = this.getColorFromSeed(seed);
-        
-        return `https://picsum.photos/${size}/300?random=${Math.abs(seed)}&blur=1`;
+        // No stock/placeholder images — return null so CSS gradient placeholder is used
+        return null;
     }
     
     hashCode(str) {
@@ -3767,48 +3738,21 @@ async function getAlternativeImage(article, excludeUrls = []) {
     // Usar el sistema anti-duplicados avanzado
     try {
         const uniqueImage = await imageDeduplication.getUniqueImageForArticle(article);
-        dashboardLogger.success('✅ Imagen única obtenida:', uniqueImage);
-        return uniqueImage;
+        if (uniqueImage) {
+            dashboardLogger.success('✅ Imagen única obtenida:', uniqueImage);
+            return uniqueImage;
+        }
+        return null; // No stock fallback — use CSS gradient placeholder
     } catch (error) {
         dashboardLogger.error('❌ Error obteniendo imagen única:', error);
-        
-        // Fallback básico si el sistema avanzado falla
-        const basicFallbacks = [
-            'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=400&h=300&fit=crop'
-        ];
-        
-        const randomIndex = Math.floor(Math.random() * basicFallbacks.length);
-        return basicFallbacks[randomIndex];
+        return null; // No stock fallback
     }
 }
 
 // Synchronous fallback for getAlternativeImage when async is not possible
 function getAlternativeImageSync(article, excludeUrls = []) {
-    dashboardLogger.info(`🔍 Obteniendo imagen alternativa síncrona para: ${article.title?.substring(0, 50)}...`);
-    
-    // Basic fallback images
-    const basicFallbacks = [
-        'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=300&fit=crop',
-        'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=300&fit=crop',
-        'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=400&h=300&fit=crop',
-        'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=400&h=300&fit=crop',
-        'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=300&fit=crop'
-    ];
-    
-    // Filter out excluded URLs
-    const availableFallbacks = basicFallbacks.filter(url => !excludeUrls.includes(url));
-    
-    if (availableFallbacks.length === 0) {
-        return basicFallbacks[0]; // Return first fallback if all are excluded
-    }
-    
-    const randomIndex = Math.floor(Math.random() * availableFallbacks.length);
-    const selectedImage = availableFallbacks[randomIndex];
-    
-    console.log('✅ Imagen alternativa síncrona seleccionada:', selectedImage);
-    return selectedImage;
+    // No stock/Unsplash fallback — return null so CSS gradient placeholder is used
+    return null;
 }
 
 // Function to normalize image URLs for Local images
@@ -3850,40 +3794,9 @@ function normalizeImageUrl(url) {
     return url;
 }
 
-// Function to get smart fallback images based on content
+// No stock fallback images — return null so CSS gradient placeholder is used
 function getSmartFallbackImage(article) {
-    const title = (article.title || '').toLowerCase();
-    const source = (article.source || '').toLowerCase();
-    
-    // Fallback específico por Source
-    const sourceFallbacks = {
-        'ap news': 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=600&fit=crop',
-        'financial times': 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop',
-        'axios': 'https://images.unsplash.com/photo-1495020689067-958852a7e369?w=800&h=600&fit=crop',
-        'reuters': 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop',
-        'cnn': 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop',
-        'bbc': 'https://images.unsplash.com/photo-1495020689067-958852a7e369?w=800&h=600&fit=crop'
-    };
-    
-    for (const [sourceKey, fallbackUrl] of Object.entries(sourceFallbacks)) {
-        if (source.includes(sourceKey)) {
-            return fallbackUrl;
-        }
-    }
-    
-    // Fallback basado en Content del título
-    if (title.includes('war') || title.includes('guerra') || title.includes('conflict') || title.includes('fighting')) {
-        return 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=600&fit=crop';
-    } else if (title.includes('economy') || title.includes('economia') || title.includes('market') || title.includes('financial')) {
-        return 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop';
-    } else if (title.includes('politics') || title.includes('political') || title.includes('gobierno') || title.includes('government')) {
-        return 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=800&h=600&fit=crop';
-    } else if (title.includes('tech') || title.includes('technology') || title.includes('digital') || title.includes('cyber')) {
-        return 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&h=600&fit=crop';
-    }
-    
-    // Fallback general
-    return 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=600&fit=crop';
+    return null;
 }
 
 // Function to validate and improve image URLs
@@ -3891,8 +3804,8 @@ function validateAndImproveImage(imageUrl, article) {
     const normalizedUrl = normalizeImageUrl(imageUrl);
     
     if (!normalizedUrl) {
-        console.log('🔄 Imagen no válida, usando fallback inteligente para:', article.title);
-        return getSmartFallbackImage(article);
+        console.log('🔄 Imagen no válida, se usará gradiente CSS para:', article.title);
+        return null; // CSS gradient placeholder
     }
     
     return normalizedUrl;
@@ -4427,17 +4340,9 @@ async function getOptimizedHeroImage(article) {
         return originalImage;
     }
     
-    // 3. Search imagen alternativa de alta calidad
-    const alternativeImage = await getAlternativeImage(article, []);
-    if (alternativeImage) {
-        dashboardLogger.info('🔄 Usando imagen alternativa de alta calidad');
-        return alternativeImage;
-    }
-    
-    // 4. Fallback a imagen de stock de alta calidad
-    const stockImage = getHighQualityStockImage(article.location || 'Global');
-    dashboardLogger.info('🎨 Usando imagen de stock de alta calidad');
-    return stockImage;
+    // 3. No stock fallback — return null so CSS gradient placeholder is used
+    dashboardLogger.info('⚠️ No hay imagen real disponible para el héroe, se usará gradiente CSS');
+    return null;
 }
 
 // Función para verificar si una imagen es de alta calidad
@@ -4446,6 +4351,7 @@ function isHighQualityImage(imageUrl) {
     
     // Criterios de alta calidad:
     // - No es placeholder (no contiene 'placeholder', 'default', etc.)
+    // - No es stock/unsplash/picsum
     // - Resolución aparentemente alta (basado en URL)
     // - Source confiable
     
@@ -4457,71 +4363,59 @@ function isHighQualityImage(imageUrl) {
         '150x',
         '200x',
         '300x',
-        'picsum.photos/300',
-        'picsum.photos/400'
+        'picsum.photos',
+        'unsplash.com',
+        'images.unsplash.com'
     ];
     
     const urlLower = imageUrl.toLowerCase();
     return !lowQualityIndicators.some(indicator => urlLower.includes(indicator));
 }
 
-// Función para obtener imagen de stock de alta calidad
+// Stock images eliminated — return null, CSS gradient is the fallback
 function getHighQualityStockImage(location) {
-    const stockImages = {
-        'europa': 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=1920&h=800&fit=crop',
-        'asia': 'https://images.unsplash.com/photo-1536431311719-398b6704d4cc?w=1920&h=800&fit=crop',
-        'africa': 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=1920&h=800&fit=crop',
-        'america': 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=800&fit=crop',
-        'medio oriente': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1920&h=800&fit=crop',
-        'Global': 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=1920&h=800&fit=crop'
-    };
-    
-    const locationKey = Object.keys(stockImages).find(key => 
-        location.toLowerCase().includes(key)
-    ) || 'Global';
-    
-    return stockImages[locationKey];
+    return null;
 }
 
 async function loadHeroArticleFallback() {
     console.log('🔄 Usando datos de fallback para héroe (ya en español)');
     
-    // Fallback data - YA EN ESPAÑOL Y CON IMÁGENES DE ALTA CALIDAD
+    // Fallback data - YA EN ESPAÑOL, SIN IMÁGENES STOCK (usa gradiente CSS)
     const heroArticles = [
         {
             title: "Crisis diplomática se intensifica en Europa Oriental con repercusiones globales",
             text: "Los últimos desarrollos han escalado las Tensions internacionales, con movimientos militares estratégicos que señalan una posible reconfiguración del orden geopolítico en la Region.",
             location: "Europa Oriental",
             risk: "high",
-            image: "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=1920&h=800&fit=crop&q=80"
+            image: null
         },
         {
             title: "Tensions comerciales amenazan la estabilidad económica mundial",
             text: "Las nuevas restricciones comerciales han generado ondas de choque en los mercados globales, elevando las preocupaciones sobre una posible guerra comercial de consecuencias devastadoras.",
             location: "Global",
             risk: "high", 
-            image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=800&fit=crop&q=80"
+            image: null
         },
         {
             title: "Desarrollos críticos en Medio Oriente alteran el equilibrio Regional",
             text: "Los eventos recientes han reconfigurado las alianzas tradicionales en la Region, con implicaciones significativas para la Security energética Global y la estabilidad International.",
             location: "Medio Oriente",
             risk: "critical",
-            image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1920&h=800&fit=crop&q=80"
+            image: null
         },
         {
             title: "Escalada de Tensions en el Mar del Sur de China preocupa a la comunidad International",
             text: "Las maniobras militares recientes han elevado significativamente el riesgo de conflicto en una de las rutas comerciales más importantes del mundo.",
             location: "Asia-Pacífico",
             risk: "critical",
-            image: "https://images.unsplash.com/photo-1536431311719-398b6704d4cc?w=1920&h=800&fit=crop&q=80"
+            image: null
         },
         {
             title: "Crisis humanitaria se agrava en África Subsahariana",
             text: "La situación humanitaria se ha deteriorado dramáticamente, con millones de personas en riesgo debido a la combinación de Conflicts armados y Crisis climática.",
             location: "África Subsahariana",
             risk: "high",
-            image: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=1920&h=800&fit=crop&q=80"
+            image: null
         }
     ];
     
@@ -4538,9 +4432,13 @@ async function loadHeroArticleFallback() {
     riskBadge.className = `hero-risk-badge ${heroArticle.risk}`;
     riskBadge.textContent = translateRiskLevel(heroArticle.risk) + ' RIESGO';
     
-    // Aplicar imagen de alta calidad
+    // Aplicar imagen o gradiente CSS
     const heroElement = document.getElementById('hero-article');
-    heroElement.style.backgroundImage = `url('${heroArticle.image}')`;
+    if (heroArticle.image) {
+        heroElement.style.backgroundImage = `url('${heroArticle.image}')`;
+    } else {
+        heroElement.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
+    }
     
     // Almacenar datos para modal
     window.currentHeroArticle = heroArticle;
@@ -5315,194 +5213,45 @@ function getRealNewsForSet(setIndex) {
     return realArticles;
 }
 
-// Función para obtener datos mock (como respaldo)
+// Función para obtener datos mock (como respaldo) — sin imágenes stock
 function getMockNewsSet(setIndex) {
     const newsSets = [
-        // Set 1: 7 articles - DISEÑO ORIGINAL QUE FUNCIONABA BIEN
         [
-            {
-                title: "Tensions geopolíticas se intensifican en Europa Oriental",
-                location: "Europa Oriental",
-                risk: "high",
-                image: "https://picsum.photos/400/300?random=1"
-            },
-            {
-                title: "Crisis diplomática en Asia-Pacífico",
-                location: "Asia-Pacífico",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=2"
-            },
-            {
-                title: "Movimientos económicos estratégicos en Medio Oriente",
-                location: "Medio Oriente",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=3"
-            },
-            {
-                title: "Desarrollos significativos en América Latina",
-                location: "América Latina",
-                risk: "low",
-                image: "https://picsum.photos/400/300?random=4"
-            },
-            {
-                title: "Cambios en las alianzas africanas",
-                location: "África",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=5"
-            },
-            {
-                title: "Nuevas políticas en América del Norte",
-                location: "América del Norte",
-                risk: "low",
-                image: "https://picsum.photos/400/300?random=6"
-            },
-            {
-                title: "Desarrollos en el Ártico",
-                location: "Ártico",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=7"
-            }
+            { title: "Tensions geopolíticas se intensifican en Europa Oriental", location: "Europa Oriental", risk: "high", image: null },
+            { title: "Crisis diplomática en Asia-Pacífico", location: "Asia-Pacífico", risk: "medium", image: null },
+            { title: "Movimientos económicos estratégicos en Medio Oriente", location: "Medio Oriente", risk: "medium", image: null },
+            { title: "Desarrollos significativos en América Latina", location: "América Latina", risk: "low", image: null },
+            { title: "Cambios en las alianzas africanas", location: "África", risk: "medium", image: null },
+            { title: "Nuevas políticas en América del Norte", location: "América del Norte", risk: "low", image: null },
+            { title: "Desarrollos en el Ártico", location: "Ártico", risk: "medium", image: null }
         ],
-        // Set 2: 7 articles - NUEVO DISEÑO DEL USUARIO (3x4 = 12 cuadrados completos)
         [
-            {
-                title: "Reformas estratégicas en el Sudeste Asiático",
-                location: "Sudeste Asiático",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=23"
-            },
-            {
-                title: "Alianzas energéticas en Europa Central",
-                location: "Europa Central",
-                risk: "high",
-                image: "https://picsum.photos/400/300?random=24"
-            },
-            {
-                title: "Desarrollos tecnológicos en Asia Oriental",
-                location: "Asia Oriental",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=25"
-            },
-            {
-                title: "Negotiations comerciales en el Mediterráneo",
-                location: "Mediterráneo",
-                risk: "low",
-                image: "https://picsum.photos/400/300?random=26"
-            },
-            {
-                title: "Crisis migratoria intensifica Tensions regionales",
-                location: "Europa del Sur",
-                risk: "high",
-                image: "https://picsum.photos/400/300?random=27"
-            },
-            {
-                title: "Acuerdos de cooperación en el Atlántico Norte",
-                location: "Atlántico Norte",
-                risk: "low",
-                image: "https://picsum.photos/400/300?random=28"
-            },
-            {
-                title: "Reformas políticas en América Andina",
-                location: "América Andina",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=29"
-            }
+            { title: "Reformas estratégicas en el Sudeste Asiático", location: "Sudeste Asiático", risk: "medium", image: null },
+            { title: "Alianzas energéticas en Europa Central", location: "Europa Central", risk: "high", image: null },
+            { title: "Desarrollos tecnológicos en Asia Oriental", location: "Asia Oriental", risk: "medium", image: null },
+            { title: "Negotiations comerciales en el Mediterráneo", location: "Mediterráneo", risk: "low", image: null },
+            { title: "Crisis migratoria intensifica Tensions regionales", location: "Europa del Sur", risk: "high", image: null },
+            { title: "Acuerdos de cooperación en el Atlántico Norte", location: "Atlántico Norte", risk: "low", image: null },
+            { title: "Reformas políticas en América Andina", location: "América Andina", risk: "medium", image: null }
         ],
-        // Set 3: 7 articles - DISEÑO PUZZLE ANTERIOR (3x4 = 12 cuadrados completos)
         [
-            {
-                title: "Escalada de Conflicts en el Sudeste Asiático",
-                location: "Sudeste Asiático",
-                risk: "high",
-                image: "https://picsum.photos/400/300?random=8"
-            },
-            {
-                title: "Nuevas Sanctions económicas globales",
-                location: "Global",
-                risk: "high",
-                image: "https://picsum.photos/400/300?random=9"
-            },
-            {
-                title: "Cambios en la Politics energética europea",
-                location: "Europa",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=10"
-            },
-            {
-                title: "Desarrollos en el Cáucaso",
-                location: "Cáucaso",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=11"
-            },
-            {
-                title: "Situación en el Cuerno de África",
-                location: "África Oriental",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=12"
-            },
-            {
-                title: "Acuerdos comerciales en el Pacífico",
-                location: "Pacífico",
-                risk: "low",
-                image: "https://picsum.photos/400/300?random=13"
-            },
-            {
-                title: "Reformas políticas en América Central",
-                location: "América Central",
-                risk: "low",
-                image: "https://picsum.photos/400/300?random=14"
-            }
+            { title: "Escalada de Conflicts en el Sudeste Asiático", location: "Sudeste Asiático", risk: "high", image: null },
+            { title: "Nuevas Sanctions económicas globales", location: "Global", risk: "high", image: null },
+            { title: "Cambios en la Politics energética europea", location: "Europa", risk: "medium", image: null },
+            { title: "Desarrollos en el Cáucaso", location: "Cáucaso", risk: "medium", image: null },
+            { title: "Situación en el Cuerno de África", location: "África Oriental", risk: "medium", image: null },
+            { title: "Acuerdos comerciales en el Pacífico", location: "Pacífico", risk: "low", image: null },
+            { title: "Reformas políticas en América Central", location: "América Central", risk: "low", image: null }
         ],
-        // Set 4: 8 articles - DISEÑO ESQUEMA PAINT (3x4 = 12 cuadrados completos)
         [
-            {
-                title: "Tensions diplomáticas en Asia Central",
-                location: "Asia Central",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=15"
-            },
-            {
-                title: "Crisis energética en Europa del Norte",
-                location: "Europa del Norte",
-                risk: "high",
-                image: "https://picsum.photos/400/300?random=16"
-            },
-            {
-                title: "Desarrollos militares en el Indo-Pacífico",
-                location: "Indo-Pacífico",
-                risk: "high",
-                image: "https://picsum.photos/400/300?random=17"
-            },
-            {
-                title: "Negotiations comerciales en África Occidental",
-                location: "África Occidental",
-                risk: "low",
-                image: "https://picsum.photos/400/300?random=18"
-            },
-            {
-                title: "Reformas políticas en el Mediterráneo Oriental",
-                location: "Mediterráneo Oriental",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=19"
-            },
-            {
-                title: "Cooperación International en la Antártida",
-                location: "Antártida",
-                risk: "low",
-                image: "https://picsum.photos/400/300?random=20"
-            },
-            {
-                title: "Disputas territoriales en el Mar del Sur de China",
-                location: "Mar del Sur de China",
-                risk: "high",
-                image: "https://picsum.photos/400/300?random=21"
-            },
-            {
-                title: "Alianzas estratégicas en América del Sur",
-                location: "América del Sur",
-                risk: "medium",
-                image: "https://picsum.photos/400/300?random=22"
-            }
+            { title: "Tensions diplomáticas en Asia Central", location: "Asia Central", risk: "medium", image: null },
+            { title: "Crisis energética en Europa del Norte", location: "Europa del Norte", risk: "high", image: null },
+            { title: "Desarrollos militares en el Indo-Pacífico", location: "Indo-Pacífico", risk: "high", image: null },
+            { title: "Negotiations comerciales en África Occidental", location: "África Occidental", risk: "low", image: null },
+            { title: "Reformas políticas en el Mediterráneo Oriental", location: "Mediterráneo Oriental", risk: "medium", image: null },
+            { title: "Cooperación International en la Antártida", location: "Antártida", risk: "low", image: null },
+            { title: "Disputas territoriales en el Mar del Sur de China", location: "Mar del Sur de China", risk: "high", image: null },
+            { title: "Alianzas estratégicas en América del Sur", location: "América del Sur", risk: "medium", image: null }
         ]
     ];
     

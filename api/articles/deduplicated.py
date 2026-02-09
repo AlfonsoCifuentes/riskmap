@@ -8,6 +8,7 @@ Deduplication: selects the latest article per (source, country) combination.
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 from api._db import neon_get, json_response, error_response, send_response
+from api._og_image import enrich_articles_with_images
 
 
 class handler(BaseHTTPRequestHandler):
@@ -45,6 +46,9 @@ class handler(BaseHTTPRequestHandler):
                 mosaic.append(article)
                 if len(mosaic) >= limit:
                     break
+
+            # Enrich articles missing images with og:image from source
+            enrich_articles_with_images(mosaic)
 
             resp = json_response({
                 'success': True,
