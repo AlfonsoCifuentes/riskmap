@@ -2,26 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "framework": null,
-  "installCommand": "pip install -r requirements-vercel.txt",
-  "builds": [
-    {
-      "src": "api/**/*.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "src/web/static/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/static/(.*)", "dest": "/src/web/static/$1" },
-    { "src": "^/$", "dest": "/public/index.html" },
-    { "src": "/(.*)", "dest": "/public/$1" }
+  "rewrites": [
+    { "source": "/static/(.*)", "destination": "/src/web/static/$1" },
+    { "source": "/((?!api/).*)", "destination": "/public/index.html" }
   ],
   "env": {
     "NEON_API_URL": "${NEON_API_URL}",
