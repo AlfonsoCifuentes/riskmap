@@ -1,0 +1,9 @@
+{
+    "codium.codeCompletion.enable": false,
+    "github.copilot.chat.includeInstructions": [
+        ".github/copilot-instructions.md"
+    ],
+    "github.copilot.chat.persistentInstructions": true,
+    "github.copilot.referencesInChat": "always",
+    "github.copilot.chat.defaultInstructionFile": ".github/copilot-instructions.md"
+}

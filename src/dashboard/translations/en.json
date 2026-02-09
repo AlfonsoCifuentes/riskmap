@@ -1,0 +1,27 @@
+{
+  "dashboard_title": "Geopolitical Intelligence Dashboard",
+  "select_language": "Select Language",
+  "overall": "Overall Status",
+  "score": "Score",
+  "critical": "Critical Issues",
+  "warnings": "Warnings",
+  "uptime": "Uptime",
+  "heatmap": "Heatmap",
+  "quality_report": "Quality Report",
+  "total_articles": "Total Articles",
+  "valid_articles": "Valid Articles",
+  "invalid_articles": "Invalid Articles",
+  "avg_quality_score": "Average Quality Score",
+  "range": "Range",
+  "count": "Count",
+  "home": "Home",
+  "analysis": "Analysis",
+  "historic": "Historic",
+  "country_risk": "Country Risk"
+  ,"disasters": "Disaster Events"
+  ,"health_alerts": "Health Alerts"
+  ,"satellite_images": "Satellite Images"
+  ,"camera_feeds": "Public Camera Feeds"
+  ,"about": "About"
+  ,"events": "Events"
+}

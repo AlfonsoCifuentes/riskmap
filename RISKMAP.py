@@ -4726,7 +4726,7 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                         logger.warning("🔄 Usando fallback automático para demostración...")
                         # USAR FALLBACK AUTOMÁTICO
                         try:
-                            fallback_path = os.path.join(os.path.dirname(__file__), "fallbackgeojson.geojson")
+                            fallback_path = os.path.join(os.path.dirname(__file__), "data", "geojson", "fallback.geojson")
                             with open(fallback_path, 'r', encoding='utf-8') as f:
                                 fallback_geojson = json.load(f)
                             
@@ -4857,7 +4857,7 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                             return jsonify({
                                 'success': False,
                                 'error': 'No se pudieron cargar datos del pipeline ni del fallback',
-                                'suggestion': 'Verifica que el archivo fallbackgeojson.geojson existe y es válido',
+                                'suggestion': 'Verifica que el archivo data/geojson/fallback.geojson existe y es válido',
                                 'conflicts': [],
                                 'satellite_zones': [],
                                 'statistics': {
@@ -7028,13 +7028,13 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                 max_zones = data.get('max_zones', 10)
                 
                 # Cargar fallback GeoJSON
-                fallback_path = 'fallbackgeojson.geojson'
+                fallback_path = os.path.join('data', 'geojson', 'fallback.geojson')
                 if not os.path.exists(fallback_path):
                     logger.error(f"Archivo fallback no encontrado: {fallback_path}")
                     return jsonify({
                         'success': False,
                         'message': 'Archivo de zonas de conflicto no encontrado',
-                        'error': 'fallbackgeojson.geojson no existe'
+                        'error': 'data/geojson/fallback.geojson no existe'
                     }), 404
                 
                 with open(fallback_path, 'r', encoding='utf-8') as f:
@@ -7822,7 +7822,7 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                 logger.info("🚀 Iniciando análisis Ultra HD automático")
                 
                 # Cargar GeoJSON de fallback
-                fallback_path = "fallbackgeojson.geojson"
+                fallback_path = os.path.join("data", "geojson", "fallback.geojson")
                 if not os.path.exists(fallback_path):
                     return jsonify({
                         'success': False,

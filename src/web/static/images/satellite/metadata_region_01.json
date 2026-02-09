@@ -1,0 +1,11 @@
+{
+  "zone_id": "region_01",
+  "location": "Gaza quadrant A1",
+  "timestamp": "2025-08-07T18:31:02.003945",
+  "images_count": 4,
+  "analysis_type": "comprehensive_satellite",
+  "resolution": "unknown",
+  "cloud_coverage": "unknown",
+  "api_sources": [],
+  "ai_analysis": false
+}

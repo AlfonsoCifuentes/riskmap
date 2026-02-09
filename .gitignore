@@ -1,119 +1,114 @@
-# Python
+# ============================================
+# RiskMap .gitignore — Clean Architecture
+# ============================================
+
+# Python bytecode
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 
-# Virtual Environment
+# Virtual environments
+.venv/
+.venv_dashboard/
 venv/
 env/
 ENV/
+.Python
 
-# Environment variables
+# Environment secrets (NEVER commit)
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
 
-# IDE
-.vscode/
+# IDE / Editor
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
+# OS metadata
 .DS_Store
-.DS_Store?
+Thumbs.db
+ehthumbs.db
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
-Thumbs.db
 
-# Logs
-*.log
-logs/
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Generated content
-data/generated_images/
-data/*.db
-
-# Node modules (if any)
+# Node
 node_modules/
 
-# Temporary files
-*.tmp
-*.temp
+# ============================================
+# Data — track structure, ignore heavy content
+# ============================================
 
-# API Keys and secrets
-config/secrets.yaml
-config/api_keys.yaml
+# Databases (large binary, generated locally)
+data/*.db
+data/*.db.*
+*.sqlite
+*.sqlite3
+alerts.db
+satellite_analysis.db
 
-# Cache
-.cache/
+# Cached / generated images (regenerated at runtime)
+data/images/
+data/image_cache/
+data/satellite_images/
+src/web/static/images/article_*
+src/dashboard/static/images/
+static/images/article_*
 
-# Large files (>100MB)
-*.zip
-*.tar.gz
-*.rar
-*.7z
-*.iso
-*.dmg
-*.pkg
-*.deb
-*.rpm
+# External feed caches
+data/external_feeds/
 
-# Machine Learning Models
-*.pkl
-*.pickle
-*.joblib
-*.h5
-*.hdf5
+# ============================================
+# Logs (generated at runtime)
+# ============================================
+*.log
+logs/*.json
+logs/*.log
+
+# ============================================
+# ML Models (too large for git)
+# ============================================
 *.pt
 *.pth
 *.onnx
-*.pb
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.joblib
+*.bin
 *.tflite
 *.model
-*.bin
-models/
-checkpoints/
+models/predictive/
 
-# Large datasets
-*.csv
-*.json
-*.xml
-*.parquet
-*.feather
-data/datasets/
-data/raw/
-data/processed/
+# ============================================
+# Temporary / generated files
+# ============================================
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.orig
+*.corrupted
+*.ssl_backup
+*.yolo_backup
 
-# Media files
+# Temp images from processing
+temp_military_*.jpg
+
+# ============================================
+# Large media (never commit)
+# ============================================
 *.mp4
 *.avi
 *.mov
@@ -124,28 +119,23 @@ data/processed/
 *.mp3
 *.wav
 *.flac
-*.aac
-*.ogg
-*.wma
-
-# Large images
 *.tiff
 *.tif
 *.bmp
 *.raw
-*.cr2
-*.nef
-*.arw
-*.dng
+*.fbx
+*.mtl
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.iso
 
-# Backup files
-*.bak
-*.backup
-*.old
-*.orig
-
-# Virtual machine files
-*.vmdk
-*.vdi
-*.vhd
-*.qcow2
+# ============================================
+# Tool caches
+# ============================================
+.cache/
+.tmp/
+.qodo/
+.agents/
+_vscode/

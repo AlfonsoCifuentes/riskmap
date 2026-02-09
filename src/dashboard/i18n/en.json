@@ -1,0 +1,20 @@
+{
+  "dashboard_title": "Geopolitical Intelligence",
+  "latest_articles": "Latest Articles",
+  "high_risk_articles": "High Risk Articles",
+  "featured_article": "Featured Article",
+  "weekly_analysis": "Weekly Analysis",
+  "risk_level": "Risk Level",
+  "high": "High",
+  "medium": "Medium",
+  "low": "Low",
+  "read_full_article": "Read Full Article",
+  "source": "Source",
+  "date": "Date",
+  "location": "Location",
+  "category": "Category",
+  "total_articles": "Total Articles",
+  "high_risk_events": "High Risk Events",
+  "processed_today": "Processed Today",
+  "active_regions": "Active Regions"
+}

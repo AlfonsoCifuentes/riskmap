@@ -1,0 +1,28 @@
+{
+  "dashboard_title": "Panel de Inteligencia Geopolítica",
+  "select_language": "Seleccionar Idioma",
+  "overall": "Estado General",
+  "score": "Puntuación",
+  "critical": "Problemas Críticos",
+  "warnings": "Advertencias",
+  "uptime": "Tiempo de Actividad",
+  "heatmap": "Mapa de Calor",
+  "quality_report": "Informe de Calidad",
+  "total_articles": "Total de Artículos",
+  "valid_articles": "Artículos Válidos",
+  "invalid_articles": "Artículos Inválidos",
+  "avg_quality_score": "Puntuación Media de Calidad",
+  "range": "Rango",
+  "count": "Cantidad",
+  "home": "Inicio",
+  "analysis": "Análisis",
+  "historic": "Históricos",
+  "country_risk": "Riesgo País"
+  ,"disasters": "Eventos de Desastre"
+  ,"health_alerts": "Alertas de Salud"
+  ,"satellite_images": "Imágenes Satelitales"
+  ,"camera_feeds": "Fuentes de Cámaras Públicas"
+  ,"satellite_analysis": "Análisis Satelital"
+  ,"about": "Acerca de",
+  "events": "Eventos"
+}

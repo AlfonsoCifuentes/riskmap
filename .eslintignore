@@ -1,4 +1,0 @@
-node_modules/
-static/vendor/
-src/web/templates/**/vendor/
-**/*.min.js

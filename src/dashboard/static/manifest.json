@@ -1,0 +1,11 @@
+{
+  "name": "Riskmap Dashboard",
+  "short_name": "Riskmap",
+  "display": "standalone",
+  "start_url": "/",
+  "background_color": "#1a237e",
+  "theme_color": "#1a237e",
+  "icons": [
+    {"src": "https://raw.githubusercontent.com/ionic-team/ionicons/master/src/svg/planet.svg", "sizes": "192x192", "type": "image/svg+xml"}
+  ]
+}

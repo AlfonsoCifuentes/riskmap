@@ -1,0 +1,20 @@
+{
+  "dashboard_title": "Geopolitische Intelligenz",
+  "latest_articles": "Neueste Artikel",
+  "high_risk_articles": "Hochrisiko-Artikel",
+  "featured_article": "Hauptartikel",
+  "weekly_analysis": "Wöchentliche Analyse",
+  "risk_level": "Risikoniveau",
+  "high": "Hoch",
+  "medium": "Mittel",
+  "low": "Niedrig",
+  "read_full_article": "Vollständigen Artikel Lesen",
+  "source": "Quelle",
+  "date": "Datum",
+  "location": "Standort",
+  "category": "Kategorie",
+  "total_articles": "Artikel Gesamt",
+  "high_risk_events": "Hochrisiko-Ereignisse",
+  "processed_today": "Heute Verarbeitet",
+  "active_regions": "Aktive Regionen"
+}
