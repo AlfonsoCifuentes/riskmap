@@ -1380,6 +1380,32 @@ loadThreeJS();
         border-color: rgba(34, 197, 94, 0.3);
     }
 
+    .mosaic-risk-badge.critical {
+        background: rgba(185, 28, 28, 0.95);
+        border-color: rgba(185, 28, 28, 0.4);
+    }
+
+    /* Source label for articles without images */
+    .mosaic-source-label {
+        display: block !important;
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Risk badge inside title container (for no-image articles) */
+    .mosaic-title-container .mosaic-risk-badge {
+        position: relative;
+        top: auto;
+        right: auto;
+        display: inline-block !important;
+        margin-bottom: 6px;
+        font-size: 0.65rem;
+        padding: 2px 8px;
+    }
+
     .mosaic-article::before,
     .mosaic-article::after {
         /* Eliminar cualquier pseudo-elemento que pueda añadir Content */
@@ -4932,23 +4958,17 @@ async function generateMosaicTiles(mode) {
         }
     }
     
-    // FILTRO ESTRICTO: Solo artículos con imagen Y título válidos
+    // FILTRO: Solo artículos con título válido (imagen NO requerida - se usa placeholder)
     const originalArticlesCount = sampleArticles.length;
     sampleArticles = sampleArticles.filter(article => {
         // Verificar que tenga título válido
         const hasTitle = article.title && article.title.trim() !== '' && article.title !== 'Sin título';
         
-        // Verificar que tenga imagen válida
-        const hasImage = (article.original_image_url && article.original_image_url.startsWith('https://')) ||
-                        (article.image_url && article.image_url.startsWith('https://')) ||
-                        (article.image && article.image.startsWith('https://'));
-        
-        const isValid = hasTitle && hasImage;
-        if (!isValid) {
-            dashboardLogger.debug(`❌ Artículo filtrado - Título: "${article.title || 'VACÍO'}", Imagen: "${article.image_url || article.original_image_url || article.image || 'VACÍA'}"`);
+        if (!hasTitle) {
+            dashboardLogger.debug(`❌ Artículo filtrado - Título: "${article.title || 'VACÍO'}"`);
         }
         
-        return isValid;
+        return hasTitle;
     });
     
     if (originalArticlesCount !== sampleArticles.length) {
@@ -5187,6 +5207,24 @@ function generateArticleTile(article, sizeClass, backgroundPosition) {
     // Obtener la imagen ORIGINAL sin cambios - priorizar original_image_url
     let imageUrl = article.original_image_url || article.image_url || article.image || '';
     
+    // Verificar si la imagen es válida (https://)
+    const hasValidImage = imageUrl && imageUrl.startsWith('https://');
+    
+    // Si no hay imagen válida, usar un gradient placeholder basado en el riesgo
+    let backgroundStyle;
+    if (hasValidImage) {
+        backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
+    } else {
+        // Gradient placeholder según nivel de riesgo
+        const gradients = {
+            'critical': 'linear-gradient(135deg, #1a0a0a 0%, #3d0c0c 30%, #5a1a1a 60%, #2d0808 100%)',
+            'high': 'linear-gradient(135deg, #1a1005 0%, #3d2510 30%, #5a3520 60%, #2d1808 100%)',
+            'medium': 'linear-gradient(135deg, #0a1a2e 0%, #0c2d4f 30%, #1a4570 60%, #082040 100%)',
+            'low': 'linear-gradient(135deg, #0a1a15 0%, #0c3d2a 30%, #1a5a40 60%, #082d20 100%)'
+        };
+        backgroundStyle = `background: ${gradients[riskClass] || gradients['medium']};`;
+    }
+    
     // ELIMINAR SISTEMA ANTI-DUPLICADOS - Cada artículo conserva su imagen original
     // if (isImageUsed(imageUrl)) {
     //     console.log(`🔄 Imagen duplicada detectada para artículo "${article.title}", buscando alternativa`);
@@ -5226,10 +5264,16 @@ function generateArticleTile(article, sizeClass, backgroundPosition) {
     };
     
     // DISEÑO FLEXBOX: IMAGEN DE FONDO + TÍTULO ABAJO (SIN Content EXTRA)
+    // Incluir badge de riesgo + fuente para artículos sin imagen
+    const sourceLabel = article.source ? `<span class="mosaic-source-label">${article.source}</span>` : '';
+    const riskBadge = !hasValidImage ? `<div class="mosaic-risk-badge ${riskClass}">${translateRiskLevel(riskClass)}</div>` : '';
+    
     return `
-        <div class="mosaic-article ${sizeClass}" data-article-id="${article.id || ''}" data-article-handler="${uniqueId}" style="cursor: pointer; background-image: url('${imageUrl}'); background-size: cover; background-position: center;">
+        <div class="mosaic-article ${sizeClass}" data-article-id="${article.id || ''}" data-article-handler="${uniqueId}" style="cursor: pointer; ${backgroundStyle}">
             <div class="mosaic-title-container">
+                ${riskBadge}
                 <div class="mosaic-title-only">${article.title || 'Noticia importante'}</div>
+                ${sourceLabel}
             </div>
         </div>
     `;

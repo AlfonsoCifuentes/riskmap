@@ -16,7 +16,8 @@ class handler(BaseHTTPRequestHandler):
                 select='id,title,summary,url,source,published_at,'
                        'country,region,risk_level,risk_score,'
                        'conflict_type,conflict_intensity,'
-                       'image_url,latitude,longitude,'
+                       'image_url,original_image_url,has_image,'
+                       'latitude,longitude,'
                        'ai_sentiment,sentiment_score,language,'
                        'ai_summary,content',
                 order='risk_score.desc.nullslast,published_at.desc',
