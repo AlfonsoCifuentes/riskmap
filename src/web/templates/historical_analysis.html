@@ -1,8 +1,12 @@
-{% extends "base_navigation.html" %}
-
-{% block title %}Análisis Histórico - Stratosight{% endblock %}
-
-{% block extra_css %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏛️ Analysis Histórico - RiskMap</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
     :root {
@@ -52,7 +56,7 @@
     }
 
     /* Historical Analysis Specific Styles - Unified Design */
-    .historical-dashboard {
+    .historical-Dashboard {
         padding: 20px;
         max-width: none;
         margin: 40px auto 0 auto;
@@ -68,7 +72,7 @@
         box-sizing: border-box;
     }
     
-    .dashboard-content {
+    .Dashboard-content {
         max-width: 96%;
         margin: 0 auto !important;
         padding: 50px 40px;
@@ -377,7 +381,7 @@
 
     /* Responsive Design */
     @media (max-width: 768px) {
-        .historical-dashboard {
+        .historical-Dashboard {
             padding: 20px;
         }
         
@@ -407,7 +411,7 @@
         }
     }
 
-    /* New styles for expanded dashboard */
+    /* New styles for expanded Dashboard */
     
     /* Timeline controls */
     .timeline-controls {
@@ -637,7 +641,7 @@
         background: #ffaa00;
     }
 
-    .status-indicator.error {
+    .status-indicator.Error {
         background: #ff0000;
     }
 
@@ -715,28 +719,177 @@
         }
     }
 </style>
-{% endblock %}
 
-{% block content %}
+    /* Navigation Bar */
+    .top-navigation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: rgba(10, 15, 44, 0.95);
+        backdrop-filter: blur(15px);
+        border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    }
+    .nav-brand {
+        color: #00d4ff;
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+        font-family: 'Orbitron', monospace;
+    }
+    .hamburger-btn {
+        margin-left: auto;
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(145deg, rgba(60, 80, 120, 0.8) 0%, rgba(40, 60, 100, 0.9) 50%, rgba(30, 50, 90, 0.8) 100%);
+        border: 2px solid rgba(0, 212, 255, 0.3);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+    }
+    .hamburger-btn:hover {
+        background: linear-gradient(145deg, rgba(0, 212, 255, 1.0) 0%, rgba(0, 163, 204, 1.0) 50%, rgba(0, 140, 180, 1.0) 100%);
+        border: 2px solid rgba(0, 212, 255, 0.8);
+        box-shadow: 0 12px 40px rgba(0, 212, 255, 0.6);
+    }
+    .hamburger-btn span {
+        width: 20px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 1px;
+        margin: 2px 0;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+    }
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        right: -300px;
+        width: 280px;
+        height: calc(100vh - 70px);
+        background: rgba(10, 15, 44, 0.98);
+        backdrop-filter: blur(20px);
+        border-left: 2px solid rgba(0, 212, 255, 0.3);
+        transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 999;
+        padding: 20px;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+    }
+    .nav-menu.open { right: 0; }
+    .nav-menu-item {
+        display: block;
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 15px 20px;
+        margin: 8px 0;
+        border-radius: 12px;
+        transition: all 0.4s ease;
+        font-size: 0.95rem;
+        font-weight: 500;
+        background: linear-gradient(145deg, rgba(60, 80, 120, 0.6) 0%, rgba(40, 60, 100, 0.7) 50%, rgba(30, 50, 90, 0.6) 100%);
+        border: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    .nav-menu-item:hover {
+        color: #fff;
+        background: linear-gradient(145deg, rgba(0, 212, 255, 0.9) 0%, rgba(0, 163, 204, 1.0) 50%, rgba(0, 140, 180, 0.9) 100%);
+        border: 1px solid rgba(0, 212, 255, 0.6);
+        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+        transform: translateY(-2px);
+    }
+    .nav-menu-item span { position: relative; z-index: 2; }
+    .nav-overlay {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 998;
+    }
+    .nav-overlay.active { opacity: 1; visibility: visible; }
+    body {
+        margin: 0;
+        padding-top: 70px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        min-height: 100vh;
+        color: #e8eaed;
+        overflow-x: hidden;
+    }
+    html {
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        margin: 0;
+        padding: 0;
+    }
+</style>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="top-navigation">
+    <a href="/" class="nav-brand">🗺️ RiskMap</a>
+    <button class="hamburger-btn" onclick="toggleNav()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div class="nav-menu" id="navMenu">
+        <a href="/news-analysis" class="nav-menu-item"><span>📰 Análisis de Noticias</span></a>
+        <a href="/conflict-monitoring" class="nav-menu-item"><span>⚔️ Monitor de Conflictos</span></a>
+        <a href="/trends-analysis" class="nav-menu-item"><span>📈 Análisis de Tendencias</span></a>
+        <a href="/early-warning" class="nav-menu-item"><span>⚠️ Alertas Tempranas</span></a>
+        <a href="/executive-reports" class="nav-menu-item"><span>📋 Reportes Ejecutivos</span></a>
+        <a href="/data-intelligence" class="nav-menu-item"><span>🧠 Inteligencia de Datos</span></a>
+        <a href="/satellite-analysis" class="nav-menu-item"><span>🛰️ Análisis Satelital</span></a>
+        <a href="/video-surveillance" class="nav-menu-item"><span>📹 Vigilancia por Video</span></a>
+        <a href="/historical-analysis" class="nav-menu-item"><span>🏛️ Análisis Histórico</span></a>
+        <a href="/about" class="nav-menu-item"><span>ℹ️ Acerca de</span></a>
+        <div style="border-top: 1px solid rgba(3,76,163,0.3); margin: 12px 0;"></div>
+        <a href="/logs" class="nav-menu-item"><span>📝 Registros</span></a>
+        <a href="/settings" class="nav-menu-item"><span>⚙️ Configuración</span></a>
+    </div>
+    <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
 <!-- Header Section -->
 <div class="header-section">
-    <h1 class="page-title">🏛️ Análisis Histórico</h1>
-    <p class="page-subtitle">Patrones Geopolíticos • Conflictos Históricos • Lecciones Estratégicas</p>
+    <h1 class="page-title">🏛️ Analysis Histórico</h1>
+    <p class="page-subtitle">Patrones Geopolíticos • Conflicts Históricos • Lecciones Estratégicas</p>
 </div>
 
-<div class="historical-dashboard">
-    <div class="dashboard-content">
+<div class="historical-Dashboard">
+    <div class="Dashboard-content">
         <!-- Header Controls -->
         <div class="glass-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <i class="fas fa-chart-line" style="color: #00d4ff; font-size: 2rem;"></i>
-                    <h1 style="color: #00d4ff; margin: 0;">Análisis Histórico Avanzado</h1>
+                    <h1 style="color: #00d4ff; margin: 0;">Analysis Histórico Avanzado</h1>
                 </div>
                 <div class="header-controls">
                     <button class="btn" onclick="triggerETLUpdate()">
                         <i class="fas fa-sync-alt"></i>
-                        Actualizar Datos
+                        Refresh Datos
                     </button>
                     <button class="btn btn-secondary" onclick="exportData()">
                         <i class="fas fa-download"></i>
@@ -832,7 +985,7 @@
                 </button>
                 <button class="tab-button" onclick="switchTab('geography')">
                     <i class="fas fa-globe"></i>
-                    Análisis Geográfico
+                    Analysis Geográfico
                 </button>
                 <button class="tab-button" onclick="switchTab('predictions')">
                     <i class="fas fa-crystal-ball"></i>
@@ -840,7 +993,7 @@
                 </button>
                 <button class="tab-button" onclick="switchTab('intelligence')">
                     <i class="fas fa-brain"></i>
-                    Inteligencia IA
+                    Intelligence IA
                 </button>
                 <button class="tab-button" onclick="switchTab('datasets')">
                     <i class="fas fa-database"></i>
@@ -864,7 +1017,7 @@
                         <div id="globalTimelineChart"></div>
                     </div>
                     <div class="chart-container">
-                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Intensidad de Conflictos</h3>
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Intensidad de Conflicts</h3>
                         <div id="conflictIntensityChart"></div>
                     </div>
                 </div>
@@ -880,7 +1033,7 @@
                 </div>
                 <div class="map-container" id="overviewMap"></div>
                 <div class="glass-panel">
-                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Resumen Ejecutivo Últimas 24h</h3>
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Summary Ejecutivo Últimas 24h</h3>
                     <div id="executiveSummary"></div>
                 </div>
             </div>
@@ -935,7 +1088,7 @@
                     <div id="eventsTable"></div>
                 </div>
                 <div class="glass-panel">
-                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Análisis de Impacto</h3>
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Analysis de Impacto</h3>
                     <div id="impactAnalysis"></div>
                 </div>
             </div>
@@ -958,7 +1111,7 @@
                         <div id="emergingTrendsChart"></div>
                     </div>
                     <div class="chart-container">
-                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Análisis de Frecuencia</h3>
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Analysis de Frecuencia</h3>
                         <div id="frequencyAnalysisChart"></div>
                     </div>
                 </div>
@@ -1024,11 +1177,11 @@
             <!-- Intelligence Tab -->
             <div id="intelligenceTab" class="content-area">
                 <div class="glass-panel">
-                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Análisis de Inteligencia Artificial</h3>
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Intelligence Analysis Artificial</h3>
                     <div class="ai-analysis-controls">
                         <button class="btn" onclick="generateAIAnalysis()">
                             <i class="fas fa-brain"></i>
-                            Generar Análisis IA
+                            Generar Analysis IA
                         </button>
                         <button class="btn btn-secondary" onclick="exportAIReport()">
                             <i class="fas fa-file-pdf"></i>
@@ -1039,7 +1192,7 @@
                 </div>
                 <div class="content-grid">
                     <div class="chart-container">
-                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Análisis de Sentimiento</h3>
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Analysis de Sentimiento</h3>
                         <div id="aiSentimentChart"></div>
                     </div>
                     <div class="chart-container">
@@ -1092,7 +1245,7 @@
                     </div>
                 </div>
                 <div class="glass-panel">
-                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Estado de Fuentes de Datos</h3>
+                    <h3 style="color: #00d4ff; margin-bottom: 1rem;">Status de Fuentes de Datos</h3>
                     <div id="dataSourcesStatus"></div>
                 </div>
             </div>
@@ -1117,7 +1270,7 @@
                 </div>
                 <div class="content-grid">
                     <div class="chart-container">
-                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Análisis Comparativo</h3>
+                        <h3 style="color: #00d4ff; margin-bottom: 1rem;">Analysis Comparativo</h3>
                         <div id="comparativeAnalysisChart"></div>
                     </div>
                     <div class="chart-container">
@@ -1138,7 +1291,7 @@
                                 <option value="conflict_escalation">Escalada de Conflicto</option>
                                 <option value="economic_crisis">Crisis Económica</option>
                                 <option value="climate_change">Cambio Climático</option>
-                                <option value="political_instability">Inestabilidad Política</option>
+                                <option value="political_instability">Inestabilidad Politics</option>
                                 <option value="pandemic">Pandemia</option>
                                 <option value="cyber_attack">Ataque Cibernético</option>
                             </select>
@@ -1177,14 +1330,14 @@
     let maps = {};
     let charts = {};
 
-    // Initialize dashboard
+    // Initialize Dashboard
     document.addEventListener('DOMContentLoaded', function() {
         initializeDashboard();
         loadFilters();
         loadDashboardData();
     });
 
-    // Initialize dashboard components
+    // Initialize Dashboard components
     function initializeDashboard() {
         // Set default date range (last 90 days)
         const today = new Date();
@@ -1256,7 +1409,7 @@
         }
     }
 
-    // Load dashboard data
+    // Load Dashboard data
     async function loadDashboardData() {
         try {
             showLoading();
@@ -1272,23 +1425,23 @@
             countries.forEach(c => params.append('countries', c));
             categories.forEach(c => params.append('categories', c));
 
-            const response = await fetch(`/api/historical/dashboard?${params}`);
+            const response = await fetch(`/api/historical/Dashboard?${params}`);
             const result = await response.json();
             
             if (result.success) {
                 currentData = result.data;
                 updateDashboard(result.data);
             } else {
-                showError('Failed to load dashboard data: ' + result.message);
+                showError('Failed to load Dashboard data: ' + result.message);
             }
         } catch (error) {
-            showError('Network error: ' + error.message);
+            showError('Network Error: ' + error.message);
         } finally {
             hideLoading();
         }
     }
 
-    // Update dashboard with new data
+    // Update Dashboard with new data
     function updateDashboard(data) {
         updateStatistics(data.summary_stats || {});
         updateEventsTab(data);
@@ -1412,11 +1565,11 @@
                 <thead>
                     <tr>
                         <th>Fecha</th>
-                        <th>País</th>
+                        <th>Country</th>
                         <th>Categoría</th>
                         <th>Indicador</th>
                         <th>Valor</th>
-                        <th>Fuente</th>
+                        <th>Source</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1545,7 +1698,7 @@
         const container = document.getElementById('alertsPanel');
         
         if (!alerts || alerts.length === 0) {
-            container.innerHTML = '<p style="color: rgba(255,255,255,0.7); text-align: center; padding: 2rem;">No hay alertas activas</p>';
+            container.innerHTML = '<p style="color: rgba(255,255,255,0.7); text-align: center; padding: 2rem;">No hay Alerts activas</p>';
             return;
         }
 
@@ -1692,7 +1845,7 @@
                 showSuccess('¡Datos actualizados exitosamente!');
                 loadDashboardData();
             } else {
-                showError('Error al actualizar datos: ' + result.message);
+                showError('Error al Refresh datos: ' + result.message);
             }
         } catch (error) {
             showError('Error de red: ' + error.message);
@@ -1731,7 +1884,7 @@
     }
 
     function showSuccess(message) {
-        alert('Éxito: ' + message);
+        alert('Success: ' + message);
     }
 </script>
 
@@ -1739,4 +1892,34 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- Historical Dashboard Expanded JavaScript -->
 <script src="{{ url_for('static', filename='js/historical_dashboard_expanded.js') }}"></script>
-{% endblock %}
+
+<script>
+// Hamburger Menu Navigation
+function toggleNav() {
+    const navMenu = document.getElementById('navMenu');
+    const navOverlay = document.getElementById('navOverlay');
+    if (navMenu.classList.contains('open')) {
+        navMenu.classList.remove('open');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    } else {
+        navMenu.classList.add('open');
+        navOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-menu-item').forEach(item => {
+        item.addEventListener('click', function() { setTimeout(() => toggleNav(), 100); });
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu.classList.contains('open')) toggleNav();
+        }
+    });
+});
+</script>
+
+</body>
+</html>

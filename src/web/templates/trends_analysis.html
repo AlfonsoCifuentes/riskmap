@@ -1,16 +1,22 @@
-{% extends "base_navigation.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📈 Trends Analysis - RiskMap</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
-{% block title %}Análisis de Tendencias - Stratosight{% endblock %}
-
-{% block extra_css %}
 <style>
+
     :root {
         --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
         --bg-secondary: #141824;
         --text-primary: #e8eaed;
         --text-secondary: #b0b8c4;
-        --accent-cyan: #00d4ff;
-        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+        --accent-cyan: #034CA3;
+        --accent-glow: 0 0 15px rgba(3, 76, 163, 0.4), 0 0 25px rgba(3, 76, 163, 0.2);
         --border-color: rgba(255, 255, 255, 0.1);
     }
 
@@ -37,7 +43,7 @@
         font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #1565C0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -50,7 +56,7 @@
         margin-bottom: 30px;
     }
 
-    .trends-dashboard {
+    .trends-Dashboard {
         padding: 30px;
         max-width: 1400px;
         margin: 40px auto;
@@ -69,7 +75,7 @@
         font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #1565C0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -237,7 +243,7 @@
         position: relative;
     }
     
-    .sentiment-global {
+    .sentiment-Global {
         text-align: center;
     }
     
@@ -482,28 +488,283 @@
             font-size: 2rem;
         }
         
-        .trends-dashboard {
+        .trends-Dashboard {
             padding: 20px;
         }
     }
-</style>
-{% endblock %}
 
-{% block content %}
+
+
+    /* Navigation Bar */
+    .top-navigation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: rgba(10, 15, 44, 0.95);
+        backdrop-filter: blur(15px);
+        border-bottom: 1px solid rgba(3, 76, 163, 0.3);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-brand {
+        color: var(--accent-cyan);
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+        font-family: 'Orbitron', monospace;
+    }
+
+    /* Hamburger Menu Button - Efecto Semáforo */
+    .hamburger-btn {
+        margin-left: auto;
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.8) 0%, 
+            rgba(40, 60, 100, 0.9) 50%, 
+            rgba(30, 50, 90, 0.8) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.3);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        
+        /* Efecto cilíndrico/cojinete 3D */
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+        transform: perspective(1000px) rotateX(5deg);
+    }
+
+    /* Entramado de semáforo para hamburger */
+    .hamburger-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 25% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 25% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            linear-gradient(45deg, transparent 46%, rgba(0,0,0,0.1) 46%, rgba(0,0,0,0.1) 54%, transparent 54%);
+        background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px, 24px 24px;
+        background-position: 0 0, 6px 0, 0 6px, 6px 6px, 0 0;
+        opacity: 0.3;
+        transition: opacity 0.4s ease;
+        z-index: 1;
+    }
+
+    /* Estado encendido en hover */
+    .hamburger-btn:hover {
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 1.0) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 1.0) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.8);
+        box-shadow: 
+            0 12px 40px rgba(3, 76, 163, 0.6),
+            inset 0 3px 0 rgba(255, 255, 255, 0.4),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(3, 76, 163, 0.4);
+        transform: perspective(1000px) rotateX(0deg) translateY(-3px);
+    }
+
+    .hamburger-btn:hover::before {
+        opacity: 0.6;
+        background-size: 10px 10px, 10px 10px, 10px 10px, 10px 10px, 20px 20px;
+    }
+
+    /* Líneas del hamburger */
+    .hamburger-btn span {
+        width: 20px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 1px;
+        margin: 2px 0;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .hamburger-btn:hover span {
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Menu desplegable con efecto semáforo */
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        right: -300px;
+        width: 280px;
+        height: calc(100vh - 70px);
+        background: rgba(10, 15, 44, 0.98);
+        backdrop-filter: blur(20px);
+        border-left: 2px solid rgba(3, 76, 163, 0.3);
+        transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 999;
+        padding: 20px;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-menu.open {
+        right: 0;
+    }
+
+    .nav-menu-item {
+        display: block;
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 15px 20px;
+        margin: 8px 0;
+        border-radius: 12px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 0.95rem;
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+        
+        /* Estado apagado - efecto semáforo */
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.6) 0%, 
+            rgba(40, 60, 100, 0.7) 50%, 
+            rgba(30, 50, 90, 0.6) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.2);
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        transform: perspective(1000px) rotateX(3deg);
+    }
+
+    /* Estado encendido en hover */
+    .nav-menu-item:hover {
+        color: #fff;
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 0.9) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 0.9) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.6);
+        box-shadow: 
+            0 8px 25px rgba(3, 76, 163, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.3),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 20px rgba(3, 76, 163, 0.3);
+        transform: perspective(1000px) rotateX(0deg) translateY(-2px);
+    }
+
+    .nav-menu-item span {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Overlay para cerrar menu */
+    .nav-overlay {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 998;
+    }
+
+    .nav-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+
+    /* Añadir padding top para navbar fija */
+    /* Global Body Styling */
+    body {
+        margin: 0;
+        padding-top: 70px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        min-height: 100vh;
+        color: #e8eaed;
+        overflow-x: hidden;
+    }
+    
+    html {
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        margin: 0;
+        padding: 0;
+    }
+</style>
+
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="top-navigation">
+    <a href="/" class="nav-brand">🗺️ RiskMap</a>
+    
+    <!-- Hamburger Button con Efecto Semáforo -->
+    <button class="hamburger-btn" onclick="toggleNav()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Menu desplegable -->
+    <div class="nav-menu" id="navMenu">
+        <a href="/news-analysis" class="nav-menu-item"><span>📰 Análisis de Noticias</span></a>
+        <a href="/conflict-monitoring" class="nav-menu-item"><span>⚔️ Monitor de Conflictos</span></a>
+        <a href="/trends-analysis" class="nav-menu-item"><span>📈 Análisis de Tendencias</span></a>
+        <a href="/early-warning" class="nav-menu-item"><span>⚠️ Alertas Tempranas</span></a>
+        <a href="/executive-reports" class="nav-menu-item"><span>📋 Reportes Ejecutivos</span></a>
+        <a href="/data-intelligence" class="nav-menu-item"><span>🧠 Inteligencia de Datos</span></a>
+        <a href="/satellite-analysis" class="nav-menu-item"><span>🛰️ Análisis Satelital</span></a>
+        <a href="/video-surveillance" class="nav-menu-item"><span>📹 Vigilancia por Video</span></a>
+        <a href="/historical-analysis" class="nav-menu-item"><span>🏛️ Análisis Histórico</span></a>
+        <a href="/about" class="nav-menu-item"><span>ℹ️ Acerca de</span></a>
+        <div style="border-top: 1px solid rgba(3,76,163,0.3); margin: 12px 0;"></div>
+        <a href="/logs" class="nav-menu-item"><span>📝 Registros</span></a>
+        <a href="/settings" class="nav-menu-item"><span>⚙️ Configuración</span></a>
+    </div>
+    
+    <!-- Overlay para cerrar menu -->
+    <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
 <!-- Header Section -->
 <div class="header-section">
-    <h1 class="page-title">📊 Análisis de Tendencias</h1>
-    <p class="page-subtitle">Predicciones IA • Análisis de Sentimiento Global • Detección de Patrones</p>
+    <h1 class="page-title">📊 Analysis de Tendencias</h1>
+    <p class="page-subtitle">Predicciones IA • Analysis de Sentimiento Global • Detección de Patrones</p>
 </div>
 
-<div class="trends-dashboard">
+<div class="trends-Dashboard">
     <!-- AI Predictions -->
     <div class="prediction-cards">
         <div class="prediction-card">
             <div class="prediction-header">
                 <div class="prediction-title">
                     <i class="fas fa-chart-line"></i>
-                    Escalada de Tensiones
+                    Escalada de Tensions
                 </div>
                 <div class="prediction-period">30 días</div>
             </div>
@@ -513,7 +774,7 @@
                 <span>+12% vs mes anterior</span>
             </div>
             <div class="prediction-description">
-                Probabilidad de escalada en conflictos activos basada en análisis de patrones históricos y eventos recientes.
+                Probabilidad de escalada en Conflicts activos basada en Analysis de patrones históricos y eventos recientes.
             </div>
         </div>
         
@@ -531,7 +792,7 @@
                 <span>-8% vs mes anterior</span>
             </div>
             <div class="prediction-description">
-                Índice de estabilidad geopolítica global considerando factores económicos, sociales y políticos.
+                Índice de estabilidad Geopolitics Global considerando factores económicos, sociales y políticos.
             </div>
         </div>
         
@@ -539,7 +800,7 @@
             <div class="prediction-header">
                 <div class="prediction-title">
                     <i class="fas fa-exclamation-triangle"></i>
-                    Nuevos Conflictos
+                    Nuevos Conflicts
                 </div>
                 <div class="prediction-period">90 días</div>
             </div>
@@ -549,7 +810,7 @@
                 <span>Similar al trimestre anterior</span>
             </div>
             <div class="prediction-description">
-                Número estimado de nuevos focos de conflicto basado en indicadores tempranos y análisis predictivo.
+                Número estimado de nuevos focos de conflicto basado en indicadores tempranos y Analysis predictivo.
             </div>
         </div>
     </div>
@@ -580,7 +841,7 @@
         </div>
         
         <!-- Global Sentiment -->
-        <div class="chart-section sentiment-global">
+        <div class="chart-section sentiment-Global">
             <div class="section-header">
                 <h3 class="section-title">
                     <i class="fas fa-heart-pulse"></i>
@@ -588,7 +849,7 @@
                 </h3>
                 <div class="section-controls">
                     <button class="btn-control">
-                        <i class="fas fa-sync-alt"></i> Actualizar
+                        <i class="fas fa-sync-alt"></i> Refresh
                     </button>
                 </div>
             </div>
@@ -636,7 +897,7 @@
             <div class="model-card">
                 <div class="model-header">
                     <div class="model-name">LSTM Predictor</div>
-                    <div class="model-status status-active">Activo</div>
+                    <div class="model-status status-active">Active</div>
                 </div>
                 <div class="model-metrics">
                     <div class="model-metric">
@@ -653,7 +914,7 @@
             <div class="model-card">
                 <div class="model-header">
                     <div class="model-name">Prophet Forecaster</div>
-                    <div class="model-status status-active">Activo</div>
+                    <div class="model-status status-active">Active</div>
                 </div>
                 <div class="model-metrics">
                     <div class="model-metric">
@@ -670,7 +931,7 @@
             <div class="model-card">
                 <div class="model-header">
                     <div class="model-name">DBSCAN Clustering</div>
-                    <div class="model-status status-active">Activo</div>
+                    <div class="model-status status-active">Active</div>
                 </div>
                 <div class="model-metrics">
                     <div class="model-metric">
@@ -712,10 +973,10 @@
             </h3>
             <div class="section-controls">
                 <button class="btn-control">
-                    <i class="fas fa-filter"></i> Filtrar
+                    <i class="fas fa-filter"></i> Filter
                 </button>
                 <button class="btn-control">
-                    <i class="fas fa-bell"></i> Alertas
+                    <i class="fas fa-bell"></i> Alerts
                 </button>
             </div>
         </div>
@@ -729,7 +990,7 @@
                     <div class="pattern-title">Escalada Gradual</div>
                 </div>
                 <div class="pattern-description">
-                    Incremento sostenido en la intensidad de conflictos en Europa Oriental durante las últimas 4 semanas.
+                    Incremento sostenido en la intensidad de Conflicts en Europa Oriental durante las últimas 4 semanas.
                 </div>
                 <div class="pattern-confidence">
                     <span class="confidence-label">Confianza:</span>
@@ -777,7 +1038,7 @@
                     <div class="pattern-title">Correlación Económica</div>
                 </div>
                 <div class="pattern-description">
-                    Fuerte correlación entre fluctuaciones del precio del petróleo y tensiones en regiones productoras.
+                    Fuerte correlación entre fluctuaciones del precio del petróleo y Tensions en regiones productoras.
                 </div>
                 <div class="pattern-confidence">
                     <span class="confidence-label">Confianza:</span>
@@ -787,9 +1048,9 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
+
+
 <script>
     // Initialize Trends Chart
     function initTrendsChart() {
@@ -875,7 +1136,7 @@
             .then(data => {
                 updatePredictions(data);
             })
-            .catch(error => {
+            .catch(Error => {
                 console.log('Using development trends data - API endpoint under development');
                 updatePredictions({
                     escalation: { value: 78, change: 12 },
@@ -900,4 +1161,54 @@
         loadTrendsData();
     });
 </script>
-{% endblock %}
+
+<script>
+
+// Hamburger Menu Navigation con Efecto Semáforo
+function toggleNav() {
+    const navMenu = document.getElementById('navMenu');
+    const navOverlay = document.getElementById('navOverlay');
+    
+    if (navMenu.classList.contains('open')) {
+        // Cerrar menu
+        navMenu.classList.remove('open');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        console.log('🍔 Hamburger menu cerrado');
+    } else {
+        // Abrir menu
+        navMenu.classList.add('open');
+        navOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        console.log('🍔 Hamburger menu abierto - efecto semáforo activado');
+    }
+}
+
+// Cerrar menu al hacer clic en cualquier enlace
+document.addEventListener('DOMContentLoaded', function() {
+    const menuItems = document.querySelectorAll('.nav-menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            setTimeout(() => {
+                toggleNav(); // Cerrar menu después de navegación
+            }, 100);
+        });
+    });
+    
+    // Cerrar menu con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu.classList.contains('open')) {
+                toggleNav();
+            }
+        }
+    });
+    
+    console.log('🔥 Hamburger menu con efecto semáforo inicializado');
+});
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+# ================================================================
+# RiskMap — Data Ingestion Pipeline (runs on GitHub Actions)
+# ================================================================
+# Ingests RSS feeds + NewsAPI → NLP analysis → stores in Neon Postgres
+# Schedule: every 2 hours
+# ================================================================
+
+name: "📡 Data Ingestion Pipeline"
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'   # every 2 hours
+  workflow_dispatch:          # manual trigger
+
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+  DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25       # stay within free tier
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install psycopg2-binary requests feedparser newspaper3k \
+                      beautifulsoup4 lxml transformers torch sentencepiece \
+                      groq deepseek-sdk geopy
+
+      - name: Init schema
+        run: python -m src.database.schema_init
+
+      - name: Run ingestion
+        run: python -m src.pipeline.ingest
+        timeout-minutes: 15
+
+      - name: Run NLP enrichment
+        run: python -m src.pipeline.enrich
+        timeout-minutes: 8
+
+      - name: Run retention cleanup
+        run: python -m src.database.retention

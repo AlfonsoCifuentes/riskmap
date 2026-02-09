@@ -1,47 +1,998 @@
-{% extends "base_navigation.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛰️ Análisis Satelital - RiskMap</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
-{% block title %}Análisis Satelital Avanzado - Stratosight{% endblock %}
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-{% block extra_css %}
-<style>
-    :root {
-        --bg-primary: #000814;
-        --bg-secondary: #001d3d;
-        --bg-tertiary: #003566;
-        --accent-cyan: #00d4ff;
-        --accent-blue: #0077b6;
-        --text-primary: #ffffff;
-        --text-secondary: #94a3b8;
-        --warning: #ffd60a;
-        --danger: #dc2626;
-        --success: #10b981;
-        --border-color: rgba(255, 255, 255, 0.1);
-    }
+    <style>
+        :root {
+            --bg-primary: #0a0f2c;
+            --bg-secondary: #1a2040;
+            --bg-tertiary: #2a3558;
+            --accent-cyan: #00d4ff;
+            --accent-blue: #0077b6;
+            --accent-purple: #8b5cf6;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --warning: #ffd60a;
+            --danger: #dc2626;
+            --success: #10b981;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
 
-    /* Main container with proper margins for wide screens */
-    .satellite-dashboard {
-        background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
-        min-height: calc(100vh - 80px);
-        padding: 40px 0;
-        color: var(--text-primary);
-    }
+        body {
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
 
-    .container-wide {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 30px;
-    }
+        /* Navigation */
+        .navbar-custom {
+            background: rgba(10, 15, 44, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(3, 76, 163, 0.3);
+        }
 
-    /* Page Header */
-    .page-header {
-        text-align: center;
-        margin-bottom: 40px;
-        padding: 40px 0;
-        background: rgba(0, 13, 20, 0.6);
-        border-radius: 20px;
-        border: 1px solid var(--border-color);
-        backdrop-filter: blur(10px);
-    }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(138, 92, 246, 0.1) 100%);
+            border-radius: 20px;
+            padding: 60px 0;
+            margin: 40px 0;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-purple) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: rgba(0, 13, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-bottom: 10px;
+            font-family: 'Inter', monospace;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: rgba(0, 13, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-satellite {
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px;
+        }
+
+        .btn-satellite:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+            color: white;
+        }
+
+        /* Gallery Sections */
+        .gallery-section {
+            margin: 60px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .gallery-item {
+            background: rgba(0, 13, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .gallery-item:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.1);
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover .gallery-image {
+            transform: scale(1.05);
+        }
+
+        .gallery-info {
+            padding: 20px;
+        }
+
+        .gallery-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .gallery-meta {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .gallery-meta i {
+            margin-right: 5px;
+            color: var(--accent-cyan);
+        }
+
+        /* Detection Badges */
+        .detection-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .detection-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-military {
+            background: rgba(220, 38, 38, 0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+
+        .badge-conflict {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa726;
+            border: 1px solid rgba(255, 165, 0, 0.3);
+        }
+
+        .badge-civilian {
+            background: rgba(16, 185, 129, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--accent-cyan);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+            padding-left: 25px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+        }
+
+        .timeline-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .timeline-content {
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 212, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-cyan);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal */
+        .modal-content {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading Indicator Styles */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 44, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 212, 255, 0.3);
+            border-top: 4px solid var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .loading-text h4 {
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .loading-text p {
+            margin: 5px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Analysis Results Styles */
+        .analysis-summary {
+            background: rgba(26, 32, 64, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .analysis-summary h5 {
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(42, 53, 88, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Error Container Styles */
+        #errorContainer {
+            margin: 20px 0;
+        }
+
+        #errorContainer .alert {
+            background: rgba(220, 38, 38, 0.2);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            color: #ff6b6b;
+        }
+
+        #errorContainer .alert .btn-close {
+            filter: invert(1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-satellite"></i> RiskMap - Análisis Satelital
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Inicio</a>
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="/logs">Logs</a>
+                <a class="nav-link" href="/settings">Configuración</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1 class="hero-title">
+                <i class="fas fa-satellite"></i> Análisis Satelital Inteligente
+            </h1>
+            <p class="hero-subtitle">
+                Monitoreo geopolítico avanzado con visión artificial por computadora,
+                integración Google Maps y detección automática de amenazas
+            </p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalImages">-</div>
+                <div class="stat-label">Imágenes Analizadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="detectionsCount">-</div>
+                <div class="stat-label">Detecciones Totales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="regionsCount">-</div>
+                <div class="stat-label">Regiones Monitoreadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="lastUpdate">-</div>
+                <div class="stat-label">Última Actualización</div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 style="color: var(--accent-cyan); margin-bottom: 20px;">
+                        <i class="fas fa-cogs"></i> Panel de Control
+                    </h4>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-satellite" onclick="satelliteManager.loadAllData()">
+                            <i class="fas fa-sync"></i> Actualizar Datos
+                        </button>
+                        <button class="btn btn-satellite" onclick="satelliteManager.runYOLOBatch()">
+                            <i class="fas fa-brain"></i> Procesar con YOLO
+                        </button>
+                        <button class="btn btn-satellite" onclick="satelliteManager.generateGoogleMapsImages()">
+                            <i class="fas fa-map"></i> Generar Imágenes Google Maps
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h4 style="color: var(--accent-cyan); margin-bottom: 20px;">
+                        <i class="fas fa-chart-bar"></i> Estado del Sistema
+                    </h4>
+                    <div id="systemStatus">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Cargando estado del sistema...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">
+                <h4>🚀 Ejecutando Análisis Automático</h4>
+                <p>Extrayendo zonas de conflicto de noticias geopolíticas...</p>
+            </div>
+        </div>
+
+        <!-- Analysis Results -->
+        <div id="analysisResults" class="analysis-summary" style="display: none;">
+            <!-- Results will be populated by JavaScript -->
+        </div>
+
+        <!-- Error Container -->
+        <div id="errorContainer" style="display: none;">
+            <!-- Error messages will be shown here -->
+        </div>
+
+        <!-- Satellite Images Gallery -->
+        <div class="gallery-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-images"></i> Galería de Imágenes Satelitales
+                </h2>
+                <p class="section-subtitle">
+                    Imágenes de alta resolución de instalaciones militares y zonas de conflicto
+                </p>
+            </div>
+            <div id="satelliteGallery" class="gallery-grid loading">
+                <div class="spinner"></div>
+                <p>Cargando galería de imágenes...</p>
+            </div>
+        </div>
+
+        <!-- YOLO Detections Gallery -->
+        <div class="gallery-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-search"></i> Detecciones YOLO
+                </h2>
+                <p class="section-subtitle">
+                    Análisis automático con visión artificial: objetos militares, indicadores de conflicto y amenazas
+                </p>
+            </div>
+            <div id="detectionsGallery" class="gallery-grid loading">
+                <div class="spinner"></div>
+                <p>Cargando detecciones YOLO...</p>
+            </div>
+        </div>
+
+        <!-- Analysis Timeline -->
+        <div class="gallery-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-clock"></i> Cronología de Eventos
+                </h2>
+                <p class="section-subtitle">
+                    Historial de análisis satelitales y detecciones por región
+                </p>
+            </div>
+            <div id="analysisTimeline" class="timeline loading">
+                <div class="spinner"></div>
+                <p>Cargando cronología...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Detalles de Imagen Satelital</h5>
+                    <button type="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <img id="modalImage" src="" alt="Imagen satelital" class="img-fluid rounded mb-3">
+                    <div id="modalDetails">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong><i class="fas fa-map-marker-alt"></i> Región:</strong> <span id="modalRegion">-</span></p>
+                                <p><strong><i class="fas fa-calendar"></i> Fecha:</strong> <span id="modalDate">-</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong><i class="fas fa-crosshairs"></i> Coordenadas:</strong> <span id="modalCoords">-</span></p>
+                                <p><strong><i class="fas fa-search"></i> Detecciones:</strong> <span id="modalDetections">-</span></p>
+                            </div>
+                        </div>
+                        <div id="detectionDetails" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Satellite Analysis Manager -->
+    <script>
+        class SatelliteAnalysisManager {
+            constructor() {
+                this.initialized = false;
+            }
+
+            async init() {
+                if (this.initialized) return;
+                console.log('🚀 Inicializando Satellite Analysis Manager...');
+                this.initialized = true;
+                await this.loadAllData();
+            }
+
+            async loadAllData() {
+                console.log('� Iniciando análisis automático satelital...');
+
+                // Mostrar indicador de carga
+                this.showLoadingIndicator();
+
+                try {
+                    // 1. Ejecutar análisis automático
+                    await this.runAutomaticAnalysis();
+
+                    // 2. Cargar datos de las galerías
+                    await Promise.all([
+                        this.loadStatistics(),
+                        this.loadSatelliteGallery(),
+                        this.loadDetectionsGallery(),
+                        this.loadAnalysisTimeline(),
+                        this.loadSystemStatus()
+                    ]);
+
+                    console.log('✅ Análisis automático completado y galerías cargadas');
+                } catch (error) {
+                    console.error('❌ Error en análisis automático:', error);
+                    this.showErrorMessage('Error en análisis automático: ' + error.message);
+                } finally {
+                    this.hideLoadingIndicator();
+                }
+            }
+
+            async runAutomaticAnalysis() {
+                try {
+                    console.log('🎯 Ejecutando análisis automático...');
+
+                    const response = await fetch('/api/satellite/auto-analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        console.log('✅ Análisis automático exitoso:', data);
+                        this.showAnalysisResults(data);
+                    } else {
+                        throw new Error(data.error || 'Error desconocido en análisis automático');
+                    }
+
+                } catch (error) {
+                    console.error('Error en análisis automático:', error);
+                    throw error;
+                }
+            }
+
+            showLoadingIndicator() {
+                const container = document.getElementById('loadingIndicator');
+                if (container) {
+                    container.style.display = 'block';
+                    container.innerHTML = `
+                        <div class="loading-overlay">
+                            <div class="loading-spinner"></div>
+                            <div class="loading-text">
+                                <h4>🚀 Ejecutando Análisis Automático</h4>
+                                <p>Extrayendo zonas de conflicto de noticias geopolíticas...</p>
+                                <p>Cotejando con base de datos GDELT...</p>
+                                <p>Generando imágenes satelitales...</p>
+                                <p>Aplicando detección YOLO...</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            hideLoadingIndicator() {
+                const container = document.getElementById('loadingIndicator');
+                if (container) {
+                    container.style.display = 'none';
+                }
+            }
+
+            showAnalysisResults(data) {
+                const resultsContainer = document.getElementById('analysisResults');
+                if (resultsContainer) {
+                    resultsContainer.style.display = 'block';
+                    resultsContainer.innerHTML = `
+                        <div class="analysis-summary">
+                            <h5>📊 Resultados del Análisis Automático</h5>
+                            <div class="summary-stats">
+                                <div class="stat-item">
+                                    <span class="stat-number">${data.articles_analyzed}</span>
+                                    <span class="stat-label">Artículos Analizados</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">${data.conflict_zones_found}</span>
+                                    <span class="stat-label">Zonas de Conflicto</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">${data.gdelt_matches}</span>
+                                    <span class="stat-label">Coincidencias GDELT</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">${data.satellite_images_generated}</span>
+                                    <span class="stat-label">Imágenes Generadas</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">${data.yolo_detections_applied}</span>
+                                    <span class="stat-label">Detecciones YOLO</span>
+                                </div>
+                            </div>
+                            <small class="text-muted">Última actualización: ${new Date(data.timestamp).toLocaleString()}</small>
+                        </div>
+                    `;
+                }
+            }
+
+            showErrorMessage(message) {
+                const container = document.getElementById('errorContainer');
+                if (container) {
+                    container.style.display = 'block';
+                    container.innerHTML = `
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong>❌ Error:</strong> ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                }
+            }
+
+            async loadStatistics() {
+                try {
+                    const response = await fetch('/api/satellite/yolo/statistics');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        document.getElementById('totalImages').textContent = data.statistics.total_analyses;
+                        document.getElementById('detectionsCount').textContent = data.statistics.total_detection_instances;
+                        document.getElementById('regionsCount').textContent = data.statistics.total_analyses;
+                        document.getElementById('lastUpdate').textContent = 'Ahora';
+                    }
+                } catch (error) {
+                    console.error('Error loading statistics:', error);
+                }
+            }
+
+            async loadSatelliteGallery() {
+                try {
+                    const response = await fetch('/api/satellite/gallery-images');
+                    const data = await response.json();
+                    const container = document.getElementById('satelliteGallery');
+
+                    if (data.images && data.images.length > 0) {
+                        container.className = 'gallery-grid';
+                        container.innerHTML = data.images.map(image => `
+                            <div class="gallery-item" onclick="satelliteManager.showImageModal('${image.url}', '${image.region}', '${image.date}', '${image.coordinates}', '${image.detections}')">
+                                <img src="${image.url}" alt="${image.region}" class="gallery-image">
+                                <div class="gallery-info">
+                                    <div class="gallery-title">${image.region}</div>
+                                    <div class="gallery-meta">
+                                        <small><i class="fas fa-map-marker-alt"></i> ${image.coordinates}</small><br>
+                                        <small><i class="fas fa-calendar"></i> ${image.date}</small><br>
+                                        <small><i class="fas fa-search"></i> ${image.detections} detecciones</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No hay imágenes disponibles</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading satellite gallery:', error);
+                    document.getElementById('satelliteGallery').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Error cargando galería</p>';
+                }
+            }
+
+            async loadDetectionsGallery() {
+                try {
+                    const response = await fetch('/api/satellite/yolo/gallery');
+                    const data = await response.json();
+                    const container = document.getElementById('detectionsGallery');
+
+                    if (data.gallery && data.gallery.length > 0) {
+                        container.className = 'gallery-grid';
+                        container.innerHTML = data.gallery.map(item => {
+                            const badges = item.top_detections.map(det => 
+                                `<span class="detection-badge badge-${det.type}">${det.class_name} ${Math.round(det.confidence * 100)}%</span>`
+                            ).join('');
+
+                            return `
+                                <div class="gallery-item" onclick="satelliteManager.showDetectionModal('${item.id}', '${item.image_url}', '${item.name}', ${JSON.stringify(item.top_detections).replace(/"/g, '&quot;')})">
+                                    <img src="${item.image_url}" alt="${item.name}" class="gallery-image">
+                                    <div class="gallery-info">
+                                        <div class="gallery-title">${item.name}</div>
+                                        <div class="gallery-meta">
+                                            <small><i class="fas fa-brain"></i> ${item.total_detections} detecciones totales</small><br>
+                                            <small><i class="fas fa-clock"></i> ${new Date(item.created_at).toLocaleDateString()}</small>
+                                        </div>
+                                        <div class="detection-badges">
+                                            ${badges}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No hay detecciones disponibles</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading detections gallery:', error);
+                    document.getElementById('detectionsGallery').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Error cargando detecciones</p>';
+                }
+            }
+
+            async loadAnalysisTimeline() {
+                try {
+                    const response = await fetch('/api/satellite/analysis-timeline');
+                    const data = await response.json();
+                    const container = document.getElementById('analysisTimeline');
+
+                    if (data.timeline && data.timeline.length > 0) {
+                        container.className = 'timeline';
+                        container.innerHTML = data.timeline.map(event => `
+                            <div class="timeline-item">
+                                <div class="timeline-date">${event.timestamp}</div>
+                                <div class="timeline-content">
+                                    <strong>${event.title}</strong><br>
+                                    ${event.description}
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No hay eventos en la cronología</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading timeline:', error);
+                    document.getElementById('analysisTimeline').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Error cargando cronología</p>';
+                }
+            }
+
+            async loadSystemStatus() {
+                const container = document.getElementById('systemStatus');
+                container.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="color: var(--success);">
+                            <i class="fas fa-check-circle"></i> Sistema Operativo
+                        </div>
+                        <div style="color: var(--accent-cyan);">
+                            <i class="fas fa-brain"></i> YOLO Activo
+                        </div>
+                        <div style="color: var(--accent-purple);">
+                            <i class="fas fa-map"></i> Google Maps Integrado
+                        </div>
+                    </div>
+                `;
+            }
+
+            async runYOLOBatch() {
+                try {
+                    const response = await fetch('/api/satellite/yolo/process-batch', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image_paths: [] }) // Procesar todas las imágenes disponibles
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        alert(`✅ Procesamiento completado: ${data.total_processed} imágenes analizadas`);
+                        await this.loadAllData(); // Refresh data
+                    } else {
+                        alert(`❌ Error: ${data.error}`);
+                    }
+                } catch (error) {
+                    console.error('Error running YOLO batch:', error);
+                    alert('Error ejecutando procesamiento YOLO');
+                }
+            }
+
+            async generateGoogleMapsImages() {
+                try {
+                    const response = await fetch('/api/satellite/google-maps/batch-military-images', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ regions: [] }) // Todas las regiones
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        alert(`✅ Imágenes generadas: ${data.results.filter(r => r.success).length} exitosas`);
+                        await this.loadAllData(); // Refresh data
+                    } else {
+                        alert(`❌ Error: ${data.error}`);
+                    }
+                } catch (error) {
+                    console.error('Error generating Google Maps images:', error);
+                    alert('Error generando imágenes Google Maps');
+                }
+            }
+
+            showImageModal(imageUrl, region, date, coordinates, detections) {
+                document.getElementById('modalImage').src = imageUrl;
+                document.getElementById('modalRegion').textContent = region;
+                document.getElementById('modalDate').textContent = date;
+                document.getElementById('modalCoords').textContent = coordinates;
+                document.getElementById('modalDetections').textContent = detections;
+
+                new bootstrap.Modal(document.getElementById('imageModal')).show();
+            }
+
+            showDetectionModal(analysisId, imageUrl, regionName, detections) {
+                document.getElementById('modalImage').src = imageUrl;
+                document.getElementById('modalRegion').textContent = regionName;
+                document.getElementById('modalDate').textContent = 'Análisis YOLO';
+                document.getElementById('modalCoords').textContent = 'Ver detecciones';
+                document.getElementById('modalDetections').textContent = detections.length;
+
+                const detailsContainer = document.getElementById('detectionDetails');
+                detailsContainer.innerHTML = detections.map(det => `
+                    <div class="alert alert-${det.type === 'military' ? 'danger' : det.type === 'conflict' ? 'warning' : 'info'}">
+                        <strong>${det.class_name}</strong> - Confianza: ${Math.round(det.confidence * 100)}%
+                    </div>
+                `).join('');
+
+                new bootstrap.Modal(document.getElementById('imageModal')).show();
+            }
+        }
+
+        // Initialize the satellite manager
+        const satelliteManager = new SatelliteAnalysisManager();
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            satelliteManager.init();
+        });
+    </script>
+</body>
+</html>
 
     .page-title {
         font-family: 'Orbitron', monospace;
@@ -94,7 +1045,7 @@
     .analysis-card:hover {
         border-color: var(--accent-cyan);
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.1);
+        box-shadow: 0 8px 25px rgba(3, 76, 163, 0.1);
     }
 
     .card-header {
@@ -150,7 +1101,7 @@
 
     .btn-satellite:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+        box-shadow: 0 8px 25px rgba(3, 76, 163, 0.3);
         color: white;
     }
 
@@ -370,7 +1321,7 @@
         display: inline-block;
         width: 40px;
         height: 40px;
-        border: 3px solid rgba(0, 212, 255, 0.3);
+        border: 3px solid rgba(3, 76, 163, 0.3);
         border-radius: 50%;
         border-top-color: var(--accent-cyan);
         animation: spin 1s ease-in-out infinite;
@@ -379,20 +1330,271 @@
     @keyframes spin {
         to { transform: rotate(360deg); }
     }
-</style>
-{% endblock %}
 
-{% block content %}
-<div class="satellite-dashboard">
+
+
+    /* Navigation Bar */
+    .top-navigation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: rgba(10, 15, 44, 0.95);
+        backdrop-filter: blur(15px);
+        border-bottom: 1px solid rgba(3, 76, 163, 0.3);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-brand {
+        color: var(--accent-cyan);
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+        font-family: 'Orbitron', monospace;
+    }
+
+    /* Hamburger Menu Button - Efecto Semáforo */
+    .hamburger-btn {
+        margin-left: auto;
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.8) 0%, 
+            rgba(40, 60, 100, 0.9) 50%, 
+            rgba(30, 50, 90, 0.8) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.3);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        
+        /* Efecto cilíndrico/cojinete 3D */
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+        transform: perspective(1000px) rotateX(5deg);
+    }
+
+    /* Entramado de semáforo para hamburger */
+    .hamburger-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 25% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 25% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            linear-gradient(45deg, transparent 46%, rgba(0,0,0,0.1) 46%, rgba(0,0,0,0.1) 54%, transparent 54%);
+        background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px, 24px 24px;
+        background-position: 0 0, 6px 0, 0 6px, 6px 6px, 0 0;
+        opacity: 0.3;
+        transition: opacity 0.4s ease;
+        z-index: 1;
+    }
+
+    /* Estado encendido en hover */
+    .hamburger-btn:hover {
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 1.0) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 1.0) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.8);
+        box-shadow: 
+            0 12px 40px rgba(3, 76, 163, 0.6),
+            inset 0 3px 0 rgba(255, 255, 255, 0.4),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(3, 76, 163, 0.4);
+        transform: perspective(1000px) rotateX(0deg) translateY(-3px);
+    }
+
+    .hamburger-btn:hover::before {
+        opacity: 0.6;
+        background-size: 10px 10px, 10px 10px, 10px 10px, 10px 10px, 20px 20px;
+    }
+
+    /* Líneas del hamburger */
+    .hamburger-btn span {
+        width: 20px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 1px;
+        margin: 2px 0;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .hamburger-btn:hover span {
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Menu desplegable con efecto semáforo */
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        right: -300px;
+        width: 280px;
+        height: calc(100vh - 70px);
+        background: rgba(10, 15, 44, 0.98);
+        backdrop-filter: blur(20px);
+        border-left: 2px solid rgba(3, 76, 163, 0.3);
+        transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 999;
+        padding: 20px;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-menu.open {
+        right: 0;
+    }
+
+    .nav-menu-item {
+        display: block;
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 15px 20px;
+        margin: 8px 0;
+        border-radius: 12px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 0.95rem;
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+        
+        /* Estado apagado - efecto semáforo */
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.6) 0%, 
+            rgba(40, 60, 100, 0.7) 50%, 
+            rgba(30, 50, 90, 0.6) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.2);
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        transform: perspective(1000px) rotateX(3deg);
+    }
+
+    /* Estado encendido en hover */
+    .nav-menu-item:hover {
+        color: #fff;
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 0.9) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 0.9) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.6);
+        box-shadow: 
+            0 8px 25px rgba(3, 76, 163, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.3),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 20px rgba(3, 76, 163, 0.3);
+        transform: perspective(1000px) rotateX(0deg) translateY(-2px);
+    }
+
+    .nav-menu-item span {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Overlay para cerrar menu */
+    .nav-overlay {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 998;
+    }
+
+    .nav-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+
+    /* Añadir padding top para navbar fija */
+    /* Global Body Styling */
+    body {
+        margin: 0;
+        padding-top: 70px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        min-height: 100vh;
+        color: #e8eaed;
+        overflow-x: hidden;
+    }
+    
+    html {
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        margin: 0;
+        padding: 0;
+    }
+</style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="top-navigation">
+    <a href="/" class="nav-brand">🗺️ RiskMap</a>
+    
+    <!-- Hamburger Button con Efecto Semáforo -->
+    <button class="hamburger-btn" onclick="toggleNav()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Menu desplegable -->
+    <div class="nav-menu" id="navMenu">
+        <a href="/news-analysis" class="nav-menu-item"><span>📰 Análisis de Noticias</span></a>
+        <a href="/conflict-monitoring" class="nav-menu-item"><span>⚔️ Monitor de Conflictos</span></a>
+        <a href="/trends-analysis" class="nav-menu-item"><span>📈 Análisis de Tendencias</span></a>
+        <a href="/early-warning" class="nav-menu-item"><span>⚠️ Alertas Tempranas</span></a>
+        <a href="/executive-reports" class="nav-menu-item"><span>📋 Reportes Ejecutivos</span></a>
+        <a href="/data-intelligence" class="nav-menu-item"><span>🧠 Inteligencia de Datos</span></a>
+        <a href="/satellite-analysis" class="nav-menu-item"><span>🛰️ Análisis Satelital</span></a>
+        <a href="/video-surveillance" class="nav-menu-item"><span>📹 Vigilancia por Video</span></a>
+        <a href="/historical-analysis" class="nav-menu-item"><span>🏛️ Análisis Histórico</span></a>
+        <a href="/about" class="nav-menu-item"><span>ℹ️ Acerca de</span></a>
+        <div style="border-top: 1px solid rgba(3,76,163,0.3); margin: 12px 0;"></div>
+        <a href="/logs" class="nav-menu-item"><span>📝 Registros</span></a>
+        <a href="/settings" class="nav-menu-item"><span>⚙️ Configuración</span></a>
+    </div>
+    
+    <!-- Overlay para cerrar menu -->
+    <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
+<div class="satellite-Dashboard">
     <div class="container-wide">
         <!-- Page Header -->
         <div class="page-header">
             <h1 class="page-title">
                 <i class="fas fa-satellite"></i>
-                Análisis Satelital Avanzado
+                Analysis Satelital Avanzado
             </h1>
             <p class="page-subtitle">
-                Monitoreo en tiempo real de conflictos y eventos críticos mediante imágenes satelitales de alta resolución
+                Real-Time Monitoring de Conflicts y eventos críticos mediante imágenes satelitales de alta resolución
             </p>
         </div>
 
@@ -409,11 +1611,11 @@
             <div class="d-flex flex-wrap gap-3">
                 <button id="triggerAnalysis" class="btn-satellite">
                     <i class="fas fa-rocket"></i>
-                    Iniciar Análisis Satelital
+                    Iniciar Analysis Satelital
                 </button>
                 <button id="refreshData" class="btn-satellite">
                     <i class="fas fa-sync-alt"></i>
-                    Actualizar Datos
+                    Refresh Datos
                 </button>
             </div>
             
@@ -422,7 +1624,7 @@
                 <div class="progress-bar-custom">
                     <div id="progressFill" class="progress-fill"></div>
                 </div>
-                <div id="progressText" class="progress-text">Iniciando análisis...</div>
+                <div id="progressText" class="progress-text">Iniciando Analysis...</div>
             </div>
         </div>
 
@@ -435,7 +1637,7 @@
                         <div class="card-icon">
                             <i class="fas fa-chart-bar"></i>
                         </div>
-                        Estadísticas de Análisis
+                        Estadísticas de Analysis
                     </h3>
                 </div>
                 <div class="stats-grid">
@@ -465,12 +1667,12 @@
                         <div class="card-icon">
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
-                        Alertas Críticas
+                        Alerts Críticas
                     </h3>
                 </div>
                 <div id="criticalAlerts" class="loading">
                     <div class="spinner"></div>
-                    <p>Cargando alertas críticas...</p>
+                    <p>Loading Alerts críticas...</p>
                 </div>
             </div>
         </div>
@@ -487,7 +1689,7 @@
             </div>
             <div id="galleryImages" class="gallery-grid loading">
                 <div class="spinner"></div>
-                <p>Cargando galería de imágenes...</p>
+                <p>Loading galería de imágenes...</p>
             </div>
         </div>
 
@@ -505,7 +1707,7 @@
                 </div>
                 <div id="analysisTimeline" class="timeline loading">
                     <div class="spinner"></div>
-                    <p>Cargando cronología...</p>
+                    <p>Loading cronología...</p>
                 </div>
             </div>
 
@@ -521,7 +1723,7 @@
                 </div>
                 <div id="evolutionPredictions" class="loading">
                     <div class="spinner"></div>
-                    <p>Cargando predicciones...</p>
+                    <p>Loading predicciones...</p>
                 </div>
             </div>
         </div>
@@ -539,7 +1741,7 @@
             <div class="modal-body">
                 <img id="modalImage" src="" alt="Imagen satelital" style="width: 100%; border-radius: 8px; margin-bottom: 15px;">
                 <div id="modalDetails">
-                    <p><strong>Región:</strong> <span id="modalRegion">-</span></p>
+                    <p><strong>Region:</strong> <span id="modalRegion">-</span></p>
                     <p><strong>Fecha:</strong> <span id="modalDate">-</span></p>
                     <p><strong>Coordenadas:</strong> <span id="modalCoords">-</span></p>
                     <p><strong>Detecciones:</strong> <span id="modalDetections">-</span></p>
@@ -552,332 +1754,58 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block dashboard_js %}
+
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-class SatelliteAnalysisManager {
-    constructor() {
-        this.analysisId = null;
-        this.pollInterval = null;
-        this.progressInterval = null;
-        this.initialize();
-    }
-
-    initialize() {
-        console.log('Initializing Satellite Analysis Manager...');
-        this.bindEvents();
-        this.loadInitialData();
-    }
-
-    bindEvents() {
-        // Trigger Analysis Button
-        document.getElementById('triggerAnalysis').addEventListener('click', () => {
-            this.startAnalysis();
-        });
-
-        // Refresh Data Button
-        document.getElementById('refreshData').addEventListener('click', () => {
-            this.loadInitialData();
-        });
-    }
-
-    async loadInitialData() {
-        console.log('Loading initial data...');
-        await Promise.all([
-            this.loadStatistics(),
-            this.loadCriticalAlerts(),
-            this.loadGallery(),
-            this.loadTimeline(),
-            this.loadPredictions()
-        ]);
-    }
-
-    async startAnalysis() {
-        const triggerBtn = document.getElementById('triggerAnalysis');
-        const progressContainer = document.getElementById('progressContainer');
-        
-        try {
-            triggerBtn.disabled = true;
-            triggerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando...';
-            
-            const response = await fetch('/api/satellite/trigger-analysis', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.success) {
-                this.analysisId = data.analysis_id;
-                progressContainer.style.display = 'block';
-                this.startProgressPolling();
-            } else {
-                throw new Error(data.message || 'Error al iniciar análisis');
-            }
-            
-        } catch (error) {
-            console.error('Error starting analysis:', error);
-            this.showError('Error al iniciar análisis satelital: ' + error.message);
-        } finally {
-            triggerBtn.disabled = false;
-            triggerBtn.innerHTML = '<i class="fas fa-rocket"></i> Iniciar Análisis Satelital';
-        }
-    }
-
-    startProgressPolling() {
-        if (this.progressInterval) {
-            clearInterval(this.progressInterval);
-        }
-
-        this.progressInterval = setInterval(async () => {
-            try {
-                const response = await fetch(`/api/satellite/analysis-progress/${this.analysisId}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                this.updateProgress(data.progress, data.status);
-
-                if (data.status === 'completed' || data.status === 'failed') {
-                    clearInterval(this.progressInterval);
-                    document.getElementById('progressContainer').style.display = 'none';
-                    
-                    if (data.status === 'completed') {
-                        this.loadInitialData(); // Refresh all data
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Error polling progress:', error);
-                clearInterval(this.progressInterval);
-            }
-        }, 2000);
-    }
-
-    updateProgress(progress, status) {
-        const progressFill = document.getElementById('progressFill');
-        const progressText = document.getElementById('progressText');
-        
-        progressFill.style.width = `${progress}%`;
-        progressText.textContent = `${status} - ${progress}%`;
-    }
-
-    async loadStatistics() {
-        try {
-            const response = await fetch('/api/satellite/statistics');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const data = await response.json();
-            
-            document.getElementById('totalImages').textContent = data.total_images || '0';
-            document.getElementById('detectionsCount').textContent = data.detections_count || '0';
-            document.getElementById('regionsCount').textContent = data.regions_count || '0';
-            document.getElementById('lastUpdate').textContent = data.last_update || 'Nunca';
-            
-        } catch (error) {
-            console.error('Error loading statistics:', error);
-            this.showLoadingError('statistics');
-        }
-    }
-
-    async loadCriticalAlerts() {
-        try {
-            const response = await fetch('/api/satellite/critical-alerts');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const data = await response.json();
-            const container = document.getElementById('criticalAlerts');
-            
-            if (data.alerts && data.alerts.length > 0) {
-                container.innerHTML = data.alerts.map(alert => `
-                    <div class="alert-item" style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div>
-                                <h6 style="color: #fff; margin-bottom: 5px;">${alert.title}</h6>
-                                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">${alert.description}</p>
-                                <small style="color: var(--text-secondary);">${alert.timestamp}</small>
-                            </div>
-                            <span class="badge ${this.getSeverityClass(alert.severity)}">${alert.severity}</span>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No hay alertas críticas en este momento</p>';
-            }
-            
-        } catch (error) {
-            console.error('Error loading critical alerts:', error);
-            this.showLoadingError('criticalAlerts');
-        }
-    }
-
-    async loadGallery() {
-        try {
-            const response = await fetch('/api/satellite/gallery-images');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const data = await response.json();
-            const container = document.getElementById('galleryImages');
-            
-            if (data.images && data.images.length > 0) {
-                container.className = 'gallery-grid';
-                container.innerHTML = data.images.map(image => `
-                    <div class="gallery-item" onclick="this.showImageModal('${image.url}', '${image.region}', '${image.date}', '${image.coordinates}', '${image.detections}')">
-                        <img src="${image.url}" alt="${image.region}" class="gallery-image">
-                        <div class="gallery-info">
-                            <div class="gallery-title">${image.region}</div>
-                            <div class="gallery-meta">
-                                <small><i class="fas fa-map-marker-alt"></i> ${image.coordinates}</small><br>
-                                <small><i class="fas fa-calendar"></i> ${image.date}</small><br>
-                                <small><i class="fas fa-search"></i> ${image.detections} detecciones</small>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); grid-column: 1 / -1;">No hay imágenes disponibles</p>';
-            }
-            
-        } catch (error) {
-            console.error('Error loading gallery:', error);
-            this.showLoadingError('galleryImages');
-        }
-    }
-
-    async loadTimeline() {
-        try {
-            const response = await fetch('/api/satellite/analysis-timeline');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const data = await response.json();
-            const container = document.getElementById('analysisTimeline');
-            
-            if (data.timeline && data.timeline.length > 0) {
-                container.className = 'timeline';
-                container.innerHTML = data.timeline.map(event => `
-                    <div class="timeline-item">
-                        <div class="timeline-date">${event.timestamp}</div>
-                        <div class="timeline-content">${event.description}</div>
-                    </div>
-                `).join('');
-            } else {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No hay eventos registrados</p>';
-            }
-            
-        } catch (error) {
-            console.error('Error loading timeline:', error);
-            this.showLoadingError('analysisTimeline');
-        }
-    }
-
-    async loadPredictions() {
-        try {
-            const response = await fetch('/api/satellite/evolution-predictions');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const data = await response.json();
-            const container = document.getElementById('evolutionPredictions');
-            
-            if (data.predictions && data.predictions.length > 0) {
-                container.innerHTML = data.predictions.map(pred => `
-                    <div style="background: rgba(0, 13, 20, 0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                            <h6 style="color: #fff; margin: 0;">${pred.region}</h6>
-                            <span class="badge ${this.getRiskLevelClass(pred.risk_level)}">${pred.risk_level}</span>
-                        </div>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">${pred.prediction}</p>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <small style="color: var(--text-secondary);">Confianza: ${pred.confidence}%</small>
-                            <small style="color: var(--text-secondary);">Plazo: ${pred.timeframe}</small>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No hay predicciones disponibles</p>';
-            }
-            
-        } catch (error) {
-            console.error('Error loading predictions:', error);
-            this.showLoadingError('evolutionPredictions');
-        }
-    }
-
-    showImageModal(url, region, date, coordinates, detections) {
-        document.getElementById('modalImage').src = url;
-        document.getElementById('modalRegion').textContent = region;
-        document.getElementById('modalDate').textContent = date;
-        document.getElementById('modalCoords').textContent = coordinates;
-        document.getElementById('modalDetections').textContent = detections;
-        
-        const modal = new bootstrap.Modal(document.getElementById('imageModal'));
-        modal.show();
-    }
-
-    getSeverityClass(severity) {
-        switch(severity?.toLowerCase()) {
-            case 'high': return 'bg-danger';
-            case 'critical': return 'bg-danger';
-            case 'medium': return 'bg-warning';
-            case 'low': return 'bg-success';
-            default: return 'bg-secondary';
-        }
-    }
-
-    getRiskLevelClass(riskLevel) {
-        switch(riskLevel?.toLowerCase()) {
-            case 'high': return 'bg-danger';
-            case 'medium': return 'bg-warning';
-            case 'low': return 'bg-success';
-            default: return 'bg-secondary';
-        }
-    }
-
-    showLoadingError(containerId) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = '<p style="text-align: center; color: var(--danger);">Error al cargar datos</p>';
-    }
-
-    showError(message) {
-        // Create temporary error notification
-        const errorDiv = document.createElement('div');
-        errorDiv.style.cssText = `
-            position: fixed;
-            top: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(220, 38, 38, 0.95);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            z-index: 9999;
-            font-weight: 500;
-        `;
-        errorDiv.textContent = message;
-        document.body.appendChild(errorDiv);
-        
-        setTimeout(() => {
-            if (errorDiv.parentNode) {
-                errorDiv.parentNode.removeChild(errorDiv);
-            }
-        }, 5000);
+// Hamburger Menu Navigation con Efecto Semáforo
+function toggleNav() {
+    const navMenu = document.getElementById('navMenu');
+    const navOverlay = document.getElementById('navOverlay');
+    
+    if (navMenu.classList.contains('open')) {
+        // Cerrar menu
+        navMenu.classList.remove('open');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        console.log('🍔 Hamburger menu cerrado');
+    } else {
+        // Abrir menu
+        navMenu.classList.add('open');
+        navOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        console.log('🍔 Hamburger menu abierto - efecto semáforo activado');
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.satelliteManager = new SatelliteAnalysisManager();
+// Cerrar menu al hacer clic en cualquier enlace
+document.addEventListener('DOMContentLoaded', function() {
+    const menuItems = document.querySelectorAll('.nav-menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            setTimeout(() => {
+                toggleNav(); // Cerrar menu después de navegación
+            }, 100);
+        });
+    });
+    
+    // Cerrar menu con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu.classList.contains('open')) {
+                toggleNav();
+            }
+        }
+    });
+    
+    console.log('🔥 Hamburger menu con efecto semáforo inicializado');
 });
+
 </script>
-{% endblock %}
+
+</body>
+</html>

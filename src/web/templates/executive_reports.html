@@ -1,16 +1,22 @@
-{% extends "base_navigation.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Executive Reports - RiskMap</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
-{% block title %}Reportes Ejecutivos - Stratosight{% endblock %}
-
-{% block extra_css %}
 <style>
+
     :root {
         --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
         --bg-secondary: #141824;
         --text-primary: #e8eaed;
         --text-secondary: #b0b8c4;
-        --accent-cyan: #00d4ff;
-        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+        --accent-cyan: #034CA3;
+        --accent-glow: 0 0 15px rgba(3, 76, 163, 0.4), 0 0 25px rgba(3, 76, 163, 0.2);
         --border-color: rgba(255, 255, 255, 0.1);
     }
 
@@ -37,7 +43,7 @@
         font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #1565C0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -50,7 +56,7 @@
         margin-bottom: 30px;
     }
 
-    .reports-dashboard {
+    .reports-Dashboard {
         padding: 30px;
         max-width: 1400px;
         margin: 40px auto;
@@ -69,7 +75,7 @@
         font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #1565C0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -550,21 +556,272 @@
             font-size: 2rem;
         }
         
-        .reports-dashboard {
+        .reports-Dashboard {
             padding: 20px;
         }
     }
-</style>
-{% endblock %}
 
-{% block content %}
+
+
+    /* Navigation Bar */
+    .top-navigation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: rgba(10, 15, 44, 0.95);
+        backdrop-filter: blur(15px);
+        border-bottom: 1px solid rgba(3, 76, 163, 0.3);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-brand {
+        color: var(--accent-cyan);
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+        font-family: 'Orbitron', monospace;
+    }
+
+    /* Hamburger Menu Button - Efecto Semáforo */
+    .hamburger-btn {
+        margin-left: auto;
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.8) 0%, 
+            rgba(40, 60, 100, 0.9) 50%, 
+            rgba(30, 50, 90, 0.8) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.3);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        
+        /* Efecto cilíndrico/cojinete 3D */
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+        transform: perspective(1000px) rotateX(5deg);
+    }
+
+    /* Entramado de semáforo para hamburger */
+    .hamburger-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 25% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 25% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            linear-gradient(45deg, transparent 46%, rgba(0,0,0,0.1) 46%, rgba(0,0,0,0.1) 54%, transparent 54%);
+        background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px, 24px 24px;
+        background-position: 0 0, 6px 0, 0 6px, 6px 6px, 0 0;
+        opacity: 0.3;
+        transition: opacity 0.4s ease;
+        z-index: 1;
+    }
+
+    /* Estado encendido en hover */
+    .hamburger-btn:hover {
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 1.0) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 1.0) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.8);
+        box-shadow: 
+            0 12px 40px rgba(3, 76, 163, 0.6),
+            inset 0 3px 0 rgba(255, 255, 255, 0.4),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(3, 76, 163, 0.4);
+        transform: perspective(1000px) rotateX(0deg) translateY(-3px);
+    }
+
+    .hamburger-btn:hover::before {
+        opacity: 0.6;
+        background-size: 10px 10px, 10px 10px, 10px 10px, 10px 10px, 20px 20px;
+    }
+
+    /* Líneas del hamburger */
+    .hamburger-btn span {
+        width: 20px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 1px;
+        margin: 2px 0;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .hamburger-btn:hover span {
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Menu desplegable con efecto semáforo */
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        right: -300px;
+        width: 280px;
+        height: calc(100vh - 70px);
+        background: rgba(10, 15, 44, 0.98);
+        backdrop-filter: blur(20px);
+        border-left: 2px solid rgba(3, 76, 163, 0.3);
+        transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 999;
+        padding: 20px;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-menu.open {
+        right: 0;
+    }
+
+    .nav-menu-item {
+        display: block;
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 15px 20px;
+        margin: 8px 0;
+        border-radius: 12px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 0.95rem;
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+        
+        /* Estado apagado - efecto semáforo */
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.6) 0%, 
+            rgba(40, 60, 100, 0.7) 50%, 
+            rgba(30, 50, 90, 0.6) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.2);
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        transform: perspective(1000px) rotateX(3deg);
+    }
+
+    /* Estado encendido en hover */
+    .nav-menu-item:hover {
+        color: #fff;
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 0.9) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 0.9) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.6);
+        box-shadow: 
+            0 8px 25px rgba(3, 76, 163, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.3),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 20px rgba(3, 76, 163, 0.3);
+        transform: perspective(1000px) rotateX(0deg) translateY(-2px);
+    }
+
+    .nav-menu-item span {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Overlay para cerrar menu */
+    .nav-overlay {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 998;
+    }
+
+    .nav-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+
+    /* Añadir padding top para navbar fija */
+    /* Global Body Styling */
+    body {
+        margin: 0;
+        padding-top: 70px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        min-height: 100vh;
+        color: #e8eaed;
+        overflow-x: hidden;
+    }
+    
+    html {
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        margin: 0;
+        padding: 0;
+    }
+</style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="top-navigation">
+    <a href="/" class="nav-brand">🗺️ RiskMap</a>
+    
+    <!-- Hamburger Button con Efecto Semáforo -->
+    <button class="hamburger-btn" onclick="toggleNav()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Menu desplegable -->
+    <div class="nav-menu" id="navMenu">
+        <a href="/news-analysis" class="nav-menu-item"><span>📰 Análisis de Noticias</span></a>
+        <a href="/conflict-monitoring" class="nav-menu-item"><span>⚔️ Monitor de Conflictos</span></a>
+        <a href="/trends-analysis" class="nav-menu-item"><span>📈 Análisis de Tendencias</span></a>
+        <a href="/early-warning" class="nav-menu-item"><span>⚠️ Alertas Tempranas</span></a>
+        <a href="/executive-reports" class="nav-menu-item"><span>📋 Reportes Ejecutivos</span></a>
+        <a href="/data-intelligence" class="nav-menu-item"><span>🧠 Inteligencia de Datos</span></a>
+        <a href="/satellite-analysis" class="nav-menu-item"><span>🛰️ Análisis Satelital</span></a>
+        <a href="/video-surveillance" class="nav-menu-item"><span>📹 Vigilancia por Video</span></a>
+        <a href="/historical-analysis" class="nav-menu-item"><span>🏛️ Análisis Histórico</span></a>
+        <a href="/about" class="nav-menu-item"><span>ℹ️ Acerca de</span></a>
+        <div style="border-top: 1px solid rgba(3,76,163,0.3); margin: 12px 0;"></div>
+        <a href="/logs" class="nav-menu-item"><span>📝 Registros</span></a>
+        <a href="/settings" class="nav-menu-item"><span>⚙️ Configuración</span></a>
+    </div>
+    
+    <!-- Overlay para cerrar menu -->
+    <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
 <!-- Header Section -->
 <div class="header-section">
-    <h1 class="page-title">📄 Reportes Ejecutivos</h1>
+    <h1 class="page-title">📄 Reports Ejecutivos</h1>
     <p class="page-subtitle">Generación Automática • Múltiples Plantillas • Programación Automática</p>
 </div>
 
-<div class="reports-dashboard">
+<div class="reports-Dashboard">
     <!-- Reports Actions -->
     <div class="reports-actions">
         <div class="action-group">
@@ -584,7 +841,7 @@
             </button>
             <button class="btn-action btn-secondary" id="settings">
                 <i class="fas fa-cog"></i>
-                Configuración
+                Settings
             </button>
         </div>
     </div>
@@ -596,11 +853,11 @@
             <div class="section-header">
                 <h3 class="section-title">
                     <i class="fas fa-file-alt"></i>
-                    Reportes Recientes
+                    Reports Recientes
                 </h3>
                 <div class="section-controls">
                     <button class="btn-control">
-                        <i class="fas fa-filter"></i> Filtrar
+                        <i class="fas fa-filter"></i> Filter
                     </button>
                     <button class="btn-control">
                         <i class="fas fa-sort"></i> Ordenar
@@ -611,11 +868,11 @@
             <div class="reports-list" id="reportsList">
                 <div class="report-item">
                     <div class="report-header">
-                        <div class="report-title">Análisis Geopolítico Semanal</div>
+                        <div class="report-title">Analysis Geopolítico Semanal</div>
                         <div class="report-date">25 Ene 2024</div>
                     </div>
                     <div class="report-description">
-                        Resumen ejecutivo de eventos geopolíticos clave, análisis de tendencias y proyecciones para la próxima semana. Incluye evaluación de riesgos por región.
+                        Summary ejecutivo de eventos geopolíticos clave, Analysis de tendencias y proyecciones para la próxima semana. Incluye evaluación de riesgos por Region.
                     </div>
                     <div class="report-meta">
                         <div class="report-type type-weekly">Semanal</div>
@@ -635,11 +892,11 @@
                 
                 <div class="report-item">
                     <div class="report-header">
-                        <div class="report-title">Reporte Mensual de Conflictos</div>
+                        <div class="report-title">Reporte Mensual de Conflicts</div>
                         <div class="report-date">20 Ene 2024</div>
                     </div>
                     <div class="report-description">
-                        Análisis detallado de conflictos activos, evolución de actores involucrados y impacto humanitario. Incluye mapas de calor y proyecciones.
+                        Analysis detallado de Conflicts activos, evolución de actores involucrados y impacto humanitario. Incluye mapas de calor y proyecciones.
                     </div>
                     <div class="report-meta">
                         <div class="report-type type-monthly">Mensual</div>
@@ -663,7 +920,7 @@
                         <div class="report-date">18 Ene 2024</div>
                     </div>
                     <div class="report-description">
-                        Reporte especial sobre el incremento de tensiones en Europa Oriental. Análisis de factores desencadenantes y posibles escenarios.
+                        Reporte especial sobre el incremento de Tensions en Europa Oriental. Analysis de factores desencadenantes y posibles escenarios.
                     </div>
                     <div class="report-meta">
                         <div class="report-type type-special">Especial</div>
@@ -683,11 +940,11 @@
                 
                 <div class="report-item">
                     <div class="report-header">
-                        <div class="report-title">Análisis de Sentimiento Global</div>
+                        <div class="report-title">Analysis de Sentimiento Global</div>
                         <div class="report-date">15 Ene 2024</div>
                     </div>
                     <div class="report-description">
-                        Evaluación del sentimiento global basado en análisis de medios internacionales. Incluye tendencias por región y predicciones.
+                        Evaluación del sentimiento Global basado en Analysis de medios internacionales. Incluye tendencias por Region y predicciones.
                     </div>
                     <div class="report-meta">
                         <div class="report-type type-weekly">Semanal</div>
@@ -707,11 +964,11 @@
                 
                 <div class="report-item">
                     <div class="report-header">
-                        <div class="report-title">Reporte de Alertas Tempranas</div>
+                        <div class="report-title">Reporte de Alerts Tempranas</div>
                         <div class="report-date">12 Ene 2024</div>
                     </div>
                     <div class="report-description">
-                        Compilación de alertas tempranas generadas por el sistema IA. Incluye análisis de patrones y recomendaciones de monitoreo.
+                        Compilación de Alerts tempranas generadas por el sistema IA. Incluye Analysis de patrones y recomendaciones de Monitoring.
                     </div>
                     <div class="report-meta">
                         <div class="report-type type-weekly">Semanal</div>
@@ -751,7 +1008,7 @@
                             <div class="template-name">Ejecutivo Semanal</div>
                         </div>
                         <div class="template-description">
-                            Resumen ejecutivo con métricas clave y tendencias semanales.
+                            Summary ejecutivo con métricas clave y tendencias semanales.
                         </div>
                         <div class="template-format">PDF, HTML, DOCX</div>
                     </div>
@@ -761,10 +1018,10 @@
                             <div class="template-icon">
                                 <i class="fas fa-shield-alt"></i>
                             </div>
-                            <div class="template-name">Análisis de Conflictos</div>
+                            <div class="template-name">Analysis de Conflicts</div>
                         </div>
                         <div class="template-description">
-                            Reporte detallado de conflictos activos y análisis de actores.
+                            Reporte detallado de Conflicts activos y Analysis de actores.
                         </div>
                         <div class="template-format">PDF, HTML</div>
                     </div>
@@ -774,7 +1031,7 @@
                             <div class="template-icon">
                                 <i class="fas fa-exclamation-triangle"></i>
                             </div>
-                            <div class="template-name">Alertas Especiales</div>
+                            <div class="template-name">Alerts Especiales</div>
                         </div>
                         <div class="template-description">
                             Reporte de emergencia para eventos críticos.
@@ -787,7 +1044,7 @@
                             <div class="template-icon">
                                 <i class="fas fa-brain"></i>
                             </div>
-                            <div class="template-name">Análisis IA</div>
+                            <div class="template-name">Analysis IA</div>
                         </div>
                         <div class="template-description">
                             Insights generados por modelos de machine learning.
@@ -811,28 +1068,28 @@
                         <div class="schedule-name">Reporte Semanal</div>
                         <div class="schedule-frequency">Cada lunes a las 08:00</div>
                     </div>
-                    <div class="schedule-status status-active">Activo</div>
+                    <div class="schedule-status status-active">Active</div>
                 </div>
                 
                 <div class="schedule-item">
                     <div class="schedule-info">
-                        <div class="schedule-name">Análisis Mensual</div>
+                        <div class="schedule-name">Analysis Mensual</div>
                         <div class="schedule-frequency">Primer día del mes a las 09:00</div>
                     </div>
-                    <div class="schedule-status status-active">Activo</div>
+                    <div class="schedule-status status-active">Active</div>
                 </div>
                 
                 <div class="schedule-item">
                     <div class="schedule-info">
-                        <div class="schedule-name">Alertas Críticas</div>
+                        <div class="schedule-name">Alerts Críticas</div>
                         <div class="schedule-frequency">Inmediato cuando se detecta</div>
                     </div>
-                    <div class="schedule-status status-active">Activo</div>
+                    <div class="schedule-status status-active">Active</div>
                 </div>
                 
                 <div class="schedule-item">
                     <div class="schedule-info">
-                        <div class="schedule-name">Resumen Trimestral</div>
+                        <div class="schedule-name">Summary Trimestral</div>
                         <div class="schedule-frequency">Cada 3 meses</div>
                     </div>
                     <div class="schedule-status status-paused">Pausado</div>
@@ -846,7 +1103,7 @@
         <div class="section-header">
             <h3 class="section-title">
                 <i class="fas fa-search"></i>
-                Biblioteca de Reportes con Búsqueda Semántica
+                Biblioteca de Reports con Búsqueda Semántica
             </h3>
 
         </div>
@@ -854,7 +1111,7 @@
         <div class="search-form">
             <div class="form-group">
                 <label class="form-label">Búsqueda</label>
-                <input type="text" class="form-input" placeholder="Buscar en reportes..." id="searchInput">
+                <input type="text" class="form-input" placeholder="Search news..." id="searchInput">
             </div>
             <div class="form-group">
                 <label class="form-label">Rango Temporal</label>
@@ -880,7 +1137,7 @@
                 <label class="form-label">&nbsp;</label>
                 <button class="btn-action btn-primary" id="searchBtn">
                     <i class="fas fa-search"></i>
-                    Buscar
+                    Search
                 </button>
             </div>
         </div>
@@ -888,11 +1145,11 @@
         <div class="search-results" id="searchResults">
             <div class="result-card">
                 <div class="result-header">
-                    <div class="result-title">Escalada en Conflictos Europeos</div>
+                    <div class="result-title">Escalada en Conflicts Europeos</div>
                     <div class="result-score">95%</div>
                 </div>
                 <div class="result-excerpt">
-                    Análisis detallado sobre el incremento de tensiones en Europa Oriental, incluyendo factores desencadenantes y proyecciones...
+                    Analysis detallado sobre el incremento de Tensions en Europa Oriental, incluyendo factores desencadenantes y proyecciones...
                 </div>
                 <div class="result-meta">
                     <span>18 Ene 2024</span>
@@ -902,11 +1159,11 @@
             
             <div class="result-card">
                 <div class="result-header">
-                    <div class="result-title">Análisis de Actores en Medio Oriente</div>
+                    <div class="result-title">Analysis de Actores en Medio Oriente</div>
                     <div class="result-score">89%</div>
                 </div>
                 <div class="result-excerpt">
-                    Evaluación comprehensiva de los principales actores involucrados en conflictos de Medio Oriente y sus interacciones...
+                    Evaluación comprehensiva de los principales actores involucrados en Conflicts de Medio Oriente y sus interacciones...
                 </div>
                 <div class="result-meta">
                     <span>15 Ene 2024</span>
@@ -920,7 +1177,7 @@
                     <div class="result-score">82%</div>
                 </div>
                 <div class="result-excerpt">
-                    Reporte sobre el impacto humanitario de conflictos activos, incluyendo desplazamientos y necesidades de asistencia...
+                    Reporte sobre el impacto humanitario de Conflicts activos, incluyendo desplazamientos y necesidades de asistencia...
                 </div>
                 <div class="result-meta">
                     <span>12 Ene 2024</span>
@@ -930,9 +1187,9 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
+
+
 <script>
     // Global variables for reports system
     let currentReports = [];
@@ -1045,14 +1302,14 @@
                     <option value="weekly">Semanal</option>
                     <option value="monthly">Mensual</option>
                     <option value="special">Especial</option>
-                    <option value="ai_insights">Análisis IA</option>
+                    <option value="ai_insights">Analysis IA</option>
                 </select>
             </div>
             <div class="form-group mb-3">
                 <label class="form-label">Plantilla</label>
                 <select class="form-select" id="templateSelect">
                     <option value="executive">Ejecutivo</option>
-                    <option value="conflict_analysis">Análisis de Conflictos</option>
+                    <option value="conflict_analysis">Analysis de Conflicts</option>
                     <option value="special_alert">Alerta Especial</option>
                     <option value="ai_insights">Insights IA</option>
                 </select>
@@ -1115,7 +1372,7 @@
                 addNewReportToList(result);
                 loadReportsData(); // Refresh the list
             } else {
-                showNotification('Error generando reporte: ' + result.error, 'error');
+                showNotification('Error generando reporte: ' + result.Error, 'error');
             }
         } catch (error) {
             console.error('Error generating report:', error);
@@ -1149,7 +1406,7 @@
                 <label class="form-label">Plantilla</label>
                 <select class="form-select" id="scheduleTemplate">
                     <option value="executive">Ejecutivo</option>
-                    <option value="conflict_analysis">Análisis de Conflictos</option>
+                    <option value="conflict_analysis">Analysis de Conflicts</option>
                     <option value="ai_insights">Insights IA</option>
                 </select>
             </div>
@@ -1197,16 +1454,17 @@
             if (result.success) {
                 showNotification(result.message, 'success');
             } else {
-                showNotification('Error programando reporte: ' + result.error, 'error');
+                showNotification('Error programando reporte: ' + result.Error, 'error');
             }
         } catch (error) {
+            console.error('Error scheduling report:', error);
             showNotification('Error de conexión al programar reporte', 'error');
         }
     }
     
     async function exportAllReports() {
         try {
-            showNotification('Iniciando exportación de todos los reportes...', 'info');
+            showNotification('Iniciando exportación de todos los Reports...', 'info');
             
             const response = await fetch('/api/reports/export-all', {
                 method: 'POST',
@@ -1228,9 +1486,10 @@
                 // Poll for export status
                 pollExportStatus(result.export_id);
             } else {
-                showNotification('Error en exportación: ' + result.error, 'error');
+                showNotification('Error en exportación: ' + result.Error, 'error');
             }
         } catch (error) {
+            console.error('Error exporting report:', error);
             showNotification('Error de conexión en exportación', 'error');
         }
     }
@@ -1250,14 +1509,15 @@
                 showNotification('Error en exportación', 'error');
             }
         } catch (error) {
-            showNotification('Error verificando estado de exportación', 'error');
+            console.error('Error checking export status:', error);
+            showNotification('Error verificando Status de exportación', 'error');
         }
     }
     
     function showFilterModal() {
-        const modal = createModal('Filtrar Reportes', `
+        const modal = createModal('Filter Reports', `
             <div class="form-group mb-3">
-                <label class="form-label">Nivel de Riesgo</label>
+                <label class="form-label">Risk Level</label>
                 <select class="form-select" id="filterRiskLevel">
                     <option value="all">Todos los niveles</option>
                     <option value="critical">Crítico</option>
@@ -1283,7 +1543,7 @@
                     <option value="weekly">Semanal</option>
                     <option value="monthly">Mensual</option>
                     <option value="special">Especial</option>
-                    <option value="ai_insights">Análisis IA</option>
+                    <option value="ai_insights">Analysis IA</option>
                 </select>
             </div>
         `, [
@@ -1332,9 +1592,9 @@
             
             if (result.success) {
                 updateReportsList(result.reports);
-                showNotification(`Filtros aplicados. ${result.total} reportes encontrados.`, 'success');
+                showNotification(`Filtros aplicados. ${result.total} Reports encontrados.`, 'success');
             } else {
-                showNotification('Error aplicando filtros: ' + result.error, 'error');
+                showNotification('Error aplicando filtros: ' + result.Error, 'error');
             }
         } catch (error) {
             showNotification('Error de conexión al aplicar filtros', 'error');
@@ -1356,7 +1616,7 @@
     }
     
     function showSortModal() {
-        const modal = createModal('Ordenar Reportes', `
+        const modal = createModal('Ordenar Reports', `
             <div class="form-group mb-3">
                 <label class="form-label">Ordenar por</label>
                 <select class="form-select" id="sortBy">
@@ -1419,7 +1679,7 @@
                 updateReportsList(result.reports);
                 showNotification('Ordenamiento aplicado exitosamente', 'success');
             } else {
-                showNotification('Error aplicando ordenamiento: ' + result.error, 'error');
+                showNotification('Error aplicando ordenamiento: ' + result.Error, 'error');
             }
         } catch (error) {
             showNotification('Error de conexión al aplicar ordenamiento', 'error');
@@ -1428,7 +1688,7 @@
     
     async function viewReport(reportId, reportTitle) {
         try {
-            showNotification(`Cargando reporte: ${reportTitle}`, 'info');
+            showNotification(`Loading reporte: ${reportTitle}`, 'info');
             
             const response = await fetch(`/api/reports/${reportId}/view`);
             const result = await response.json();
@@ -1436,7 +1696,7 @@
             if (result.success) {
                 showReportModal(result.report);
             } else {
-                showNotification('Error cargando reporte: ' + result.error, 'error');
+                showNotification('Error Loading reporte: ' + result.Error, 'error');
             }
         } catch (error) {
             showNotification('Error de conexión al cargar reporte', 'error');
@@ -1459,7 +1719,7 @@
                     </div>
                 </div>
                 <div class="report-content">
-                    <h4>Resumen Ejecutivo</h4>
+                    <h4>Summary Ejecutivo</h4>
                     <p>${report.content.executive_summary}</p>
                     
                     <h4>Evaluación de Riesgos</h4>
@@ -1507,7 +1767,7 @@
                 // In a real implementation, this would trigger the actual download
                 window.open(result.download_url, '_blank');
             } else {
-                showNotification('Error en descarga: ' + result.error, 'error');
+                showNotification('Error en descarga: ' + result.Error, 'error');
             }
         } catch (error) {
             showNotification('Error de conexión en descarga', 'error');
@@ -1595,7 +1855,7 @@
                     showNotification(result.message, 'success');
                 }
             } else {
-                showNotification('Error compartiendo reporte: ' + result.error, 'error');
+                showNotification('Error compartiendo reporte: ' + result.Error, 'error');
             }
         } catch (error) {
             showNotification('Error de conexión al compartir reporte', 'error');
@@ -1603,12 +1863,12 @@
     }
     
     function showSettingsModal() {
-        const modal = createModal('Configuración de Reportes', `
+        const modal = createModal('Settings de Reports', `
             <div class="settings-tabs">
                 <div class="tab-buttons mb-3">
                     <button class="btn btn-sm btn-outline-primary active" data-tab="general">General</button>
                     <button class="btn btn-sm btn-outline-primary" data-tab="distribution">Distribución</button>
-                    <button class="btn btn-sm btn-outline-primary" data-tab="security">Seguridad</button>
+                    <button class="btn btn-sm btn-outline-primary" data-tab="security">Security</button>
                     <button class="btn btn-sm btn-outline-primary" data-tab="ai">IA</button>
                 </div>
                 
@@ -1680,7 +1940,7 @@
                 action: () => closeModal()
             },
             {
-                text: 'Guardar Configuración',
+                text: 'Guardar Settings',
                 class: 'btn-primary',
                 action: () => saveConfiguration()
             }
@@ -1778,7 +2038,7 @@
         
         try {
             closeModal();
-            showNotification('Guardando configuración...', 'info');
+            showNotification('Guardando Settings...', 'info');
             
             const response = await fetch('/api/reports/config', {
                 method: 'POST',
@@ -1791,12 +2051,13 @@
             const result = await response.json();
             
             if (result.success) {
-                showNotification('Configuración guardada exitosamente', 'success');
+                showNotification('Settings guardada exitosamente', 'success');
             } else {
-                showNotification('Error guardando configuración: ' + result.error, 'error');
+                showNotification('Error guardando Settings: ' + result.Error, 'error');
             }
         } catch (error) {
-            showNotification('Error de conexión al guardar configuración', 'error');
+            console.error('Error saving settings:', error);
+            showNotification('Error de conexión al guardar Settings', 'error');
         }
     }
     
@@ -1817,7 +2078,7 @@
                 <div class="report-date">${dateStr}</div>
             </div>
             <div class="report-description">
-                Reporte generado automáticamente por el sistema de IA. Incluye análisis actualizado basado en los datos más recientes.
+                Reporte generado automáticamente por el sistema de IA. Incluye Analysis actualizado basado en los datos más recientes.
             </div>
             <div class="report-meta">
                 <div class="report-type type-weekly">Nuevo</div>
@@ -1905,9 +2166,10 @@
                 addNewReportToList(result);
                 showNotification(`Reporte "${templateName}" generado exitosamente`, 'success');
             } else {
-                showNotification('Error generando reporte: ' + result.error, 'error');
+                showNotification('Error generando reporte: ' + result.Error, 'error');
             }
         } catch (error) {
+            console.error('Error generating report:', error);
             showNotification('Error de conexión al generar reporte', 'error');
         }
     }
@@ -1954,9 +2216,10 @@
                 displaySearchResults(result.results);
                 showNotification(`Búsqueda completada. ${result.total_results} resultados encontrados en ${result.search_time}.`, 'success');
             } else {
-                showNotification('Error en búsqueda: ' + result.error, 'error');
+                showNotification('Error en búsqueda: ' + result.Error, 'error');
             }
         } catch (error) {
+            console.error('Error searching reports:', error);
             showNotification('Error de conexión en búsqueda', 'error');
             document.getElementById('searchBtn').disabled = false;
         }
@@ -2026,7 +2289,7 @@
                 console.log('Using default templates');
             }
         } catch (error) {
-            console.log('Error loading templates, using defaults');
+            console.error('Error loading templates, using defaults', error);
         }
     }
     
@@ -2063,7 +2326,7 @@
                     </div>
                     <div class="report-meta">
                         <span>Generado: ${new Date(report.generated_at).toLocaleDateString('es-ES')}</span>
-                        <span>Estado: ${report.status}</span>
+                        <span>Status: ${report.status}</span>
                     </div>
                     <div class="report-actions">
                         <button onclick="viewReport('${report.id}')" class="btn btn-primary btn-sm">Ver</button>
@@ -2078,11 +2341,7 @@
         // Show loading state for stats
         const statsElements = document.querySelectorAll('[data-stat]');
         statsElements.forEach(el => {
-            el.textContent = 'Cargando...
-                    <div class="fallback-indicator warning">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Si no hay datos, se mostrarán valores de demostración</span>
-                    </div>';
+            el.textContent = 'Loading...';
         });
     }
     
@@ -2153,43 +2412,7 @@
         document.body.style.overflow = '';
     }
     
-    function showNotification(message, type = 'info') {
-        // Simple notification system
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background: ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            color: white;
-            border-radius: 8px;
-            z-index: 10000;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            max-width: 400px;
-        `;
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        
-        // Animate in
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-        }, 100);
-        
-        // Remove after 4 seconds
-        setTimeout(() => {
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                if (document.body.contains(notification)) {
-                    document.body.removeChild(notification);
-                }
-            }, 300);
-        }, 4000);
-    }
+    // Use shared notification utility: /static/js/shared_notification.js
     
     // Initialize when page loads
     document.addEventListener('DOMContentLoaded', function() {
@@ -2200,4 +2423,56 @@
         initReportsSystem();
     });
 </script>
-{% endblock %}
+
+<script>
+
+// Hamburger Menu Navigation con Efecto Semáforo
+function toggleNav() {
+    const navMenu = document.getElementById('navMenu');
+    const navOverlay = document.getElementById('navOverlay');
+    
+    if (navMenu.classList.contains('open')) {
+        // Cerrar menu
+        navMenu.classList.remove('open');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        console.log('🍔 Hamburger menu cerrado');
+    } else {
+        // Abrir menu
+        navMenu.classList.add('open');
+        navOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        console.log('🍔 Hamburger menu abierto - efecto semáforo activado');
+    }
+}
+
+// Cerrar menu al hacer clic en cualquier enlace
+document.addEventListener('DOMContentLoaded', function() {
+    const menuItems = document.querySelectorAll('.nav-menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            setTimeout(() => {
+                toggleNav(); // Cerrar menu después de navegación
+            }, 100);
+        });
+    });
+    
+    // Cerrar menu con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu.classList.contains('open')) {
+                toggleNav();
+            }
+        }
+    });
+    
+    console.log('🔥 Hamburger menu con efecto semáforo inicializado');
+});
+
+    </script>
+
+    <script src="{{ url_for('static', filename='js/shared_notification.js') }}"></script>
+
+</body>
+</html>

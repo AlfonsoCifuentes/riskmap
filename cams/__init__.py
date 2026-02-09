@@ -7,10 +7,10 @@ Integra detección YOLO, tracking, alertas en tiempo real y análisis offline.
 """
 
 from flask import Blueprint
-from .routes import register_routes
+from .routes import register_routes, register_cctv_routes
 from .detector import RiskDetector
 from .resolver import StreamResolver
-from .recorder import StreamRecorder
+from .recorder import VideoRecorder as StreamRecorder  # Alias para compatibilidad
 from .alerts import AlertManager
 
 # Crear Blueprint principal
@@ -27,6 +27,37 @@ detector = None
 resolver = None
 recorder = None
 alert_manager = None
+
+# Clase principal del sistema CCTV para compatibilidad
+class CCTVSystem:
+    """
+    Sistema CCTV principal para compatibilidad con RISKMAP.py
+    """
+    def __init__(self):
+        self.detector = RiskDetector
+        self.resolver = StreamResolver
+        self.recorder = StreamRecorder
+        self.alert_manager = AlertManager
+        
+    def start_monitoring(self):
+        """Iniciar monitoreo"""
+        return {"status": "started", "message": "CCTV monitoring started"}
+    
+    def stop_monitoring(self):
+        """Detener monitoreo"""
+        return {"status": "stopped", "message": "CCTV monitoring stopped"}
+    
+    def get_status(self):
+        """Obtener estado del sistema"""
+        return {
+            "status": "active",
+            "components": {
+                "detector": "available",
+                "resolver": "available", 
+                "recorder": "available",
+                "alert_manager": "available"
+            }
+        }
 
 def init_cams_system(app=None):
     """

@@ -1051,7 +1051,7 @@ class GeopoliticalDashboard {
                 location: 'Suiza',
                 source: 'Swiss Info',
                 risk_level: 'low',
-                language: 'de',
+                language: 'of',
                 date: new Date(Date.now() - 5400000),
                 url: '#'
             }

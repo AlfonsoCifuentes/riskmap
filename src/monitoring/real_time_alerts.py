@@ -12,7 +12,7 @@ import websockets
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Set, Callable
 from dataclasses import dataclass, asdict
-from email.mime.text import MimeText
+from email.mime.text import MIMEText
 from email.mime.multipart import MimeMultipart
 from pathlib import Path
 import hashlib
@@ -507,7 +507,7 @@ class RealTimeAlertSystem:
         msg['Subject'] = f"[{notification.severity.upper()}] {notification.title}"
 
         body = notification.message
-        msg.attach(MimeText(body, 'plain'))
+        msg.attach(MIMEText(body, 'plain'))
 
         # Send email (implementation would go here)
         logger.info(f"Email notification prepared for {notification.alert_id}")

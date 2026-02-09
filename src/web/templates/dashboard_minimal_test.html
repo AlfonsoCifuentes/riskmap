@@ -1,0 +1,55 @@
+<!-- ✅ DASHBOARD_MINIMAL_TEST -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: #ffffff; }
+        .hero-section { background: #2a2a2a; padding: 40px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #ff4444; }
+        .mosaic-section { background: #2a2a2a; padding: 40px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #0088ff; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Dashboard Test - Minimal Version</h1>
+    
+    <!-- Hero Section -->
+    <section class="hero-section" id="hero-article-section">
+        <h2>🎯 Hero Article Section</h2>
+        <p>This is where the hero article should appear</p>
+        <div id="hero-article">Loading hero...</div>
+    </section>
+    
+    <!-- Mosaic Section -->
+    <section class="mosaic-section" id="news-mosaic-section">
+        <h2>📰 News Mosaic Section</h2>
+        <p>This is where the news mosaic should appear</p>
+        <div id="news-mosaic">
+            <div class="mosaic-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <div>Cargando mosaico de noticias...</div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        console.log('🔍 Minimal test template loaded');
+        console.log('Hero section:', document.getElementById('hero-article-section') ? 'Found' : 'Missing');
+        console.log('Mosaic section:', document.getElementById('news-mosaic-section') ? 'Found' : 'Missing');
+        
+        // Test API call
+        fetch('/api/status')
+            .then(response => response.json())
+            .then(data => {
+                console.log('API Status:', data);
+                document.getElementById('hero-article').innerHTML = 
+                    `<strong>API Working!</strong><br>Articles: ${data.total_articles}`;
+            })
+            .catch(error => {
+                console.error('API Error:', error);
+                document.getElementById('hero-article').innerHTML = '<strong>API Error</strong>';
+            });
+    </script>
+</body>
+</html>

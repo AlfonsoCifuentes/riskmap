@@ -116,15 +116,15 @@ class GeopoliticalIntelligenceOrchestrator:
         else:
             logger.info("[INFO] Google Translate API: No configurada (opcional)")
 
-        # OpenAI
+        # OpenAI - DEPRECATED: Solo mantener para compatibilidad de traducción fallback
         openai_key = config.get_openai_key()
         if openai_key:
             self.api_status['openai'] = True
-            logger.info("[OK] OpenAI API: Configurada")
+            logger.info("[DEPRECATED] OpenAI API: Configurada (solo fallback traducción)")
         else:
-            logger.info("[INFO] OpenAI API: No configurada (opcional para chatbot)")
+            logger.info("[INFO] OpenAI API: No configurada (deprecado - usar Groq/DeepSeek)")
         
-        # DeepSeek
+        # DeepSeek - PRIMARY AI SERVICE
         deepseek_key = config.get_deepseek_key()
         if deepseek_key:
             self.api_status['deepseek'] = True
@@ -132,7 +132,7 @@ class GeopoliticalIntelligenceOrchestrator:
         else:
             logger.info("[INFO] DeepSeek API: No configurada (opcional)")
         
-        # Groq
+        # Groq - PRIMARY AI SERVICE
         groq_key = config.get_groq_key()
         if groq_key:
             self.api_status['groq'] = True

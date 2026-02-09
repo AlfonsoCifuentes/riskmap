@@ -1,6 +1,6 @@
 {% extends "base_navigation.html" %}
 
-{% block title %}Análisis Satelital Avanzado - Stratosight{% endblock %}
+{% block title %}Analysis Satelital Avanzado - Stratosight{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -19,7 +19,7 @@
     }
 
     /* Main container with proper margins for wide screens */
-    .satellite-dashboard {
+    .satellite-Dashboard {
         background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
         min-height: calc(100vh - 80px);
         padding: 40px 0;
@@ -383,16 +383,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="satellite-dashboard">
+<div class="satellite-Dashboard">
     <div class="container-wide">
         <!-- Page Header -->
         <div class="page-header">
             <h1 class="page-title">
                 <i class="fas fa-satellite"></i>
-                Análisis Satelital Avanzado
+                Analysis Satelital Avanzado
             </h1>
             <p class="page-subtitle">
-                Monitoreo en tiempo real de conflictos y eventos críticos mediante imágenes satelitales de alta resolución
+                Real-Time Monitoring de Conflicts y eventos críticos mediante imágenes satelitales de alta resolución
             </p>
         </div>
 
@@ -409,11 +409,11 @@
             <div class="d-flex flex-wrap gap-3">
                 <button id="triggerAnalysis" class="btn-satellite">
                     <i class="fas fa-rocket"></i>
-                    Iniciar Análisis Satelital
+                    Iniciar Analysis Satelital
                 </button>
                 <button id="refreshData" class="btn-satellite">
                     <i class="fas fa-sync-alt"></i>
-                    Actualizar Datos
+                    Refresh Datos
                 </button>
             </div>
             
@@ -422,7 +422,7 @@
                 <div class="progress-bar-custom">
                     <div id="progressFill" class="progress-fill"></div>
                 </div>
-                <div id="progressText" class="progress-text">Iniciando análisis...</div>
+                <div id="progressText" class="progress-text">Iniciando Analysis...</div>
             </div>
         </div>
 
@@ -435,7 +435,7 @@
                         <div class="card-icon">
                             <i class="fas fa-chart-bar"></i>
                         </div>
-                        Estadísticas de Análisis
+                        Estadísticas de Analysis
                     </h3>
                 </div>
                 <div class="stats-grid">
@@ -465,12 +465,12 @@
                         <div class="card-icon">
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
-                        Alertas Críticas
+                        Alerts Críticas
                     </h3>
                 </div>
                 <div id="criticalAlerts" class="loading">
                     <div class="spinner"></div>
-                    <p>Cargando alertas críticas...</p>
+                    <p>Loading Alerts críticas...</p>
                 </div>
             </div>
         </div>
@@ -487,7 +487,7 @@
             </div>
             <div id="galleryImages" class="gallery-grid loading">
                 <div class="spinner"></div>
-                <p>Cargando galería de imágenes...</p>
+                <p>Loading galería de imágenes...</p>
             </div>
         </div>
 
@@ -505,7 +505,7 @@
                 </div>
                 <div id="analysisTimeline" class="timeline loading">
                     <div class="spinner"></div>
-                    <p>Cargando cronología...</p>
+                    <p>Loading cronología...</p>
                 </div>
             </div>
 
@@ -521,7 +521,7 @@
                 </div>
                 <div id="evolutionPredictions" class="loading">
                     <div class="spinner"></div>
-                    <p>Cargando predicciones...</p>
+                    <p>Loading predicciones...</p>
                 </div>
             </div>
         </div>
@@ -539,7 +539,7 @@
             <div class="modal-body">
                 <img id="modalImage" src="" alt="Imagen satelital" style="width: 100%; border-radius: 8px; margin-bottom: 15px;">
                 <div id="modalDetails">
-                    <p><strong>Región:</strong> <span id="modalRegion">-</span></p>
+                    <p><strong>Region:</strong> <span id="modalRegion">-</span></p>
                     <p><strong>Fecha:</strong> <span id="modalDate">-</span></p>
                     <p><strong>Coordenadas:</strong> <span id="modalCoords">-</span></p>
                     <p><strong>Detecciones:</strong> <span id="modalDetections">-</span></p>
@@ -612,7 +612,7 @@ class SatelliteAnalysisManager {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP Error! status: ${response.status}`);
             }
 
             const data = await response.json();
@@ -622,15 +622,15 @@ class SatelliteAnalysisManager {
                 progressContainer.style.display = 'block';
                 this.startProgressPolling();
             } else {
-                throw new Error(data.message || 'Error al iniciar análisis');
+                throw new Error(data.message || 'Error al iniciar Analysis');
             }
             
         } catch (error) {
             console.error('Error starting analysis:', error);
-            this.showError('Error al iniciar análisis satelital: ' + error.message);
+            this.showError('Error al iniciar Analysis satelital: ' + error.message);
         } finally {
             triggerBtn.disabled = false;
-            triggerBtn.innerHTML = '<i class="fas fa-rocket"></i> Iniciar Análisis Satelital';
+            triggerBtn.innerHTML = '<i class="fas fa-rocket"></i> Iniciar Analysis Satelital';
         }
     }
 
@@ -644,7 +644,7 @@ class SatelliteAnalysisManager {
                 const response = await fetch(`/api/satellite/analysis-progress/${this.analysisId}`);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP Error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -677,7 +677,7 @@ class SatelliteAnalysisManager {
     async loadStatistics() {
         try {
             const response = await fetch('/api/satellite/statistics');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP Error! status: ${response.status}`);
             
             const data = await response.json();
             
@@ -695,7 +695,7 @@ class SatelliteAnalysisManager {
     async loadCriticalAlerts() {
         try {
             const response = await fetch('/api/satellite/critical-alerts');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP Error! status: ${response.status}`);
             
             const data = await response.json();
             const container = document.getElementById('criticalAlerts');
@@ -714,7 +714,7 @@ class SatelliteAnalysisManager {
                     </div>
                 `).join('');
             } else {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No hay alertas críticas en este momento</p>';
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No hay Alerts críticas en este momento</p>';
             }
             
         } catch (error) {
@@ -726,7 +726,7 @@ class SatelliteAnalysisManager {
     async loadGallery() {
         try {
             const response = await fetch('/api/satellite/gallery-images');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP Error! status: ${response.status}`);
             
             const data = await response.json();
             const container = document.getElementById('galleryImages');
@@ -759,7 +759,7 @@ class SatelliteAnalysisManager {
     async loadTimeline() {
         try {
             const response = await fetch('/api/satellite/analysis-timeline');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP Error! status: ${response.status}`);
             
             const data = await response.json();
             const container = document.getElementById('analysisTimeline');
@@ -785,7 +785,7 @@ class SatelliteAnalysisManager {
     async loadPredictions() {
         try {
             const response = await fetch('/api/satellite/evolution-predictions');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP Error! status: ${response.status}`);
             
             const data = await response.json();
             const container = document.getElementById('evolutionPredictions');
@@ -850,7 +850,7 @@ class SatelliteAnalysisManager {
     }
 
     showError(message) {
-        // Create temporary error notification
+        // Create temporary Error notification
         const errorDiv = document.createElement('div');
         errorDiv.style.cssText = `
             position: fixed;

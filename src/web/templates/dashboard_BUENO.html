@@ -1,10 +1,91 @@
-{% extends "base_navigation.html" %},
-            {% block title %}Análisis de Noticias - Stratosight{% endblock %},
-            {% block head %}
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<meta name="cache-bust" content="{{ range(1, 99999999) | random }}">
+<!-- ✅ DASHBOARD_BUENO.HTML TEMPLATE CARGADO - DISEÑO ORIGINAL CON HERO Y MOSAICO -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Noticias - Stratosight</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="cache-bust" content="{{ range(1, 99999999) | random }}">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+
+<script>
+// Centralized dashboard logging system - available before any other script runs
+(function initializeDashboardLogger() {
+    const STORAGE_KEY = 'riskmap-dashboard-debug';
+    const BASE_PREFIX = '🛰️ RiskMap';
+    const START_TIME = performance.now();
+    const LEVEL_COLORS = {
+        INFO: '#60a5fa',
+        SUCCESS: '#34d399',
+        WARN: '#fbbf24',
+        ERROR: '#f87171',
+        DEBUG: '#9ca3af',
+        TRACE: '#c084fc'
+    };
+
+    function isDebugEnabled() {
+        if (localStorage.getItem(STORAGE_KEY) === 'true') {
+            return true;
+        }
+        return window.location.search.includes('debug=1');
+    }
+
+    function buildPrefix(level) {
+        const timestamp = new Date().toISOString();
+        const elapsed = (performance.now() - START_TIME).toFixed(0);
+        return `${timestamp} ${BASE_PREFIX} [${level}] +${elapsed}ms`;
+    }
+
+    function emit(level, method, message, ...args) {
+        const consoleMethod = console[method] || console.log;
+        const prefix = buildPrefix(level);
+        const color = LEVEL_COLORS[level] || '#93c5fd';
+        consoleMethod.call(console, `%c${prefix}`, `color:${color}; font-weight:600`, message, ...args);
+    }
+
+    const logger = {
+        info: (message, ...args) => emit('INFO', 'log', message, ...args),
+        success: (message, ...args) => emit('SUCCESS', 'log', message, ...args),
+        warn: (message, ...args) => emit('WARN', 'warn', message, ...args),
+        error: (message, ...args) => emit('ERROR', 'error', message, ...args),
+        debug: (message, ...args) => {
+            if (isDebugEnabled()) {
+                emit('DEBUG', 'debug', message, ...args);
+            }
+        },
+        traceFetch: (label, meta = {}) => emit('TRACE', 'log', `${label} | ${meta.status || 'pending'}`, meta),
+        group: (label, callback) => {
+            if (console.groupCollapsed) {
+                console.groupCollapsed(`${BASE_PREFIX} :: ${label}`);
+                try {
+                    callback?.();
+                } finally {
+                    console.groupEnd();
+                }
+            } else {
+                emit('INFO', 'log', label);
+                callback?.();
+            }
+        },
+        toggleDebug: (enabled) => localStorage.setItem(STORAGE_KEY, enabled ? 'true' : 'false'),
+        isDebugEnabled: () => isDebugEnabled()
+    };
+
+    window.dashboardLogger = logger;
+    logger.info('Client-side logging initialized', { debug: logger.isDebugEnabled() });
+
+    window.addEventListener('error', (event) => {
+        logger.error(`Global error: ${event.message}`, event.error || event);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+        logger.error('Unhandled promise rejection detected', event.reason);
+    });
+})();
+</script>
 
 <!-- Three.js for 3D Earth Background - Multiple CDN fallback -->
 <script>
@@ -20,14 +101,14 @@ function loadThreeJS() {
     
     function tryNextCDN() {
         if (window.threeJsAttempts >= cdns.length) {
-            console.error('❌ Failed to load Three.js from all CDNs');
+            dashboardLogger.error('❌ Failed to load Three.js from all CDNs');
             return;
         }
         
         const script = document.createElement('script');
         script.src = cdns[window.threeJsAttempts];
         script.onload = function() {
-            console.log('✅ Three.js loaded successfully from:', cdns[window.threeJsAttempts]);
+            dashboardLogger.success('✅ Three.js loaded successfully from:', cdns[window.threeJsAttempts]);
             window.threeJsLoaded = true;
             // Initialize 3D Earth after Three.js loads
             if (typeof init3DEarth === 'function') {
@@ -35,7 +116,7 @@ function loadThreeJS() {
             }
         };
         script.onerror = function() {
-            console.warn('⚠️ Failed to load Three.js from:', cdns[window.threeJsAttempts]);
+            dashboardLogger.warn('⚠️ Failed to load Three.js from:', cdns[window.threeJsAttempts]);
             window.threeJsAttempts++;
             tryNextCDN();
         };
@@ -49,17 +130,15 @@ function loadThreeJS() {
 loadThreeJS();
 </script>
 
-{% endblock %},
-            {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/article_cards.css') }}">
+<link rel="stylesheet" href="/static/css/article_cards.css">
 <style>
     :root {
         --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
         --bg-secondary: #141824;
         --text-primary: #e8eaed;
         --text-secondary: #b0b8c4;
-        --accent-cyan: #00d4ff;
-        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+        --accent-cyan: #034CA3;
+        --accent-glow: 0 0 15px rgba(3, 76, 163, 0.4), 0 0 25px rgba(3, 76, 163, 0.2);
         --border-color: rgba(255, 255, 255, 0.1);
     }
 
@@ -85,6 +164,79 @@ loadThreeJS();
         opacity: 1; /* Full opacity */
         pointer-events: none;
     }
+
+    /* Hero loading skeleton */
+    .hero-skeleton {
+        animation: hero-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .hero-skeleton .hero-title,
+    .hero-skeleton .hero-text {
+        background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.06) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 8px;
+        color: transparent !important;
+        -webkit-text-fill-color: transparent;
+        user-select: none;
+    }
+    .hero-skeleton .hero-meta { opacity: 0; }
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    @keyframes hero-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    /* Stats counter animation */
+    .stat-value.counting {
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Active nav item highlight */
+    .nav-menu-item.active {
+        color: #fff !important;
+        background: linear-gradient(145deg, rgba(3, 76, 163, 0.7) 0%, rgba(21, 101, 192, 0.8) 50%, rgba(25, 118, 210, 0.7) 100%) !important;
+        border-color: rgba(3, 76, 163, 0.5) !important;
+        box-shadow: 0 4px 20px rgba(3, 76, 163, 0.3), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+    }
+
+    /* Smooth page section entry animation */
+    .news-section, .ai-analysis-section, .analytics-section {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .news-section.section-visible, .ai-analysis-section.section-visible, .analytics-section.section-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Toast notification improvements */
+    .toast-notification {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: rgba(10, 15, 44, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(3, 76, 163, 0.4);
+        border-radius: 12px;
+        padding: 16px 24px;
+        color: #fff;
+        font-size: 0.9rem;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        transform: translateX(120%);
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .toast-notification.show { transform: translateX(0); }
+    .toast-notification.success { border-color: rgba(34, 197, 94, 0.5); }
+    .toast-notification.error { border-color: rgba(239, 68, 68, 0.5); }
+    .toast-notification.info { border-color: rgba(3, 76, 163, 0.5); }
 
     /* Space background as fallback */
     .space-background {
@@ -112,9 +264,239 @@ loadThreeJS();
         overflow-x: hidden;
     }
 
+    /* Navigation Bar */
+    .top-navigation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: rgba(10, 15, 44, 0.95);
+        backdrop-filter: blur(15px);
+        border-bottom: 1px solid rgba(3, 76, 163, 0.3);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-brand {
+        color: var(--accent-cyan);
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+        font-family: 'Orbitron', monospace;
+    }
+
+    /* Hamburger Menu Button - Efecto Semáforo */
+    .hamburger-btn {
+        margin-left: auto;
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.8) 0%, 
+            rgba(40, 60, 100, 0.9) 50%, 
+            rgba(30, 50, 90, 0.8) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.3);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        
+        /* Efecto cilíndrico/cojinete 3D */
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+        transform: perspective(1000px) rotateX(5deg);
+    }
+
+    /* Entramado de semáforo para hamburger */
+    .hamburger-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 25% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 25% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            linear-gradient(45deg, transparent 46%, rgba(0,0,0,0.1) 46%, rgba(0,0,0,0.1) 54%, transparent 54%);
+        background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px, 24px 24px;
+        background-position: 0 0, 6px 0, 0 6px, 6px 6px, 0 0;
+        opacity: 0.3;
+        transition: opacity 0.4s ease;
+        z-index: 1;
+    }
+
+    /* Estado encendido en hover */
+    .hamburger-btn:hover {
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 1.0) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 1.0) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.8);
+        box-shadow: 
+            0 12px 40px rgba(3, 76, 163, 0.6),
+            inset 0 3px 0 rgba(255, 255, 255, 0.4),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(3, 76, 163, 0.4);
+        transform: perspective(1000px) rotateX(0deg) translateY(-3px);
+    }
+
+    .hamburger-btn:hover::before {
+        opacity: 0.6;
+        background-size: 10px 10px, 10px 10px, 10px 10px, 10px 10px, 20px 20px;
+    }
+
+    /* Líneas del hamburger */
+    .hamburger-btn span {
+        width: 20px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 1px;
+        margin: 2px 0;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .hamburger-btn:hover span {
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Menu desplegable con efecto semáforo */
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        right: -300px;
+        width: 280px;
+        height: calc(100vh - 70px);
+        background: rgba(10, 15, 44, 0.98);
+        backdrop-filter: blur(20px);
+        border-left: 2px solid rgba(3, 76, 163, 0.3);
+        transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 999;
+        padding: 20px;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-menu.open {
+        right: 0;
+    }
+
+    .nav-menu-item {
+        display: block;
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 15px 20px;
+        margin: 8px 0;
+        border-radius: 12px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 0.95rem;
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+        
+        /* Estado apagado - efecto semáforo */
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.6) 0%, 
+            rgba(40, 60, 100, 0.7) 50%, 
+            rgba(30, 50, 90, 0.6) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.2);
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        transform: perspective(1000px) rotateX(3deg);
+    }
+
+    /* Entramado para items del menu */
+    .nav-menu-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 1px, transparent 1px),
+            radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(45deg, transparent 47%, rgba(0,0,0,0.05) 47%, rgba(0,0,0,0.05) 53%, transparent 53%);
+        background-size: 8px 8px, 8px 8px, 16px 16px;
+        background-position: 0 0, 4px 4px, 0 0;
+        opacity: 0.4;
+        transition: opacity 0.4s ease;
+        z-index: 1;
+    }
+
+    /* Estado encendido en hover */
+    .nav-menu-item:hover {
+        color: #fff;
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 0.9) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 0.9) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.6);
+        box-shadow: 
+            0 8px 25px rgba(3, 76, 163, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.3),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 20px rgba(3, 76, 163, 0.3);
+        transform: perspective(1000px) rotateX(0deg) translateY(-2px);
+    }
+
+    .nav-menu-item:hover::before {
+        opacity: 0.7;
+        background-size: 6px 6px, 6px 6px, 12px 12px;
+    }
+
+    .nav-menu-item span {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Overlay para cerrar menu */
+    .nav-overlay {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 998;
+    }
+
+    .nav-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Responsive - ocultar menu en desktop */
+    @media (max-width: 768px) {
+        .hamburger-btn {
+            display: flex;
+        }
+    }
+
     /* News Analysis Dashboard Styles - MORE TRANSPARENT */
-    .news-dashboard {
-        padding: 0;
+    .news-Dashboard {
+        padding: 70px 0 0 0; /* Add top padding for fixed navbar */
         max-width: none;
         margin: 0;
         position: relative;
@@ -129,7 +511,7 @@ loadThreeJS();
         width: 100vw;
     }
     
-    .dashboard-content {
+    .Dashboard-content {
         max-width: 96%;
         margin: 0 auto !important;
         
@@ -147,8 +529,8 @@ loadThreeJS();
         margin-left: -50vw;
         margin-right: -50vw;
         
-        top: -80px;
-        margin-bottom: -80px;
+        top: 0; /* Remove negative top margin */
+        margin-bottom: 0; /* Remove negative bottom margin */
         z-index: 0;
         background: transparent;
         border-radius: 0;
@@ -158,108 +540,267 @@ loadThreeJS();
         text-align: center;
         margin: 0;
         color: #fff;
-        padding: 180px 0 80px 0;
+        padding: 120px 0 60px 0; /* Reduced top padding since navbar takes space */
         width: 100%;
         position: relative;
-        background: rgba(26, 32, 64, 0.25); /* MUCH more transparent */
+        background-image: url('/static/images/linkedin__00111_.jpeg?v={{ range(1, 99999999) | random }}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-blend-mode: overlay;
+        background-color: rgba(26, 32, 64, 0.4);
         backdrop-filter: blur(5px); /* Less blur */
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1); /* Lighter shadow */
     }
     
     .page-title {
         font-family: 'Orbitron', monospace;
-        font-size: clamp(2rem, 6vw, 4rem);
+        font-size: clamp(2.5rem, 7vw, 5rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #E3F2FD 0%, #2196F3 30%, #034CA3 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        width: 75%;
-        margin-left: auto;
-        margin-right: auto;
         line-height: 1.2;
-        word-wrap: break-word;
-        hyphens: auto;
-    }
-    
-    .page-subtitle {
-        font-size: 1.2rem;
-        color: var(--text-secondary);
-        margin-bottom: 30px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
-    /* Stats Cards - Responsive Grid */
+    .page-subtitle {
+        font-size: 1.4rem;
+        color: #e6f3ff;
+        margin-bottom: 30px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        font-weight: 400;
+    }
+
+    /* Stats Cards - Semáforo con Entramado Tridimensional */
     .news-stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 0;
+        gap: 20px;
         margin: 0;
         width: 100%;
         position: relative;
         left: 0;
         right: 0;
         z-index: 10;
+        padding: 20px;
     }
     
     .news-stat-card {
         background: transparent;
         border: none;
-        border-radius: 0;
-        padding: 20px;
+        border-radius: 15px;
+        padding: 25px;
         text-align: center;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(3px);
-        box-shadow: none;
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        backdrop-filter: blur(5px);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        
+        /* Efecto cilíndrico/cojinete 3D */
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+        
+        transform: perspective(1000px) rotateX(5deg);
+        transform-style: preserve-3d;
     }
-    
-    .news-stat-card:last-child {
-        border-right: none;
+
+    /* Entramado de semáforo usando CSS patterns */
+    .news-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 25% 25%, rgba(255,255,255,0.15) 3px, transparent 3px),
+            radial-gradient(circle at 75% 25%, rgba(255,255,255,0.15) 3px, transparent 3px),
+            radial-gradient(circle at 25% 75%, rgba(255,255,255,0.15) 3px, transparent 3px),
+            radial-gradient(circle at 75% 75%, rgba(255,255,255,0.15) 3px, transparent 3px),
+            linear-gradient(45deg, transparent 46%, rgba(0,0,0,0.1) 46%, rgba(0,0,0,0.1) 54%, transparent 54%),
+            linear-gradient(-45deg, transparent 46%, rgba(0,0,0,0.1) 46%, rgba(0,0,0,0.1) 54%, transparent 54%);
+        background-size: 20px 20px, 20px 20px, 20px 20px, 20px 20px, 40px 40px, 40px 40px;
+        background-position: 0 0, 10px 0, 0 10px, 10px 10px, 0 0, 0 0;
+        opacity: 0.3;
+        transition: opacity 0.4s ease;
+        z-index: 1;
     }
-    
+
+    /* Estados apagados (colores oscuros) */
     .news-stat-card:nth-child(1) {
-        background: linear-gradient(135deg, rgba(0, 119, 255, 0.4) 0%, rgba(30, 144, 255, 0.35) 100%);
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.8) 0%, 
+            rgba(40, 60, 100, 0.9) 50%, 
+            rgba(30, 50, 90, 0.8) 100%);
+        border: 2px solid rgba(70, 130, 255, 0.3);
     }
     
     .news-stat-card:nth-child(2) {
-        background: linear-gradient(135deg, rgba(220, 38, 38, 0.45) 0%, rgba(239, 68, 68, 0.4) 100%);
+        background: linear-gradient(145deg, 
+            rgba(120, 60, 60, 0.8) 0%, 
+            rgba(100, 40, 40, 0.9) 50%, 
+            rgba(90, 30, 30, 0.8) 100%);
+        border: 2px solid rgba(255, 70, 70, 0.3);
     }
     
     .news-stat-card:nth-child(3) {
-        background: linear-gradient(135deg, rgba(70, 234, 215, 0.4) 0%, rgba(45, 212, 191, 0.35) 100%);
+        background: linear-gradient(145deg, 
+            rgba(60, 120, 100, 0.8) 0%, 
+            rgba(40, 100, 80, 0.9) 50%, 
+            rgba(30, 90, 70, 0.8) 100%);
+        border: 2px solid rgba(70, 255, 130, 0.3);
     }
     
     .news-stat-card:nth-child(4) {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(37, 99, 235, 0.35) 100%);
+        background: linear-gradient(145deg, 
+            rgba(100, 80, 60, 0.8) 0%, 
+            rgba(120, 100, 40, 0.9) 50%, 
+            rgba(110, 90, 30, 0.8) 100%);
+        border: 2px solid rgba(255, 200, 70, 0.3);
     }
-    
-    .news-stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    }
-    
+
+    /* Estados encendidos (hover - colores brillantes como semáforos) */
     .news-stat-card:nth-child(1):hover {
-        background: linear-gradient(135deg, rgba(0, 119, 255, 0.6) 0%, rgba(30, 144, 255, 0.5) 100%);
+        background: linear-gradient(145deg, 
+            rgba(0, 119, 255, 1.0) 0%, 
+            rgba(30, 144, 255, 1.0) 50%, 
+            rgba(70, 160, 255, 1.0) 100%);
+        border: 2px solid rgba(0, 200, 255, 0.8);
+        box-shadow: 
+            0 12px 40px rgba(0, 119, 255, 0.6),
+            inset 0 3px 0 rgba(255, 255, 255, 0.4),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(0, 119, 255, 0.4);
+        transform: perspective(1000px) rotateX(0deg) translateY(-8px);
     }
     
     .news-stat-card:nth-child(2):hover {
-        background: linear-gradient(135deg, rgba(220, 38, 38, 0.65) 0%, rgba(239, 68, 68, 0.55) 100%);
+        background: linear-gradient(145deg, 
+            rgba(255, 50, 50, 1.0) 0%, 
+            rgba(255, 80, 80, 1.0) 50%, 
+            rgba(255, 100, 100, 1.0) 100%);
+        border: 2px solid rgba(255, 100, 100, 0.8);
+        box-shadow: 
+            0 12px 40px rgba(255, 50, 50, 0.6),
+            inset 0 3px 0 rgba(255, 255, 255, 0.4),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(255, 50, 50, 0.4);
+        transform: perspective(1000px) rotateX(0deg) translateY(-8px);
     }
     
     .news-stat-card:nth-child(3):hover {
-        background: linear-gradient(135deg, rgba(70, 234, 215, 0.6) 0%, rgba(45, 212, 191, 0.5) 100%);
+        background: linear-gradient(145deg, 
+            rgba(50, 255, 130, 1.0) 0%, 
+            rgba(70, 255, 150, 1.0) 50%, 
+            rgba(90, 255, 170, 1.0) 100%);
+        border: 2px solid rgba(100, 255, 150, 0.8);
+        box-shadow: 
+            0 12px 40px rgba(50, 255, 130, 0.6),
+            inset 0 3px 0 rgba(255, 255, 255, 0.4),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(50, 255, 130, 0.4);
+        transform: perspective(1000px) rotateX(0deg) translateY(-8px);
     }
     
     .news-stat-card:nth-child(4):hover {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.6) 0%, rgba(37, 99, 235, 0.5) 100%);
+        background: linear-gradient(145deg, 
+            rgba(255, 200, 50, 1.0) 0%, 
+            rgba(255, 220, 70, 1.0) 50%, 
+            rgba(255, 240, 90, 1.0) 100%);
+        border: 2px solid rgba(255, 220, 100, 0.8);
+        box-shadow: 
+            0 12px 40px rgba(255, 200, 50, 0.6),
+            inset 0 3px 0 rgba(255, 255, 255, 0.4),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(255, 200, 50, 0.4);
+        transform: perspective(1000px) rotateX(0deg) translateY(-8px);
+    }
+
+    /* Intensificar entramado en hover */
+    .news-stat-card:hover::before {
+        opacity: 0.6;
+        background-size: 15px 15px, 15px 15px, 15px 15px, 15px 15px, 30px 30px, 30px 30px;
+    }
+    
+    /* Contenido de las tarjetas por encima del entramado */
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 15px;
+        background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #333;
+        position: relative;
+        z-index: 2;
+        box-shadow: 
+            0 4px 15px rgba(0,0,0,0.3),
+            inset 0 2px 0 rgba(255,255,255,0.8),
+            inset 0 -2px 0 rgba(0,0,0,0.1);
+        transition: all 0.4s ease;
+    }
+    
+    .news-stat-card:hover .stat-icon {
+        transform: scale(1.1);
+        box-shadow: 
+            0 6px 20px rgba(0,0,0,0.4),
+            inset 0 3px 0 rgba(255,255,255,1),
+            inset 0 -3px 0 rgba(0,0,0,0.2);
+    }
+    
+    .stat-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: rgba(255, 255, 255, 0.95);
+        margin-bottom: 8px;
+        font-family: 'Orbitron', monospace;
+        position: relative;
+        z-index: 2;
+        text-shadow: 
+            0 2px 4px rgba(0,0,0,0.5),
+            0 0 10px rgba(255,255,255,0.3);
+        transition: all 0.4s ease;
+    }
+    
+    .news-stat-card:hover .stat-value {
+        color: #fff;
+        text-shadow: 
+            0 3px 6px rgba(0,0,0,0.7),
+            0 0 15px rgba(255,255,255,0.5);
+        transform: scale(1.05);
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+        position: relative;
+        z-index: 2;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        transition: all 0.4s ease;
+    }
+    
+    .news-stat-card:hover .stat-label {
+        color: rgba(255, 255, 255, 0.95);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
     }
     
     .stat-icon {
         width: 50px;
         height: 50px;
         margin: 0 auto 15px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #1565C0 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -574,7 +1115,7 @@ loadThreeJS();
         margin-right: -50vw;
         margin-top: 0 !important;
         padding: 0;
-        background: transparent;
+        background: rgba(0, 0, 0, 0.9);
         z-index: 1;
     }
 
@@ -617,7 +1158,7 @@ loadThreeJS();
     /* Mosaic Article Tiles - NUEVA ESTRUCTURA LIMPIA CON FLEX */
     .mosaic-article {
         background: rgba(26, 32, 64, 0.8);
-        border: 1px solid rgba(70, 234, 215, 0.3);
+        border: none; /* Eliminado el borde */
         border-radius: 8px;
         overflow: hidden;
         transition: all 0.3s ease;
@@ -769,7 +1310,7 @@ loadThreeJS();
         line-clamp: 3;
         font-weight: 700;
     }
-    /* REGLAS DE SEGURIDAD ABSOLUTA: SOLO TÍTULO EN EL MOSAICO */
+    /* REGLAS DE Security ABSOLUTA: SOLO TÍTULO EN EL MOSAICO */
     .mosaic-article * {
         /* Ocultar cualquier elemento que no sea el contenedor del título */
         display: none !important;
@@ -800,7 +1341,7 @@ loadThreeJS();
         display: none !important;
         visibility: hidden !important;
     }
-    /* REGLAS DE SEGURIDAD: EVITAR CONTENIDO EXTRA EN EL MOSAICO */
+    /* REGLAS DE Security: EVITAR Content EXTRA EN EL MOSAICO */
     .mosaic-article p:not(.mosaic-title-only),
     .mosaic-article span:not(.mosaic-title-only):not(.mosaic-risk-badge),
     .mosaic-article div:not(.mosaic-title-container):not(.mosaic-title-only):not(.mosaic-content) {
@@ -841,7 +1382,7 @@ loadThreeJS();
 
     .mosaic-article::before,
     .mosaic-article::after {
-        /* Eliminar cualquier pseudo-elemento que pueda añadir contenido */
+        /* Eliminar cualquier pseudo-elemento que pueda añadir Content */
         content: none !important;
     }
     
@@ -936,7 +1477,7 @@ loadThreeJS();
     }
 
     .btn-load-more {
-        background: linear-gradient(135deg, rgba(70, 234, 215, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.2) 0%, rgba(3, 76, 163, 0.2) 100%);
         border: 2px solid rgba(70, 234, 215, 0.4);
         color: #46ead7;
         padding: 15px 30px;
@@ -954,7 +1495,7 @@ loadThreeJS();
     }
 
     .btn-load-more:hover {
-        background: linear-gradient(135deg, rgba(70, 234, 215, 0.3) 0%, rgba(0, 212, 255, 0.3) 100%);
+        background: linear-gradient(135deg, rgba(70, 234, 215, 0.3) 0%, rgba(3, 76, 163, 0.3) 100%);
         border-color: rgba(70, 234, 215, 0.6);
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(70, 234, 215, 0.3);
@@ -979,8 +1520,8 @@ loadThreeJS();
         padding: 60px 0;
         background: linear-gradient(135deg, rgba(15, 25, 64, 0.95) 0%, rgba(25, 35, 78, 0.9) 50%, rgba(35, 45, 92, 0.95) 100%);
         backdrop-filter: blur(15px);
-        border-top: 1px solid rgba(0, 212, 255, 0.2);
-        border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+        border-top: 1px solid rgba(3, 76, 163, 0.2);
+        border-bottom: 1px solid rgba(3, 76, 163, 0.1);
     }
 
     .ai-analysis-header {
@@ -994,7 +1535,7 @@ loadThreeJS();
         font-size: clamp(1.8rem, 5vw, 3.2rem);
         font-weight: 700;
         margin-bottom: 15px;
-        background: linear-gradient(135deg, #00d4ff 0%, #7c4dff 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #7c4dff 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -1020,7 +1561,7 @@ loadThreeJS();
         }
         50% { 
             transform: scale(1.1);
-            color: #00d4ff;
+            color: #034CA3;
         }
     }
 
@@ -1040,7 +1581,7 @@ loadThreeJS();
 
     .ai-content-wrapper {
         background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(0, 212, 255, 0.2);
+        border: 1px solid rgba(3, 76, 163, 0.2);
         border-radius: 15px;
         padding: 30px;
         backdrop-filter: blur(10px);
@@ -1056,7 +1597,7 @@ loadThreeJS();
         left: 0;
         right: 0;
         height: 2px;
-        background: linear-gradient(90deg, transparent 0%, #00d4ff 50%, transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, #034CA3 50%, transparent 100%);
         animation: shimmer 3s ease-in-out infinite;
     }
 
@@ -1091,8 +1632,8 @@ loadThreeJS();
         font-size: 1.8rem;
         font-weight: 600;
         margin-bottom: 20px;
-        color: #00d4ff;
-        border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        color: #034CA3;
+        border-bottom: 2px solid rgba(3, 76, 163, 0.3);
         padding-bottom: 10px;
     }
 
@@ -1102,7 +1643,7 @@ loadThreeJS();
         color: rgba(255, 255, 255, 0.85);
         margin-bottom: 20px;
         font-style: italic;
-        border-left: 3px solid #00d4ff;
+        border-left: 3px solid #034CA3;
         padding-left: 15px;
         margin-left: 5px;
     }
@@ -1276,7 +1817,7 @@ loadThreeJS();
         font-size: clamp(2rem, 5vw, 3rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #46ead7 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #46ead7 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -1287,7 +1828,7 @@ loadThreeJS();
     }
 
     .analytics-title i {
-        background: linear-gradient(135deg, #00d4ff 0%, #46ead7 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #46ead7 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -1332,11 +1873,11 @@ loadThreeJS();
 
     .btn-analytics:hover,
     .btn-analytics.active {
-        background: linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(70, 234, 215, 0.3) 100%);
-        border-color: rgba(0, 212, 255, 0.5);
+        background: linear-gradient(135deg, rgba(3, 76, 163, 0.3) 0%, rgba(70, 234, 215, 0.3) 100%);
+        border-color: rgba(3, 76, 163, 0.5);
         color: #fff;
         transform: translateY(-1px);
-        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
+        box-shadow: 0 4px 15px rgba(3, 76, 163, 0.2);
     }
 
     .analytics-options {
@@ -1411,7 +1952,7 @@ loadThreeJS();
     .chart-container:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-        border-color: rgba(0, 212, 255, 0.3);
+        border-color: rgba(3, 76, 163, 0.3);
     }
 
     .chart-container.wide {
@@ -1468,7 +2009,7 @@ loadThreeJS();
         display: block;
         font-size: 2rem;
         font-weight: 700;
-        color: #00d4ff;
+        color: #034CA3;
         margin-bottom: 5px;
     }
 
@@ -1544,7 +2085,7 @@ loadThreeJS();
     /* Satellite zone overlays */
     .satellite-zone {
         fill: rgba(255, 255, 255, 0.1);
-        stroke: rgba(0, 212, 255, 0.6);
+        stroke: rgba(3, 76, 163, 0.6);
         stroke-width: 2;
         stroke-dasharray: 5,5;
         animation: satellite-pulse 3s infinite;
@@ -1558,9 +2099,9 @@ loadThreeJS();
     
     /* Notificaciones de zona satelital */
     .zone-notification {
-        border-left: 4px solid #00d4ff;
+        border-left: 4px solid #034CA3;
         background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        box-shadow: 0 8px 32px rgba(0, 212, 255, 0.3);
+        box-shadow: 0 8px 32px rgba(3, 76, 163, 0.3);
     }
     
     .zone-notification.priority-critical {
@@ -1623,7 +2164,7 @@ loadThreeJS();
     
     .progress-bar {
         height: 100%;
-        background: linear-gradient(90deg, #00d4ff, #0099cc);
+        background: linear-gradient(90deg, #034CA3, #1976D2);
         border-radius: 10px;
         transition: width 1s ease;
     }
@@ -1685,8 +2226,8 @@ loadThreeJS();
 
     .map-btn:hover,
     .map-btn.active {
-        background: rgba(0, 212, 255, 0.8);
-        border-color: rgba(0, 212, 255, 0.9);
+        background: rgba(3, 76, 163, 0.8);
+        border-color: rgba(3, 76, 163, 0.9);
         color: #fff;
     }
 
@@ -1745,7 +2286,7 @@ loadThreeJS();
     }
 
     .category-count {
-        color: #00d4ff;
+        color: #034CA3;
         font-weight: 600;
     }
 
@@ -1807,7 +2348,7 @@ loadThreeJS();
         padding: 10px 15px;
         background: rgba(255, 255, 255, 0.05);
         border-radius: 8px;
-        border-left: 3px solid var(--factor-color, #00d4ff);
+        border-left: 3px solid var(--factor-color, #034CA3);
     }
 
     .factor-name {
@@ -1817,7 +2358,7 @@ loadThreeJS();
 
     .factor-impact {
         font-size: 0.9rem;
-        color: var(--factor-color, #00d4ff);
+        color: var(--factor-color, #034CA3);
         font-weight: 600;
     }
 
@@ -2023,7 +2564,6 @@ loadThreeJS();
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        margin-top: 0;
         margin-bottom: 0;
         padding: 0;
         background: transparent;
@@ -2033,8 +2573,9 @@ loadThreeJS();
     .hero-article {
         position: relative;
         width: 100%;
-        height: 60vh;
-        min-height: 400px;
+        height: auto; /* Ajustar al alto natural de la imagen */
+        min-height: 300px; /* Altura mínima reducida */
+        max-height: 70vh; /* Altura máxima para evitar que sea demasiado alto */
         background-size: cover;
         background-position: center top;
         background-repeat: no-repeat;
@@ -2042,6 +2583,7 @@ loadThreeJS();
         align-items: flex-end;
         overflow: hidden;
         border: none;
+        aspect-ratio: 16/9; /* Mantener proporción de imagen estándar */
     }
 
     .hero-article::before {
@@ -2064,7 +2606,7 @@ loadThreeJS();
     .hero-content {
         position: relative;
         z-index: 2;
-        padding: 40px 5% 40px 4%; /* Reducido padding izquierdo para pegar más a la izquierda */
+        padding: 80px 5% 40px 4%; /* Aumentado padding-top de seguridad para evitar superposición */
         color: white;
         width: 100%;
         max-width: 1200px;
@@ -2074,13 +2616,13 @@ loadThreeJS();
     }
 
     .hero-title {
-        font-size: clamp(1.8rem, 4vw, 3.5rem);
+        font-size: clamp(1.6rem, 3.5vw, 3rem); /* Reducido tamaño de fuente para evitar superposición */
         font-weight: 700;
         line-height: 1.2;
         margin: 0 0 15px 0;
         text-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
         color: #fff;
-        max-width: 65%; /* Reducido para mejor lectura alineado a la izquierda */
+        max-width: 70%; /* Aumentado ancho del cuadro de texto */
         text-align: left;
     }
 
@@ -2230,7 +2772,7 @@ loadThreeJS();
         width: 95%;
         max-height: 90vh; /* Más alto para mejor uso del espacio */
         overflow: hidden;
-        border: 1px solid rgba(0, 212, 255, 0.3);
+        border: 1px solid rgba(3, 76, 163, 0.3);
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         transform: scale(0.9);
         transition: transform 0.3s ease;
@@ -2244,15 +2786,15 @@ loadThreeJS();
 
     .article-modal-header {
         padding: 20px 25px 15px;
-        border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        border-bottom: 1px solid rgba(3, 76, 163, 0.2);
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 163, 204, 0.1) 100%);
+        background: linear-gradient(135deg, rgba(3, 76, 163, 0.1) 0%, rgba(0, 163, 204, 0.1) 100%);
     }
 
     .article-modal-header h2 {
-        color: #00d4ff;
+        color: #034CA3;
         font-size: 1.4rem;
         font-weight: 600;
         margin: 0;
@@ -2301,7 +2843,7 @@ loadThreeJS();
 
     .modal-close-btn:hover {
         background: rgba(255, 255, 255, 0.1);
-        color: #00d4ff;
+        color: #034CA3;
         transform: rotate(90deg);
     }
 
@@ -2324,12 +2866,12 @@ loadThreeJS();
     }
 
     .article-modal-body::-webkit-scrollbar-thumb {
-        background: rgba(0, 212, 255, 0.5);
+        background: rgba(3, 76, 163, 0.5);
         border-radius: 4px;
     }
 
     .article-modal-body::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 212, 255, 0.7);
+        background: rgba(3, 76, 163, 0.7);
     }
 
     .modal-article-info {
@@ -2350,7 +2892,7 @@ loadThreeJS();
     }
 
     .modal-location i {
-        color: #00d4ff;
+        color: #034CA3;
     }
 
     .modal-risk-badge {
@@ -2377,7 +2919,7 @@ loadThreeJS();
     }
 
     .modal-summary h3 {
-        color: #00d4ff;
+        color: #034CA3;
         font-size: 1.1rem;
         margin: 0 0 15px 0;
         font-weight: 600;
@@ -2449,13 +2991,13 @@ loadThreeJS();
 
     .article-modal-footer {
         padding: 15px 25px 20px;
-        border-top: 1px solid rgba(0, 212, 255, 0.2);
-        background: linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, rgba(0, 163, 204, 0.05) 100%);
+        border-top: 1px solid rgba(3, 76, 163, 0.2);
+        background: linear-gradient(135deg, rgba(3, 76, 163, 0.05) 0%, rgba(0, 163, 204, 0.05) 100%);
         flex-shrink: 0; /* Footer fijo en la parte inferior */
     }
 
     .btn-read-original {
-        background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #1976D2 100%);
         color: white;
         border: none;
         padding: 12px 20px;
@@ -2472,9 +3014,9 @@ loadThreeJS();
     }
 
     .btn-read-original:hover {
-        background: linear-gradient(135deg, #0099cc 0%, #006699 100%);
+        background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        box-shadow: 0 5px 15px rgba(3, 76, 163, 0.4);
     }
 
     /* Mobile responsive */
@@ -2527,7 +3069,11 @@ loadThreeJS();
         top: -80px;
         margin-bottom: -80px;
         z-index: 0;
-        background: linear-gradient(135deg, rgba(26, 32, 64, 0.75) 0%, rgba(16, 24, 48, 0.8) 50%, rgba(20, 28, 56, 0.75) 100%);
+        background-image: url('/static/images/linkedin__00111_.jpeg?v=20250925');
+        background-size: cover;
+        background-position: center;
+        background-color: rgba(26, 32, 64, 0.7);
+        background-blend-mode: overlay;
         backdrop-filter: blur(10px);
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         padding: 180px 0 80px 0;
@@ -2536,24 +3082,27 @@ loadThreeJS();
 
     .page-title {
         font-family: 'Orbitron', monospace;
-        font-size: clamp(2rem, 6vw, 4rem);
+        font-size: clamp(2.5rem, 7vw, 5rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #e0ffff 0%, #87ceeb 30%, #40e0d0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         line-height: 1.2;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
     .page-subtitle {
-        font-size: 1.2rem;
-        color: var(--text-secondary);
+        font-size: 1.4rem;
+        color: #e6f3ff;
         margin-bottom: 30px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        font-weight: 400;
     }
 
     /* Content positioning after header */
-    .news-dashboard {
+    .news-Dashboard {
         position: relative;
         z-index: 2;
         max-width: 95%;
@@ -2561,8 +3110,40 @@ loadThreeJS();
         padding: 0 20px;
     }
 </style>
-{% endblock %},
-            {% block content %}
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="top-navigation">
+    <a href="/" class="nav-brand">🗺️ RiskMap</a>
+    
+    <!-- Hamburger Button con Efecto Semáforo -->
+    <button class="hamburger-btn" onclick="toggleNav()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Menu desplegable -->
+    <div class="nav-menu" id="navMenu">
+        <a href="/news-analysis" class="nav-menu-item"><span>📰 Análisis de Noticias</span></a>
+        <a href="/conflict-monitoring" class="nav-menu-item"><span>⚔️ Monitor de Conflictos</span></a>
+        <a href="/trends-analysis" class="nav-menu-item"><span>📈 Análisis de Tendencias</span></a>
+        <a href="/early-warning" class="nav-menu-item"><span>⚠️ Alertas Tempranas</span></a>
+        <a href="/executive-reports" class="nav-menu-item"><span>📋 Reportes Ejecutivos</span></a>
+        <a href="/data-intelligence" class="nav-menu-item"><span>🧠 Inteligencia de Datos</span></a>
+        <a href="/satellite-analysis" class="nav-menu-item"><span>🛰️ Análisis Satelital</span></a>
+        <a href="/video-surveillance" class="nav-menu-item"><span>📹 Vigilancia por Video</span></a>
+        <a href="/historical-analysis" class="nav-menu-item"><span>🏛️ Análisis Histórico</span></a>
+        <a href="/about" class="nav-menu-item"><span>ℹ️ Acerca de</span></a>
+        <div style="border-top: 1px solid rgba(3,76,163,0.3); margin: 12px 0;"></div>
+        <a href="/logs" class="nav-menu-item"><span>📝 Registros</span></a>
+        <a href="/settings" class="nav-menu-item"><span>⚙️ Configuración</span></a>
+    </div>
+    
+    <!-- Overlay para cerrar menu -->
+    <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
 <!-- 3D Earth Background -->
 <div class="space-background"></div>
 <div id="earth3d-container">
@@ -2575,7 +3156,7 @@ loadThreeJS();
     <p class="page-subtitle">Análisis de Noticias en Tiempo Real • Clasificación por Riesgo • Geolocalización Inteligente</p>
 </div>
 
-<div class="news-dashboard">
+<div class="news-Dashboard">
     <!-- Header and Statistics -->
     <div class="header-stats-container">
         <!-- Statistics Grid -->
@@ -2588,7 +3169,7 @@ loadThreeJS();
                 <div class="news-stat-card">
                     <div class="stat-icon">🚨</div>
                     <div class="stat-value" id="high-risk-count">{{ high_risk_count | default(0) }}</div>
-                    <div class="stat-label">Alertas Críticas</div>
+                    <div class="stat-label">Alerts Críticas</div>
                 </div>
                 <div class="news-stat-card">
                     <div class="stat-icon">🌍</div>
@@ -2605,10 +3186,10 @@ loadThreeJS();
 
     <!-- Hero Article Section - Featured Story -->
     <section class="hero-article-section" id="hero-section">
-        <div class="hero-article" id="hero-article" style="background-image: url('https://picsum.photos/1920/800?random=hero'); cursor: pointer;" onclick="openHeroArticleModal()">
+        <div class="hero-article hero-skeleton" id="hero-article" style="cursor: pointer;" onclick="openHeroArticleModal()">
             <div class="hero-content">
-                <h1 class="hero-title" id="hero-title">Escalada de tensiones geopolíticas marca el panorama internacional</h1>
-                <p class="hero-text" id="hero-text">Los últimos desarrollos en el escenario global han intensificado las preocupaciones sobre la estabilidad regional, con implicaciones que se extienden más allá de las fronteras inmediatas y afectan los mercados internacionales, las alianzas diplomáticas y la seguridad energética mundial.</p>
+                <h1 class="hero-title" id="hero-title">Cargando artículo destacado...</h1>
+                <p class="hero-text" id="hero-text">Obteniendo las últimas noticias geopolíticas del sistema de inteligencia artificial. Analizando fuentes y clasificando por nivel de riesgo global.</p>
                 <div class="hero-meta">
                     <span class="hero-location" id="hero-location">
                         <i class="fas fa-map-marker-alt"></i>
@@ -2621,7 +3202,7 @@ loadThreeJS();
     </section>
 
     <!-- Dashboard Content -->
-    <div class="dashboard-content">
+    <div class="Dashboard-content">
 
         <!-- News Mosaic Section - Full Width -->
         <section class="news-mosaic-section" id="news-mosaic-section">
@@ -2655,7 +3236,7 @@ loadThreeJS();
                 <div id="aiArticleContent" class="ai-content-wrapper">
                     <div class="ai-loading">
                         <i class="fas fa-brain fa-spin"></i>
-                        <div>Generando análisis con IA...</div>
+                        <div>Generando Análisis con IA...</div>
                     </div>
                 </div>
             </div>
@@ -2668,7 +3249,7 @@ loadThreeJS();
                     <i class="fas fa-chart-area"></i>
                     Análisis de Datos Geopolíticos
                 </h2>
-                <p class="analytics-subtitle">Análisis inteligente de tendencias de conflicto y riesgo global</p>
+                <p class="analytics-subtitle">Análisis inteligente de tendencias de conflicto y riesgo Global</p>
             </div>
 
             <!-- Analytics Controls -->
@@ -2696,8 +3277,8 @@ loadThreeJS();
             <!-- Analytics Grid -->
             <div class="section-header-with-status">
                 <h2 class="text-white mb-3">
-                    <i class="fas fa-chart-line me-2" style="color: #00d4ff;"></i>
-                    Análisis y Métricas en Tiempo Real
+                    <i class="fas fa-chart-line me-2" style="color: #034CA3;"></i>
+                    Analysis y Métricas en Tiempo Real
                 </h2>
             </div>
             
@@ -2770,7 +3351,7 @@ loadThreeJS();
                 </div>
 
                 <div class="chart-container wide" id="news-analysis">
-                    <h3 class="chart-title">Análisis de Fuentes</h3>
+                    <h3 class="chart-title">Analysis de Fuentes</h3>
                 
                     <div class="sources-grid">
                         <div class="sources-chart">
@@ -2798,7 +3379,7 @@ loadThreeJS();
             <div class="analytics-footer">
                 <div class="update-info">
                     <i class="fas fa-sync-alt"></i>
-                    <span>Última actualización: <span id="last-update">Cargando...</span></span>
+                    <span>Última actualización: <span id="last-update">Loading...</span></span>
                 </div>
                 <div class="ai-status">
                     <div class="ai-indicator active" id="ai-status">
@@ -2837,9 +3418,9 @@ loadThreeJS();
                 </div>
             </div>
             <div class="modal-summary">
-                <h3>Resumen del Artículo</h3>
+                <h3>Summary del Artículo</h3>
                 <div id="modal-summary-content" class="modal-summary-text">
-                    Cargando resumen...
+                    Loading Summary...
                 </div>
             </div>
             
@@ -2863,9 +3444,7 @@ loadThreeJS();
     </div>
 </div>
 
-{% block dashboard_js %}
 <!-- Dashboard-specific scripts loaded here -->
-{% endblock %}
 
 <script>
 // Cache buster: 2025-08-05-fix-v2
@@ -2965,7 +3544,7 @@ class ImageDeduplicationSystem {
                 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop',
                 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=300&fit=crop'
             ],
-            'international': [
+            'International': [
                 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=300&fit=crop',
                 'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=400&h=300&fit=crop'
             ]
@@ -2978,10 +3557,10 @@ class ImageDeduplicationSystem {
         }
         
         try {
-            // Crear hash basado en URL y contenido
+            // Crear hash basado en URL y Content
             const urlHash = await this.createSimpleHash(imageUrl);
             
-            // Intentar obtener hash del contenido real (si es accesible)
+            // Intentar obtener hash del Content real (si es accesible)
             try {
                 const response = await fetch(imageUrl, { mode: 'cors' });
                 if (response.ok) {
@@ -2992,7 +3571,7 @@ class ImageDeduplicationSystem {
                     return combinedHash;
                 }
             } catch (e) {
-                // Si no se puede acceder al contenido, usar solo URL hash
+                // Si no se puede acceder al Content, usar solo URL hash
             }
             
             this.imageHashCache.set(imageUrl, urlHash);
@@ -3039,12 +3618,12 @@ class ImageDeduplicationSystem {
         
         const topicKeywords = {
             'conflict': ['conflict', 'war', 'military', 'army', 'battle', 'fight', 'violence', 'soldier'],
-            'politics': ['politics', 'government', 'minister', 'president', 'election', 'vote', 'policy'],
+            'politics': ['politics', 'government', 'Minister', 'president', 'election', 'vote', 'policy'],
             'economy': ['economy', 'economic', 'market', 'business', 'trade', 'finance', 'money', 'bank'],
-            'international': ['international', 'global', 'world', 'country', 'nation', 'diplomatic']
+            'International': ['International', 'Global', 'world', 'country', 'nation', 'diplomatic']
         };
         
-        let bestTopic = 'international';
+        let bestTopic = 'International';
         let maxMatches = 0;
         
         for (const [topic, keywords] of Object.entries(topicKeywords)) {
@@ -3059,7 +3638,7 @@ class ImageDeduplicationSystem {
     }
     
     async getUniqueImageForArticle(article) {
-        console.log(`🔍 Buscando imagen única para: ${article.title?.substring(0, 50)}...`);
+        dashboardLogger.debug(`🔍 Buscando imagen única para: ${article.title?.substring(0, 50)}...`);
         
         // 1. Intentar imagen original del artículo
         const originalImages = [
@@ -3073,12 +3652,12 @@ class ImageDeduplicationSystem {
             const isUsed = await this.isImageUsed(imgUrl);
             if (!isUsed) {
                 await this.markImageAsUsed(imgUrl);
-                console.log('✅ Usando imagen original del artículo');
+                dashboardLogger.debug('✅ Usando imagen original del artículo');
                 return imgUrl;
             }
         }
         
-        // 2. Buscar imagen por tema específico
+        // 2. Search imagen por tema específico
         const topic = this.detectImageTopic(article);
         const topicImages = this.topicBasedImages[topic] || [];
         
@@ -3086,7 +3665,7 @@ class ImageDeduplicationSystem {
             const isUsed = await this.isImageUsed(imgUrl);
             if (!isUsed) {
                 await this.markImageAsUsed(imgUrl);
-                console.log(`✅ Usando imagen temática (${topic})`);
+                dashboardLogger.debug(`✅ Usando imagen temática (${topic})`);
                 return imgUrl;
             }
         }
@@ -3100,7 +3679,7 @@ class ImageDeduplicationSystem {
             const isUsed = await this.isImageUsed(imgUrl);
             if (!isUsed) {
                 await this.markImageAsUsed(imgUrl);
-                console.log('✅ Usando imagen de fallback');
+                dashboardLogger.debug('✅ Usando imagen de fallback');
                 return imgUrl;
             }
             
@@ -3109,7 +3688,7 @@ class ImageDeduplicationSystem {
         
         // 4. Si todas están usadas, generar imagen dinámica única
         const dynamicImage = this.generateDynamicImage(article);
-        console.log('✅ Generando imagen dinámica única');
+        dashboardLogger.debug('✅ Generando imagen dinámica única');
         return dynamicImage;
     }
     
@@ -3138,7 +3717,7 @@ class ImageDeduplicationSystem {
     }
     
     resetUsedImages() {
-        console.log('🔄 Reiniciando cache de imágenes usadas');
+        dashboardLogger.info('🔄 Reiniciando cache de imágenes usadas');
         this.usedImageHashes.clear();
         this.fallbackImageIndex = 0;
     }
@@ -3152,20 +3731,20 @@ class ImageDeduplicationSystem {
     }
 }
 
-// Instancia global del sistema anti-duplicados
+// Instancia Global del sistema anti-duplicados
 const imageDeduplication = new ImageDeduplicationSystem();
 
 // Función mejorada para obtener imagen alternativa
 async function getAlternativeImage(article, excludeUrls = []) {
-    console.log(`🔍 Obteniendo imagen alternativa para: ${article.title?.substring(0, 50)}...`);
+    dashboardLogger.info(`🔍 Obteniendo imagen alternativa para: ${article.title?.substring(0, 50)}...`);
     
     // Usar el sistema anti-duplicados avanzado
     try {
         const uniqueImage = await imageDeduplication.getUniqueImageForArticle(article);
-        console.log('✅ Imagen única obtenida:', uniqueImage);
+        dashboardLogger.success('✅ Imagen única obtenida:', uniqueImage);
         return uniqueImage;
     } catch (error) {
-        console.error('❌ Error obteniendo imagen única:', error);
+        dashboardLogger.error('❌ Error obteniendo imagen única:', error);
         
         // Fallback básico si el sistema avanzado falla
         const basicFallbacks = [
@@ -3181,7 +3760,7 @@ async function getAlternativeImage(article, excludeUrls = []) {
 
 // Synchronous fallback for getAlternativeImage when async is not possible
 function getAlternativeImageSync(article, excludeUrls = []) {
-    console.log(`🔍 Obteniendo imagen alternativa síncrona para: ${article.title?.substring(0, 50)}...`);
+    dashboardLogger.info(`🔍 Obteniendo imagen alternativa síncrona para: ${article.title?.substring(0, 50)}...`);
     
     // Basic fallback images
     const basicFallbacks = [
@@ -3206,7 +3785,7 @@ function getAlternativeImageSync(article, excludeUrls = []) {
     return selectedImage;
 }
 
-// Function to normalize image URLs for local images
+// Function to normalize image URLs for Local images
 function normalizeImageUrl(url) {
     console.log('🔍 normalizeImageUrl llamada con:', url);
     if (!url || typeof url !== 'string') {
@@ -3231,7 +3810,7 @@ function normalizeImageUrl(url) {
         }
     }
     
-    // Si es una imagen local (comienza con data\images o data/images)
+    // Si es una imagen Local (comienza con data\images o data/images)
     if (url.startsWith('data\\images\\') || url.startsWith('data/images/')) {
         // Extraer solo el nombre del archivo
         const filename = url.replace(/^data[\\\/]images[\\\/]/, '');
@@ -3250,7 +3829,7 @@ function getSmartFallbackImage(article) {
     const title = (article.title || '').toLowerCase();
     const source = (article.source || '').toLowerCase();
     
-    // Fallback específico por fuente
+    // Fallback específico por Source
     const sourceFallbacks = {
         'ap news': 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=600&fit=crop',
         'financial times': 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop',
@@ -3266,7 +3845,7 @@ function getSmartFallbackImage(article) {
         }
     }
     
-    // Fallback basado en contenido del título
+    // Fallback basado en Content del título
     if (title.includes('war') || title.includes('guerra') || title.includes('conflict') || title.includes('fighting')) {
         return 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=600&fit=crop';
     } else if (title.includes('economy') || title.includes('economia') || title.includes('market') || title.includes('financial')) {
@@ -3358,15 +3937,15 @@ async function translateText(text, sourceElement = null) {
         const data = await response.json();
         
         if (data.success && data.translated_text) {
-            console.log('✅ Traducción exitosa:', text.substring(0, 50) + '... → ' + data.translated_text.substring(0, 50) + '...');
+            dashboardLogger.success('✅ Traducción exitosa:', text.substring(0, 50) + '... → ' + data.translated_text.substring(0, 50) + '...');
             return data.translated_text;
-        } else {
-            console.warn('⚠️ Error en traducción:', data.error);
+            } else {
+                dashboardLogger.warn('⚠️ Error en traducción:', data.error);
             return text; // Return original if translation fails
         }
         
     } catch (error) {
-        console.error('❌ Error al traducir:', error);
+        dashboardLogger.error('❌ Error al traducir:', error);
         return text; // Return original if translation fails
     } finally {
         // Remove loading indicator
@@ -3382,7 +3961,7 @@ async function translateAndUpdateElement(element, originalText) {
     if (!element || !originalText) return;
     
     if (detectEnglish(originalText)) {
-        console.log('🔄 Detectado inglés, traduciendo:', originalText.substring(0, 50) + '...');
+        dashboardLogger.info('🔄 Detectado inglés, traduciendo:', originalText.substring(0, 50) + '...');
         const translatedText = await translateText(originalText, element);
         if (translatedText && translatedText !== originalText) {
             element.textContent = translatedText;
@@ -3393,7 +3972,7 @@ async function translateAndUpdateElement(element, originalText) {
 
 // Function to translate mosaic content
 async function translateMosaicContent() {
-    console.log('🔄 Iniciando traducción del contenido del mosaico...');
+    console.log('🔄 Iniciando traducción del Content del mosaico...');
     
     try {
         // Translate article titles in mosaic
@@ -3416,10 +3995,80 @@ async function translateMosaicContent() {
     }
 }
 
-// Initialize dashboard
+// Fetch with timeout to prevent hanging requests
+function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { ...options, signal: controller.signal })
+        .finally(() => clearTimeout(timeoutId));
+}
+
+// Animated counter for stat values
+function animateCounter(elementId, targetValue) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const current = parseInt(el.textContent) || 0;
+    if (current === targetValue) return;
+    const duration = 800;
+    const start = performance.now();
+    el.classList.add('counting');
+    function step(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(current + (targetValue - current) * eased);
+        if (progress < 1) requestAnimationFrame(step);
+        else el.classList.remove('counting');
+    }
+    requestAnimationFrame(step);
+}
+
+// Toast notification
+function showToast(message, type = 'info', duration = 4000) {
+    const existing = document.querySelector('.toast-notification');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+    toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${message}</span>`;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+    }, duration);
+}
+
+// Scroll-based section reveal (Intersection Observer)
+function initSectionReveal() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('section-visible');
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    document.querySelectorAll('.news-section, .ai-analysis-section, .analytics-section').forEach(s => observer.observe(s));
+}
+
+// Highlight active nav item based on current URL
+function highlightActiveNav() {
+    const path = window.location.pathname;
+    document.querySelectorAll('.nav-menu-item').forEach(item => {
+        const href = item.getAttribute('href');
+        if (href === path || (path === '/' && href === '/news-analysis')) {
+            item.classList.add('active');
+        }
+    });
+}
+
+// Initialize Dashboard
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar sistema anti-duplicados
     resetUsedImages();
+    
+    // Init UX enhancements
+    initSectionReveal();
+    highlightActiveNav();
     
     loadRealNewsData();  // Cargar datos reales primero
     
@@ -3431,7 +4080,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadMosaic('real', null);
     });
     
-    loadAiAnalysis();   // Cargar análisis periodístico por IA
+    loadAiAnalysis();   // Cargar Analysis periodístico por IA
     updateStatistics();
     
     // Auto-refresh every 5 minutes
@@ -3446,7 +4095,7 @@ document.addEventListener('DOMContentLoaded', function() {
             refreshLatest(); // Refresh even if hero fails
         });
         
-        loadAiAnalysis();  // Recargar análisis de IA
+        loadAiAnalysis();  // Recargar Analysis de IA
     }, 300000);
     
     // Initialize analytics after a delay to ensure main content loads first
@@ -3463,14 +4112,14 @@ function loadRealNewsData() {
         .then(data => {
             if (data.success && data.articles) {
                 window.realNewsData = data.articles;
-                console.log(`✅ Cargados ${data.articles.length} artículos reales de la base de datos`);
+                dashboardLogger.info(`✅ Cargados ${data.articles.length} artículos reales de la base de datos`);
                 
-                // Iniciar análisis de computer vision en background para artículos con imágenes
+                // Iniciar Analysis de computer vision en background para artículos con imágenes
                 const articlesWithImages = data.articles.filter(article => article.image_url);
                 if (articlesWithImages.length > 0) {
-                    console.log(`🔍 Iniciando análisis CV en background para ${articlesWithImages.length} artículos con imágenes`);
+                    dashboardLogger.info(`🔍 Iniciando Analysis CV en background para ${articlesWithImages.length} artículos con imágenes`);
                     
-                    // Llamar al endpoint de análisis en batch de forma asíncrona
+                    // Llamar al endpoint de Analysis en batch de forma asíncrona
                     fetch('/api/vision/analyze-article-images', {
                         method: 'POST',
                         headers: {
@@ -3483,30 +4132,30 @@ function loadRealNewsData() {
                     .then(response => response.json())
                     .then(result => {
                         if (result.success) {
-                            console.log(`🎯 Análisis CV iniciado para ${result.started_count || 0} artículos`);
+                            dashboardLogger.success(`🎯 Analysis CV iniciado para ${result.started_count || 0} artículos`);
                             
                             // Mostrar notificación al usuario
-                            showCVAnalysisNotification(`Análisis de computer vision iniciado para ${result.started_count || 0} imágenes`);
+                            showCVAnalysisNotification(`Analysis de computer vision iniciado para ${result.started_count || 0} imágenes`);
                         } else {
-                            console.warn('No se pudo iniciar análisis CV:', result.error);
+                            dashboardLogger.warn('No se pudo iniciar Analysis CV:', result.Error);
                         }
                     })
-                    .catch(error => {
-                        console.warn('Error iniciando análisis CV:', error);
+                    .catch(Error => {
+                        dashboardLogger.warn('Error iniciando Analysis CV:', error);
                     });
                 }
             } else {
-                console.warn('No se pudieron cargar artículos reales, usando datos mock');
+                dashboardLogger.warn('No se pudieron cargar artículos reales, usando datos mock');
                 window.realNewsData = [];
             }
         })
-        .catch(error => {
-            console.error('Error cargando datos reales:', error);
+        .catch(Error => {
+            dashboardLogger.error('Error Loading datos reales:', error);
             window.realNewsData = [];
         });
 }
 
-// Mostrar notificación de análisis CV
+// Mostrar notificación de Analysis CV
 function showCVAnalysisNotification(message) {
     // Crear elemento de notificación
     const notification = document.createElement('div');
@@ -3558,7 +4207,7 @@ function loadAiAnalysis() {
     aiContent.innerHTML = `
         <div class="ai-loading">
             <i class="fas fa-brain fa-spin"></i>
-            <div>Generando análisis periodístico con IA...</div>
+            <div>Generando Analysis periodístico con IA...</div>
         </div>
     `;
     
@@ -3574,13 +4223,13 @@ function loadAiAnalysis() {
                     // Formato estructurado con title, subtitle, content
                     analysisContent = `
                         <div class="ai-analysis-article">
-                            <h1>${data.analysis.title || 'Análisis Geopolítico Global'}</h1>
+                            <h1>${data.analysis.title || 'Analysis Geopolítico Global'}</h1>
                             ${data.analysis.subtitle ? `<h2 class="analysis-subtitle">${data.analysis.subtitle}</h2>` : ''}
                             <div class="article-content">
-                                ${(data.analysis.content || data.analysis.analysis || 'Análisis no disponible').replace(/\n/g, '</div><div class="article-paragraph">')}
+                                ${(data.analysis.content || data.analysis.analysis || 'Analysis no disponible').replace(/\n/g, '</div><div class="article-paragraph">')}
                             </div>
                             <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem; color: rgba(255,255,255,0.7);">
-                                <i class="fas fa-robot"></i> Análisis generado automáticamente basado en ${data.articles_count || 'múltiples'} artículos
+                                <i class="fas fa-robot"></i> Analysis generado automáticamente basado en ${data.articles_count || 'múltiples'} artículos
                                 <br><i class="fas fa-clock"></i> ${data.timestamp ? new Date(data.timestamp).toLocaleString('es-ES') : 'Ahora'}
                             </div>
                         </div>
@@ -3593,12 +4242,12 @@ function loadAiAnalysis() {
                     
                     analysisContent = `
                         <div class="ai-analysis-article">
-                            <h1>Análisis Geopolítico Global</h1>
+                            <h1>Analysis Geopolítico Global</h1>
                             <div class="article-paragraph">
                                 ${analysisText.replace(/\n/g, '</div><div class="article-paragraph">')}
                             </div>
                             <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem; color: rgba(255,255,255,0.7);">
-                                <i class="fas fa-robot"></i> Análisis generado automáticamente basado en ${data.articles_count || 'múltiples'} artículos
+                                <i class="fas fa-robot"></i> Analysis generado automáticamente basado en ${data.articles_count || 'múltiples'} artículos
                                 <br><i class="fas fa-clock"></i> ${data.timestamp ? new Date(data.timestamp).toLocaleString('es-ES') : 'Ahora'}
                             </div>
                         </div>
@@ -3610,29 +4259,29 @@ function loadAiAnalysis() {
                 // Show fallback content if analysis fails
                 aiContent.innerHTML = `
                     <div class="ai-analysis-article">
-                        <h1>Análisis Geopolítico Global</h1>
+                        <h1>Analysis Geopolítico Global</h1>
                         <div class="article-paragraph">
-                            ${data.fallback_analysis || 'El análisis geopolítico está siendo generado en segundo plano. Recarga la página en unos minutos para ver el contenido actualizado.'}
+                            ${data.fallback_analysis || 'El Analysis geopolítico está siendo generado en segundo plano. Recarga la página en unos minutos para ver el Content actualizado.'}
                         </div>
                         <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem; color: rgba(255,255,255,0.7);">
-                            <i class="fas fa-exclamation-triangle"></i> Estado: Generando análisis...
+                            <i class="fas fa-exclamation-triangle"></i> Status: Generando Analysis...
                         </div>
                     </div>
                 `;
             }
         })
-        .catch(error => {
-            console.error('Error cargando análisis AI:', error);
-            // Show error state
+        .catch(Error => {
+            dashboardLogger.error('Error Loading Analysis AI:', error);
+            // Show Error state
             aiContent.innerHTML = `
                 <div class="ai-analysis-article">
-                    <h1>Análisis Geopolítico Global</h1>
+                    <h1>Analysis Geopolítico Global</h1>
                     <div class="article-paragraph">
-                        El sistema de análisis por IA está procesando los últimos eventos geopolíticos. 
-                        Este proceso puede tardar varios minutos en completarse debido a la complejidad del análisis.
+                        El sistema de Analysis por IA está Processing los últimos eventos geopolíticos. 
+                        Este proceso puede tardar varios minutos en completarse debido a la complejidad del Analysis.
                     </div>
                     <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem; color: rgba(255,255,255,0.7);">
-                        <i class="fas fa-sync-alt fa-spin"></i> El análisis se está generando en segundo plano
+                        <i class="fas fa-sync-alt fa-spin"></i> El Analysis se está generando en segundo plano
                         <br><button onclick="loadAiAnalysis()" style="margin-top: 10px; padding: 8px 16px; background: rgba(0,212,255,0.3); border: 1px solid rgba(0,212,255,0.5); color: white; border-radius: 5px; cursor: pointer;">
                             <i class="fas fa-refresh"></i> Intentar recargar
                         </button>
@@ -3644,7 +4293,7 @@ function loadAiAnalysis() {
 
 // Load hero article (most important news)
 function loadHeroArticle() {
-    console.log('🏆 Cargando artículo héroe...');
+    dashboardLogger.info('🏆 Loading artículo héroe...');
     
     // Return a Promise to allow chaining
     return new Promise(async (resolve, reject) => {
@@ -3655,10 +4304,13 @@ function loadHeroArticle() {
             
             if (data.success && data.article) {
                 const heroArticle = data.article;
-                console.log('📰 Artículo héroe obtenido:', heroArticle.title);
+                dashboardLogger.success('📰 Artículo héroe obtenido:', heroArticle.title);
                 
                 // Store hero article data globally for modal and deduplication
                 window.currentHeroArticle = heroArticle;
+                
+                // Remove loading skeleton
+                document.getElementById('hero-article').classList.remove('hero-skeleton');
                 
                 // Update hero article content
                 const titleElement = document.getElementById('hero-title');
@@ -3666,12 +4318,12 @@ function loadHeroArticle() {
                 const locationElement = document.getElementById('hero-location-text');
                 
                 // ASEGURAR QUE SIEMPRE ESTÉ EN ESPAÑOL
-                console.log('🌐 Verificando y traduciendo contenido del héroe...');
+                dashboardLogger.info('🌐 Verificando y traduciendo Content del héroe...');
                 
                 // Traducir título si es necesario
                 let finalTitle = heroArticle.title;
                 if (needsTranslation(heroArticle.title)) {
-                    console.log('🔄 Traduciendo título del héroe...');
+                    dashboardLogger.debug('🔄 Traduciendo título del héroe...');
                     finalTitle = await translateText(heroArticle.title);
                 }
                 
@@ -3682,11 +4334,11 @@ function loadHeroArticle() {
                 // Traducir ubicación si es necesario
                 let finalLocation = heroArticle.location;
                 if (needsTranslation(finalLocation)) {
-                    console.log('🔄 Traduciendo ubicación del héroe...');
+                    dashboardLogger.debug('🔄 Traduciendo ubicación del héroe...');
                     finalLocation = await translateText(finalLocation);
                 }
                 
-                // Actualizar contenido en DOM
+                // Refresh Content en DOM
                 titleElement.textContent = finalTitle;
                 textElement.textContent = finalText;
                 locationElement.textContent = finalLocation;
@@ -3698,23 +4350,23 @@ function loadHeroArticle() {
                 riskBadge.textContent = translateRiskLevel(risk) + ' RIESGO';
                 
                 // ASEGURAR IMAGEN DE ALTA CALIDAD
-                console.log('🖼️ Optimizando imagen del héroe...');
+                dashboardLogger.info('🖼️ Optimizando imagen del héroe...');
                 let heroImageUrl = await getOptimizedHeroImage(heroArticle);
                 
                 // Aplicar la imagen final
                 const heroElement = document.getElementById('hero-article');
                 heroElement.style.backgroundImage = `url('${heroImageUrl}')`;
                 
-                console.log('✅ Héroe cargado exitosamente:', finalTitle);
+                dashboardLogger.success('✅ Héroe cargado exitosamente:', finalTitle);
                 resolve(heroArticle); // Resolve with the hero article data
                 
             } else {
-                console.warn('⚠️ No se pudo cargar el artículo héroe, usando datos de fallback');
+                dashboardLogger.warn('⚠️ No se pudo cargar el artículo héroe, usando datos de fallback');
                 await loadHeroArticleFallback();
                 resolve(null); // Resolve even with fallback
             }
         } catch (error) {
-            console.error('❌ Error cargando artículo héroe:', error);
+            dashboardLogger.error('❌ Error Loading artículo héroe:', error);
             try {
                 await loadHeroArticleFallback();
                 resolve(null); // Resolve even with fallback
@@ -3727,38 +4379,38 @@ function loadHeroArticle() {
 
 // Función para obtener imagen optimizada para el héroe
 async function getOptimizedHeroImage(article) {
-    console.log('🔍 Optimizando imagen para héroe...');
+    dashboardLogger.info('🔍 Optimizando imagen para héroe...');
     
-    // 1. Verificar si hay análisis CV disponible
+    // 1. Verificar si hay Analysis CV disponible
     if (article.id) {
         try {
             const cvAnalysis = await getImageAnalysis(article.id);
             if (cvAnalysis && cvAnalysis.optimized_url && cvAnalysis.quality_score > 0.6) {
-                console.log('✨ Usando imagen optimizada por CV:', cvAnalysis.optimized_url);
+                dashboardLogger.success('✨ Usando imagen optimizada por CV:', cvAnalysis.optimized_url);
                 return cvAnalysis.optimized_url;
             }
         } catch (cvError) {
-            console.warn('⚠️ Error obteniendo análisis CV para héroe:', cvError);
+            dashboardLogger.warn('⚠️ Error obteniendo Analysis CV para héroe:', cvError);
         }
     }
     
     // 2. Usar imagen original si es de buena calidad
     const originalImage = article.image_url || article.image;
     if (originalImage && isHighQualityImage(originalImage)) {
-        console.log('📸 Usando imagen original de alta calidad');
+        dashboardLogger.info('📸 Usando imagen original de alta calidad');
         return originalImage;
     }
     
-    // 3. Buscar imagen alternativa de alta calidad
+    // 3. Search imagen alternativa de alta calidad
     const alternativeImage = await getAlternativeImage(article, []);
     if (alternativeImage) {
-        console.log('🔄 Usando imagen alternativa de alta calidad');
+        dashboardLogger.info('🔄 Usando imagen alternativa de alta calidad');
         return alternativeImage;
     }
     
     // 4. Fallback a imagen de stock de alta calidad
-    const stockImage = getHighQualityStockImage(article.location || 'global');
-    console.log('🎨 Usando imagen de stock de alta calidad');
+    const stockImage = getHighQualityStockImage(article.location || 'Global');
+    dashboardLogger.info('🎨 Usando imagen de stock de alta calidad');
     return stockImage;
 }
 
@@ -3769,7 +4421,7 @@ function isHighQualityImage(imageUrl) {
     // Criterios de alta calidad:
     // - No es placeholder (no contiene 'placeholder', 'default', etc.)
     // - Resolución aparentemente alta (basado en URL)
-    // - Fuente confiable
+    // - Source confiable
     
     const lowQualityIndicators = [
         'placeholder',
@@ -3795,12 +4447,12 @@ function getHighQualityStockImage(location) {
         'africa': 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=1920&h=800&fit=crop',
         'america': 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=800&fit=crop',
         'medio oriente': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1920&h=800&fit=crop',
-        'global': 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=1920&h=800&fit=crop'
+        'Global': 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=1920&h=800&fit=crop'
     };
     
     const locationKey = Object.keys(stockImages).find(key => 
         location.toLowerCase().includes(key)
-    ) || 'global';
+    ) || 'Global';
     
     return stockImages[locationKey];
 }
@@ -3812,27 +4464,27 @@ async function loadHeroArticleFallback() {
     const heroArticles = [
         {
             title: "Crisis diplomática se intensifica en Europa Oriental con repercusiones globales",
-            text: "Los últimos desarrollos han escalado las tensiones internacionales, con movimientos militares estratégicos que señalan una posible reconfiguración del orden geopolítico en la región.",
+            text: "Los últimos desarrollos han escalado las Tensions internacionales, con movimientos militares estratégicos que señalan una posible reconfiguración del orden geopolítico en la Region.",
             location: "Europa Oriental",
             risk: "high",
             image: "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=1920&h=800&fit=crop&q=80"
         },
         {
-            title: "Tensiones comerciales amenazan la estabilidad económica mundial",
+            title: "Tensions comerciales amenazan la estabilidad económica mundial",
             text: "Las nuevas restricciones comerciales han generado ondas de choque en los mercados globales, elevando las preocupaciones sobre una posible guerra comercial de consecuencias devastadoras.",
             location: "Global",
             risk: "high", 
             image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=800&fit=crop&q=80"
         },
         {
-            title: "Desarrollos críticos en Medio Oriente alteran el equilibrio regional",
-            text: "Los eventos recientes han reconfigurado las alianzas tradicionales en la región, con implicaciones significativas para la seguridad energética global y la estabilidad internacional.",
+            title: "Desarrollos críticos en Medio Oriente alteran el equilibrio Regional",
+            text: "Los eventos recientes han reconfigurado las alianzas tradicionales en la Region, con implicaciones significativas para la Security energética Global y la estabilidad International.",
             location: "Medio Oriente",
             risk: "critical",
             image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1920&h=800&fit=crop&q=80"
         },
         {
-            title: "Escalada de tensiones en el Mar del Sur de China preocupa a la comunidad internacional",
+            title: "Escalada de Tensions en el Mar del Sur de China preocupa a la comunidad International",
             text: "Las maniobras militares recientes han elevado significativamente el riesgo de conflicto en una de las rutas comerciales más importantes del mundo.",
             location: "Asia-Pacífico",
             risk: "critical",
@@ -3840,7 +4492,7 @@ async function loadHeroArticleFallback() {
         },
         {
             title: "Crisis humanitaria se agrava en África Subsahariana",
-            text: "La situación humanitaria se ha deteriorado dramáticamente, con millones de personas en riesgo debido a la combinación de conflictos armados y crisis climática.",
+            text: "La situación humanitaria se ha deteriorado dramáticamente, con millones de personas en riesgo debido a la combinación de Conflicts armados y Crisis climática.",
             location: "África Subsahariana",
             risk: "high",
             image: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=1920&h=800&fit=crop&q=80"
@@ -3850,12 +4502,12 @@ async function loadHeroArticleFallback() {
     // Seleccionar artículo héroe aleatorio
     const heroArticle = heroArticles[Math.floor(Math.random() * heroArticles.length)];
     
-    // Actualizar contenido del héroe - SOLO TÍTULO
+    // Refresh Content del héroe - SOLO TÍTULO
     document.getElementById('hero-title').textContent = heroArticle.title;
     document.getElementById('hero-text').textContent = ''; // NO mostrar texto adicional
     document.getElementById('hero-location-text').textContent = heroArticle.location;
     
-    // Actualizar badge de riesgo
+    // Refresh badge de riesgo
     const riskBadge = document.getElementById('hero-risk-badge');
     riskBadge.className = `hero-risk-badge ${heroArticle.risk}`;
     riskBadge.textContent = translateRiskLevel(heroArticle.risk) + ' RIESGO';
@@ -3933,7 +4585,7 @@ function refreshLatest() {
         return;
     }
     
-    container.innerHTML = '<div class="latest-article-card"><div class="latest-article-content"><h3 class="latest-article-title">Actualizando...</h3><p class="latest-article-description">Obteniendo las últimas noticias...</p></div></div>';
+    container.innerHTML = '<div class="latest-article-card"><div class="latest-article-content"><h3 class="latest-article-title">Actualizando...</h3><p class="latest-article-description">Obteniendo las Latest News...</p></div></div>';
     
     // Simulate API call
     setTimeout(() => {
@@ -3968,7 +4620,7 @@ function loadMosaic(mode, buttonElement) {
     container.innerHTML = `
         <div class="mosaic-loading">
             <i class="fas fa-spinner fa-spin"></i>
-            <div>Cargando mosaico ${mode}...</div>
+            <div>Loading mosaico ${mode}...</div>
         </div>
     `;
     
@@ -3988,25 +4640,25 @@ async function getImageAnalysis(articleId) {
         const response = await fetch(`/api/vision/get-analysis/${articleId}`);
         if (response.ok) {
             const analysis = await response.json();
-            console.log(`🔍 Análisis CV obtenido para artículo ${articleId}:`, analysis);
+            console.log(`🔍 Analysis CV obtenido para artículo ${articleId}:`, analysis);
             return analysis;
         }
     } catch (error) {
-        console.warn(`No se pudo obtener análisis CV para artículo ${articleId}:`, error);
+        console.warn(`No se pudo obtener Analysis CV para artículo ${articleId}:`, error);
     }
     return null;
 }
 
 function optimizeImagePositioning(imageElement, analysis) {
     if (!analysis || !analysis.positioning_recommendation) {
-        console.log('No hay recomendaciones de posicionamiento CV disponibles');
+        dashboardLogger.debug('No hay recomendaciones de posicionamiento CV disponibles');
         return;
     }
 
     const positioning = analysis.positioning_recommendation;
     const container = imageElement.closest('.mosaic-article');
     
-    // Aplicar posicionamiento optimizado basado en análisis CV
+    // Aplicar posicionamiento optimizado basado en Analysis CV
     if (positioning.position) {
         const positions = {
             'top-left': '0% 0%',
@@ -4022,7 +4674,7 @@ function optimizeImagePositioning(imageElement, analysis) {
         
         const objectPosition = positions[positioning.position] || positions['center'];
         imageElement.style.objectPosition = objectPosition;
-        console.log(`📍 Posicionamiento CV aplicado: ${positioning.position} (${objectPosition})`);
+        dashboardLogger.debug(`📍 Posicionamiento CV aplicado: ${positioning.position} (${objectPosition})`);
     }
 
     // Agregar indicador de calidad visual
@@ -4061,21 +4713,21 @@ function optimizeImagePositioning(imageElement, analysis) {
         }
         
         container.appendChild(qualityIndicator);
-        console.log(`✨ Indicador de calidad CV añadido: ${(analysis.quality_score * 100).toFixed(0)}%`);
+        dashboardLogger.debug(`✨ Indicador de calidad CV añadido: ${(analysis.quality_score * 100).toFixed(0)}%`);
     }
 }
 
 async function applyComputerVisionOptimization(articleElement, article) {
     if (!article.id) {
-        console.warn('Artículo sin ID, no se puede aplicar análisis CV');
+        dashboardLogger.warn('Artículo sin ID, no se puede aplicar Analysis CV');
         return;
     }
 
     try {
-        // Obtener análisis CV para este artículo
+        // Obtener Analysis CV para este artículo
         const cvAnalysis = await getImageAnalysis(article.id);
         
-        if (cvAnalysis && !cvAnalysis.error) {
+        if (cvAnalysis && !cvAnalysis.Error) {
             // Encontrar la imagen en el elemento del artículo
             const imageDiv = articleElement.querySelector('.mosaic-article');
             
@@ -4096,7 +4748,7 @@ async function applyComputerVisionOptimization(articleElement, article) {
                     };
                     
                     imageDiv.style.backgroundPosition = positions[position] || positions['center'];
-                    console.log(`🎯 CV: Posición optimizada aplicada - ${position}`);
+                    dashboardLogger.debug(`🎯 CV: Posición optimizada aplicada - ${position}`);
                 }
                 
                 // Añadir indicador de calidad
@@ -4135,20 +4787,20 @@ async function applyComputerVisionOptimization(articleElement, article) {
                     }
                     
                     imageDiv.appendChild(qualityIndicator);
-                    console.log(`✨ Indicador de calidad CV añadido: ${(cvAnalysis.quality_score * 100).toFixed(0)}%`);
+                    dashboardLogger.debug(`✨ Indicador de calidad CV añadido: ${(cvAnalysis.quality_score * 100).toFixed(0)}%`);
                 }
             }
         } else {
-            console.log(`ℹ️ No hay análisis CV disponible para artículo ${article.id}`);
+            dashboardLogger.info(`ℹ️ No hay Analysis CV disponible para artículo ${article.id}`);
         }
     } catch (error) {
-        console.error(`Error aplicando optimización CV para artículo ${article.id}:`, error);
+        dashboardLogger.error(`Error aplicando optimización CV para artículo ${article.id}:`, error);
     }
 }
 
 // Apply computer vision optimization to all mosaic articles
 async function applyComputerVisionToMosaic() {
-    console.log('🎯 Aplicando optimización de Computer Vision al mosaico...');
+    dashboardLogger.info('🎯 Aplicando optimización de Computer Vision al mosaico...');
     
     try {
         const mosaicArticles = document.querySelectorAll('.mosaic-article');
@@ -4185,7 +4837,7 @@ async function applyComputerVisionToMosaic() {
                             }
                         } catch (jsonError) {
                             // If JSON parsing still fails, create a basic object manually
-                            console.warn('JSON parsing failed, creating basic object for article');
+                            dashboardLogger.warn('JSON parsing failed, creating basic object for article');
                             const basicData = {
                                 id: articleElement.dataset.articleId || Math.random(),
                                 title: 'Article',
@@ -4195,16 +4847,16 @@ async function applyComputerVisionToMosaic() {
                         }
                     }
                 } catch (parseError) {
-                    console.error('Error parsing article data for CV optimization:', parseError);
+                    dashboardLogger.error('Error parsing article data for CV optimization:', parseError);
                     // Continue with next article instead of stopping
                     continue;
                 }
             }
         }
         
-        console.log('✅ Optimización CV del mosaico completada');
+        dashboardLogger.success('✅ Optimización CV del mosaico completada');
     } catch (error) {
-        console.error('❌ Error aplicando CV al mosaico:', error);
+        dashboardLogger.error('❌ Error aplicando CV al mosaico:', error);
     }
 }
 
@@ -4213,15 +4865,22 @@ async function generateMosaicTiles(mode) {
     const container = document.getElementById('news-mosaic');
     let tilesHTML = '';
     let sampleArticles = [];
+    const traceMeta = {
+        mode: mode || 'initial',
+        cachedArticles: allLoadedNews.length,
+        heroId: (window.currentHeroArticle && window.currentHeroArticle.id) || null
+    };
+    const generationStart = performance.now();
+    dashboardLogger.info('🧩 Iniciando generación del mosaico', traceMeta);
     
     try {
         // Si es modo 'load_more', usar artículos ya cargados
         if (mode === 'load_more' && allLoadedNews.length > 0) {
-            console.log(`🔄 Usando artículos cargados para "cargar más" (${allLoadedNews.length} artículos)`);
+            dashboardLogger.info(`🔄 Usando artículos cargados para "cargar más" (${allLoadedNews.length} artículos)`);
             sampleArticles = allLoadedNews.slice(); // Copiar array
         } else {
             // Intentar cargar artículos deduplicados primero
-            console.log('🔄 Intentando cargar artículos deduplicados...');
+            dashboardLogger.info('🔄 Intentando cargar artículos deduplicados...');
             let response = await fetch('/api/articles/deduplicated?hours=24');
             
             if (response.ok) {
@@ -4229,12 +4888,12 @@ async function generateMosaicTiles(mode) {
                 if (data.success && data.mosaic && data.mosaic.length > 0) {
                     sampleArticles = data.mosaic;
                     
-                    // Inicializar array global con artículos iniciales
+                    // Inicializar array Global con artículos iniciales
                     if (allLoadedNews.length === 0) {
                         allLoadedNews = [...sampleArticles];
                     }
                     
-                    console.log(`✅ Cargados ${sampleArticles.length} artículos deduplicados`);
+                    dashboardLogger.success(`✅ Cargados ${sampleArticles.length} artículos deduplicados`);
                 } else {
                     throw new Error('No hay artículos deduplicados disponibles');
                 }
@@ -4243,7 +4902,7 @@ async function generateMosaicTiles(mode) {
             }
         }
     } catch (error) {
-        console.warn('⚠️ Error cargando artículos deduplicados, usando endpoint estándar:', error.message);
+        dashboardLogger.warn('⚠️ Error Loading artículos deduplicados, usando endpoint estándar:', error.message);
         
         // Fallback al endpoint estándar solo si no tenemos artículos cargados
         if (allLoadedNews.length === 0) {
@@ -4253,15 +4912,18 @@ async function generateMosaicTiles(mode) {
                 if (data.success && data.articles && data.articles.length > 0) {
                     sampleArticles = data.articles;
                     allLoadedNews = [...sampleArticles];
-                    console.log(`📰 Fallback: cargados ${sampleArticles.length} artículos estándar`);
+                    dashboardLogger.info(`📰 Fallback: cargados ${sampleArticles.length} artículos estándar`);
                 } else {
-                    console.error('❌ No se pudieron cargar artículos');
+                    dashboardLogger.error('❌ No se pudieron cargar artículos');
+                    try { if (typeof showNotification === 'function') showNotification('No se pudieron cargar artículos', 'error'); } catch (e) { console.warn('showNotification not available', e); }
                     container.innerHTML = '<div class="error-message">Error cargando noticias</div>';
+                    dashboardLogger.error('Mosaico detenido por falta de artículos válidos', traceMeta);
                     return;
                 }
             } catch (fallbackError) {
-                console.error('❌ Error en fallback:', fallbackError);
-                container.innerHTML = '<div class="error-message">Error de conexión</div>';
+                dashboardLogger.error('❌ Error en fallback:', fallbackError);
+                    container.innerHTML = '<div class="error-message">Error de conexión</div>';
+                dashboardLogger.error('Mosaico detenido por Error de fallback', traceMeta);
                 return;
             }
         } else {
@@ -4270,15 +4932,38 @@ async function generateMosaicTiles(mode) {
         }
     }
     
-    // Filtrar el artículo héroe del mosaico para evitar duplicación
+    // FILTRO ESTRICTO: Solo artículos con imagen Y título válidos
+    const originalArticlesCount = sampleArticles.length;
+    sampleArticles = sampleArticles.filter(article => {
+        // Verificar que tenga título válido
+        const hasTitle = article.title && article.title.trim() !== '' && article.title !== 'Sin título';
+        
+        // Verificar que tenga imagen válida
+        const hasImage = (article.original_image_url && article.original_image_url.startsWith('https://')) ||
+                        (article.image_url && article.image_url.startsWith('https://')) ||
+                        (article.image && article.image.startsWith('https://'));
+        
+        const isValid = hasTitle && hasImage;
+        if (!isValid) {
+            dashboardLogger.debug(`❌ Artículo filtrado - Título: "${article.title || 'VACÍO'}", Imagen: "${article.image_url || article.original_image_url || article.image || 'VACÍA'}"`);
+        }
+        
+        return isValid;
+    });
+    
+    if (originalArticlesCount !== sampleArticles.length) {
+        dashboardLogger.info(`🧹 Filtrado estricto: ${originalArticlesCount} -> ${sampleArticles.length} artículos válidos`);
+    }
+    
+    // Filter el artículo héroe del mosaico para evitar duplicación
     if (window.currentHeroArticle && window.currentHeroArticle.id) {
         const originalLength = sampleArticles.length;
         sampleArticles = sampleArticles.filter(article => article.id !== window.currentHeroArticle.id);
         if (originalLength !== sampleArticles.length) {
-            console.log(`🎯 Artículo héroe filtrado del mosaico (ID: ${window.currentHeroArticle.id})`);
+            dashboardLogger.info(`🎯 Artículo héroe filtrado del mosaico (ID: ${window.currentHeroArticle.id})`);
         }
     } else if (window.currentHeroArticle && window.currentHeroArticle.title) {
-        // Fallback: filtrar por título si no hay ID
+        // Fallback: Filter por título si no hay ID
         const heroTitle = window.currentHeroArticle.title.toLowerCase().trim();
         const originalLength = sampleArticles.length;
         sampleArticles = sampleArticles.filter(article => {
@@ -4286,17 +4971,18 @@ async function generateMosaicTiles(mode) {
             return articleTitle !== heroTitle;
         });
         if (originalLength !== sampleArticles.length) {
-            console.log(`🎯 Artículo héroe filtrado por título del mosaico: "${heroTitle}"`);
+            dashboardLogger.info(`🎯 Artículo héroe filtrado por título del mosaico: "${heroTitle}"`);
         }
     }
     
     // Si no hay artículos, mostrar mensaje
     if (!sampleArticles || sampleArticles.length === 0) {
         container.innerHTML = '<div class="no-articles">No hay artículos disponibles</div>';
+        dashboardLogger.warn('No hay artículos disponibles tras filtros del mosaico', traceMeta);
         return;
     }
     
-    console.log(`🎨 Generando mosaico con ${sampleArticles.length} artículos`);
+    dashboardLogger.info(`🎨 Generando mosaico con ${sampleArticles.length} artículos`, { mode: traceMeta.mode });
     
     // Resetear sistema anti-duplicados solo para primera carga
     if (mode !== 'load_more') {
@@ -4336,6 +5022,11 @@ async function generateMosaicTiles(mode) {
     }
     
     container.innerHTML = tilesHTML;
+    const generationDuration = (performance.now() - generationStart).toFixed(0);
+    dashboardLogger.success(`🎨 Mosaico renderizado (${sampleArticles.length} artículos)`, {
+        mode: traceMeta.mode,
+        durationMs: Number(generationDuration)
+    });
     
     // Translate mosaic content if in English
     setTimeout(async () => {
@@ -4352,7 +5043,7 @@ async function generateMosaicTiles(mode) {
             const loadMoreContainer = document.getElementById('load-more-container');
             if (loadMoreContainer) {
                 loadMoreContainer.style.display = 'block';
-                console.log('✅ Load more button activated');
+                dashboardLogger.info('✅ Load more button activated');
             }
         }
     }, 200);
@@ -4394,7 +5085,7 @@ function generateTile(article, index, cvAnalyses) {
     const riskClass = article.risk_level || article.risk || 'medium';
     const cvAnalysis = cvAnalyses[index];
     
-    // Determinar posicionamiento de fondo basado en análisis CV
+    // Determinar posicionamiento de fondo basado en Analysis CV
     let backgroundPosition = 'center center';
     if (cvAnalysis && cvAnalysis.positioning_recommendation) {
         const position = cvAnalysis.positioning_recommendation.position || 'center';
@@ -4429,42 +5120,55 @@ function generateTile(article, index, cvAnalyses) {
         `;
     }
     
-    // Obtener la imagen optimizada o usar fallback inteligente con sistema anti-duplicados
-    let imageUrl = validateAndImproveImage(article.image_url || article.image, article);
+    // Obtener la imagen ORIGINAL sin cambios ni anti-duplicados
+    let imageUrl = article.original_image_url || article.image_url || article.image || '';
     
-    // Verificar si la imagen ya está en uso y buscar alternativa si es necesario
-    if (isImageUsed(imageUrl)) {
-        console.log(`🔄 Imagen duplicada detectada para artículo "${article.title}", buscando alternativa`);
-        imageUrl = getAlternativeImageSync(article, [heroImageUrl]); // Excluir imagen del hero
+    // ELIMINAR SISTEMA ANTI-DUPLICADOS - Cada artículo conserva su imagen original
+    // if (isImageUsed(imageUrl)) {
+    //     console.log(`🔄 Imagen duplicada detectada para artículo "${article.title}", buscando alternativa`);
+    //     imageUrl = getAlternativeImageSync(article, [heroImageUrl]); // Excluir imagen del hero
+    // }
+    
+    // Si hay Analysis CV, usar imagen optimizada SOLO si mejora la calidad
+    if (cvAnalysis && cvAnalysis.optimized_url && cvAnalysis.quality_score > 0.7) {
+        imageUrl = cvAnalysis.optimized_url;
+        dashboardLogger.debug(`🔧 Usando imagen optimizada CV para artículo ${article.id}:`, cvAnalysis.optimized_url);
     }
     
-    // Si hay análisis CV, usar imagen optimizada si está disponible
-    if (cvAnalysis && cvAnalysis.optimized_url && cvAnalysis.optimized_url !== article.image_url) {
-        const optimizedUrl = validateAndImproveImage(cvAnalysis.optimized_url, article);
-        if (optimizedUrl && !isImageUsed(optimizedUrl)) {
-            imageUrl = optimizedUrl;
-            console.log(`🔧 Usando imagen optimizada CV para artículo ${article.id}:`, cvAnalysis.optimized_url);
-        }
-    }
+    // NO marcar imagen como usada - permitir que cada artículo tenga su imagen
+    // markImageAsUsed(imageUrl, 'mosaic');
     
-    // Marcar imagen como usada
-    markImageAsUsed(imageUrl, 'mosaic');
-    
-    // Agregar evento click para el modal
-    const clickHandler = `onclick="openArticleModal({
-        id: ${article.id || 'null'},
-        title: ${JSON.stringify((article.title || '').replace(/"/g, '\\"'))},
-        content: ${JSON.stringify((article.content || article.summary || '').replace(/"/g, '\\"'))},
-        location: ${JSON.stringify(article.location || article.country || article.region || '')},
-        image: ${JSON.stringify(article.image || '')},
-        original_url: ${JSON.stringify(article.original_url || article.url || '')},
-        risk_level: ${JSON.stringify(article.risk_level || article.risk || 'medium')},
-        published_date: ${JSON.stringify(article.published_date || article.date || '')},
-        source: ${JSON.stringify(article.source || '')}
-    })"`;
+    // Agregar evento click para el modal con TODOS los datos necesarios - ESCAPADO SEGURO
+    const escapeForClick = (str) => {
+        if (!str) return '';
+        return String(str)
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, ' ')
+            .replace(/\r/g, ' ');
+    };
+
+    // SOLUCIÓN DEFINITIVA - Usar event listeners en lugar de onclick inline
+    const uniqueId = `article_${article.id || Math.random().toString(36).substr(2, 9)}`;
+    window[uniqueId] = {
+        id: article.id || null,
+        title: article.title || '',
+        content: article.content || article.summary || '',
+        location: article.location || article.country || article.region || '',
+        image: imageUrl,
+        image_url: imageUrl,
+        original_image_url: article.original_image_url || '',
+        original_url: article.original_url || article.url || '',
+        risk_level: article.risk_level || article.risk || 'medium',
+        published_date: article.published_date || article.date || '',
+        source: article.source || '',
+        summary: article.summary || '',
+        auto_generated_summary: article.auto_generated_summary || ''
+    };
     
     return `
-        <div class="mosaic-article ${sizeClass}" style="background-image: url('${imageUrl}'); background-position: ${backgroundPosition}; cursor: pointer;" ${clickHandler} data-article-id="${article.id || ''}">
+        <div class="mosaic-article ${sizeClass}" style="background-image: url('${imageUrl}'); background-position: ${backgroundPosition}; cursor: pointer;" data-article-handler="${uniqueId}" data-article-id="${article.id || ''}">
             <div class="mosaic-content">
                 <h3 class="mosaic-title">${article.title || 'Noticia importante'}</h3>
                 <div class="mosaic-risk-badge ${article.risk_level || article.risk || 'medium'}">
@@ -4480,29 +5184,50 @@ function generateArticleTile(article, sizeClass, backgroundPosition) {
     // Determinar clase de riesgo
     const riskClass = article.risk_level || article.risk || 'medium';
     
-    // Obtener la imagen optimizada o usar fallback inteligente con sistema anti-duplicados
-    let imageUrl = validateAndImproveImage(article.image_url || article.image, article);
+    // Obtener la imagen ORIGINAL sin cambios - priorizar original_image_url
+    let imageUrl = article.original_image_url || article.image_url || article.image || '';
     
-    // Verificar si la imagen ya está en uso y buscar alternativa si es necesario
-    if (isImageUsed(imageUrl)) {
-        console.log(`🔄 Imagen duplicada detectada para artículo "${article.title}", buscando alternativa`);
-        imageUrl = getAlternativeImageSync(article, []); // Sin excluir hero por ahora
-    }
+    // ELIMINAR SISTEMA ANTI-DUPLICADOS - Cada artículo conserva su imagen original
+    // if (isImageUsed(imageUrl)) {
+    //     console.log(`🔄 Imagen duplicada detectada para artículo "${article.title}", buscando alternativa`);
+    //     imageUrl = getAlternativeImageSync(article, []); // Sin excluir hero por ahora
+    // }
     
-    // Marcar imagen como usada
-    markImageAsUsed(imageUrl, 'mosaic');
+    // NO marcar imagen como usada
+    // markImageAsUsed(imageUrl, 'mosaic');
     
-    // Agregar evento click para el modal
-    const clickHandler = `onclick="openArticleModal({
-        id: ${article.id || 'null'},
-        title: ${JSON.stringify((article.title || '').replace(/"/g, '\\"'))},
-        original_url: ${JSON.stringify(article.original_url || article.url || '')},
-        risk_level: ${JSON.stringify(riskClass)}
-    })"`;
+    // Agregar evento click para el modal con TODOS los datos necesarios - ESCAPADO SEGURO
+    const escapeForClick = (str) => {
+        if (!str) return '';
+        return String(str)
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, ' ')
+            .replace(/\r/g, ' ');
+    };
+
+    // SOLUCIÓN DEFINITIVA - Segunda función con event listeners
+    const uniqueId = `article_${article.id || Math.random().toString(36).substr(2, 9)}`;
+    window[uniqueId] = {
+        id: article.id || null,
+        title: article.title || '',
+        content: article.content || article.summary || '',
+        location: article.location || article.country || article.region || '',
+        image: imageUrl,
+        image_url: imageUrl,
+        original_image_url: article.original_image_url || '',
+        original_url: article.original_url || article.url || '',
+        risk_level: riskClass,
+        published_date: article.published_date || article.date || '',
+        source: article.source || '',
+        summary: article.summary || '',
+        auto_generated_summary: article.auto_generated_summary || ''
+    };
     
-    // DISEÑO FLEXBOX: IMAGEN DE FONDO + TÍTULO ABAJO (SIN CONTENIDO EXTRA)
+    // DISEÑO FLEXBOX: IMAGEN DE FONDO + TÍTULO ABAJO (SIN Content EXTRA)
     return `
-        <div class="mosaic-article ${sizeClass}" data-article-id="${article.id || ''}" style="cursor: pointer; background-image: url('${imageUrl}'); background-size: cover; background-position: center;" ${clickHandler}>
+        <div class="mosaic-article ${sizeClass}" data-article-id="${article.id || ''}" data-article-handler="${uniqueId}" style="cursor: pointer; background-image: url('${imageUrl}'); background-size: cover; background-position: center;">
             <div class="mosaic-title-container">
                 <div class="mosaic-title-only">${article.title || 'Noticia importante'}</div>
             </div>
@@ -4552,7 +5277,7 @@ function getMockNewsSet(setIndex) {
         // Set 1: 7 articles - DISEÑO ORIGINAL QUE FUNCIONABA BIEN
         [
             {
-                title: "Tensiones geopolíticas se intensifican en Europa Oriental",
+                title: "Tensions geopolíticas se intensifican en Europa Oriental",
                 location: "Europa Oriental",
                 risk: "high",
                 image: "https://picsum.photos/400/300?random=1"
@@ -4615,13 +5340,13 @@ function getMockNewsSet(setIndex) {
                 image: "https://picsum.photos/400/300?random=25"
             },
             {
-                title: "Negociaciones comerciales en el Mediterráneo",
+                title: "Negotiations comerciales en el Mediterráneo",
                 location: "Mediterráneo",
                 risk: "low",
                 image: "https://picsum.photos/400/300?random=26"
             },
             {
-                title: "Crisis migratoria intensifica tensiones regionales",
+                title: "Crisis migratoria intensifica Tensions regionales",
                 location: "Europa del Sur",
                 risk: "high",
                 image: "https://picsum.photos/400/300?random=27"
@@ -4642,19 +5367,19 @@ function getMockNewsSet(setIndex) {
         // Set 3: 7 articles - DISEÑO PUZZLE ANTERIOR (3x4 = 12 cuadrados completos)
         [
             {
-                title: "Escalada de conflictos en el Sudeste Asiático",
+                title: "Escalada de Conflicts en el Sudeste Asiático",
                 location: "Sudeste Asiático",
                 risk: "high",
                 image: "https://picsum.photos/400/300?random=8"
             },
             {
-                title: "Nuevas sanciones económicas globales",
+                title: "Nuevas Sanctions económicas globales",
                 location: "Global",
                 risk: "high",
                 image: "https://picsum.photos/400/300?random=9"
             },
             {
-                title: "Cambios en la política energética europea",
+                title: "Cambios en la Politics energética europea",
                 location: "Europa",
                 risk: "medium",
                 image: "https://picsum.photos/400/300?random=10"
@@ -4687,7 +5412,7 @@ function getMockNewsSet(setIndex) {
         // Set 4: 8 articles - DISEÑO ESQUEMA PAINT (3x4 = 12 cuadrados completos)
         [
             {
-                title: "Tensiones diplomáticas en Asia Central",
+                title: "Tensions diplomáticas en Asia Central",
                 location: "Asia Central",
                 risk: "medium",
                 image: "https://picsum.photos/400/300?random=15"
@@ -4705,7 +5430,7 @@ function getMockNewsSet(setIndex) {
                 image: "https://picsum.photos/400/300?random=17"
             },
             {
-                title: "Negociaciones comerciales en África Occidental",
+                title: "Negotiations comerciales en África Occidental",
                 location: "África Occidental",
                 risk: "low",
                 image: "https://picsum.photos/400/300?random=18"
@@ -4717,7 +5442,7 @@ function getMockNewsSet(setIndex) {
                 image: "https://picsum.photos/400/300?random=19"
             },
             {
-                title: "Cooperación internacional en la Antártida",
+                title: "Cooperación International en la Antártida",
                 location: "Antártida",
                 risk: "low",
                 image: "https://picsum.photos/400/300?random=20"
@@ -4747,14 +5472,14 @@ async function loadMoreNews() {
         return;
     }
     
-    console.log('📰 Cargando más noticias...');
+    console.log('📰 Loading más noticias...');
     
     const loadMoreBtn = document.querySelector('.btn-load-more');
     const originalText = loadMoreBtn.textContent;
     
-    // Mostrar estado de carga
+    // Mostrar Status de carga
     loadMoreBtn.disabled = true;
-    loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+    loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
     
     try {
         // Calcular el offset basado en artículos ya cargados
@@ -4764,7 +5489,7 @@ async function loadMoreNews() {
         const data = await response.json();
         
         if (data.success && data.articles && data.articles.length > 0) {
-            // Agregar nuevos artículos al array global
+            // Agregar nuevos artículos al array Global
             allLoadedNews = [...allLoadedNews, ...data.articles];
             
             // Verificar si hay más artículos
@@ -4794,17 +5519,17 @@ async function loadMoreNews() {
         }
         
     } catch (error) {
-        console.error('❌ Error cargando más noticias:', error);
+        dashboardLogger.error('❌ Error Loading más noticias:', error);
         
-        // Mostrar mensaje de error
+        // Mostrar mensaje de Error
         const container = document.getElementById('news-mosaic');
         const errorMessage = document.createElement('div');
         errorMessage.className = 'mosaic-error-message';
         errorMessage.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 20px; color: #ff4444; background: rgba(255,68,68,0.1); border-radius: 8px; margin: 10px 0;';
-        errorMessage.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error cargando más noticias. Intenta de nuevo.';
+        errorMessage.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error Loading más noticias. Intenta de nuevo.';
         container.appendChild(errorMessage);
         
-        // Remover mensaje de error después de 5 segundos
+        // Remover mensaje de Error después de 5 segundos
         setTimeout(() => {
             if (errorMessage.parentNode) {
                 errorMessage.remove();
@@ -4820,24 +5545,30 @@ async function loadMoreNews() {
 // Update statistics
 function updateStatistics() {
     // Fetch real statistics from API
-    fetch('/api/statistics')
+    fetch('/api/status')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const stats = data.statistics;
-                document.getElementById('total-articles').textContent = stats.total_articles || 0;
-                document.getElementById('high-risk-count').textContent = stats.risk_alerts || 0;
-                document.getElementById('countries-monitored').textContent = stats.countries_monitored || 0;
-                document.getElementById('sources-count').textContent = stats.data_sources || 0;
+                console.log('📊 Datos recibidos del API:', data);
                 
-                console.log('✅ Estadísticas actualizadas desde la base de datos');
+                document.getElementById('total-articles').textContent = data.total_articles || 0;
+                document.getElementById('high-risk-count').textContent = data.critical_alerts || 0;
+                document.getElementById('countries-monitored').textContent = data.regions_in_conflict || 0;
+                document.getElementById('sources-count').textContent = data.active_sources || 0;
+                
+                console.log('✅ Estadísticas actualizadas desde la base de datos:', {
+                    total_articles: data.total_articles,
+                    critical_alerts: data.critical_alerts,
+                    regions_in_conflict: data.regions_in_conflict,
+                    active_sources: data.active_sources
+                });
             } else {
                 console.warn('Error obteniendo estadísticas, usando valores mock');
                 updateStatisticsFallback();
             }
         })
         .catch(error => {
-            console.error('Error cargando estadísticas:', error);
+            console.error('Error Loading estadísticas:', error);
             updateStatisticsFallback();
         });
 }
@@ -4847,14 +5578,16 @@ function updateStatisticsFallback() {
     const stats = {
         totalArticles: Math.floor(Math.random() * 1000) + 500,
         highRiskCount: Math.floor(Math.random() * 20) + 5,
-        countriesMonitored: Math.floor(Math.random() * 50) + 120,
+        regionsInConflict: Math.floor(Math.random() * 15) + 8, // Regiones reales en conflicto
         sourcesCount: Math.floor(Math.random() * 100) + 50
     };
     
     document.getElementById('total-articles').textContent = stats.totalArticles;
     document.getElementById('high-risk-count').textContent = stats.highRiskCount;
-    document.getElementById('countries-monitored').textContent = stats.countriesMonitored;
+    document.getElementById('countries-monitored').textContent = stats.regionsInConflict;
     document.getElementById('sources-count').textContent = stats.sourcesCount;
+    
+    console.log('⚠️ Usando estadísticas fallback:', stats);
 }
 
 // ===========================================
@@ -4970,14 +5703,14 @@ function createAnalyticsCharts() {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Conflictos Activos',
+                        label: 'Conflicts Activos',
                         data: generateRandomData(7, 10, 50),
                         borderColor: '#ff4757',
                         backgroundColor: 'rgba(255, 71, 87, 0.1)',
                         tension: 0.4
                     },
                     {
-                        label: 'Tensiones',
+                        label: 'Tensions',
                         data: generateRandomData(7, 20, 80),
                         borderColor: '#ffa726',
                         backgroundColor: 'rgba(255, 167, 38, 0.1)',
@@ -5093,8 +5826,8 @@ function createAnalyticsCharts() {
 
 
 function renderNewsConflictsOnMap(map, conflicts, statistics) {
-    console.log('📰 Renderizando conflictos de NOTICIAS en el mapa (sin satélites)');
-    console.log(`📊 Procesando ${conflicts.length} conflictos de noticias`);
+    console.log('📰 Renderizando Conflicts de NOTICIAS en el mapa (sin satélites)');
+    console.log(`📊 Processing ${conflicts.length} Conflicts de noticias`);
     
     // Clear existing markers
     window.conflictMarkers.forEach(marker => map.removeLayer(marker));
@@ -5126,8 +5859,8 @@ function renderNewsConflictsOnMap(map, conflicts, statistics) {
                     <div class="popup-content">
                         <p><strong>📍 Ubicación:</strong> ${conflict.location}</p>
                         <p><strong>🎯 Riesgo:</strong> ${(conflict.risk_score * 100).toFixed(1)}%</p>
-                        <p><strong>📰 Fuente:</strong> ${conflict.source}</p>
-                        ${conflict.summary ? `<p><strong>📝 Resumen:</strong> ${conflict.summary.substring(0, 200)}...</p>` : ''}
+                        <p><strong>📰 Source:</strong> ${conflict.source}</p>
+                        ${conflict.summary ? `<p><strong>📝 Summary:</strong> ${conflict.summary.substring(0, 200)}...</p>` : ''}
                         <div class="popup-actions">
                             <a href="${conflict.url}" target="_blank" class="btn-popup">Ver Artículo</a>
                         </div>
@@ -5140,7 +5873,7 @@ function renderNewsConflictsOnMap(map, conflicts, statistics) {
             window.conflictMarkers.push(marker);
             
         } catch (error) {
-            console.error('Error adding news conflict marker:', error);
+            dashboardLogger.error('Error adding news conflict marker:', error);
         }
     });
     
@@ -5216,7 +5949,7 @@ function renderConflictsOnMap(map, conflicts, statistics, satelliteZones = []) {
                         🚨 ${conflict.title || 'Zona de Conflicto'}
                     </h4>
                     <p style="margin: 5px 0;"><strong>Ubicación:</strong> ${conflict.location || 'No especificada'}</p>
-                    <p style="margin: 5px 0;"><strong>Nivel de Riesgo:</strong> 
+                    <p style="margin: 5px 0;"><strong>Risk Level:</strong> 
                         <span style="background: ${riskColor}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">
                             ${translateRiskLevel(conflict.risk_level)}
                         </span>
@@ -5226,7 +5959,7 @@ function renderConflictsOnMap(map, conflicts, statistics, satelliteZones = []) {
                     ${conflict.description ? `<p style="margin: 5px 0;"><strong>Descripción:</strong> ${conflict.description}</p>` : ''}
                     <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
                         <button onclick="requestSatelliteImage(${conflict.latitude}, ${conflict.longitude}, '${conflict.location}')" 
-                                style="background: #00d4ff; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">
+                                style="background: #034CA3; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">
                             🛰️ Analizar con Satélite
                         </button>
                     </div>
@@ -5245,10 +5978,10 @@ function renderConflictsOnMap(map, conflicts, statistics, satelliteZones = []) {
             if (zone.coordinates && zone.coordinates.length >= 4) {
                 // Create polygon for satellite zone
                 const polygon = L.polygon(zone.coordinates, {
-                    color: '#00d4ff',
+                    color: '#034CA3',
                     weight: 2,
                     opacity: 0.8,
-                    fillColor: '#00d4ff',
+                    fillColor: '#034CA3',
                     fillOpacity: 0.1,
                     dashArray: '5, 5',
                     className: 'satellite-zone'
@@ -5256,10 +5989,10 @@ function renderConflictsOnMap(map, conflicts, statistics, satelliteZones = []) {
                 
                 polygon.bindPopup(`
                     <div style="color: #333;">
-                        <h4 style="margin: 0 0 10px 0; color: #00d4ff;">🛰️ Zona Satelital</h4>
+                        <h4 style="margin: 0 0 10px 0; color: #034CA3;">🛰️ Zona Satelital</h4>
                         <p><strong>Área:</strong> ${zone.area_km2 ? zone.area_km2.toFixed(2) + ' km²' : 'Calculando...'}</p>
                         <p><strong>Precisión:</strong> ${zone.precision || 'Alta'}</p>
-                        <p><strong>Estado:</strong> ${zone.status || 'Listo para análisis'}</p>
+                        <p><strong>Status:</strong> ${zone.status || 'Listo para Analysis'}</p>
                     </div>
                 `);
                 
@@ -5366,22 +6099,22 @@ function showNoConflictsOnMap(map, suggestion) {
         .setLatLng([20, 0])
         .setContent(`
             <div style="text-align: center; color: #333; padding: 10px;">
-                <h4 style="color: #22c55e; margin: 0 0 10px 0;">✅ No hay conflictos detectados</h4>
-                <p style="margin: 5px 0;">La IA no encontró zonas de conflicto activo.</p>
+                <h4 style="color: #22c55e; margin: 0 0 10px 0;">✅ No hay Conflicts detectados</h4>
+                <p style="margin: 5px 0;">La IA no encontró zonas de conflicto Active.</p>
                 ${suggestion ? `<p style="font-style: italic; color: #666;">${suggestion}</p>` : ''}
             </div>
         `)
         .openOn(map);
 }
 
-function showAIErrorOnMap(map, error, suggestion) {
-    console.log('❌ AI analysis error');
+function showAIErrorOnMap(map, Error, suggestion) {
+    console.log('❌ AI analysis Error');
     L.popup()
         .setLatLng([20, 0])
         .setContent(`
             <div style="text-align: center; color: #333; padding: 10px;">
-                <h4 style="color: #ef4444; margin: 0 0 10px 0;">⚠️ Error en análisis IA</h4>
-                <p style="margin: 5px 0;">${error || 'Error desconocido'}</p>
+                <h4 style="color: #ef4444; margin: 0 0 10px 0;">⚠️ Error en Analysis IA</h4>
+                <p style="margin: 5px 0;">${Error || 'Error desconocido'}</p>
                 ${suggestion ? `<p style="font-style: italic; color: #666;">${suggestion}</p>` : ''}
             </div>
         `)
@@ -5389,14 +6122,14 @@ function showAIErrorOnMap(map, error, suggestion) {
 }
 
 function showConnectionErrorOnMap(map) {
-    console.log('❌ Connection error');
+    console.log('❌ Connection Error');
     L.popup()
         .setLatLng([20, 0])
         .setContent(`
             <div style="text-align: center; color: #333; padding: 10px;">
                 <h4 style="color: #ef4444; margin: 0 0 10px 0;">📡 Error de conexión</h4>
-                <p style="margin: 5px 0;">No se pudo conectar con el sistema de análisis IA.</p>
-                <button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px; background: #00d4ff; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                <p style="margin: 5px 0;">No se pudo conectar con el sistema de Analysis IA.</p>
+                <button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px; background: #034CA3; color: white; border: none; border-radius: 3px; cursor: pointer;">
                     🔄 Reintentar
                 </button>
             </div>
@@ -5426,7 +6159,7 @@ function showRealConflictTooltip(element) {
             z-index: 1000;
             pointer-events: none;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 212, 255, 0.5);
+            border: 1px solid rgba(3, 76, 163, 0.5);
             box-shadow: 0 8px 25px rgba(0,0,0,0.8);
             max-width: 300px;
         `;
@@ -5445,8 +6178,8 @@ function showRealConflictTooltip(element) {
     
     tooltip.innerHTML = `
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <i class="fas fa-robot" style="color: #00d4ff; margin-right: 8px;"></i>
-            <strong style="color: #00d4ff;">Análisis IA</strong>
+            <i class="fas fa-robot" style="color: #034CA3; margin-right: 8px;"></i>
+            <strong style="color: #034CA3;">Analysis IA</strong>
         </div>
         <div style="margin-bottom: 10px;">
             <strong>${location}</strong>
@@ -5515,8 +6248,8 @@ function fetchAnalyticsData() {
                 updateAnalyticsWithMockData();
             }
         })
-        .catch(error => {
-            console.error('Error fetching analytics data:', error);
+        .catch(Error => {
+            dashboardLogger.error('Error fetching analytics data:', error);
             updateAnalyticsWithMockData();
         });
     
@@ -5635,7 +6368,7 @@ function updatePredictionDisplay(accuracy) {
     
     // Update factors
     const factors = [
-        { name: 'Análisis de Sentimientos', impact: 'Alto', color: '#f44336' },
+        { name: 'Analysis de Sentimientos', impact: 'Alto', color: '#f44336' },
         { name: 'Geolocalización', impact: 'Medio', color: '#ff9800' },
         { name: 'Tendencias Históricas', impact: 'Alto', color: '#4caf50' },
         { name: 'Redes Sociales', impact: 'Medio', color: '#2196f3' }
@@ -5701,8 +6434,8 @@ function exportGeoJSON() {
                 downloadGeoJSON(mockGeoJSON, true);
             }
         })
-        .catch(error => {
-            console.error('Error exporting GeoJSON:', error);
+        .catch(Error => {
+            dashboardLogger.error('Error exporting GeoJSON:', error);
             const mockGeoJSON = generateMockGeoJSON();
             downloadGeoJSON(mockGeoJSON, true);
         });
@@ -5739,7 +6472,7 @@ function saveGeoJSONInternally() {
                         console.log('✅ GeoJSON saved internally successfully');
                     }
                 })
-                .catch(error => {
+                .catch(Error => {
                     console.warn('Warning saving GeoJSON internally:', error);
                     document.getElementById('geojson-auto-status').textContent = 
                         'GeoJSON guardado localmente';
@@ -5753,8 +6486,8 @@ function saveGeoJSONInternally() {
                     'GeoJSON mock guardado localmente';
             }
         })
-        .catch(error => {
-            console.error('Error saving GeoJSON internally:', error);
+        .catch(Error => {
+            dashboardLogger.error('Error saving GeoJSON internally:', error);
             const mockGeoJSON = generateMockGeoJSON();
             localStorage.setItem('conflictZonesGeoJSON', JSON.stringify(mockGeoJSON));
             localStorage.setItem('conflictZonesTimestamp', new Date().toISOString());
@@ -5882,7 +6615,7 @@ class ArticleTranslator {
                 
                 return translatedData;
             } catch (error) {
-                console.error('❌ Error traduciendo artículo:', error);
+                dashboardLogger.error('❌ Error traduciendo artículo:', error);
                 this.isTranslating = false;
                 return articleData;
             }
@@ -5899,7 +6632,7 @@ class ArticleTranslator {
         const spanishIndicators = [
             'el', 'la', 'los', 'las', 'de', 'en', 'un', 'una', 'que', 'con',
             'por', 'para', 'del', 'al', 'se', 'no', 'es', 'son', 'fue', 'han',
-            'pero', 'como', 'más', 'todo', 'ser', 'año', 'día', 'tras', 'país'
+            'pero', 'como', 'más', 'todo', 'ser', 'año', 'día', 'tras', 'Country'
         ];
         
         const words = textToCheck.toLowerCase().split(/\s+/).slice(0, 50);
@@ -5938,7 +6671,7 @@ class ArticleTranslator {
             return translatedData;
             
         } catch (error) {
-            console.error('Error en translateArticleContent:', error);
+            dashboardLogger.error('Error en translateArticleContent:', error);
             return articleData;
         }
     }
@@ -5980,7 +6713,7 @@ class ArticleTranslator {
             return text;
             
         } catch (error) {
-            console.error('Error en translateText:', error);
+            dashboardLogger.error('Error en translateText:', error);
             return text;
         }
     }
@@ -5997,79 +6730,75 @@ class ArticleTranslator {
     }
 }
 
-// Instancia global del traductor
+// Instancia Global del traductor
 const articleTranslator = new ArticleTranslator();
 
-// Función mejorada para abrir modal con traducción automática
-async function openArticleModal(articleData) {
-    console.log('🔍 Abriendo modal para artículo:', articleData);
+// Sistema de traducción básico para títulos comunes (fallback)
+function basicTranslation(text) {
+    if (!text || typeof text !== 'string') return text;
     
-    // Traducir artículo antes de mostrar si es necesario
-    const translatedArticle = await articleTranslator.translateArticleBeforeDisplay(articleData);
+    // Diccionario básico de traducción inglés->español para términos geopolíticos
+    const translations = {
+        // Palabras clave geopolíticas
+        'War': 'Guerra', 'war': 'guerra',
+        'Conflict': 'Conflicto', 'conflict': 'conflicto',
+        'Crisis': 'Crisis', 'Crisis': 'Crisis',
+        'Election': 'Elección', 'election': 'elección', 'Elections': 'Elecciones',
+        'President': 'Presidente', 'president': 'presidente',
+        'Government': 'Gobierno', 'government': 'gobierno',
+        'Military': 'Military', 'military': 'Military',
+        'Attack': 'Ataque', 'attack': 'ataque',
+        'Security': 'Security', 'security': 'Security',
+        'Terror': 'Terror', 'terror': 'terror',
+        'Sanctions': 'Sanctions', 'sanctions': 'Sanctions',
+        'Treaty': 'Treaty', 'treaty': 'Treaty',
+        'Alliance': 'Alliance', 'Alliance': 'Alliance',
+        'Border': 'Frontera', 'border': 'frontera',
+        'Refugees': 'Refugiados', 'refugees': 'refugiados',
+        'Humanitarian': 'Humanitario', 'humanitarian': 'humanitario',
+        'Violence': 'Violencia', 'violence': 'violencia',
+        'Protest': 'Protesta', 'protest': 'protesta',
+        'Coup': 'Golpe', 'coup': 'golpe',
+        'Invasion': 'Invasión', 'invasion': 'invasión',
+        // Países y regiones
+        'Ukraine': 'Ucrania', 'Russia': 'Rusia', 'China': 'China',
+        'United States': 'Estados Unidos', 'USA': 'EE.UU.',
+        'Middle East': 'Medio Oriente', 'Europe': 'Europa',
+        'Africa': 'África', 'Asia': 'Asia'
+    };
     
-    // Set modal content with safe defaults
-    document.getElementById('modal-title').textContent = translatedArticle.title || 'Artículo sin título';
-    document.getElementById('modal-location').textContent = translatedArticle.location || 
-                                                          translatedArticle.country || 
-                                                          translatedArticle.region || 
-                                                          'Ubicación no especificada';
+    let translatedText = text;
     
-    // Mostrar indicador de traducción si aplica
-    const titleElement = document.getElementById('modal-title');
-    if (translatedArticle.is_translated) {
-        titleElement.innerHTML = `
-            <span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 3px; font-size: 0.7em; margin-right: 8px;">
-                🌐 TRADUCIDO
-            </span>
-            ${translatedArticle.title || 'Artículo sin título'}
-        `;
-    }
+    // Aplicar traducción de palabras clave
+    Object.entries(translations).forEach(([english, spanish]) => {
+        const regex = new RegExp(`\\b${english}\\b`, 'g');
+        translatedText = translatedText.replace(regex, spanish);
+    });
     
-    // Set risk badge with safe handling
-    const riskBadge = document.getElementById('modal-risk');
-    const riskLevel = translatedArticle.risk_level || translatedArticle.risk || 'medium';
-    riskBadge.className = `modal-risk-badge ${riskLevel}`;
-    riskBadge.textContent = `${translateRiskLevel(riskLevel)} RIESGO`;
-    
-    // Display hero image if available
-    const heroImageSection = document.getElementById('modal-hero-image');
-    const heroImage = document.getElementById('modal-image');
-    if (translatedArticle.image && translatedArticle.image !== 'None') {
-        heroImage.src = translatedArticle.image;
-        heroImage.alt = translatedArticle.title || 'Imagen del artículo';
-        heroImageSection.style.display = 'block';
-    } else {
-        heroImageSection.style.display = 'none';
-    }
-    
-    // Store original URL for later use
-    currentArticleUrl = translatedArticle.original_url || translatedArticle.url || '#';
-    
-    // NO CARGAR SUMMARY - SOLO TÍTULO
-    // ELIMINADO: Load summary with priority
-    const summaryToLoad = null; // NO mostrar summary
-    
-    loadArticleSummary(translatedArticle.id, summaryToLoad);
-    
-    // Load conflict zone information if location is available
-    loadConflictZoneInfo(translatedArticle);
-
-    // Show modal with animation
-    const modal = document.getElementById('article-modal');
-    modal.style.display = 'flex';
-    setTimeout(() => {
-        modal.classList.add('show');
-    }, 10);
-    
-    // Prevent body scroll
-    document.body.style.overflow = 'hidden';
+    return translatedText;
 }
 
 function openArticleModal(articleData) {
     console.log('🔍 Abriendo modal para artículo:', articleData);
     
-    // Set modal content with safe defaults
-    document.getElementById('modal-title').textContent = articleData.title || 'Artículo sin título';
+    // VALIDACIÓN: Verificar que tenemos los datos mínimos necesarios
+    if (!articleData || !articleData.title) {
+        dashboardLogger.error('❌ Error: Artículo sin datos válidos:', articleData);
+        alert('Error: No se pueden mostrar los detalles de esta noticia.');
+        return;
+    }
+    
+    // TRADUCCIÓN BÁSICA como fallback si el título parece estar en inglés
+    let finalTitle = articleData.title;
+    if (articleData.title && /^[A-Za-z\s\-\.,:;!?\d]+$/.test(articleData.title) && articleData.title.length > 10) {
+        finalTitle = basicTranslation(articleData.title);
+        if (finalTitle !== articleData.title) {
+            console.log('🔤 Traducción básica aplicada:', articleData.title, '->', finalTitle);
+        }
+    }
+    
+    // Set modal content with safe defaults - priorizar imagen original
+    document.getElementById('modal-title').textContent = finalTitle;
     document.getElementById('modal-location').textContent = articleData.location || 
                                                           articleData.country || 
                                                           articleData.region || 
@@ -6081,23 +6810,28 @@ function openArticleModal(articleData) {
     riskBadge.className = `modal-risk-badge ${riskLevel}`;
     riskBadge.textContent = `${translateRiskLevel(riskLevel)} RIESGO`;
     
-    // Display hero image if available
+    // Display hero image if available - USAR IMAGEN ORIGINAL
     const heroImageSection = document.getElementById('modal-hero-image');
     const heroImage = document.getElementById('modal-image');
-    if (articleData.image && articleData.image !== 'None') {
-        heroImage.src = articleData.image;
+    const imageToUse = articleData.original_image_url || articleData.image_url || articleData.image || '';
+    
+    if (imageToUse && imageToUse !== 'None') {
+        heroImage.src = imageToUse;
         heroImage.alt = articleData.title || 'Imagen del artículo';
         heroImageSection.style.display = 'block';
+        console.log('🖼️ Usando imagen original en modal:', imageToUse);
     } else {
         heroImageSection.style.display = 'none';
+        console.log('⚠️ Artículo sin imagen válida para el modal');
     }
     
     // Store original URL for later use
     currentArticleUrl = articleData.original_url || articleData.url || '#';
     
-    // Load summary with priority: auto_generated_summary > summary > default
+    // Load summary with priority: auto_generated_summary > summary > content > default
     const summaryToLoad = articleData.auto_generated_summary || 
                          articleData.summary || 
+                         articleData.content ||
                          null;
     
     loadArticleSummary(articleData.id, summaryToLoad);
@@ -6107,6 +6841,11 @@ function openArticleModal(articleData) {
 
     // Show modal with animation
     const modal = document.getElementById('article-modal');
+    if (!modal) {
+        dashboardLogger.error('❌ Error: Modal element not found');
+        return;
+    }
+    
     modal.style.display = 'flex';
     setTimeout(() => {
         modal.classList.add('show');
@@ -6114,6 +6853,8 @@ function openArticleModal(articleData) {
     
     // Prevent body scroll
     document.body.style.overflow = 'hidden';
+    
+    console.log('✅ Modal abierto correctamente');
 }
 
 function closeArticleModal() {
@@ -6209,13 +6950,13 @@ async function loadConflictZoneInfo(articleData) {
             }
         }
         
-        // Si no hay datos GDELT específicos, usar análisis basado en el artículo
+        // Si no hay datos GDELT específicos, usar Analysis basado en el artículo
         if (!hasRelevantGDELT) {
             await generateArticleBasedConflictInfo(articleData, conflictContent);
         }
         
     } catch (error) {
-        console.error('Error loading conflict zone info:', error);
+        dashboardLogger.error('Error loading conflict zone info:', error);
         await generateArticleBasedConflictInfo(articleData, conflictContent);
     }
 }
@@ -6224,7 +6965,7 @@ async function loadConflictZoneInfo(articleData) {
 async function generateArticleBasedConflictInfo(articleData, conflictContent) {
     try {
         // Get AI-generated description and intensity
-        let aiDescription = `Situación geopolítica en ${articleData.location || 'la región'} basada en análisis de inteligencia artificial.`;
+        let aiDescription = `Situación Geopolitics en ${articleData.location || 'la Region'} basada en Intelligence Analysis artificial.`;
         let calculatedIntensity = 50; // Default fallback
         
         // Try to get AI-generated description and intensity from backend
@@ -6273,27 +7014,27 @@ async function generateArticleBasedConflictInfo(articleData, conflictContent) {
         const conflictHtml = `
             <div class="conflict-details">
                 <div class="conflict-item">
-                    <h4><i class="fas fa-robot"></i> Análisis de Inteligencia Artificial</h4>
-                    <p><strong>Ubicación:</strong> ${articleData.location || 'Región específica'}</p>
+                    <h4><i class="fas fa-robot"></i> Intelligence Analysis Artificial</h4>
+                    <p><strong>Ubicación:</strong> ${articleData.location || 'Region específica'}</p>
                     <p><strong>Intensidad estimada:</strong> <span class="intensity-badge intensity-${getIntensityClass(calculatedIntensity)}">${calculatedIntensity}%</span></p>
                     <p><strong>Descripción:</strong> ${aiDescription}</p>
                     <p><strong>Fecha del artículo:</strong> ${displayDate}</p>
-                    <p><strong>Nivel de riesgo:</strong> <span class="risk-badge risk-${riskLevel.toLowerCase()}">${translateRiskLevel(riskLevel)}</span></p>
+                    <p><strong>Risk Level:</strong> <span class="risk-badge risk-${riskLevel.toLowerCase()}">${translateRiskLevel(riskLevel)}</span></p>
                 </div>
             </div>
             <p style="font-size: 0.8rem; color: #999; margin-top: 15px; font-style: italic;">
-                <i class="fas fa-brain"></i> Análisis generado por IA basado en el contenido del artículo
+                <i class="fas fa-brain"></i> Analysis generado por IA basado en el Content del artículo
             </p>
         `;
         
         conflictContent.innerHTML = conflictHtml;
         
     } catch (error) {
-        console.error('Error generating article-based conflict info:', error);
+        dashboardLogger.error('Error generating article-based conflict info:', error);
         conflictContent.innerHTML = `
             <div style="color: #ff6666; font-style: italic;">
                 <i class="fas fa-exclamation-triangle"></i>
-                Error al generar análisis de conflicto.
+                Error al generar Analysis de conflicto.
             </div>
         `;
     }
@@ -6324,35 +7065,95 @@ function loadArticleSummary(articleId, summary) {
     const summaryElement = document.getElementById('modal-summary-content');
     
     if (summary && summary.trim()) {
-        summaryElement.textContent = summary;
+        // Generar Summary inteligente si es muy largo
+        let finalSummary = summary;
+        if (summary.length > 500) {
+            // Limpiar HTML tags
+            finalSummary = summary.replace(/<[^>]*>/g, '').trim();
+            // Tomar primeras 3 oraciones o 300 caracteres
+            const sentences = finalSummary.split(/[.!?]+/);
+            if (sentences.length > 3) {
+                finalSummary = sentences.slice(0, 3).join('.') + '.';
+            } else if (finalSummary.length > 300) {
+                finalSummary = finalSummary.substring(0, 300) + '...';
+            }
+        }
+        
+        summaryElement.textContent = finalSummary;
         
         // Translate summary if in English
         setTimeout(async () => {
-            await translateAndUpdateElement(summaryElement, summary);
+            await translateAndUpdateElement(summaryElement, finalSummary);
         }, 100);
     } else {
         // Try to fetch summary from API if not provided
-        summaryElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando resumen...';
+        summaryElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Summary...';
         
         fetch(`/api/article/${articleId}/summary`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.summary) {
-                    summaryElement.textContent = data.summary;
+                    let finalSummary = data.summary;
+                    
+                    // Generar Summary inteligente
+                    if (finalSummary.length > 500) {
+                        finalSummary = finalSummary.replace(/<[^>]*>/g, '').trim();
+                        const sentences = finalSummary.split(/[.!?]+/);
+                        if (sentences.length > 3) {
+                            finalSummary = sentences.slice(0, 3).join('.') + '.';
+                        } else if (finalSummary.length > 300) {
+                            finalSummary = finalSummary.substring(0, 300) + '...';
+                        }
+                    }
+                    
+                    summaryElement.textContent = finalSummary;
                     
                     // Translate if in English
                     setTimeout(async () => {
-                        await translateAndUpdateElement(summaryElement, data.summary);
+                        await translateAndUpdateElement(summaryElement, finalSummary);
                     }, 100);
                 } else {
-                    summaryElement.textContent = 'No hay resumen disponible para este artículo.';
+                    // FALLBACK INTELIGENTE: generar descripción basada en título y ubicación
+                    summaryElement.textContent = generateFallbackSummary(articleId);
                 }
             })
-            .catch(error => {
-                console.error('Error loading summary:', error);
-                summaryElement.textContent = 'Error al cargar el resumen. Por favor, intente más tarde.';
+            .catch(Error => {
+                dashboardLogger.error('Error loading summary:', error);
+                summaryElement.textContent = generateFallbackSummary(articleId);
             });
     }
+}
+
+// Generar Summary de fallback inteligente
+function generateFallbackSummary(articleId) {
+    const modalTitle = document.getElementById('modal-title').textContent;
+    const modalLocation = document.getElementById('modal-location').textContent;
+    
+    let fallbackSummary = 'Este artículo geopolítico';
+    
+    if (modalTitle && modalTitle !== 'Artículo sin título') {
+        // Determinar el tipo de noticia basado en palabras clave
+        const title = modalTitle.toLowerCase();
+        if (title.includes('guerra') || title.includes('war') || title.includes('conflict')) {
+            fallbackSummary = 'Este artículo analiza un conflicto armado';
+        } else if (title.includes('eleccion') || title.includes('election') || title.includes('president')) {
+            fallbackSummary = 'Este artículo cubre eventos electorales';
+        } else if (title.includes('Crisis') || title.includes('emergency') || title.includes('tension')) {
+            fallbackSummary = 'Este artículo reporta una Crisis o situación tensa';
+        } else if (title.includes('sancion') || title.includes('sanction') || title.includes('Embargo')) {
+            fallbackSummary = 'Este artículo trata sobre Sanctions económicas';
+        } else {
+            fallbackSummary = 'Este artículo analiza eventos geopolíticos';
+        }
+    }
+    
+    if (modalLocation && modalLocation !== 'Ubicación no especificada') {
+        fallbackSummary += ` en ${modalLocation}`;
+    }
+    
+    fallbackSummary += '. Para obtener información completa, consulte el artículo original.';
+    
+    return fallbackSummary;
 }
 
 function openOriginalArticle() {
@@ -6374,7 +7175,7 @@ function openHeroArticleModal() {
             title: document.getElementById('hero-title').textContent || 'Artículo Destacado',
             location: document.getElementById('hero-location-text').textContent || 'Ubicación no disponible',
             risk: 'high',
-            auto_generated_summary: 'Este es el artículo destacado del momento. Para ver el resumen completo, visite la fuente original.',
+            auto_generated_summary: 'Este es el artículo destacado del momento. Para ver el Summary completo, visite la Source original.',
             original_url: '#'
         });
     }
@@ -6385,6 +7186,16 @@ document.addEventListener('click', function(event) {
     const modal = document.getElementById('article-modal');
     if (event.target === modal) {
         closeArticleModal();
+    }
+    
+    // NUEVO: Manejar clicks en artículos con data-article-handler
+    const articleElement = event.target.closest('[data-article-handler]');
+    if (articleElement) {
+        const handlerId = articleElement.getAttribute('data-article-handler');
+        if (handlerId && window[handlerId]) {
+            console.log('🔍 Abriendo artículo via event listener:', handlerId);
+            openArticleModal(window[handlerId]);
+        }
     }
 });
 
@@ -6432,11 +7243,11 @@ async function requestSatelliteImage(lat, lon, location) {
                 isLegacy: true
             });
         } else {
-            console.error('❌ Satellite analysis failed:', data.error);
-            showErrorNotification(`Error en análisis satelital: ${data.error}`);
+            dashboardLogger.error('❌ Satellite analysis failed:', data.error);
+            showErrorNotification(`Error en Analysis satelital: ${data.error}`);
         }
     } catch (error) {
-        console.error('❌ Satellite request error:', error);
+        dashboardLogger.error('❌ Satellite request Error:', error);
         showErrorNotification('Error conectando con el sistema satelital');
     }
 }
@@ -6451,10 +7262,10 @@ function showSatelliteZoneNotification(data) {
     notification.innerHTML = `
         <div class="notification-header">
             <div class="notification-icon">
-                <i class="fas fa-satellite-dish" style="color: #00d4ff;"></i>
+                <i class="fas fa-satellite-dish" style="color: #034CA3;"></i>
             </div>
             <div class="notification-title">
-                Análisis Satelital - Zona de Conflicto
+                Analysis Satelital - Zona de Conflicto
             </div>
             <div class="notification-priority ${priority}">
                 ${priority.toUpperCase()}
@@ -6464,7 +7275,7 @@ function showSatelliteZoneNotification(data) {
             <div class="zone-info">
                 <strong>Zona:</strong> ${location}<br>
                 <strong>ID:</strong> ${zone_id}<br>
-                <strong>Estado:</strong> <span class="status processing">Procesando...</span>
+                <strong>Status:</strong> <span class="status processing">Processing...</span>
             </div>
             <div class="progress-container">
                 <div class="progress-bar" style="width: 0%"></div>
@@ -6505,7 +7316,7 @@ function animateZoneProgress(notification, task_id) {
         
         if (progress >= 100) {
             clearInterval(interval);
-            statusSpan.textContent = 'Completado';
+            statusSpan.textContent = 'Completed';
             statusSpan.className = 'status completed';
             progressBar.style.backgroundColor = '#00ff88';
         }
@@ -6544,7 +7355,7 @@ function showSatelliteAnalysisModal(data) {
         min-width: 300px;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         z-index: 10000;
-        border: 1px solid rgba(0, 212, 255, 0.3);
+        border: 1px solid rgba(3, 76, 163, 0.3);
         transition: all 0.3s ease;
         transform: translateX(100%);
         font-family: 'Orbitron', monospace;
@@ -6553,8 +7364,8 @@ function showSatelliteAnalysisModal(data) {
     notification.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-satellite-dish" style="color: #00d4ff; font-size: 1.1rem;"></i>
-                <span style="font-weight: 600; font-size: 0.9rem;">Análisis Satelital</span>
+                <i class="fas fa-satellite-dish" style="color: #034CA3; font-size: 1.1rem;"></i>
+                <span style="font-weight: 600; font-size: 0.9rem;">Analysis Satelital</span>
             </div>
             <button onclick="closeSatelliteNotification('${locationKey}')" 
                     style="background: none; border: none; color: rgba(255,255,255,0.7); 
@@ -6567,18 +7378,18 @@ function showSatelliteAnalysisModal(data) {
         
         <div id="satellite-status-${locationKey}" style="margin-bottom: 10px;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                <i class="fas fa-spinner fa-spin" style="color: #00d4ff; font-size: 0.9rem;"></i>
+                <i class="fas fa-spinner fa-spin" style="color: #034CA3; font-size: 0.9rem;"></i>
                 <span style="font-size: 0.8rem;">Iniciando descarga...</span>
             </div>
             <div style="background: rgba(255,255,255,0.2); height: 4px; border-radius: 2px; overflow: hidden;">
                 <div id="satellite-progress-${locationKey}" 
-                     style="background: #00d4ff; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                     style="background: #034CA3; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
             </div>
         </div>
         
         <div style="display: flex; gap: 8px;">
             <button onclick="window.open('/satellite-analysis', '_blank')" 
-                    style="background: rgba(0,212,255,0.2); color: #00d4ff; border: 1px solid rgba(0,212,255,0.5); 
+                    style="background: rgba(0,212,255,0.2); color: #034CA3; border: 1px solid rgba(0,212,255,0.5); 
                            padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; flex: 1;">
                 📷 Galería
             </button>
@@ -6667,7 +7478,7 @@ async function trackSatelliteAnalysisProgressImproved(taskId, locationKey) {
                     updateSatelliteProgress(locationKey, 'failed', 0, recentAnalysis);
                 }
             } else {
-                // No hay análisis disponibles, continuar esperando
+                // No hay Analysis disponibles, continuar esperando
                 updateSatelliteProgress(locationKey, 'waiting', progressData.attempts);
                 setTimeout(checkProgress, 6000);
             }
@@ -6680,7 +7491,7 @@ async function trackSatelliteAnalysisProgressImproved(taskId, locationKey) {
                 updateSatelliteProgress(locationKey, 'connection_error', 0);
                 setTimeout(() => closeSatelliteNotification(locationKey), 5000);
             } else {
-                setTimeout(checkProgress, 8000); // Aumentar intervalo en caso de error
+                setTimeout(checkProgress, 8000); // Aumentar intervalo en caso de Error
             }
         }
     };
@@ -6701,11 +7512,11 @@ function updateSatelliteProgress(locationKey, status, progress, data = null) {
             progressBar.style.width = `${calcProgress}%`;
             statusDiv.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                    <i class="fas fa-satellite-dish fa-spin" style="color: #00d4ff; font-size: 0.9rem;"></i>
+                    <i class="fas fa-satellite-dish fa-spin" style="color: #034CA3; font-size: 0.9rem;"></i>
                     <span style="font-size: 0.8rem;">Analizando zona (${progress}/20)...</span>
                 </div>
                 <div style="background: rgba(255,255,255,0.2); height: 4px; border-radius: 2px; overflow: hidden;">
-                    <div style="background: #00d4ff; height: 100%; width: ${calcProgress}%; transition: width 0.3s ease;"></div>
+                    <div style="background: #034CA3; height: 100%; width: ${calcProgress}%; transition: width 0.3s ease;"></div>
                 </div>
             `;
             break;
@@ -6716,7 +7527,7 @@ function updateSatelliteProgress(locationKey, status, progress, data = null) {
             statusDiv.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                     <i class="fas fa-clock" style="color: #ffa726; font-size: 0.9rem;"></i>
-                    <span style="font-size: 0.8rem;">Preparando análisis...</span>
+                    <span style="font-size: 0.8rem;">Preparando Analysis...</span>
                 </div>
                 <div style="background: rgba(255,255,255,0.2); height: 4px; border-radius: 2px; overflow: hidden;">
                     <div style="background: #ffa726; height: 100%; width: ${waitProgress}%; transition: width 0.3s ease;"></div>
@@ -6730,7 +7541,7 @@ function updateSatelliteProgress(locationKey, status, progress, data = null) {
             statusDiv.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                     <i class="fas fa-check-circle" style="color: #22c55e; font-size: 0.9rem;"></i>
-                    <span style="font-size: 0.8rem;">✅ Completado (${detections} detecciones)</span>
+                    <span style="font-size: 0.8rem;">✅ Completed (${detections} detecciones)</span>
                 </div>
                 <div style="background: rgba(255,255,255,0.2); height: 4px; border-radius: 2px; overflow: hidden;">
                     <div style="background: #22c55e; height: 100%; width: 100%; transition: width 0.3s ease;"></div>
@@ -6744,7 +7555,7 @@ function updateSatelliteProgress(locationKey, status, progress, data = null) {
         case 'connection_error':
             progressBar.style.width = '100%';
             progressBar.style.background = '#ef4444';
-            const errorMsg = status === 'connection_error' ? 'Error de conexión' : 'Análisis falló';
+            const errorMsg = status === 'connection_error' ? 'Error de conexión' : 'Analysis falló';
             statusDiv.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                     <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 0.9rem;"></i>
@@ -6759,7 +7570,7 @@ function updateSatelliteProgress(locationKey, status, progress, data = null) {
 }
 
 function handleSatelliteTimeout(locationKey) {
-    console.log(`⏰ Timeout en análisis satelital para ${locationKey}`);
+    console.log(`⏰ Timeout en Analysis satelital para ${locationKey}`);
     updateSatelliteProgress(locationKey, 'connection_error', 0);
     setTimeout(() => closeSatelliteNotification(locationKey), 5000);
 }
@@ -6846,7 +7657,7 @@ async function triggerSatelliteAnalysis(satelliteZones) {
         }
         
         setTimeout(async () => {
-            console.log(`🛰️ Procesando zona ${i+1}/${priorityZones.length}: ${zone.location} (${zone.priority})`);
+            console.log(`🛰️ Processing zona ${i+1}/${priorityZones.length}: ${zone.location} (${zone.priority})`);
             
             try {
                 const response = await fetch('/api/satellite/analyze', {
@@ -6866,7 +7677,7 @@ async function triggerSatelliteAnalysis(satelliteZones) {
                 const result = await response.json();
                 
                 if (result.success) {
-                    console.log(`✅ Análisis satelital iniciado para zona: ${zone.location}`);
+                    console.log(`✅ Analysis satelital iniciado para zona: ${zone.location}`);
                     
                     // Mostrar notificación específica para zona de conflicto
                     showSatelliteZoneNotification({
@@ -6877,20 +7688,20 @@ async function triggerSatelliteAnalysis(satelliteZones) {
                         message: result.message
                     });
                 } else {
-                    console.error(`❌ Error en análisis satelital para zona ${zone.location}:`, result.error);
-                    showErrorNotification(`Error satelital en ${zone.location}: ${result.error}`);
+                    dashboardLogger.error(`❌ Error en Analysis satelital para zona ${zone.location}:`, result.Error);
+                    showErrorNotification(`Error satelital en ${zone.location}: ${result.Error}`);
                 }
                 
             } catch (error) {
-                console.error(`❌ Error de red para zona ${zone.location}:`, error);
-                showErrorNotification(`Error de conexión para análisis satelital de ${zone.location}`);
+                dashboardLogger.error(`❌ Error de red para zona ${zone.location}:`, error);
+                showErrorNotification(`Error de conexión para Analysis satelital de ${zone.location}`);
             }
             
         }, i * 3000); // Espaciar requests 3 segundos
     }
     
-    // Mostrar resumen
-    showNotification(`🛰️ Análisis satelital iniciado para ${priorityZones.length} zonas de conflicto`, 'info');
+    // Mostrar Summary
+    showNotification(`🛰️ Analysis satelital iniciado para ${priorityZones.length} zonas de conflicto`, 'info');
 }
 
 // Function to improve images using the new extractor
@@ -6916,7 +7727,7 @@ async function improveImages() {
         if (result.success) {
             console.log('✅ Imágenes mejoradas exitosamente:', result);
             
-            // Mostrar notificación de éxito
+            // Mostrar notificación de Success
             showNotification(`✅ Imágenes mejoradas: ${result.cleaned} limpiadas, ${result.updated} actualizadas`, 'success');
             
             // Recargar el mosaico para ver las mejoras
@@ -6930,12 +7741,12 @@ async function improveImages() {
             }, 2000);
             
         } else {
-            console.error('❌ Error mejorando imágenes:', result.error);
-            showNotification(`❌ Error mejorando imágenes: ${result.error}`, 'error');
+            dashboardLogger.error('❌ Error mejorando imágenes:', result.Error);
+            showNotification(`❌ Error mejorando imágenes: ${result.Error}`, 'error');
         }
         
     } catch (error) {
-        console.error('❌ Error en la solicitud de mejora de imágenes:', error);
+        dashboardLogger.error('❌ Error en la solicitud de mejora de imágenes:', error);
         showNotification('❌ Error de conexión al mejorar imágenes', 'error');
     } finally {
         button.innerHTML = originalText;
@@ -6944,44 +7755,7 @@ async function improveImages() {
 }
 
 // Function to show notifications
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
-        color: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        z-index: 10000;
-        max-width: 400px;
-        font-size: 14px;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    `;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    // Fade in
-    setTimeout(() => {
-        notification.style.opacity = '1';
-    }, 100);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
-    }, 5000);
-}
+// Use shared/shared_notification.js for notifications
 
 // =============== SIMPLE 3D EARTH BACKGROUND - GUARANTEED VISIBLE ===============
 let earthScene, earthCamera, earthRenderer, earth3DModel, animationId;
@@ -6992,9 +7766,9 @@ function init3DEarth() {
     try {
         // Check Three.js availability with multiple retries
         if (typeof THREE === 'undefined') {
-            console.error('❌ Three.js not available');
+            dashboardLogger.error('❌ Three.js not available');
             if (window.threeJsLoaded) {
-                console.log('🔄 Three.js marked as loaded but not in global scope, retrying...');
+                console.log('🔄 Three.js marked as loaded but not in Global scope, retrying...');
                 setTimeout(init3DEarth, 1000);
                 return;
             }
@@ -7008,7 +7782,7 @@ function init3DEarth() {
         // Get canvas
         const canvas = document.getElementById('earth3d-canvas');
         if (!canvas) {
-            console.error('❌ Canvas not found');
+            dashboardLogger.error('❌ Canvas not found');
             return;
         }
         
@@ -7035,20 +7809,21 @@ function init3DEarth() {
         
         console.log('🎬 Scene, camera, renderer created');
         
-        // VERY BRIGHT LIGHTS for maximum visibility
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // Bright ambient light
-        earthScene.add(ambientLight);
+        // SINGLE SUN-LIKE LIGHT SOURCE for realistic illumination
+        const sunLight = new THREE.DirectionalLight(0xfff8dc, 1.2); // Warm sunlight color
+        sunLight.position.set(10, 5, 8); // Position from side like the sun
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 50;
+        earthScene.add(sunLight);
         
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0); // Very bright directional
-        directionalLight.position.set(5, 5, 5);
-        directionalLight.castShadow = true;
-        earthScene.add(directionalLight);
+        // Very subtle ambient light to prevent complete darkness on night side
+        const spaceAmbient = new THREE.AmbientLight(0x111122, 0.1); // Very dim space lighting
+        earthScene.add(spaceAmbient);
         
-        const pointLight = new THREE.PointLight(0xffffff, 1.0, 100); // Additional point light
-        pointLight.position.set(-5, -5, 5);
-        earthScene.add(pointLight);
-        
-        console.log('💡 Ultra-bright lighting added for maximum visibility');
+        console.log('☀️ Realistic sun-like lighting added');
         
         // CREATE REALISTIC TEXTURED EARTH
         const geometry = new THREE.SphereGeometry(4, 128, 128); // High detail geometry
@@ -7156,7 +7931,7 @@ function init3DEarth() {
         console.log('� Dashboard Earth using realistic texture with continents and oceans');
         
     } catch (error) {
-        console.error('❌ 3D Earth error:', error);
+        dashboardLogger.error('❌ 3D Earth Error:', error);
     }
 }
 
@@ -7181,7 +7956,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ Three.js is available, initializing 3D Earth...');
             setTimeout(init3DEarth, 500);
         } else if (window.threeJsLoaded) {
-            console.log('⏳ Three.js marked as loaded but not in global scope, retrying...');
+            console.log('⏳ Three.js marked as loaded but not in Global scope, retrying...');
             setTimeout(attemptInit, 500);
         } else {
             console.log('⏳ Waiting for Three.js to load...');
@@ -7218,7 +7993,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Dashboard initialization completed - navbar routes preserved');
 }, 1000); // Wait 1 second after DOM load to ensure base navigation is initialized
 
-// Function to navigate programmatically (if needed for dashboard sections)
+// Function to navigate programmatically (if needed for Dashboard sections)
 window.navigateToSection = function(sectionId) {
     const section = document.getElementById(sectionId);
     if (section) {
@@ -7235,6 +8010,53 @@ window.navigateToSection = function(sectionId) {
         console.log(`🎯 Programmatically navigated to: ${sectionId}`);
     }
 };
+
+// Hamburger Menu Navigation con Efecto Semáforo
+function toggleNav() {
+    const navMenu = document.getElementById('navMenu');
+    const navOverlay = document.getElementById('navOverlay');
+    
+    if (navMenu.classList.contains('open')) {
+        // Cerrar menu
+        navMenu.classList.remove('open');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        console.log('🍔 Hamburger menu cerrado');
+    } else {
+        // Abrir menu
+        navMenu.classList.add('open');
+        navOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        console.log('🍔 Hamburger menu abierto - efecto semáforo activado');
+    }
+}
+
+// Cerrar menu al hacer clic en cualquier enlace
+document.addEventListener('DOMContentLoaded', function() {
+    const menuItems = document.querySelectorAll('.nav-menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            setTimeout(() => {
+                toggleNav(); // Cerrar menu después de navegación
+            }, 100);
+        });
+    });
+    
+    // Cerrar menu con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu.classList.contains('open')) {
+                toggleNav();
+            }
+        }
+    });
+    
+    console.log('🔥 Hamburger menu con efecto semáforo inicializado');
+});
 </script>
 
-{% endblock %}
+<script src="{{ url_for('static', filename='js/shared_notification.js') }}"></script>
+
+</body>
+</html>

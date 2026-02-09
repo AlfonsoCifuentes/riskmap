@@ -108,5 +108,8 @@ def validate_js_syntax(file_path):
         return True
 
 if __name__ == "__main__":
-    file_path = r"e:\Proyectos\VisualStudio\Upgrade_Data_AI\riskmap\src\web\templates\conflict_monitoring.html"
-    validate_js_syntax(file_path)
+    import argparse
+    parser = argparse.ArgumentParser(description='Validate inline JS in HTML files')
+    parser.add_argument('file', help='HTML file path to validate')
+    args = parser.parse_args()
+    validate_js_syntax(args.file)

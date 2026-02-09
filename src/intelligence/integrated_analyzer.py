@@ -174,7 +174,7 @@ class IntegratedGeopoliticalAnalyzer:
                 
                 cursor.execute("""
                     SELECT 
-                        location, country, region,
+                        location_extracted, country, region,
                         latitude, longitude, event_type, sub_event_type,
                         fatalities, event_date, actor1, actor2, notes,
                         COUNT(*) as event_count
@@ -182,7 +182,7 @@ class IntegratedGeopoliticalAnalyzer:
                     WHERE event_date >= ? 
                     AND latitude IS NOT NULL AND longitude IS NOT NULL
                     AND event_type IN ('Violence against civilians', 'Battles', 'Explosions/Remote violence', 'Riots', 'Strategic developments')
-                    GROUP BY location, country, latitude, longitude
+                    GROUP BY location_extracted, country, latitude, longitude
                     ORDER BY event_count DESC, fatalities DESC
                 """, (cutoff_date.strftime('%Y-%m-%d'),))
                 

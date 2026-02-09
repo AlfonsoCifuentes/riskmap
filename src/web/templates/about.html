@@ -1,8 +1,12 @@
-{% extends "base_navigation.html" %}
-
-{% block title %}Acerca de RISKMAP{% endblock %}
-
-{% block extra_css %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ℹ️ Acerca de RISKMAP</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
         :root {
             --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
@@ -538,10 +542,146 @@
         .capability-card:hover i {
             transform: scale(1.1);
         }
-    </style>
-{% endblock %}
 
-{% block content %}
+        /* Navigation Bar */
+        .top-navigation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: rgba(10, 15, 44, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+        }
+        .nav-brand {
+            color: var(--accent-cyan);
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            font-family: 'Orbitron', monospace;
+        }
+        .hamburger-btn {
+            margin-left: auto;
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(145deg, rgba(60, 80, 120, 0.8) 0%, rgba(40, 60, 100, 0.9) 50%, rgba(30, 50, 90, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.2);
+        }
+        .hamburger-btn:hover {
+            background: linear-gradient(145deg, rgba(0, 212, 255, 1.0) 0%, rgba(0, 163, 204, 1.0) 50%, rgba(0, 140, 180, 1.0) 100%);
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.6);
+        }
+        .hamburger-btn span {
+            width: 20px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 1px;
+            margin: 2px 0;
+            position: relative;
+            z-index: 2;
+        }
+        .nav-menu {
+            position: fixed;
+            top: 70px;
+            right: -300px;
+            width: 280px;
+            height: calc(100vh - 70px);
+            background: rgba(10, 15, 44, 0.98);
+            backdrop-filter: blur(20px);
+            border-left: 2px solid rgba(0, 212, 255, 0.3);
+            transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 999;
+            padding: 20px;
+        }
+        .nav-menu.open { right: 0; }
+        .nav-menu-item {
+            display: block;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background: linear-gradient(145deg, rgba(60, 80, 120, 0.6) 0%, rgba(40, 60, 100, 0.7) 50%, rgba(30, 50, 90, 0.6) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            transition: all 0.4s ease;
+        }
+        .nav-menu-item:hover {
+            color: #fff;
+            background: linear-gradient(145deg, rgba(0, 212, 255, 0.9) 0%, rgba(0, 163, 204, 1.0) 50%, rgba(0, 140, 180, 0.9) 100%);
+            transform: translateY(-2px);
+        }
+        .nav-menu-item span { position: relative; z-index: 2; }
+        .nav-overlay {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 70px);
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 998;
+        }
+        .nav-overlay.active { opacity: 1; visibility: visible; }
+        body {
+            margin: 0;
+            padding-top: 70px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+            min-height: 100vh;
+            color: #e8eaed;
+            overflow-x: hidden;
+        }
+        html {
+            background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="top-navigation">
+    <a href="/" class="nav-brand">🗺️ RiskMap</a>
+    <button class="hamburger-btn" onclick="toggleNav()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div class="nav-menu" id="navMenu">
+        <a href="/news-analysis" class="nav-menu-item"><span>📰 Análisis de Noticias</span></a>
+        <a href="/conflict-monitoring" class="nav-menu-item"><span>⚔️ Monitor de Conflictos</span></a>
+        <a href="/trends-analysis" class="nav-menu-item"><span>📈 Análisis de Tendencias</span></a>
+        <a href="/early-warning" class="nav-menu-item"><span>⚠️ Alertas Tempranas</span></a>
+        <a href="/executive-reports" class="nav-menu-item"><span>📋 Reportes Ejecutivos</span></a>
+        <a href="/data-intelligence" class="nav-menu-item"><span>🧠 Inteligencia de Datos</span></a>
+        <a href="/satellite-analysis" class="nav-menu-item"><span>🛰️ Análisis Satelital</span></a>
+        <a href="/video-surveillance" class="nav-menu-item"><span>📹 Vigilancia por Video</span></a>
+        <a href="/historical-analysis" class="nav-menu-item"><span>🏛️ Análisis Histórico</span></a>
+        <a href="/about" class="nav-menu-item"><span>ℹ️ Acerca de</span></a>
+        <div style="border-top: 1px solid rgba(3,76,163,0.3); margin: 12px 0;"></div>
+        <a href="/logs" class="nav-menu-item"><span>📝 Registros</span></a>
+        <a href="/settings" class="nav-menu-item"><span>⚙️ Configuración</span></a>
+    </div>
+    <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
 <!-- 3D Earth Background -->
 <div class="space-background"></div>
 <div id="earth3d-container">
@@ -558,9 +698,9 @@
                         RISKMAP
                     </h1>
                     <p class="lead mb-4">
-                        Sistema de inteligencia geopolítica que integra análisis de noticias mediante IA, 
-                        correlación con base de datos GDELT, análisis satelital automatizado y 
-                        computer vision para detectar elementos clave de conflictos en tiempo real.
+                        Sistema de Intelligence Geopolitics que integra Analysis de noticias mediante IA, 
+                        correlación con base de datos GDELT, Analysis satelital automatizado y 
+                        computer vision para detectar elementos clave de Conflicts en tiempo real.
                     </p>
                     <div class="d-flex flex-wrap gap-2">
                         <span class="tech-badge">Geointeligencia</span>
@@ -580,7 +720,7 @@
     <!-- Pipeline de Funcionamiento -->
     <section class="py-5">
         <div class="container">
-            <h2 class="text-center mb-5">Pipeline de Análisis Automatizado</h2>
+            <h2 class="text-center mb-5">Pipeline de Analysis Automatizado</h2>
             <div class="row justify-content-center">
                 <div class="col-lg-10">
                     <div class="pipeline-section">
@@ -594,7 +734,7 @@
                             </div>
                             <div class="pipeline-step">
                                 <i class="fas fa-brain me-2"></i>
-                                <span>2. Análisis IA/NLP</span>
+                                <span>2. Analysis IA/NLP</span>
                             </div>
                             <div class="arrow-icon">
                                 <i class="fas fa-arrow-right fa-2x"></i>
@@ -608,7 +748,7 @@
                             </div>
                             <div class="pipeline-step">
                                 <i class="fas fa-satellite me-2"></i>
-                                <span>4. Análisis Satelital</span>
+                                <span>4. Analysis Satelital</span>
                             </div>
                             <div class="arrow-icon">
                                 <i class="fas fa-arrow-right fa-2x"></i>
@@ -666,12 +806,12 @@
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
                                 <i class="fas fa-brain fa-2x text-primary me-3"></i>
-                                <h5 class="card-title mb-0">Análisis Inteligente de Noticias</h5>
+                                <h5 class="card-title mb-0">Analysis Inteligente de Noticias</h5>
                             </div>
                             <p class="card-text">
                                 El sistema procesa automáticamente noticias de múltiples fuentes RSS internacionales, 
                                 aplicando técnicas avanzadas de NLP para extraer ubicaciones geográficas, 
-                                evaluar niveles de riesgo y categorizar tipos de conflictos mediante IA.
+                                evaluar niveles de riesgo y categorizar tipos de Conflicts mediante IA.
                             </p>
                         </div>
                     </div>
@@ -684,7 +824,7 @@
                                 <h5 class="card-title mb-0">Correlación con GDELT</h5>
                             </div>
                             <p class="card-text">
-                                Los resultados del análisis de noticias se cotejan con la base de datos GDELT 
+                                Los resultados del Analysis de noticias se cotejan con la base de datos GDELT 
                                 para determinar con máxima precisión las coordenadas geográficas exactas 
                                 de las áreas de conflicto, validando y refinando la información.
                             </p>
@@ -696,12 +836,12 @@
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
                                 <i class="fas fa-satellite fa-2x text-warning me-3"></i>
-                                <h5 class="card-title mb-0">Análisis Satelital Automatizado</h5>
+                                <h5 class="card-title mb-0">Analysis Satelital Automatizado</h5>
                             </div>
                             <p class="card-text">
                                 Una vez identificadas las coordenadas precisas, el sistema solicita automáticamente 
-                                imágenes satelitales de Google Maps de las zonas de conflicto activo, 
-                                descargando datos actualizados para análisis visual posterior.
+                                imágenes satelitales de Google Maps de las zonas de conflicto Active, 
+                                descargando datos actualizados para Analysis visual posterior.
                             </p>
                         </div>
                     </div>
@@ -734,16 +874,16 @@
                     <i class="fas fa-clock fa-3x text-primary mb-3"></i>
                     <h5 class="card-title">Tiempo Real</h5>
                     <p class="card-text">
-                        Monitoreo continuo 24/7 con ingesta automática cada hora, 
-                        procesamiento NLP cada 2 horas y análisis histórico cada 6 horas.
+                        Monitoring continuo 24/7 con ingesta automática cada hora, 
+                        procesamiento NLP cada 2 horas y Analysis histórico cada 6 horas.
                     </p>
                 </div>
                 <div class="capability-card border-success">
                     <i class="fas fa-globe-americas fa-3x text-success mb-3"></i>
                     <h5 class="card-title">Cobertura Global</h5>
                     <p class="card-text">
-                        Análisis multi-idioma (EN, ES, FR, DE, RU, ZH, AR) con 
-                        integración de feeds GDELT, ACLED y fuentes de inteligencia geopolítica.
+                        Analysis multi-idioma (EN, ES, FR, DE, RU, ZH, AR) con 
+                        integración de feeds GDELT, ACLED y fuentes de Intelligence Geopolitics.
                     </p>
                 </div>
                 <div class="capability-card border-info">
@@ -830,7 +970,7 @@
                                     <ul class="list-unstyled">
                                         <li><i class="fas fa-check text-success me-2"></i>Automatización 24/7</li>
                                         <li><i class="fas fa-check text-success me-2"></i>Cache Inteligente</li>
-                                        <li><i class="fas fa-check text-success me-2"></i>Sistema de Alertas</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Sistema de Alerts</li>
                                         <li><i class="fas fa-check text-success me-2"></i>Logs Estructurados</li>
                                         <li><i class="fas fa-check text-success me-2"></i>Validación Cruzada</li>
                                     </ul>
@@ -876,7 +1016,7 @@
     <!-- Footer -->
     <footer class="py-4 bg-dark text-white text-center">
         <div class="container">
-            <p>&copy; 2025 RISKMAP - Sistema de Inteligencia Geopolítica</p>
+            <p>&copy; 2025 RISKMAP - Sistema de Intelligence Geopolitics</p>
         </div>
     </footer>
 
@@ -1140,10 +1280,37 @@
         window.addEventListener('beforeunload', cleanup3DEarth);
 
     </script>
-{% endblock %}
 
-{% block extra_js %}
 <!-- Three.js for 3D Earth Background -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/loaders/FBXLoader.min.js"></script>
-{% endblock %}
+
+<script>
+// Hamburger Menu Navigation
+function toggleNav() {
+    const navMenu = document.getElementById('navMenu');
+    const navOverlay = document.getElementById('navOverlay');
+    if (navMenu.classList.contains('open')) {
+        navMenu.classList.remove('open');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    } else {
+        navMenu.classList.add('open');
+        navOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-menu-item').forEach(item => {
+        item.addEventListener('click', function() { setTimeout(() => toggleNav(), 100); });
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu.classList.contains('open')) toggleNav();
+        }
+    });
+});
+</script>
+
+</body>
+</html>

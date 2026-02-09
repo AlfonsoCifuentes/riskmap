@@ -414,14 +414,14 @@ class DataValidator:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            # Get articles from the specified period
+            # Get articles from the specified period (UPDATED to use unified_articles)
             cursor.execute("""
                 SELECT
-                    quality_score, validation_result, created_at,
+                    quality_score, enrichment_status, created_at,
                     CASE WHEN quality_score >= 60 THEN 1 ELSE 0 END as is_valid
-                FROM articles
+                FROM unified_articles
                 WHERE created_at > datetime('now', '-{} days')
-                AND validation_result IS NOT NULL
+                AND quality_score IS NOT NULL
             """.format(days))
 
             articles = cursor.fetchall()
@@ -473,9 +473,9 @@ class DataValidator:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            # Count articles to be deleted
+            # Count articles to be deleted (UPDATED to use unified_articles)
             cursor.execute("""
-                SELECT COUNT(*) FROM articles
+                SELECT COUNT(*) FROM unified_articles
                 WHERE quality_score < ? AND quality_score IS NOT NULL
             """, (min_quality_score,))
 
@@ -484,14 +484,14 @@ class DataValidator:
             if count_to_delete > 0:
                 # Delete low-quality articles
                 cursor.execute("""
-                    DELETE FROM articles
+                    DELETE FROM unified_articles
                     WHERE quality_score < ? AND quality_score IS NOT NULL
                 """, (min_quality_score,))
 
-                # Also delete related analysis results
+                # Also clean enrichment_log for non-existent articles
                 cursor.execute("""
-                    DELETE FROM analysis_results
-                    WHERE article_id NOT IN (SELECT id FROM articles)
+                    DELETE FROM enrichment_log
+                    WHERE id NOT IN (SELECT id FROM unified_articles)
                 """)
 
                 conn.commit()

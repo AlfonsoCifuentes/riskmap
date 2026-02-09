@@ -462,6 +462,10 @@
         }
 
         function showAlert(type, message) {
+            if (typeof showNotification === 'function') {
+                showNotification(message, type);
+                return;
+            }
             const alertClass = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-danger' : 'alert-info';
             const alertHtml = `
                 <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
@@ -469,15 +473,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             `;
-            
-            // Insert at top of page
             const container = document.querySelector('.container-fluid');
             container.insertAdjacentHTML('afterbegin', alertHtml);
-            
-            // Auto-remove after 5 seconds
             setTimeout(() => {
-                const alert = container.querySelector('.alert');
-                if (alert) alert.remove();
+                const alertEl = container.querySelector('.alert');
+                if (alertEl) alertEl.remove();
             }, 5000);
         }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Video Vigilancia Inteligente - Análisis Geopolítico</title>
+    <title>RiskMap - Geopolitical Intelligence Platform</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
@@ -464,16 +464,16 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="#dashboard">Dashboard</a>
+                        <a class="nav-link text-white" href="#Dashboard">Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-white" href="#cameras">Cámaras</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="#analytics">Análisis</a>
+                        <a class="nav-link text-white" href="#analytics">Analysis</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="#alerts">Alertas</a>
+                        <a class="nav-link text-white" href="#alerts">Alerts</a>
                     </li>
                 </ul>
             </div>
@@ -481,7 +481,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-section" id="dashboard">
+    <section class="hero-section" id="Dashboard">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-8">
@@ -491,8 +491,8 @@
                     </h1>
 <div class="section-status"><div class="data-status simulation"><i class="fas fa-video"></i><span>Sistema de video en demostración</span></div></div>
                     <p class="lead mb-4">
-                        Análisis automatizado en tiempo real de feeds de video públicos utilizando IA avanzada 
-                        para detectar eventos geopolíticos, amenazas de seguridad y situaciones de emergencia.
+                        Analysis automatizado en tiempo real de feeds de video públicos utilizando IA avanzada 
+                        para detectar eventos geopolíticos, amenazas de Security y situaciones de emergencia.
                     </p>
                     <div class="d-flex flex-wrap gap-2 mb-4">
                         <span class="ai-model-badge">YOLOv8</span>
@@ -503,7 +503,7 @@
                     </div>
                     <button class="btn btn-primary me-3" onclick="startMonitoring()">
                         <i class="fas fa-play me-2"></i>
-                        Iniciar Monitoreo
+                        Iniciar Monitoring
                     </button>
                     <button class="btn btn-outline-light" onclick="showSystemInfo()">
                         <i class="fas fa-info-circle me-2"></i>
@@ -512,7 +512,7 @@
                 </div>
                 <div class="col-lg-4">
                     <div class="glass-card p-4 text-center">
-                        <h3 class="mb-3">Estado del Sistema</h3>
+                        <h3 class="mb-3">Status del Sistema</h3>
 
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span>Feeds Activos</span>
@@ -522,10 +522,10 @@
                             </div>
                         </div>
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span>Análisis IA</span>
+                            <span>Analysis IA</span>
                             <div class="d-flex align-items-center">
                                 <div class="status-indicator status-processing"></div>
-                                <span class="text-warning">Procesando</span>
+                                <span class="text-warning">Processing</span>
                             </div>
                         </div>
                         <div class="d-flex align-items-center justify-content-between">
@@ -555,7 +555,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="alerts-generated">0</div>
-                    <div class="stat-label">Alertas Generadas</div>
+                    <div class="stat-label">Alerts Generadas</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="processing-fps">0</div>
@@ -632,13 +632,13 @@
                 <div class="glass-card p-4 mb-4">
                     <h4 class="mb-3">
                         <i class="fas fa-sliders-h me-2" style="color: var(--primary-red);"></i>
-                        Controles de Análisis
+                        Controles de Analysis
                     </h4>
 
                     <div class="mb-3">
-                        <label class="form-label text-danger">Región de Monitoreo</label>
+                        <label class="form-label text-danger">Region de Monitoring</label>
                         <select class="form-select" id="region-selector">
-                            <option value="global">Global</option>
+                            <option value="Global">Global</option>
                             <option value="europe">Europa</option>
                             <option value="middle-east">Medio Oriente</option>
                             <option value="asia-pacific">Asia-Pacífico</option>
@@ -651,7 +651,7 @@
                         <label class="form-label text-danger">Tipo de Detección</label>
                         <select class="form-select" id="detection-type">
                             <option value="all">Todas las Detecciones</option>
-                            <option value="military">Actividad Militar</option>
+                            <option value="military">Actividad Military</option>
                             <option value="crowd">Multitudes/Manifestaciones</option>
                             <option value="disaster">Desastres Naturales</option>
                             <option value="traffic">Anomalías de Tráfico</option>
@@ -666,7 +666,7 @@
                     
                     <button class="btn btn-primary w-100" onclick="updateAnalysis()">
                         <i class="fas fa-sync-alt me-2"></i>
-                        Actualizar Análisis
+                        Refresh Analysis
                     </button>
                 </div>
 

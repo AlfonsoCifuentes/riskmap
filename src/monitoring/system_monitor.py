@@ -251,30 +251,35 @@ class AdvancedSystemMonitor:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            # Check if main tables exist
+            # Check if main tables exist (UPDATED to use unified_articles)
             cursor.execute("""
                 SELECT name FROM sqlite_master
-                WHERE type='table' AND name IN ('articles', 'analysis_results');
+                WHERE type='table' AND name IN ('unified_articles', 'enrichment_log', 'conflict_zones');
             """)
             tables = [row[0] for row in cursor.fetchall()]
 
             # Count records
             article_count = 0
             analysis_count = 0
+            geopolitical_count = 0
 
-            if 'articles' in tables:
-                cursor.execute("SELECT COUNT(*) FROM articles")
+            if 'unified_articles' in tables:
+                cursor.execute("SELECT COUNT(*) FROM unified_articles")
                 article_count = cursor.fetchone()[0]
+                
+                # Count geopolitical articles
+                cursor.execute("SELECT COUNT(*) FROM unified_articles WHERE geopolitical_relevance = 1")
+                geopolitical_count = cursor.fetchone()[0]
 
-            if 'analysis_results' in tables:
-                cursor.execute("SELECT COUNT(*) FROM analysis_results")
+            if 'enrichment_log' in tables:
+                cursor.execute("SELECT COUNT(*) FROM enrichment_log")
                 analysis_count = cursor.fetchone()[0]
 
             # Check for recent activity
             recent_articles = 0
-            if 'articles' in tables:
+            if 'unified_articles' in tables:
                 cursor.execute("""
-                    SELECT COUNT(*) FROM articles
+                    SELECT COUNT(*) FROM unified_articles
                     WHERE created_at > datetime('now', '-24 hours')
                 """)
                 recent_articles = cursor.fetchone()[0]
@@ -292,6 +297,7 @@ class AdvancedSystemMonitor:
                 'tables_found': tables,
                 'article_count': article_count,
                 'analysis_count': analysis_count,
+                'geopolitical_count': geopolitical_count if 'unified_articles' in tables else 0,
                 'recent_articles_24h': recent_articles,
                 'timestamp': datetime.now().isoformat()
             }
@@ -307,14 +313,22 @@ class AdvancedSystemMonitor:
         """Check external API endpoints status."""
         # API keys from environment
         newsapi_key = os.getenv('NEWSAPI_KEY')
-        openai_key = os.getenv('OPENAI_API_KEY')
-        apis_to_check = [{'name': 'NewsAPI',
-                          'url': f'https://newsapi.org/v2/top-headlines?country=us&apiKey={newsapi_key or ""}',
-                          'timeout': 10},
-                         {'name': 'OpenAI',
-                          'url': 'https://api.openai.com/v1/models',
-                          'headers': {'Authorization': f"Bearer {openai_key or ''}"},
-                          'timeout': 10}]
+        groq_key = os.getenv('GROQ_API_KEY')
+        deepseek_key = os.getenv('DEEPSEEK_API_KEY')
+        
+        apis_to_check = [
+            {'name': 'NewsAPI',
+             'url': f'https://newsapi.org/v2/top-headlines?country=us&apiKey={newsapi_key or ""}',
+             'timeout': 10},
+            {'name': 'Groq',
+             'url': 'https://api.groq.com/openai/v1/models',
+             'headers': {'Authorization': f"Bearer {groq_key or ''}"},
+             'timeout': 10},
+            {'name': 'DeepSeek',
+             'url': 'https://api.deepseek.com/v1/models',
+             'headers': {'Authorization': f"Bearer {deepseek_key or ''}"},
+             'timeout': 10}
+        ]
 
         api_status = {}
         overall_status = 'healthy'
@@ -479,13 +493,13 @@ class AdvancedSystemMonitor:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            # Get processing statistics
+            # Get processing statistics (UPDATED to use unified_articles)
             cursor.execute(f"""
                 SELECT
                     COUNT(*) as total_articles,
-                    COUNT(CASE WHEN processed = 1 THEN 1 END) as processed_articles,
-                    AVG(CASE WHEN processing_time IS NOT NULL THEN processing_time END) as avg_processing_time
-                FROM articles
+                    COUNT(CASE WHEN enrichment_status IS NOT NULL THEN 1 END) as processed_articles,
+                    AVG(CASE WHEN processing_confidence IS NOT NULL THEN processing_confidence END) as avg_processing_confidence
+                FROM unified_articles
                 WHERE created_at > datetime('now', '-{hours} hours')
             """)
 
@@ -495,7 +509,7 @@ class AdvancedSystemMonitor:
             # Calculate processing efficiency
             total_articles = stats[0] if stats[0] else 0
             processed_articles = stats[1] if stats[1] else 0
-            avg_processing_time = stats[2] if stats[2] else 0
+            avg_processing_confidence = stats[2] if stats[2] else 0
 
             processing_rate = (
                 processed_articles /
@@ -510,7 +524,7 @@ class AdvancedSystemMonitor:
                     processing_rate,
                     2),
                 'avg_processing_time_seconds': round(
-                    avg_processing_time,
+                    avg_processing_confidence,
                     2),
                 'articles_per_hour': round(
                     total_articles / hours,

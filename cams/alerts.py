@@ -20,9 +20,9 @@ import logging
 from pathlib import Path
 import requests
 import smtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
-from email.mime.image import MimeImage
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 import uuid
 
 logger = logging.getLogger(__name__)
@@ -473,7 +473,7 @@ class AlertManager:
             if alert.get('latitude') and alert.get('longitude'):
                 body += f"\nCoordenadas: {alert['latitude']}, {alert['longitude']}"
             
-            msg.attach(MimeText(body, 'plain'))
+            msg.attach(MIMEText(body, 'plain'))
             
             # Adjuntar thumbnail si existe
             if alert.get('thumbnail_path') and os.path.exists(alert['thumbnail_path']):

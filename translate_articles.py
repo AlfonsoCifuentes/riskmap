@@ -55,12 +55,12 @@ def translate_articles():
     """Traducir todos los artículos en inglés de la base de datos"""
     
     # Conectar a la base de datos
-    conn = sqlite3.connect('data/geopolitical_intel.db')
-    cursor = conn.cursor()
-    
     try:
-        # Obtener todos los artículos
-        cursor.execute("""
+        with sqlite3.connect('data/geopolitical_intel.db', timeout=30.0) as conn:
+            cursor = conn.cursor()
+
+            # Obtener todos los artículos
+            cursor.execute("""
             SELECT id, title, content, summary 
             FROM articles 
             ORDER BY id
@@ -143,8 +143,8 @@ def translate_articles():
                 stats['failed'] += 1
                 continue
         
-        # Commit cambios
-        conn.commit()
+            # Commit cambios
+            conn.commit()
         
         # Mostrar estadísticas finales
         logger.info("\n" + "="*60)
@@ -158,10 +158,7 @@ def translate_articles():
         
     except Exception as e:
         logger.error(f"Error durante la traducción: {e}")
-        conn.rollback()
         raise
-    finally:
-        conn.close()
 
 if __name__ == "__main__":
     # Instalar googletrans si no está disponible

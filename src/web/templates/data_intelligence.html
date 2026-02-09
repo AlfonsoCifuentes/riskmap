@@ -1,64 +1,26 @@
-{% extends "base_navigation.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Data Intelligence - RiskMap</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
-{% block title %}Data Intelligence - Stratosight
-    <!-- Initialize Fallback Indicators -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.FallbackManager) {
-                // Detect page type and initialize appropriate indicators
-                const path = window.location.pathname;
-                let pageType = 'generic';
-                
-                if (path.includes('dashboard')) pageType = 'dashboard';
-                else if (path.includes('video')) pageType = 'video';
-                else if (path.includes('satellite')) pageType = 'satellite';
-                else if (path.includes('economic')) pageType = 'economic';
-                
-                window.FallbackManager.initializePageIndicators(pageType);
-                
-                // Add real-time connection status monitoring
-                setInterval(function() {
-                    // Check if RSS feeds are working
-                    fetch('/api/health-check')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.rss_active) {
-                                document.querySelectorAll('.data-status.real-data').forEach(el => {
-                                    el.style.display = 'flex';
-                                });
-                                document.querySelectorAll('.data-status.fallback-data').forEach(el => {
-                                    if (!el.classList.contains('permanent-fallback')) {
-                                        el.style.display = 'none';
-                                    }
-                                });
-                            }
-                        })
-                        .catch(() => {
-                            // RSS system not available
-                            document.querySelectorAll('.data-status.real-data').forEach(el => {
-                                el.style.display = 'none';
-                            });
-                        });
-                }, 30000); // Check every 30 seconds
-            }
-        });
-    </script>
-
-{% endblock %}
-
-{% block extra_css %}
 <style>
+
     :root {
         --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
         --bg-secondary: #141824;
         --text-primary: #e8eaed;
         --text-secondary: #b0b8c4;
-        --accent-cyan: #00d4ff;
-        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+        --accent-cyan: #034CA3;
+        --accent-glow: 0 0 15px rgba(3, 76, 163, 0.4), 0 0 25px rgba(3, 76, 163, 0.2);
         --border-color: rgba(255, 255, 255, 0.1);
         --success-color: #4caf50;
         --warning-color: #ff9800;
-        --error-color: #f44336;
+        --Error-color: #f44336;
         --info-color: #2196f3;
     }
 
@@ -106,7 +68,7 @@
         font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #1565C0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -127,14 +89,14 @@
         z-index: 2;
     }
 
-    .dashboard-grid {
+    .Dashboard-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
         gap: 30px;
         margin-bottom: 40px;
     }
 
-    .dashboard-card {
+    .Dashboard-card {
         background: rgba(20, 24, 36, 0.9);
         border: 1px solid var(--border-color);
         border-radius: 16px;
@@ -146,9 +108,9 @@
         overflow: hidden;
     }
 
-    .dashboard-card:hover {
+    .Dashboard-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 40px rgba(0, 212, 255, 0.2);
+        box-shadow: 0 12px 40px rgba(3, 76, 163, 0.2);
         border-color: var(--accent-cyan);
     }
 
@@ -205,10 +167,10 @@
         border: 1px solid var(--warning-color);
     }
 
-    .status-error {
+    .status-Error {
         background: rgba(244, 67, 54, 0.2);
-        color: var(--error-color);
-        border: 1px solid var(--error-color);
+        color: var(--Error-color);
+        border: 1px solid var(--Error-color);
     }
 
     .status-info {
@@ -244,7 +206,7 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, var(--accent-cyan) 0%, #0099cc 100%);
+        background: linear-gradient(135deg, var(--accent-cyan) 0%, #1976D2 100%);
         color: white;
     }
 
@@ -265,7 +227,7 @@
     }
 
     .btn-danger {
-        background: linear-gradient(135deg, var(--error-color) 0%, #c62828 100%);
+        background: linear-gradient(135deg, var(--Error-color) 0%, #c62828 100%);
         color: white;
     }
 
@@ -284,9 +246,9 @@
     .stat-item {
         text-align: center;
         padding: 15px;
-        background: rgba(0, 212, 255, 0.1);
+        background: rgba(3, 76, 163, 0.1);
         border-radius: 10px;
-        border: 1px solid rgba(0, 212, 255, 0.3);
+        border: 1px solid rgba(3, 76, 163, 0.3);
     }
 
     .stat-value {
@@ -332,7 +294,7 @@
         font-size: 0.8rem;
         padding: 3px 8px;
         border-radius: 12px;
-        background: rgba(0, 212, 255, 0.2);
+        background: rgba(3, 76, 163, 0.2);
         color: var(--accent-cyan);
     }
 
@@ -347,7 +309,7 @@
 
     .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, var(--accent-cyan) 0%, #00a3cc 100%);
+        background: linear-gradient(90deg, var(--accent-cyan) 0%, #1565C0 100%);
         transition: width 0.3s ease;
         border-radius: 4px;
     }
@@ -372,12 +334,12 @@
         padding: 15px;
         margin: 10px 0;
         border-radius: 8px;
-        border-left: 4px solid var(--error-color);
+        border-left: 4px solid var(--Error-color);
         background: rgba(244, 67, 54, 0.1);
     }
 
     .alert-critical {
-        border-left-color: var(--error-color);
+        border-left-color: var(--Error-color);
         background: rgba(244, 67, 54, 0.1);
     }
 
@@ -442,7 +404,7 @@
 
     /* Responsive adjustments */
     @media (max-width: 768px) {
-        .dashboard-grid {
+        .Dashboard-grid {
             grid-template-columns: 1fr;
             gap: 20px;
         }
@@ -461,7 +423,7 @@
             padding: 0 10px;
         }
         
-        .dashboard-card {
+        .Dashboard-card {
             padding: 20px;
         }
         
@@ -469,23 +431,261 @@
             grid-template-columns: 1fr;
         }
     }
-</style>
-{% endblock %}
 
-{% block content %}
+
+
+    /* Navigation Bar */
+    .top-navigation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: rgba(10, 15, 44, 0.95);
+        backdrop-filter: blur(15px);
+        border-bottom: 1px solid rgba(3, 76, 163, 0.3);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-brand {
+        color: var(--accent-cyan);
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+        font-family: 'Orbitron', monospace;
+    }
+
+    /* Hamburger Menu Button - Efecto Semáforo */
+    .hamburger-btn {
+        margin-left: auto;
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.8) 0%, 
+            rgba(40, 60, 100, 0.9) 50%, 
+            rgba(30, 50, 90, 0.8) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.3);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        
+        /* Efecto cilíndrico/cojinete 3D */
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+        transform: perspective(1000px) rotateX(5deg);
+    }
+
+    /* Entramado de semáforo para hamburger */
+    .hamburger-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 25% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 25% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            linear-gradient(45deg, transparent 46%, rgba(0,0,0,0.1) 46%, rgba(0,0,0,0.1) 54%, transparent 54%);
+        background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px, 24px 24px;
+        background-position: 0 0, 6px 0, 0 6px, 6px 6px, 0 0;
+        opacity: 0.3;
+        transition: opacity 0.4s ease;
+        z-index: 1;
+    }
+
+    /* Estado encendido en hover */
+    .hamburger-btn:hover {
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 1.0) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 1.0) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.8);
+        box-shadow: 
+            0 12px 40px rgba(3, 76, 163, 0.6),
+            inset 0 3px 0 rgba(255, 255, 255, 0.4),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(3, 76, 163, 0.4);
+        transform: perspective(1000px) rotateX(0deg) translateY(-3px);
+    }
+
+    .hamburger-btn:hover::before {
+        opacity: 0.6;
+        background-size: 10px 10px, 10px 10px, 10px 10px, 10px 10px, 20px 20px;
+    }
+
+    /* Líneas del hamburger */
+    .hamburger-btn span {
+        width: 20px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 1px;
+        margin: 2px 0;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .hamburger-btn:hover span {
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Menu desplegable con efecto semáforo */
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        right: -300px;
+        width: 280px;
+        height: calc(100vh - 70px);
+        background: rgba(10, 15, 44, 0.98);
+        backdrop-filter: blur(20px);
+        border-left: 2px solid rgba(3, 76, 163, 0.3);
+        transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 999;
+        padding: 20px;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-menu.open {
+        right: 0;
+    }
+
+    .nav-menu-item {
+        display: block;
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 15px 20px;
+        margin: 8px 0;
+        border-radius: 12px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 0.95rem;
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+        
+        /* Estado apagado - efecto semáforo */
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.6) 0%, 
+            rgba(40, 60, 100, 0.7) 50%, 
+            rgba(30, 50, 90, 0.6) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.2);
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        transform: perspective(1000px) rotateX(3deg);
+    }
+
+    /* Estado encendido en hover */
+    .nav-menu-item:hover {
+        color: #fff;
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 0.9) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 0.9) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.6);
+        box-shadow: 
+            0 8px 25px rgba(3, 76, 163, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.3),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 20px rgba(3, 76, 163, 0.3);
+        transform: perspective(1000px) rotateX(0deg) translateY(-2px);
+    }
+
+    .nav-menu-item span {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Overlay para cerrar menu */
+    .nav-overlay {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 998;
+    }
+
+    .nav-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+
+    /* Añadir padding top para navbar fija */
+    body {
+        padding-top: 70px;
+    }
+</style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="top-navigation">
+    <a href="/" class="nav-brand">🗺️ RiskMap</a>
+    
+    <!-- Hamburger Button con Efecto Semáforo -->
+    <button class="hamburger-btn" onclick="toggleNav()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Menu desplegable -->
+    <div class="nav-menu" id="navMenu">
+        <a href="/news-analysis" class="nav-menu-item"><span>📰 Análisis de Noticias</span></a>
+        <a href="/conflict-monitoring" class="nav-menu-item"><span>⚔️ Monitor de Conflictos</span></a>
+        <a href="/trends-analysis" class="nav-menu-item"><span>📈 Análisis de Tendencias</span></a>
+        <a href="/early-warning" class="nav-menu-item"><span>⚠️ Alertas Tempranas</span></a>
+        <a href="/executive-reports" class="nav-menu-item"><span>📋 Reportes Ejecutivos</span></a>
+        <a href="/data-intelligence" class="nav-menu-item"><span>🧠 Inteligencia de Datos</span></a>
+        <a href="/satellite-analysis" class="nav-menu-item"><span>🛰️ Análisis Satelital</span></a>
+        <a href="/video-surveillance" class="nav-menu-item"><span>📹 Vigilancia por Video</span></a>
+        <a href="/historical-analysis" class="nav-menu-item"><span>🏛️ Análisis Histórico</span></a>
+        <a href="/about" class="nav-menu-item"><span>ℹ️ Acerca de</span></a>
+        <div style="border-top: 1px solid rgba(3,76,163,0.3); margin: 12px 0;"></div>
+        <a href="/logs" class="nav-menu-item"><span>📝 Registros</span></a>
+        <a href="/settings" class="nav-menu-item"><span>⚙️ Configuración</span></a>
+    </div>
+    
+    <!-- Overlay para cerrar menu -->
+    <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
 <div class="data-intelligence-container">
     <!-- Header Section -->
     <div class="header-section">
         <h1 class="page-title">📊 Data Intelligence</h1>
-        <p class="page-subtitle">Pipeline ETL de Conflictos Geopolíticos • Análisis Automatizado • Alertas en Tiempo Real</p>
+        <p class="page-subtitle">Pipeline ETL de Conflicts Geopolíticos • Analysis Automatizado • Alerts en Tiempo Real</p>
     </div>
 
     <!-- Main Content -->
     <div class="content-section">
         <!-- Dashboard Grid -->
-        <div class="dashboard-grid">
+        <div class="Dashboard-grid">
             <!-- ETL Controller Card -->
-            <div class="dashboard-card">
+            <div class="Dashboard-card">
                 <div class="card-header">
                     <h3 class="card-title">
                         <span class="card-icon">🔄</span>
@@ -495,7 +695,7 @@
                     <span id="etl-status" class="card-status status-info">Ready</span>
                 </div>
                 <div class="card-content">
-                    <p>Control del sistema Extract-Transform-Load para ingesta automatizada de datos de conflictos desde múltiples fuentes.</p>
+                    <p>Control del sistema Extract-Transform-Load para ingesta automatizada de datos de Conflicts desde múltiples fuentes.</p>
                     
                     <div class="stats-grid">
                         <div class="stat-item">
@@ -531,7 +731,7 @@
             </div>
 
             <!-- Datasets Management Card -->
-            <div class="dashboard-card">
+            <div class="Dashboard-card">
                 <div class="card-header">
                     <h3 class="card-title">
                         <span class="card-icon">📚</span>
@@ -540,7 +740,7 @@
                     <span id="datasets-status" class="card-status status-success">Disponibles</span>
                 </div>
                 <div class="card-content">
-                    <p>Administración de fuentes de datos de conflictos geopolíticos: ACLED, UCDP, GDELT, Kaggle, HuggingFace.</p>
+                    <p>Administración de fuentes de datos de Conflicts geopolíticos: ACLED, UCDP, GDELT, Kaggle, HuggingFace.</p>
                     
                     <div class="dataset-list" id="datasets-list">
                         <div class="dataset-item">
@@ -568,17 +768,17 @@
 
                     <div class="button-group">
                         <button id="btn-refresh-datasets" class="btn btn-primary">
-                            <span>🔄</span> Actualizar
+                            <span>🔄</span> Refresh
                         </button>
                         <button id="btn-add-dataset" class="btn btn-secondary">
-                            <span>➕</span> Añadir Fuente
+                            <span>➕</span> Añadir Source
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Critical Events Card -->
-            <div class="dashboard-card">
+            <div class="Dashboard-card">
                 <div class="card-header">
                     <h3 class="card-title">
                         <span class="card-icon">🚨</span>
@@ -608,7 +808,7 @@
 
                     <div class="button-group">
                         <button id="btn-refresh-events" class="btn btn-primary">
-                            <span>🔄</span> Actualizar
+                            <span>🔄</span> Refresh
                         </button>
                         <button id="btn-export-events" class="btn btn-secondary">
                             <span>📊</span> Exportar
@@ -618,22 +818,22 @@
             </div>
 
             <!-- Analytics Dashboard Card -->
-            <div class="dashboard-card">
+            <div class="Dashboard-card">
                 <div class="card-header">
                     <h3 class="card-title">
                         <span class="card-icon">📈</span>
-                        Análisis Avanzado
+                        Analysis Avanzado
                     </h3>
 
                     <span id="analytics-status" class="card-status status-success">Actualizado</span>
                 </div>
                 <div class="card-content">
-                    <p>Análisis estadístico y predictivo de patrones de conflicto basado en datos históricos y en tiempo real.</p>
+                    <p>Analysis estadístico y predictivo de patrones de conflicto basado en datos históricos y en tiempo real.</p>
                     
                     <div class="stats-grid">
                         <div class="stat-item">
                             <span id="total-conflicts" class="stat-value">8</span>
-                            <span class="stat-label">Conflictos Activos</span>
+                            <span class="stat-label">Conflicts Activos</span>
                         </div>
                         <div class="stat-item">
                             <span id="total-fatalities" class="stat-value">1,247</span>
@@ -651,7 +851,7 @@
 
                     <div class="button-group">
                         <button id="btn-view-analytics" class="btn btn-primary">
-                            <span>📊</span> Ver Análisis
+                            <span>📊</span> Ver Analysis
                         </button>
                         <button id="btn-generate-report" class="btn btn-secondary">
                             <span>📄</span> Generar Reporte
@@ -661,16 +861,16 @@
             </div>
 
             <!-- System Logs Card -->
-            <div class="dashboard-card">
+            <div class="Dashboard-card">
                 <div class="card-header">
                     <h3 class="card-title">
                         <span class="card-icon">📋</span>
                         Logs del Sistema
                     </h3>
-                    <span id="logs-status" class="card-status status-info">Activo</span>
+                    <span id="logs-status" class="card-status status-info">Active</span>
                 </div>
                 <div class="card-content">
-                    <p>Monitoreo en tiempo real de procesos ETL, errores del sistema y eventos de depuración.</p>
+                    <p>Real-Time Monitoring de procesos ETL, errores del sistema y eventos de depuración.</p>
                     
                     <div id="system-logs" class="log-container">
                         <div>[2025-08-03 14:32:15] INFO: ETL Controller initialized successfully</div>
@@ -692,16 +892,16 @@
             </div>
 
             <!-- Configuration Card -->
-            <div class="dashboard-card">
+            <div class="Dashboard-card">
                 <div class="card-header">
                     <h3 class="card-title">
                         <span class="card-icon">⚙️</span>
-                        Configuración ETL
+                        Settings ETL
                     </h3>
                     <span id="config-status" class="card-status status-success">Configurado</span>
                 </div>
                 <div class="card-content">
-                    <p>Configuración avanzada del pipeline ETL: fuentes de datos, umbrales de alerta, frecuencia de actualización.</p>
+                    <p>Settings avanzada del pipeline ETL: fuentes de datos, umbrales de alerta, frecuencia de actualización.</p>
                     
                     <div class="stats-grid">
                         <div class="stat-item">
@@ -831,7 +1031,7 @@ class DataIntelligenceController {
                     };
                     this.updateETLStats(mockResults);
                     this.showProgressBar(false);
-                    this.log(`ETL de desarrollo completado: ${mockResults.loaded_records} registros procesados`);
+                    this.log(`ETL de desarrollo Completed: ${mockResults.loaded_records} registros procesados`);
                     this.refreshCriticalEvents();
                     this.refreshDatasets();
                     this.refreshAnalytics();
@@ -840,7 +1040,7 @@ class DataIntelligenceController {
                 return;
             }
             
-            // If somehow it's not a dev task, show error
+            // If somehow it's not a dev task, show Error
             this.setETLStatus('error');
             this.showProgressBar(false);
             this.log('ETL endpoint en desarrollo', 'warning');
@@ -863,7 +1063,7 @@ class DataIntelligenceController {
             
             if (data.conflicts && data.conflicts.length > 0) {
                 this.updateDatasetsList(data.conflicts);
-                this.log(`${data.conflicts.length} datasets de conflictos cargados`);
+                this.log(`${data.conflicts.length} datasets de Conflicts cargados`);
             } else {
                 this.log('Modo desarrollo - Datasets ETL bajo desarrollo', 'warning');
                 // Show development placeholder
@@ -903,8 +1103,8 @@ class DataIntelligenceController {
                 // Show development placeholder
                 const mockEvents = [
                     { id: 1, title: 'Escalación Gaza Norte', severity: 'high', timestamp: new Date() },
-                    { id: 2, title: 'Actividad Militar Ucrania', severity: 'medium', timestamp: new Date() },
-                    { id: 3, title: 'Alertas Satélite Detecciones', severity: 'high', timestamp: new Date() }
+                    { id: 2, title: 'Actividad Military Ucrania', severity: 'medium', timestamp: new Date() },
+                    { id: 3, title: 'Alerts Satélite Detecciones', severity: 'high', timestamp: new Date() }
                 ];
                 this.updateCriticalEventsList(mockEvents);
                 this.updateEventsStatus(mockEvents.length);
@@ -915,8 +1115,8 @@ class DataIntelligenceController {
             // Show development fallback
             const mockEvents = [
                 { id: 1, title: 'Escalación Gaza Norte', severity: 'high', timestamp: new Date() },
-                { id: 2, title: 'Actividad Militar Ucrania', severity: 'medium', timestamp: new Date() },
-                { id: 3, title: 'Alertas Satélite Detecciones', severity: 'high', timestamp: new Date() }
+                { id: 2, title: 'Actividad Military Ucrania', severity: 'medium', timestamp: new Date() },
+                { id: 3, title: 'Alerts Satélite Detecciones', severity: 'high', timestamp: new Date() }
             ];
             this.updateCriticalEventsList(mockEvents);
             this.updateEventsStatus(mockEvents.length);
@@ -934,7 +1134,7 @@ class DataIntelligenceController {
             
             if (data.success && data.analytics) {
                 this.updateAnalyticsStats(data.analytics);
-                this.log('Análisis de conflictos actualizado');
+                this.log('Analysis de Conflicts actualizado');
             } else {
                 this.log('Modo desarrollo - Analytics ETL bajo desarrollo', 'warning');
                 // Show development placeholder analytics
@@ -980,12 +1180,12 @@ class DataIntelligenceController {
                 break;
             case 'completed':
                 statusElement.classList.add('status-success');
-                statusElement.textContent = 'Completado';
+                statusElement.textContent = 'Completed';
                 runButton.classList.remove('hidden');
                 stopButton.classList.add('hidden');
                 break;
-            case 'error':
-                statusElement.classList.add('status-error');
+            case 'Error':
+                statusElement.classList.add('status-Error');
                 statusElement.textContent = 'Error';
                 runButton.classList.remove('hidden');
                 stopButton.classList.add('hidden');
@@ -1080,14 +1280,14 @@ class DataIntelligenceController {
 
     // Placeholder methods for future implementation
     stopETL() { this.log('Funcionalidad de detener ETL pendiente de implementar'); }
-    showETLConfig() { this.log('Configuración ETL pendiente de implementar'); }
+    showETLConfig() { this.log('Settings ETL pendiente de implementar'); }
     addDataset() { this.log('Añadir dataset pendiente de implementar'); }
     exportEvents() { this.log('Exportar eventos pendiente de implementar'); }
     viewAnalytics() { window.location.href = '/trends-analysis'; }
     generateReport() { this.log('Generar reporte pendiente de implementar'); }
     downloadLogs() { this.log('Descargar logs pendiente de implementar'); }
-    editConfig() { this.log('Editar configuración pendiente de implementar'); }
-    resetConfig() { this.log('Resetear configuración pendiente de implementar'); }
+    editConfig() { this.log('Editar Settings pendiente de implementar'); }
+    resetConfig() { this.log('Resetear Settings pendiente de implementar'); }
 }
 
 // Initialize controller when page loads
@@ -1095,4 +1295,54 @@ document.addEventListener('DOMContentLoaded', () => {
     window.dataIntelligenceController = new DataIntelligenceController();
 });
 </script>
-{% endblock %}
+
+<script>
+
+// Hamburger Menu Navigation con Efecto Semáforo
+function toggleNav() {
+    const navMenu = document.getElementById('navMenu');
+    const navOverlay = document.getElementById('navOverlay');
+    
+    if (navMenu.classList.contains('open')) {
+        // Cerrar menu
+        navMenu.classList.remove('open');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        console.log('🍔 Hamburger menu cerrado');
+    } else {
+        // Abrir menu
+        navMenu.classList.add('open');
+        navOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        console.log('🍔 Hamburger menu abierto - efecto semáforo activado');
+    }
+}
+
+// Cerrar menu al hacer clic en cualquier enlace
+document.addEventListener('DOMContentLoaded', function() {
+    const menuItems = document.querySelectorAll('.nav-menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            setTimeout(() => {
+                toggleNav(); // Cerrar menu después de navegación
+            }, 100);
+        });
+    });
+    
+    // Cerrar menu con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu.classList.contains('open')) {
+                toggleNav();
+            }
+        }
+    });
+    
+    console.log('🔥 Hamburger menu con efecto semáforo inicializado');
+});
+
+</script>
+
+</body>
+</html>

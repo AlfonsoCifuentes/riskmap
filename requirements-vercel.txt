@@ -1,0 +1,3 @@
+# Minimal dependencies for Vercel serverless
+# Uses Neon REST API (HTTP) — no psycopg2 needed!
+# All network calls use stdlib urllib.request

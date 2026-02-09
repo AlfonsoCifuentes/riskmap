@@ -375,13 +375,19 @@ class GeopoliticalDataIngestion:
                 # Limpiar HTML
                 content = BeautifulSoup(content, 'html.parser').get_text().strip()
                 
+                detected_lang = detect_language(entry.title + ' ' + content)
+                translated_title = entry.title
+                translated_content = content
+                if detected_lang != 'es':
+                    translated_title = translate_text(entry.title, 'es')
+                    translated_content = translate_text(content, 'es')
                 article = ArticleData(
-                    title=entry.title,
-                    content=content,
+                    title=translated_title,
+                    content=translated_content,
                     url=entry.link,
                     source=source_name,
                     published_at=published_at,
-                    language='en'  # Asumir inglés por defecto
+                    language=detected_lang
                 )
                 
                 articles.append(article)
@@ -616,21 +622,29 @@ class GeopoliticalDataIngestion:
                     
                     # Traducir título si no está en español
                     if article.title:
-                        translated_title, detected_lang_title = asyncio.run(
-                            translator.translate_text(article.title, 'es')
-                        )
-                        if translated_title != article.title:
-                            logger.info(f"🔄 Título traducido de {detected_lang_title} → es")
-                            article.title = translated_title
+                    translated_title, detected_lang_title = asyncio.run(
+                    translator.translate_text(article.title, 'es')
+                    )
+                    if translated_title != article.title:
+                    logger.info(f"🔄 Título traducido de {detected_lang_title} → es")
+                    article.title = translated_title
                     
                     # Traducir contenido si no está en español
                     if article.content:
-                        translated_content, detected_lang_content = asyncio.run(
-                            translator.translate_text(article.content, 'es')
-                        )
-                        if translated_content != article.content:
-                            logger.info(f"🔄 Contenido traducido de {detected_lang_content} → es")
-                            article.content = translated_content
+                    translated_content, detected_lang_content = asyncio.run(
+                    translator.translate_text(article.content, 'es')
+                    )
+                    if translated_content != article.content:
+                    logger.info(f"🔄 Contenido traducido de {detected_lang_content} → es")
+                    article.content = translated_content
+                    
+                    # Traducir si es francés u otro idioma no español
+                    if detected_lang_title != 'es' or detected_lang_content != 'es':
+                    # Traducir a español
+                    if article.title and detected_lang_title != 'es':
+                    article.title = asyncio.run(translator.translate_text(article.title, 'es'))[0]
+                    if article.content and detected_lang_content != 'es':
+                    article.content = asyncio.run(translator.translate_text(article.content, 'es'))[0]
                     
                     # Cerrar conexión de traducción
                     trans_db_conn.close()

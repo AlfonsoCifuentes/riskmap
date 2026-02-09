@@ -1,16 +1,22 @@
-{% extends "base_navigation.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚠️ Early Warning - RiskMap</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
-{% block title %}Alerta Temprana - Stratosight{% endblock %}
-
-{% block extra_css %}
 <style>
+
     :root {
         --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
         --bg-secondary: #141824;
         --text-primary: #e8eaed;
         --text-secondary: #b0b8c4;
-        --accent-cyan: #00d4ff;
-        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+        --accent-cyan: #034CA3;
+        --accent-glow: 0 0 15px rgba(3, 76, 163, 0.4), 0 0 25px rgba(3, 76, 163, 0.2);
         --border-color: rgba(255, 255, 255, 0.1);
     }
 
@@ -37,7 +43,7 @@
         font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #1565C0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -70,7 +76,7 @@
         font-weight: 600;
     }
 
-    .alerts-dashboard {
+    .alerts-Dashboard {
         padding: 30px;
         max-width: 1400px;
         margin: 40px auto;
@@ -89,7 +95,7 @@
         font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #1565C0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -528,21 +534,272 @@
             font-size: 2rem;
         }
         
-        .alerts-dashboard {
+        .alerts-Dashboard {
             padding: 20px;
         }
     }
-</style>
-{% endblock %}
 
-{% block content %}
+
+
+    /* Navigation Bar */
+    .top-navigation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: rgba(10, 15, 44, 0.95);
+        backdrop-filter: blur(15px);
+        border-bottom: 1px solid rgba(3, 76, 163, 0.3);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-brand {
+        color: var(--accent-cyan);
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+        font-family: 'Orbitron', monospace;
+    }
+
+    /* Hamburger Menu Button - Efecto Semáforo */
+    .hamburger-btn {
+        margin-left: auto;
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.8) 0%, 
+            rgba(40, 60, 100, 0.9) 50%, 
+            rgba(30, 50, 90, 0.8) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.3);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        
+        /* Efecto cilíndrico/cojinete 3D */
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+        transform: perspective(1000px) rotateX(5deg);
+    }
+
+    /* Entramado de semáforo para hamburger */
+    .hamburger-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 25% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 25% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            linear-gradient(45deg, transparent 46%, rgba(0,0,0,0.1) 46%, rgba(0,0,0,0.1) 54%, transparent 54%);
+        background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px, 24px 24px;
+        background-position: 0 0, 6px 0, 0 6px, 6px 6px, 0 0;
+        opacity: 0.3;
+        transition: opacity 0.4s ease;
+        z-index: 1;
+    }
+
+    /* Estado encendido en hover */
+    .hamburger-btn:hover {
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 1.0) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 1.0) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.8);
+        box-shadow: 
+            0 12px 40px rgba(3, 76, 163, 0.6),
+            inset 0 3px 0 rgba(255, 255, 255, 0.4),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(3, 76, 163, 0.4);
+        transform: perspective(1000px) rotateX(0deg) translateY(-3px);
+    }
+
+    .hamburger-btn:hover::before {
+        opacity: 0.6;
+        background-size: 10px 10px, 10px 10px, 10px 10px, 10px 10px, 20px 20px;
+    }
+
+    /* Líneas del hamburger */
+    .hamburger-btn span {
+        width: 20px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 1px;
+        margin: 2px 0;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .hamburger-btn:hover span {
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Menu desplegable con efecto semáforo */
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        right: -300px;
+        width: 280px;
+        height: calc(100vh - 70px);
+        background: rgba(10, 15, 44, 0.98);
+        backdrop-filter: blur(20px);
+        border-left: 2px solid rgba(3, 76, 163, 0.3);
+        transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 999;
+        padding: 20px;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-menu.open {
+        right: 0;
+    }
+
+    .nav-menu-item {
+        display: block;
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 15px 20px;
+        margin: 8px 0;
+        border-radius: 12px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 0.95rem;
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+        
+        /* Estado apagado - efecto semáforo */
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.6) 0%, 
+            rgba(40, 60, 100, 0.7) 50%, 
+            rgba(30, 50, 90, 0.6) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.2);
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        transform: perspective(1000px) rotateX(3deg);
+    }
+
+    /* Estado encendido en hover */
+    .nav-menu-item:hover {
+        color: #fff;
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 0.9) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 0.9) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.6);
+        box-shadow: 
+            0 8px 25px rgba(3, 76, 163, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.3),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 20px rgba(3, 76, 163, 0.3);
+        transform: perspective(1000px) rotateX(0deg) translateY(-2px);
+    }
+
+    .nav-menu-item span {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Overlay para cerrar menu */
+    .nav-overlay {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 998;
+    }
+
+    .nav-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+
+    /* Añadir padding top para navbar fija */
+    /* Global Body Styling */
+    body {
+        margin: 0;
+        padding-top: 70px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        min-height: 100vh;
+        color: #e8eaed;
+        overflow-x: hidden;
+    }
+    
+    html {
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        margin: 0;
+        padding: 0;
+    }
+</style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="top-navigation">
+    <a href="/" class="nav-brand">🗺️ RiskMap</a>
+    
+    <!-- Hamburger Button con Efecto Semáforo -->
+    <button class="hamburger-btn" onclick="toggleNav()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Menu desplegable -->
+    <div class="nav-menu" id="navMenu">
+        <a href="/news-analysis" class="nav-menu-item"><span>📰 Análisis de Noticias</span></a>
+        <a href="/conflict-monitoring" class="nav-menu-item"><span>⚔️ Monitor de Conflictos</span></a>
+        <a href="/trends-analysis" class="nav-menu-item"><span>📈 Análisis de Tendencias</span></a>
+        <a href="/early-warning" class="nav-menu-item"><span>⚠️ Alertas Tempranas</span></a>
+        <a href="/executive-reports" class="nav-menu-item"><span>📋 Reportes Ejecutivos</span></a>
+        <a href="/data-intelligence" class="nav-menu-item"><span>🧠 Inteligencia de Datos</span></a>
+        <a href="/satellite-analysis" class="nav-menu-item"><span>🛰️ Análisis Satelital</span></a>
+        <a href="/video-surveillance" class="nav-menu-item"><span>📹 Vigilancia por Video</span></a>
+        <a href="/historical-analysis" class="nav-menu-item"><span>🏛️ Análisis Histórico</span></a>
+        <a href="/about" class="nav-menu-item"><span>ℹ️ Acerca de</span></a>
+        <div style="border-top: 1px solid rgba(3,76,163,0.3); margin: 12px 0;"></div>
+        <a href="/logs" class="nav-menu-item"><span>📝 Registros</span></a>
+        <a href="/settings" class="nav-menu-item"><span>⚙️ Configuración</span></a>
+    </div>
+    
+    <!-- Overlay para cerrar menu -->
+    <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
 <!-- Header Section -->
 <div class="header-section">
-    <h1 class="page-title">🚨 Alertas Tempranas</h1>
-    <p class="page-subtitle">Sistema de Alertas en Tiempo Real • Configuración de Notificaciones • Nivel de Amenaza Global</p>
+    <h1 class="page-title">🚨 Alerts Tempranas</h1>
+    <p class="page-subtitle">Sistema de Alerts en Tiempo Real • Settings de Notificaciones • Nivel de Amenaza Global</p>
 </div>
 
-<div class="alerts-dashboard">
+<div class="alerts-Dashboard">
     <!-- Global Threat Level -->
     <div class="threat-level-banner">
         <div class="threat-level-title">
@@ -551,7 +808,7 @@
         </div>
         <div class="threat-level-value">ALTO</div>
         <div class="threat-level-description">
-            Múltiples conflictos activos con potencial de escalada. Monitoreo continuo requerido.
+            Múltiples Conflicts activos con potencial de escalada. Monitoring continuo requerido.
         </div>
     </div>
     
@@ -559,7 +816,7 @@
     <div class="alerts-controls">
         <div class="alerts-status">
             <div class="status-indicator"></div>
-            <span class="status-text">Sistema de Alertas Activo</span>
+            <span class="status-text">Sistema de Alerts Active</span>
             <span style="color: rgba(255, 255, 255, 0.6);">| Última actualización: hace 2 minutos</span>
         </div>
         <div class="alerts-actions">
@@ -581,11 +838,11 @@
             <div class="feed-header">
                 <h3 class="feed-title">
                     <i class="fas fa-stream"></i>
-                    Feed de Alertas en Tiempo Real
+                    Feed de Alerts en Tiempo Real
                 </h3>
                 <div class="feed-controls">
                     <button class="btn-control" id="filterBtn">
-                        <i class="fas fa-filter"></i> Filtrar
+                        <i class="fas fa-filter"></i> Filter
                     </button>
                     <button class="btn-control" id="exportBtn">
                         <i class="fas fa-download"></i> Exportar
@@ -597,18 +854,18 @@
                 <!-- Real alerts will be loaded here -->
                 <div class="alert-item alert-medium">
                     <div class="alert-header">
-                        <div class="alert-title">Cargando alertas en tiempo real...</div>
+                        <div class="alert-title">Loading Alerts en tiempo real...</div>
                         <div class="alert-time">--</div>
                     </div>
                     <div class="alert-description">
-                        Conectando con el sistema de monitoreo para obtener las últimas alertas basadas en datos reales.
+                        Conectando con el sistema de Monitoring para obtener las últimas Alerts basadas en datos reales.
                     </div>
                     <div class="alert-meta">
                         <div class="alert-location">
                             <i class="fas fa-map-marker-alt"></i>
                             Sistema
                         </div>
-                        <div class="alert-priority priority-medium">Cargando</div>
+                        <div class="alert-priority priority-medium">Loading</div>
                     </div>
                 </div>
             </div>
@@ -619,7 +876,7 @@
             <div class="panel-header">
                 <h3 class="panel-title">
                     <i class="fas fa-bell"></i>
-                    Configuración de Notificaciones
+                    Settings de Notificaciones
                 </h3>
             </div>
             
@@ -708,7 +965,7 @@
                     <i class="fas fa-fire"></i>
                 </div>
                 <div class="indicator-value">24</div>
-                <div class="indicator-label">Alertas Críticas (24h)</div>
+                <div class="indicator-label">Alerts Críticas (24h)</div>
             </div>
             
             <div class="indicator-card">
@@ -753,9 +1010,9 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
+
+
 <script>
     // Alert system functionality
     let alertsActive = true;
@@ -793,7 +1050,7 @@
             .catch(error => {
                 console.error('Error loading real alerts:', error);
                 // Fallback to show system message
-                showSystemMessage('Error al cargar alertas en tiempo real. Reintentando...');
+                showSystemMessage('Error al cargar Alerts en tiempo real. Reintentando...');
             });
     }
     
@@ -802,7 +1059,7 @@
         alertsList.innerHTML = ''; // Clear existing alerts
         
         if (alerts.length === 0) {
-            showSystemMessage('No hay alertas de alto riesgo en las últimas 6 horas.');
+            showSystemMessage('No hay Alerts de alto riesgo en las últimas 6 horas.');
             return;
         }
         
@@ -828,7 +1085,7 @@
             
             if (allEntities.length > 0) {
                 entitiesDisplay = `
-                    <div class="fallback-indicator error">
+                    <div class="fallback-indicator Error">
                         <i class="fas fa-wifi"></i>
                         <span>API no disponible - Verificando conexión</span>
                     </div><div style="margin-top: 8px; font-size: 0.8rem; color: rgba(255,255,255,0.6);">
@@ -870,7 +1127,7 @@
         alertsList.innerHTML = `
             <div class="alert-item alert-medium">
                 <div class="alert-header">
-                    <div class="alert-title">Sistema de Alertas</div>
+                    <div class="alert-title">Sistema de Alerts</div>
                     <div class="alert-time">ahora</div>
                 </div>
                 <div class="alert-description">
@@ -928,7 +1185,7 @@
         
         // Filter button
         document.getElementById('filterBtn').addEventListener('click', function() {
-            const priority = prompt('Filtrar por prioridad (critical, high, medium) o dejar vacío para mostrar todas:');
+            const priority = prompt('Filter por prioridad (critical, high, medium) o dejar vacío para mostrar todas:');
             if (priority !== null) {
                 filterAlerts(priority.toLowerCase());
             }
@@ -966,7 +1223,7 @@
             .then(response => response.json())
             .then(alerts => {
                 if (alerts.length === 0) {
-                    alert('No hay alertas para exportar.');
+                    alert('No hay Alerts para exportar.');
                     return;
                 }
                 
@@ -986,7 +1243,7 @@
             })
             .catch(error => {
                 console.error('Error exporting alerts:', error);
-                alert('Error al exportar alertas.');
+                alert('Error al exportar Alerts.');
             });
     }
     
@@ -1058,13 +1315,13 @@
     function showLoadingAlertsStats() {
         const indicators = document.querySelectorAll('.indicator-value');
         indicators.forEach(indicator => {
-            indicator.textContent = 'Cargando...
-                    <div class="fallback-indicator warning">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Si no hay datos, se mostrarán valores de demostración</span>
-                    </div>';
+            indicator.textContent = 'Loading...';
         });
     }
+    
+    function updateAlertsStatsWithData(data) {
+        const indicators = document.querySelectorAll('.indicator-value');
+        if (indicators.length >= 6) {
             indicators[0].textContent = data.criticalAlerts || 0; // Critical alerts
             indicators[1].textContent = data.responseTime || '2.3'; // Response time
             indicators[2].textContent = data.monitoredEvents || 0; // Monitored events
@@ -1080,19 +1337,19 @@
         
         if (data.criticalAlerts > 20) {
             threatLevelValue.textContent = 'CRÍTICO';
-            threatLevelDescription.textContent = 'Múltiples alertas críticas activas. Situación de máxima prioridad.';
+            threatLevelDescription.textContent = 'Múltiples Alerts críticas activas. Situación de máxima prioridad.';
             threatLevelBanner.style.background = 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)';
         } else if (data.criticalAlerts > 10) {
             threatLevelValue.textContent = 'ALTO';
-            threatLevelDescription.textContent = 'Múltiples conflictos activos con potencial de escalada. Monitoreo continuo requerido.';
+            threatLevelDescription.textContent = 'Múltiples Conflicts activos con potencial de escalada. Monitoring continuo requerido.';
             threatLevelBanner.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
         } else if (data.criticalAlerts > 5) {
             threatLevelValue.textContent = 'MEDIO';
-            threatLevelDescription.textContent = 'Situación estable con algunos eventos de riesgo. Monitoreo regular.';
+            threatLevelDescription.textContent = 'Situación estable con algunos eventos de riesgo. Monitoring regular.';
             threatLevelBanner.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
         } else {
             threatLevelValue.textContent = 'BAJO';
-            threatLevelDescription.textContent = 'Situación geopolítica estable. Monitoreo de rutina.';
+            threatLevelDescription.textContent = 'Situación Geopolitics estable. Monitoring de rutina.';
             threatLevelBanner.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
         }
     }
@@ -1114,4 +1371,54 @@
         }
     });
 </script>
-{% endblock %}
+
+<script>
+
+// Hamburger Menu Navigation con Efecto Semáforo
+function toggleNav() {
+    const navMenu = document.getElementById('navMenu');
+    const navOverlay = document.getElementById('navOverlay');
+    
+    if (navMenu.classList.contains('open')) {
+        // Cerrar menu
+        navMenu.classList.remove('open');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        console.log('🍔 Hamburger menu cerrado');
+    } else {
+        // Abrir menu
+        navMenu.classList.add('open');
+        navOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        console.log('🍔 Hamburger menu abierto - efecto semáforo activado');
+    }
+}
+
+// Cerrar menu al hacer clic en cualquier enlace
+document.addEventListener('DOMContentLoaded', function() {
+    const menuItems = document.querySelectorAll('.nav-menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            setTimeout(() => {
+                toggleNav(); // Cerrar menu después de navegación
+            }, 100);
+        });
+    });
+    
+    // Cerrar menu con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu.classList.contains('open')) {
+                toggleNav();
+            }
+        }
+    });
+    
+    console.log('🔥 Hamburger menu con efecto semáforo inicializado');
+});
+
+</script>
+
+</body>
+</html>

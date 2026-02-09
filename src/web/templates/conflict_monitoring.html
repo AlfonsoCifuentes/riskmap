@@ -1,16 +1,22 @@
-{% extends "base_navigation.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ Conflict Monitoring - RiskMap</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
-{% block title %}Monitoreo de Conflictos - Stratosight{% endblock %}
-
-{% block extra_css %}
 <style>
+
     :root {
         --bg-primary: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
         --bg-secondary: #141824;
         --text-primary: #e8eaed;
         --text-secondary: #b0b8c4;
-        --accent-cyan: #00d4ff;
-        --accent-glow: 0 0 15px rgba(0, 212, 255, 0.4), 0 0 25px rgba(0, 212, 255, 0.2);
+        --accent-cyan: #034CA3;
+        --accent-glow: 0 0 15px rgba(3, 76, 163, 0.4), 0 0 25px rgba(3, 76, 163, 0.2);
         --border-color: rgba(255, 255, 255, 0.1);
     }
 
@@ -37,7 +43,7 @@
         font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #1565C0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -50,7 +56,7 @@
         margin-bottom: 30px;
     }
 
-    .conflict-dashboard {
+    .conflict-Dashboard {
         padding: 30px;
         max-width: 1400px;
         margin: 40px auto;
@@ -69,7 +75,7 @@
         font-size: clamp(2rem, 6vw, 4rem);
         font-weight: 700;
         margin-bottom: 10px;
-        background: linear-gradient(135deg, #00d4ff 0%, #00a3cc 100%);
+        background: linear-gradient(135deg, #034CA3 0%, #1565C0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -381,21 +387,278 @@
             font-size: 2rem;
         }
         
-        .conflict-dashboard {
+        .conflict-Dashboard {
             padding: 20px;
         }
     }
-</style>
-{% endblock %}
 
-{% block content %}
+
+
+    /* Navigation Bar */
+    .top-navigation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: rgba(10, 15, 44, 0.95);
+        backdrop-filter: blur(15px);
+        border-bottom: 1px solid rgba(3, 76, 163, 0.3);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-brand {
+        color: var(--accent-cyan);
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+        font-family: 'Orbitron', monospace;
+    }
+
+    /* Hamburger Menu Button - Efecto Semáforo */
+    .hamburger-btn {
+        margin-left: auto;
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.8) 0%, 
+            rgba(40, 60, 100, 0.9) 50%, 
+            rgba(30, 50, 90, 0.8) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.3);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        
+        /* Efecto cilíndrico/cojinete 3D */
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+        transform: perspective(1000px) rotateX(5deg);
+    }
+
+    /* Entramado de semáforo para hamburger */
+    .hamburger-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 25% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 25%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 25% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 75% 75%, rgba(255,255,255,0.15) 2px, transparent 2px),
+            linear-gradient(45deg, transparent 46%, rgba(0,0,0,0.1) 46%, rgba(0,0,0,0.1) 54%, transparent 54%);
+        background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px, 24px 24px;
+        background-position: 0 0, 6px 0, 0 6px, 6px 6px, 0 0;
+        opacity: 0.3;
+        transition: opacity 0.4s ease;
+        z-index: 1;
+    }
+
+    /* Estado encendido en hover */
+    .hamburger-btn:hover {
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 1.0) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 1.0) 100%);
+        border: 2px solid rgba(3, 76, 163, 0.8);
+        box-shadow: 
+            0 12px 40px rgba(3, 76, 163, 0.6),
+            inset 0 3px 0 rgba(255, 255, 255, 0.4),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(3, 76, 163, 0.4);
+        transform: perspective(1000px) rotateX(0deg) translateY(-3px);
+    }
+
+    .hamburger-btn:hover::before {
+        opacity: 0.6;
+        background-size: 10px 10px, 10px 10px, 10px 10px, 10px 10px, 20px 20px;
+    }
+
+    /* Líneas del hamburger */
+    .hamburger-btn span {
+        width: 20px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 1px;
+        margin: 2px 0;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .hamburger-btn:hover span {
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Menu desplegable con efecto semáforo */
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        right: -300px;
+        width: 280px;
+        height: calc(100vh - 70px);
+        background: rgba(10, 15, 44, 0.98);
+        backdrop-filter: blur(20px);
+        border-left: 2px solid rgba(3, 76, 163, 0.3);
+        transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 999;
+        padding: 20px;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-menu.open {
+        right: 0;
+    }
+
+    .nav-menu-item {
+        display: block;
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 15px 20px;
+        margin: 8px 0;
+        border-radius: 12px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 0.95rem;
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+        
+        /* Estado apagado - efecto semáforo */
+        background: linear-gradient(145deg, 
+            rgba(60, 80, 120, 0.6) 0%, 
+            rgba(40, 60, 100, 0.7) 50%, 
+            rgba(30, 50, 90, 0.6) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.2);
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        transform: perspective(1000px) rotateX(3deg);
+    }
+
+    /* Estado encendido en hover */
+    .nav-menu-item:hover {
+        color: #fff;
+        background: linear-gradient(145deg, 
+            rgba(3, 76, 163, 0.9) 0%, 
+            rgba(21, 101, 192, 1.0) 50%, 
+            rgba(25, 118, 210, 0.9) 100%);
+        border: 1px solid rgba(3, 76, 163, 0.6);
+        box-shadow: 
+            0 8px 25px rgba(3, 76, 163, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.3),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+            0 0 20px rgba(3, 76, 163, 0.3);
+        transform: perspective(1000px) rotateX(0deg) translateY(-2px);
+    }
+
+    .nav-menu-item span {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Overlay para cerrar menu */
+    .nav-overlay {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 998;
+    }
+
+    .nav-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+
+    /* Añadir padding top para navbar fija */
+    /* Global Body Styling */
+    body {
+        margin: 0;
+        padding-top: 70px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        min-height: 100vh;
+        color: #e8eaed;
+        overflow-x: hidden;
+    }
+    
+    html {
+        background: linear-gradient(180deg, #0a0f2c 0%, #1a2040 40%, #2a3558 80%, #3a4a70 100%);
+        margin: 0;
+        padding: 0;
+    }
+</style>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="top-navigation">
+    <a href="/" class="nav-brand">🗺️ RiskMap</a>
+    
+    <!-- Hamburger Button con Efecto Semáforo -->
+    <button class="hamburger-btn" onclick="toggleNav()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Menu desplegable -->
+    <div class="nav-menu" id="navMenu">
+        <a href="/news-analysis" class="nav-menu-item"><span>📰 Análisis de Noticias</span></a>
+        <a href="/conflict-monitoring" class="nav-menu-item"><span>⚔️ Monitor de Conflictos</span></a>
+        <a href="/trends-analysis" class="nav-menu-item"><span>📈 Análisis de Tendencias</span></a>
+        <a href="/early-warning" class="nav-menu-item"><span>⚠️ Alertas Tempranas</span></a>
+        <a href="/executive-reports" class="nav-menu-item"><span>📋 Reportes Ejecutivos</span></a>
+        <a href="/data-intelligence" class="nav-menu-item"><span>🧠 Inteligencia de Datos</span></a>
+        <a href="/satellite-analysis" class="nav-menu-item"><span>🛰️ Análisis Satelital</span></a>
+        <a href="/video-surveillance" class="nav-menu-item"><span>📹 Vigilancia por Video</span></a>
+        <a href="/historical-analysis" class="nav-menu-item"><span>🏛️ Análisis Histórico</span></a>
+        <a href="/about" class="nav-menu-item"><span>ℹ️ Acerca de</span></a>
+        <div style="border-top: 1px solid rgba(3,76,163,0.3); margin: 12px 0;"></div>
+        <a href="/logs" class="nav-menu-item"><span>📝 Registros</span></a>
+        <a href="/settings" class="nav-menu-item"><span>⚙️ Configuración</span></a>
+    </div>
+    
+    <!-- Overlay para cerrar menu -->
+    <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
 <!-- Header Section -->
 <div class="header-section">
-    <h1 class="page-title">⚔️ Monitoreo de Conflictos</h1>
-    <p class="page-subtitle">Seguimiento en Tiempo Real • Análisis de Actores • Impacto Humanitario</p>
+    <h1 class="page-title">⚔️ Monitoring de Conflicts</h1>
+    <p class="page-subtitle">Seguimiento en Tiempo Real • Analysis de Actores • Impacto Humanitario</p>
 </div>
 
-<div class="conflict-dashboard">
+<div class="conflict-Dashboard">
     <!-- Conflict Statistics -->
     <div class="conflict-stats">
         <div class="conflict-stat-card">
@@ -403,7 +666,7 @@
                 <i class="fas fa-fire"></i>
             </div>
             <div class="stat-value" id="activeConflicts">24</div>
-            <div class="stat-label">Conflictos Activos</div>
+            <div class="stat-label">Conflicts Activos</div>
         </div>
         
         <div class="conflict-stat-card">
@@ -427,7 +690,7 @@
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
             <div class="stat-value" id="riskLevel">Alto</div>
-            <div class="stat-label">Nivel de Riesgo Global</div>
+            <div class="stat-label">Risk Level Global</div>
         </div>
     </div>
     
@@ -436,7 +699,7 @@
         <div class="map-header">
             <div class="map-title">
                 <i class="fas fa-map-marked-alt"></i>
-                Mapa de Intensidad de Conflictos
+                Mapa de Intensidad de Conflicts
             </div>
             <div class="map-controls">
                 <button class="map-control-btn active" data-layer="intensity">
@@ -467,7 +730,7 @@
                 </h3>
                 <div class="section-controls">
                     <button class="btn-control">
-                        <i class="fas fa-filter"></i> Filtrar
+                        <i class="fas fa-filter"></i> Filter
                     </button>
                     <button class="btn-control">
                         <i class="fas fa-download"></i> Exportar
@@ -481,7 +744,7 @@
                         <div class="actor-flag">🇺🇦</div>
                         <div class="actor-details">
                             <div class="actor-name">Ucrania</div>
-                            <div class="actor-type">Estado Nacional</div>
+                            <div class="actor-type">Status National</div>
                         </div>
                     </div>
                     <div class="actor-risk risk-high">Alto</div>
@@ -492,7 +755,7 @@
                         <div class="actor-flag">🇷🇺</div>
                         <div class="actor-details">
                             <div class="actor-name">Federación Rusa</div>
-                            <div class="actor-type">Estado Nacional</div>
+                            <div class="actor-type">Status National</div>
                         </div>
                     </div>
                     <div class="actor-risk risk-high">Alto</div>
@@ -503,7 +766,7 @@
                         <div class="actor-flag">🇮🇱</div>
                         <div class="actor-details">
                             <div class="actor-name">Israel</div>
-                            <div class="actor-type">Estado Nacional</div>
+                            <div class="actor-type">Status National</div>
                         </div>
                     </div>
                     <div class="actor-risk risk-high">Alto</div>
@@ -525,7 +788,7 @@
                         <div class="actor-flag">🇨🇳</div>
                         <div class="actor-details">
                             <div class="actor-name">China</div>
-                            <div class="actor-type">Estado Nacional</div>
+                            <div class="actor-type">Status National</div>
                         </div>
                     </div>
                     <div class="actor-risk risk-medium">Medio</div>
@@ -536,7 +799,7 @@
                         <div class="actor-flag">🇺🇸</div>
                         <div class="actor-details">
                             <div class="actor-name">Estados Unidos</div>
-                            <div class="actor-type">Estado Nacional</div>
+                            <div class="actor-type">Status National</div>
                         </div>
                     </div>
                     <div class="actor-risk risk-medium">Medio</div>
@@ -595,9 +858,9 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
+
+
 <script>
     // Initialize Conflict Map
     let conflictMap;
@@ -623,7 +886,7 @@
             { lat: 31.5, lng: 34.8, name: "Conflicto Israel-Palestina", intensity: "high", actors: 8 },
             { lat: 34.5, lng: 69.2, name: "Conflicto en Afganistán", intensity: "medium", actors: 12 },
             { lat: 15.5, lng: 48.5, name: "Conflicto en Yemen", intensity: "high", actors: 6 },
-            { lat: 33.3, lng: 44.4, name: "Tensiones en Irak", intensity: "medium", actors: 9 },
+            { lat: 33.3, lng: 44.4, name: "Tensions en Irak", intensity: "medium", actors: 9 },
             { lat: 35.0, lng: 38.0, name: "Conflicto en Siria", intensity: "medium", actors: 11 }
         ];
         
@@ -694,7 +957,7 @@ document.querySelectorAll('.btn-control').forEach(btn => {
         const action = this.querySelector('i').className;
         const text = this.textContent.trim();
         
-        if (text.includes('Filtrar')) {
+        if (text.includes('Filter')) {
             handleFilter(this);
         } else if (text.includes('Exportar')) {
             handleExport(this);
@@ -796,7 +1059,7 @@ function handleFilter(button) {
     };
     
     const options = filterOptions[sectionTitle.trim()] || ['todos'];
-    const filter = prompt('Filtrar ' + sectionTitle + ':\n' + options.map(o => '- ' + o).join('\n') + '\n\nIngrese su opción:');
+    const filter = prompt('Filter ' + sectionTitle + ':\n' + options.map(o => '- ' + o).join('\n') + '\n\nIngrese su opción:');
     
     if (filter && options.includes(filter.toLowerCase())) {
         applyConflictFilter(sectionTitle, filter);
@@ -828,9 +1091,9 @@ function handleCharts(button) {
     // Create charts modal
     const chartsWindow = window.open('', '_blank', 'width=1000,height=700');
     chartsWindow.document.write(`
-        <html>
+        
         <head>
-            <title>Gráficos: ${sectionTitle}</title>
+            <title>RiskMap - Geopolitical Intelligence Platform</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a2e; color: #fff; }
                 .header { border-bottom: 2px solid #667eea; padding-bottom: 15px; margin-bottom: 20px; }
@@ -843,10 +1106,10 @@ function handleCharts(button) {
                 .data-status.simulation { background: rgba(156, 39, 176, 0.2); color: #9C27B0; }
             </style>
         </head>
-        <body>
+        
             <div class="header">
                 <h1>Gráficos: ${sectionTitle}</h1>
-                <p>Análisis visual de datos de conflictos</p>
+                <p>Analysis visual de datos de Conflicts</p>
             </div>
             <div class="chart-container">
                 <h3>Tendencia Temporal</h3>
@@ -857,7 +1120,7 @@ function handleCharts(button) {
                 <canvas id="geographic-chart"></canvas>
             </div>
             <div class="chart-container">
-                <h3>Análisis Comparativo</h3>
+                <h3>Analysis Comparativo</h3>
                 <canvas id="comparative-chart"></canvas>
             </div>
             <script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>
@@ -910,7 +1173,7 @@ function handleCharts(button) {
                         data: {
                             labels: ['Oriente Medio', 'África', 'Asia', 'Europa'],
                             datasets: [{
-                                label: 'Conflictos Activos',
+                                label: 'Conflicts Activos',
                                 data: [8, 12, 6, 3],
                                 backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c']
                             }]
@@ -930,7 +1193,7 @@ function handleCharts(button) {
                     new Chart(compCtx, {
                         type: 'doughnut',
                         data: {
-                            labels: ['Conflictos Armados', 'Tensiones Políticas', 'Crisis Humanitarias'],
+                            labels: ['Conflicts Armados', 'Tensions Políticas', 'Crisis Humanitarias'],
                             datasets: [{
                                 data: [45, 30, 25],
                                 backgroundColor: ['#667eea', '#764ba2', '#f093fb']
@@ -946,8 +1209,7 @@ function handleCharts(button) {
                 // Initialize charts when DOM is ready
                 initializeConflictCharts();
             <\/script>
-        </body>
-        </html>
+        
     `);
     chartsWindow.document.close();
     
@@ -965,9 +1227,9 @@ function handleReport(button) {
     setTimeout(() => {
         const reportWindow = window.open('', '_blank', 'width=800,height=900');
         reportWindow.document.write(`
-            <html>
+            
             <head>
-                <title>Reporte: ${sectionTitle}</title>
+                <title>RiskMap - Geopolitical Intelligence Platform</title>
                 <style>
                     body { font-family: Arial, sans-serif; padding: 30px; background: #fff; color: #333; line-height: 1.6; }
                     .header { text-align: center; border-bottom: 3px solid #667eea; padding-bottom: 20px; margin-bottom: 30px; }
@@ -985,14 +1247,14 @@ function handleReport(button) {
                     @media print { body { background: #fff; } }
                 </style>
             </head>
-            <body>
+            
                 <div class="header">
                     <h1 class="title">Reporte: ${sectionTitle}</h1>
                     <p class="subtitle">Generado el ${new Date().toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" })}</p>
                 </div>
                 <div class="section">
-                    <h3>Resumen Ejecutivo</h3>
-                    <p>Este reporte presenta un análisis detallado de ${sectionTitle.toLowerCase()} basado en datos recopilados y procesados por el sistema de inteligencia geopolítica Riskmap.</p>
+                    <h3>Summary Ejecutivo</h3>
+                    <p>Este reporte presenta un Analysis detallado de ${sectionTitle.toLowerCase()} basado en datos recopilados y procesados por el sistema de Intelligence Geopolitics Riskmap.</p>
                 </div>
                 <div class="section">
                     <h3>Métricas Clave</h3>
@@ -1007,7 +1269,7 @@ function handleReport(button) {
                         </div>
                         <div class="metric">
                             <div class="metric-value">${Math.floor(Math.random() * 50) + 25}%</div>
-                            <div class="metric-label">Nivel de Riesgo</div>
+                            <div class="metric-label">Risk Level</div>
                         </div>
                         <div class="metric">
                             <div class="metric-value">${Math.floor(Math.random() * 10) + 5}</div>
@@ -1016,25 +1278,24 @@ function handleReport(button) {
                     </div>
                 </div>
                 <div class="section">
-                    <h3>Análisis Detallado</h3>
-                    <p>Los datos analizados muestran patrones significativos en ${sectionTitle.toLowerCase()}. Se han identificado tendencias emergentes que requieren monitoreo continuo.</p>
-                    <p>Las regiones de mayor actividad incluyen áreas de conflicto tradicional, así como nuevos focos de tensión geopolítica.</p>
+                    <h3>Analysis Detallado</h3>
+                    <p>Los datos analizados muestran patrones significativos en ${sectionTitle.toLowerCase()}. Se han identificado tendencias emergentes que requieren Monitoring continuo.</p>
+                    <p>Las regiones de mayor actividad incluyen áreas de conflicto tradicional, así como nuevos focos de tensión Geopolitics.</p>
                 </div>
                 <div class="section">
                     <h3>Recomendaciones</h3>
                     <ul>
-                        <li>Mantener monitoreo continuo de las regiones identificadas como de alto riesgo</li>
+                        <li>Mantener Monitoring continuo de las regiones identificadas como de alto riesgo</li>
                         <li>Implementar sistemas de alerta temprana para cambios significativos</li>
                         <li>Coordinar con organizaciones internacionales para respuesta humanitaria</li>
-                        <li>Actualizar protocolos de seguridad según los patrones identificados</li>
+                        <li>Refresh protocolos de Security según los patrones identificados</li>
                     </ul>
                 </div>
                 <div class="section">
                     <h3>Metodología</h3>
-                    <p>Este reporte se basa en análisis automatizado de fuentes OSINT, procesamiento de lenguaje natural, y modelos de machine learning para clasificación de riesgos.</p>
+                    <p>Este reporte se basa en Analysis automatizado de fuentes OSINT, procesamiento de lenguaje natural, y modelos de machine learning para clasificación de riesgos.</p>
                 </div>
-            </body>
-            </html>
+            
         `);
         reportWindow.document.close();
         
@@ -1057,7 +1318,7 @@ function generateExportData(section) {
             i,
             new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             ['Ucrania', 'Gaza', 'Siria', 'Yemen', 'Afganistán'][Math.floor(Math.random() * 5)],
-            ['Conflicto Armado', 'Crisis Humanitaria', 'Tensión Política'][Math.floor(Math.random() * 3)],
+            ['Conflicto Armado', 'Crisis Humanitaria', 'Tensión Politics'][Math.floor(Math.random() * 3)],
             ['Alto', 'Medio', 'Bajo'][Math.floor(Math.random() * 3)],
             'Evento relacionado con ' + section.toLowerCase()
         ]);
@@ -1084,7 +1345,7 @@ function downloadCSV(data, filename) {
 
 function getLayerName(layer) {
     const names = {
-        'intensity': 'Intensidad de Conflictos',
+        'intensity': 'Intensidad de Conflicts',
         'actors': 'Actores Involucrados',
         'humanitarian': 'Impacto Humanitario',
         'satellite': 'Datos Satelitales'
@@ -1092,50 +1353,7 @@ function getLayerName(layer) {
     return names[layer] || layer;
 }
 
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = 'notification notification-' + type;
-    notification.innerHTML = 
-        '<div class="notification-content">' +
-            '<i class="fas fa-' + (type === 'success' ? 'check' : type === 'error' ? 'times' : 'info') + '-circle"></i>' +
-            '<span>' + message + '</span>' +
-        '</div>';
-    
-    // Add styles
-    notification.style.cssText = 
-        'position: fixed;' +
-        'top: 20px;' +
-        'right: 20px;' +
-        'background: ' + (type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6') + ';' +
-        'color: white;' +
-        'padding: 15px 20px;' +
-        'border-radius: 8px;' +
-        'box-shadow: 0 4px 12px rgba(0,0,0,0.3);' +
-        'z-index: 10000;' +
-        'opacity: 0;' +
-        'transform: translateX(100%);' +
-        'transition: all 0.3s ease;';
-    
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.style.opacity = '1';
-        notification.style.transform = 'translateX(0)';
-    }, 100);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
-}
+    // shared showNotification is provided by /static/js/shared_notification.js
 
 // Load conflict data
 function loadConflictData() {
@@ -1146,7 +1364,7 @@ function loadConflictData() {
             if (data.success) {
                 updateConflictStats(data.statistics);
             } else {
-                console.error('Error loading conflict data:', data.error);
+                console.error('Error loading conflict data:', data.error || data.message);
                 showLoadingStats();
             }
         })
@@ -1164,10 +1382,10 @@ function updateConflictStats(data) {
 }
 
 function showLoadingStats() {
-    document.getElementById('activeConflicts').textContent = 'Cargando...';
-    document.getElementById('involvedActors').textContent = 'Cargando...';
-    document.getElementById('humanitarianImpact').textContent = 'Cargando...';
-    document.getElementById('riskLevel').textContent = 'Cargando...';
+    document.getElementById('activeConflicts').textContent = 'Loading...';
+    document.getElementById('involvedActors').textContent = 'Loading...';
+    document.getElementById('humanitarianImpact').textContent = 'Loading...';
+    document.getElementById('riskLevel').textContent = 'Loading...';
 }
 
 // Initialize when page loads
@@ -1181,4 +1399,55 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-{% endblock %}
+<script>
+
+// Hamburger Menu Navigation con Efecto Semáforo
+function toggleNav() {
+    const navMenu = document.getElementById('navMenu');
+    const navOverlay = document.getElementById('navOverlay');
+    
+    if (navMenu.classList.contains('open')) {
+        // Cerrar menu
+        navMenu.classList.remove('open');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        console.log('🍔 Hamburger menu cerrado');
+    } else {
+        // Abrir menu
+        navMenu.classList.add('open');
+        navOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        console.log('🍔 Hamburger menu abierto - efecto semáforo activado');
+    }
+}
+
+// Cerrar menu al hacer clic en cualquier enlace
+document.addEventListener('DOMContentLoaded', function() {
+    const menuItems = document.querySelectorAll('.nav-menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            setTimeout(() => {
+                toggleNav(); // Cerrar menu después de navegación
+            }, 100);
+        });
+    });
+    
+    // Cerrar menu con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu.classList.contains('open')) {
+                toggleNav();
+            }
+        }
+    });
+    
+    console.log('🔥 Hamburger menu con efecto semáforo inicializado');
+});
+
+    </script>
+
+    <script src="{{ url_for('static', filename='js/shared_notification.js') }}"></script>
+
+</body>
+</html>

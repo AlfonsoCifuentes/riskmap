@@ -549,7 +549,7 @@ class RSSFetcher:
         conn = self.get_db_connection()
         cursor = conn.cursor()
         
-        cursor.execute('SELECT id FROM articles WHERE url = ?', (url,))
+        cursor.execute('SELECT id FROM unified_articles WHERE url = ?', (url,))
         exists = cursor.fetchone() is not None
         
         conn.close()
@@ -607,12 +607,13 @@ class RSSFetcher:
                 article_data['title'] = original_title
                 article_data['content'] = original_content
             
-            # Insert article (ya traducido si fue necesario)
+            # Insert article (ya traducido si fue necesario) - UPDATED to use unified_articles
             cursor.execute('''
-                INSERT INTO articles (
+                INSERT INTO unified_articles (
                     title, content, url, source, language, country, region,
-                    risk_level, risk_score, image_url, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    risk_level, risk_score, image_url, created_at, geopolitical_relevance,
+                    published_at, enrichment_status, processing_confidence, ai_importance
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 article_data['title'],
                 article_data['content'],
@@ -624,7 +625,12 @@ class RSSFetcher:
                 article_data.get('risk_level', 'low'),
                 article_data.get('risk_score', 0.0),
                 article_data.get('image_url'),
-                article_data['published'].isoformat()
+                article_data['published'].isoformat(),
+                1,  # geopolitical_relevance = 1 (RSS feeds are geopolitical by design)
+                article_data['published'].isoformat(),  # published_at
+                'rss_ingested',  # enrichment_status
+                0.8,  # processing_confidence (RSS is reliable)
+                article_data.get('risk_score', 0.5)  # ai_importance
             ))
             
             article_id = cursor.lastrowid
@@ -738,13 +744,13 @@ class RSSFetcher:
             if error:
                 cursor.execute('''
                     UPDATE sources 
-                    SET last_fetched = ?, error_count = error_count + 1, last_error = ?
+                    SET last_fetched = ?, error_count = error_count + 1
                     WHERE id = ?
-                ''', (datetime.now().isoformat(), error, source_id))
+                ''', (datetime.now().isoformat(), source_id))
             else:
                 cursor.execute('''
                     UPDATE sources 
-                    SET last_fetched = ?, fetch_count = fetch_count + ?, last_error = NULL
+                    SET last_fetched = ?, total_articles = total_articles + ?
                     WHERE id = ?
                 ''', (datetime.now().isoformat(), fetch_count, source_id))
             
