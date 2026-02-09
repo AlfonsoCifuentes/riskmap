@@ -84,8 +84,13 @@ def neon_get(table: str, params: dict = None, select: str = '*',
     where_clauses = []
     if params:
         for col, expr in params.items():
-            # Parse PostgREST operators: eq.val, gte.val, etc.
-            if '.' in expr:
+            # Handle PostgREST IS NULL / IS NOT NULL operators
+            if expr == 'is.null':
+                where_clauses.append(f"{col} IS NULL")
+            elif expr == 'not.is.null':
+                where_clauses.append(f"{col} IS NOT NULL")
+            elif '.' in expr:
+                # Parse PostgREST operators: eq.val, gte.val, etc.
                 op, val = expr.split('.', 1)
                 op_map = {
                     'eq': '=', 'neq': '!=', 'gt': '>', 'gte': '>=',
