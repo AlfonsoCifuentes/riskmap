@@ -47,6 +47,7 @@ class handler(BaseHTTPRequestHandler):
             stats['signals'] = sig_counts
 
             resp = json_response({
+                'success': True,
                 'status': 'ok',
                 'backend': 'neon-rest-api',
                 'api_url': NEON_API_URL[:50] + '…' if len(NEON_API_URL) > 50 else NEON_API_URL,

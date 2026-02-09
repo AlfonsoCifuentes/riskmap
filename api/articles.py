@@ -38,6 +38,7 @@ class handler(BaseHTTPRequestHandler):
             )
 
             resp = json_response({
+                'success': True,
                 'articles': articles,
                 'count': len(articles),
                 'limit': limit,

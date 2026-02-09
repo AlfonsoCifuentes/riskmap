@@ -41,7 +41,7 @@ class handler(BaseHTTPRequestHandler):
                     )
                     ev['locations'] = locs
 
-            resp = json_response({'events': events, 'count': len(events)})
+            resp = json_response({'success': True, 'events': events, 'count': len(events)})
             send_response(self, resp)
 
         except Exception as e:
