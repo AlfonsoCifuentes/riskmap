@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS unified_articles (
     enrichment_confidence   REAL,
 
     -- Metadata
-    source_country          VARCHAR(5),
+    source_country          VARCHAR(100),
     source_bias             VARCHAR(20),
     source_credibility      REAL,
     metadata_json           TEXT,
@@ -277,7 +277,7 @@ CREATE TABLE IF NOT EXISTS gpr_index (
     id              SERIAL PRIMARY KEY,
     date            DATE,
     gpr_value       REAL,
-    country         VARCHAR(5),
+    country         VARCHAR(100),
     source          VARCHAR(30),
     created_at      TIMESTAMPTZ DEFAULT NOW()
 );

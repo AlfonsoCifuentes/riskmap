@@ -2,6 +2,9 @@
 name = "riskmap"
 version = "1.0.0"
 requires-python = ">=3.11"
+dependencies = [
+    "psycopg2-binary>=2.9.10",
+]
 
 [tool.ruff]
 line-length = 88

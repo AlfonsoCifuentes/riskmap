@@ -2,13 +2,13 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "framework": null,
+  "functions": {
+    "api/**/*.py": {
+      "excludeFiles": "{data/**,logs/**,models/**,*.db,*.sqlite,*.backup*,tests/**,__pycache__/**,*.pyc,node_modules/**,.git/**,src/web/templates/**,src/web/static/images/**}"
+    }
+  },
   "rewrites": [
     { "source": "/static/(.*)", "destination": "/src/web/static/$1" },
     { "source": "/((?!api/).*)", "destination": "/public/index.html" }
-  ],
-  "env": {
-    "NEON_API_URL": "${NEON_API_URL}",
-    "NEON_API_KEY": "${NEON_API_KEY}",
-    "DATABASE_URL": "${DATABASE_URL}"
-  }
+  ]
 }

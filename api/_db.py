@@ -1,10 +1,11 @@
 """
 Vercel Serverless: DB helper for all API routes.
-Uses Neon Data API (PostgREST-compatible REST) — no psycopg2 needed in serverless.
-Falls back to psycopg2 if NEON_API_URL is not set.
+Uses psycopg2-binary to connect directly to Neon Postgres via DATABASE_URL.
+Falls back to PostgREST API if NEON_API_URL + NEON_API_KEY are set.
 """
 
 import os
+import re
 import json
 import urllib.request
 import urllib.parse
@@ -13,11 +14,43 @@ from datetime import datetime, date
 
 
 # ---------------------------------------------------------------------------
-# Neon REST API client
+# Configuration
 # ---------------------------------------------------------------------------
 
 NEON_API_URL = os.getenv('NEON_API_URL', '')
 NEON_API_KEY = os.getenv('NEON_API_KEY', '')
+DATABASE_URL = os.getenv('DATABASE_URL', '')
+
+# Use PostgREST mode only if we have both URL and KEY
+_USE_POSTGREST = bool(NEON_API_URL and NEON_API_KEY
+                      and not NEON_API_URL.startswith('${'))
+
+
+# ---------------------------------------------------------------------------
+# Direct Postgres connection (primary method — uses DATABASE_URL)
+# ---------------------------------------------------------------------------
+
+def _pg_query(query: str, params: tuple = None) -> list:
+    """Execute SQL via psycopg2 direct connection to Neon Postgres."""
+    import psycopg2
+    import psycopg2.extras
+    dsn = DATABASE_URL
+    if not dsn or not dsn.startswith('postgres'):
+        raise RuntimeError("DATABASE_URL is not configured")
+    conn = psycopg2.connect(dsn, sslmode='require')
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(query, params)
+        rows = [dict(row) for row in cur.fetchall()]
+        cur.close()
+        return rows
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# PostgREST client (alternative if NEON_API_URL + NEON_API_KEY configured)
+# ---------------------------------------------------------------------------
 
 
 def _neon_headers():
@@ -34,9 +67,64 @@ def _neon_headers():
 def neon_get(table: str, params: dict = None, select: str = '*',
              order: str = None, limit: int = None, offset: int = None) -> list:
     """
-    Query a table via Neon REST API (PostgREST syntax).
-    Example: neon_get('unified_articles', {'geopolitical_relevance': 'eq.1'}, limit=20)
+    Query a table. Uses PostgREST if configured, otherwise builds SQL
+    and queries via direct Postgres connection (psycopg2).
     """
+    if _USE_POSTGREST:
+        return _postgrest_get(table, params, select, order, limit, offset)
+
+    # Build SQL query from PostgREST-style params
+    columns = select if select != '*' else '*'
+    sql = f"SELECT {columns} FROM {table}"
+
+    where_clauses = []
+    if params:
+        for col, expr in params.items():
+            # Parse PostgREST operators: eq.val, gte.val, etc.
+            if '.' in expr:
+                op, val = expr.split('.', 1)
+                op_map = {
+                    'eq': '=', 'neq': '!=', 'gt': '>', 'gte': '>=',
+                    'lt': '<', 'lte': '<=', 'like': 'LIKE', 'ilike': 'ILIKE',
+                }
+                sql_op = op_map.get(op, '=')
+                where_clauses.append(f"{col} {sql_op} '{val}'")
+            else:
+                where_clauses.append(f"{col} = '{expr}'")
+
+    if where_clauses:
+        sql += " WHERE " + " AND ".join(where_clauses)
+
+    if order:
+        # Convert PostgREST order: "published_at.desc.nullslast" → "published_at DESC NULLS LAST"
+        order_parts = []
+        for part in order.split(','):
+            tokens = part.strip().split('.')
+            col_name = tokens[0]
+            direction = 'ASC'
+            nulls = ''
+            for t in tokens[1:]:
+                if t.lower() == 'desc':
+                    direction = 'DESC'
+                elif t.lower() == 'asc':
+                    direction = 'ASC'
+                elif t.lower() == 'nullslast':
+                    nulls = ' NULLS LAST'
+                elif t.lower() == 'nullsfirst':
+                    nulls = ' NULLS FIRST'
+            order_parts.append(f"{col_name} {direction}{nulls}")
+        sql += " ORDER BY " + ", ".join(order_parts)
+
+    if limit:
+        sql += f" LIMIT {int(limit)}"
+    if offset:
+        sql += f" OFFSET {int(offset)}"
+
+    return _pg_query(sql)
+
+
+def _postgrest_get(table, params, select, order, limit, offset):
+    """Query via PostgREST API (requires NEON_API_URL + NEON_API_KEY)."""
     url = f"{NEON_API_URL}/{table}"
     qs = {}
     if select != '*':
@@ -76,48 +164,8 @@ def neon_rpc(function_name: str, params: dict = None) -> list:
 
 
 def neon_sql(query: str, params: list = None) -> list:
-    """
-    Execute raw SQL via Neon's /query endpoint (if available).
-    Falls back to psycopg2 if not supported.
-    """
-    # Try the Neon SQL-over-HTTP endpoint
-    base = NEON_API_URL.rsplit('/rest/', 1)[0] if '/rest/' in NEON_API_URL else ''
-    if base:
-        url = f"{base}/sql"
-        payload = json.dumps({'query': query, 'params': params or []}).encode()
-        headers = _neon_headers()
-        req = urllib.request.Request(url, data=payload, headers=headers, method='POST')
-        try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode())
-                # Neon SQL endpoint returns {columns: [...], rows: [[...]]}
-                if 'rows' in data and 'columns' in data:
-                    cols = [c['name'] for c in data['columns']]
-                    return [dict(zip(cols, row)) for row in data['rows']]
-                return data if isinstance(data, list) else []
-        except Exception:
-            pass
-
-    # Fallback: psycopg2 direct connection
-    return _psycopg2_query(query, params)
-
-
-def _psycopg2_query(query: str, params: list = None) -> list:
-    """Fallback: direct psycopg2 connection to Neon Postgres."""
-    dsn = os.getenv('DATABASE_URL', '')
-    if not dsn or not dsn.startswith('postgres'):
-        raise RuntimeError("Neither NEON_API_URL nor DATABASE_URL (postgres) is configured")
-    import psycopg2
-    from psycopg2.extras import RealDictCursor
-    conn = psycopg2.connect(dsn, cursor_factory=RealDictCursor, sslmode='require')
-    try:
-        cur = conn.cursor()
-        cur.execute(query, params or [])
-        rows = cur.fetchall()
-        cur.close()
-        return rows
-    finally:
-        conn.close()
+    """Execute raw SQL via direct Postgres connection."""
+    return _pg_query(query, tuple(params) if params else None)
 
 
 # ---------------------------------------------------------------------------

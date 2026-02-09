@@ -1,3 +1,3 @@
 # Minimal dependencies for Vercel serverless
-# Uses Neon REST API (HTTP) — no psycopg2 needed!
-# All network calls use stdlib urllib.request
+# Direct Postgres connection to Neon via psycopg2
+psycopg2-binary==2.9.10
