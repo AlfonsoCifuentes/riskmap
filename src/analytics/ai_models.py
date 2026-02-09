@@ -178,7 +178,7 @@ class AIModels:
             client = openai.OpenAI(api_key=config.get_openai_key() or 'sk-placeholder')
 
             completion = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=max_tokens,
                 temperature=0.7

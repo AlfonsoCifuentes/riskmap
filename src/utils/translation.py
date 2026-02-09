@@ -271,7 +271,7 @@ class TranslationService:
                 client = OpenAI(api_key=self.openai_key)
                 
                 response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4o-mini",
                     messages=[
                         {"role": "system", "content": "You are a professional translator."},
                         {"role": "user", "content": prompt}
@@ -287,7 +287,7 @@ class TranslationService:
                 openai.api_key = self.openai_key
                 
                 response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4o-mini",
                     messages=[
                         {"role": "system", "content": "You are a professional translator."},
                         {"role": "user", "content": prompt}

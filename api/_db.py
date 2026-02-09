@@ -21,9 +21,13 @@ NEON_API_URL = os.getenv('NEON_API_URL', '')
 NEON_API_KEY = os.getenv('NEON_API_KEY', '')
 DATABASE_URL = os.getenv('DATABASE_URL', '')
 
-# Use PostgREST mode only if we have both URL and KEY
-_USE_POSTGREST = bool(NEON_API_URL and NEON_API_KEY
-                      and not NEON_API_URL.startswith('${'))
+# Prefer direct psycopg2 connection (reliable, standard).
+# Only fall back to PostgREST if DATABASE_URL is NOT set but API URL+KEY are.
+_USE_POSTGREST = bool(
+    not DATABASE_URL
+    and NEON_API_URL and NEON_API_KEY
+    and not NEON_API_URL.startswith('${')
+)
 
 
 # ---------------------------------------------------------------------------
