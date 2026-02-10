@@ -1,7 +1,7 @@
 // Shared notification utility
 (function (global) {
-    // Ensure RiskMap namespace exists
-    global.RiskMap = global.RiskMap || {};
+    // Ensure Riskmap A.I. namespace exists
+    global.RiskMapAI = global.RiskMapAI || {};
 
     function showNotification(message, type = 'info') {
         let t = (type || 'info').toLowerCase();
@@ -34,20 +34,20 @@
     }
 
     // Expose in a lightweight namespace but also offer backward compatible global helpers
-    global.RiskMap.showNotification = showNotification;
+    global.RiskMapAI.showNotification = showNotification;
     // Provide a global alias for old code
     global.showNotification = function(message, type) {
-        return global.RiskMap.showNotification(message, type);
+        return global.RiskMapAI.showNotification(message, type);
     };
     // Support old showAlert(type, message) pattern (type first)
     global.showAlert = function(type, message) {
         // Some legacy calls may pass (message, type) — detect and handle both patterns
         if (message === undefined && typeof type === 'string') {
             // No message passed — treat as info message
-            return global.RiskMap.showNotification(type, 'info');
+            return global.RiskMapAI.showNotification(type, 'info');
         }
         // For showAlert(type, message) -> map to showNotification(message, type)
-        return global.RiskMap.showNotification(message, type);
+        return global.RiskMapAI.showNotification(message, type);
     };
     
 })(window);

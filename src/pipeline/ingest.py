@@ -1,5 +1,5 @@
 """
-RiskMap Data Ingestion Pipeline
+Riskmap A.I. Data Ingestion Pipeline
 =================================
 Fetches articles from RSS feeds + NewsAPI, deduplicates, stores in DB.
 Designed to run as a GitHub Actions step or standalone.
@@ -63,7 +63,7 @@ def fetch_rss() -> List[Dict]:
     articles = []
     for feed_url in RSS_FEEDS:
         try:
-            feed = feedparser.parse(feed_url, agent="RiskMap/1.0")
+            feed = feedparser.parse(feed_url, agent="RiskmapAI/1.0")
             source = feed.feed.get("title", feed_url)[:80]
             for entry in feed.entries[:20]:  # max 20 per feed
                 pub = entry.get("published_parsed") or entry.get("updated_parsed")
@@ -242,29 +242,72 @@ _NON_GEO_PATTERNS = [
     r'\bSuper Bowl\b', r'\btouchdown\b', r'\bquarterback\b',
     r'\bpower ranking', r'\bfantasy football\b', r'\bearly odds\b',
     r'\bWorld Series\b', r'\bPremier League\b', r'\bChampions League\b.*LIVE',
-    r'\bCoachella\b', r'\bSuper Bowl\b',
-    # Entertainment
+    r'\bCoachella\b',
+    r'\bJoe Burrow\b', r'\bTom Brady\b', r'\bPete Carroll\b',
+    r'\bplayoff\b(?!.*politic)', r'\bhomerun\b', r'\bgoal scorer\b',
+    r'\bMLS\b.*(?:game|match|score)', r'\bWNBA\b',
+    # Entertainment / celebrity gossip
     r'\bEmmy\b', r'\bOscar\b(?!.*war|.*conflict|.*sanction)',
     r'\bGrammy\b', r'\bbox office\b', r'\bNetflix\b(?!.*censor|.*ban)',
     r'\bstreaming service\b', r'\bred carpet\b', r'\balfombra roja\b',
-    # Celebrity gossip
     r'\bCardi B\b', r'\bTaylor Swift\b(?!.*politic|.*endorse)',
     r'\bBieber\b', r'\bKardashian\b',
     r'\bembarazo\b(?!.*crisis|.*refugee)', r'\bpregnancy\b(?!.*crisis)',
-    # Consumer tech
+    r"Fresh Air\b.*\bse adentr[oó]",  # NPR Fresh Air celebrity profiles
+    r'\bRobert Redford\b(?!.*politic|.*diplomac)',
+    r'\bBroadway\b(?!.*protest|.*politic)',
+    r'\bHollywood\b(?!.*sanction|.*politic|.*censor)',
+    r'\bTony Awards\b', r'\bGolden Globe\b(?!.*politic)',
+    r'\bBillboard\b(?!.*sanction)', r'\bGrammys\b',
+    r'\bni[ñn]o muy peculiar\b',  # entertainment profiles
+    r'\bbestseller\b(?!.*propaganda|.*censor)',
+    r'\bfashion week\b', r'\bdesigner collection\b',
+    r'\balbum\b.*\brelease\b', r'\bconcert tour\b',
+    r'\breality\s*(?:TV|show|star)\b', r'\bcelebrity\b(?!.*assassination|.*politic)',
+    # Consumer tech (not geopolitical)
     r'\biPhone\b.*(?:preorder|review|stock|spec)',
     r'\bSnapdragon\b', r'\bAndroid\b.*(?:update|review|spec)',
+    r'\bGalaxy S\d+\b.*(?:review|spec|price)',
+    r'\bgadget\b.*\breview\b', r'\bapp store\b.*\bupdate\b',
     # Local crime (not geopolitical)
     r'found dead in (?:suitcase|trunk|car)',
     r'matar a (?:ex )?novi[oa]', r'flesh-eating.*Vibrio',
-    # Pure sports sources articles
-    r'\bJoe Burrow\b', r'\bTom Brady\b', r'\bPete Carroll\b',
+    r'\bmurder\b.*\bDiscord\b', r'\bhomicide\b(?!.*politic|.*war)',
+    # Food / lifestyle
+    r'\brecipe\b(?!.*sanction)', r'\bcooking\b(?!.*gas.*crisis)',
+    r'\brestaurant review\b', r'\bfood trend\b',
+    # Personal finance / investment advice (not geopolitical)
+    r'\bstock picks?\b', r'\bbest ETF\b', r'\bretirement fund\b',
+    r'\bcrypto.*(?:buy|sell|pump)\b(?!.*sanction|.*regulation)',
 ]
 
 # Sources that are NEVER geopolitical
 _NON_GEO_SOURCES = {
     'CBS Sports', 'NBCSports.com', 'ESPN', 'The Ringer', 'Ed.gov',
     'Pff.com', 'Sports Illustrated', 'Bleacher Report',
+    # Entertainment / lifestyle
+    'Vogue', 'Pitchfork', 'Deadline', 'Variety', 'Yahoo Entertainment',
+    'NOLA.com', 'Vulture', 'People', 'Us Weekly', 'TMZ',
+    'Entertainment Weekly', 'E! News', 'BuzzFeed',
+    # Consumer tech (pure reviews)
+    'Android Authority', 'TechRadar', 'Tom\'s Guide', 'CNET Reviews',
+    # Finance-only
+    "Investor's Business Daily", 'Motley Fool', 'Kiplinger',
+}
+
+# Mixed sources: articles from these are non-geo if title matches ANY of these
+_MIXED_SOURCE_NON_GEO_KW = [
+    r'\bFresh Air\b', r'\bTiny Desk\b', r'\bbook review\b',
+    r'\bmovie review\b', r'\bTV recap\b', r'\bpodcast\b(?!.*politic)',
+    r'\brecipe\b', r'\bfashion\b', r'\blifestyle\b',
+    r'\bceleb\b', r'\bRobert Redford\b', r'\bentretenimiento\b',
+    r'\bfarándula\b', r'\bcine\b(?!.*propaganda)',
+]
+
+# Sources considered "mixed" (some geo, some not)
+_MIXED_SOURCES = {
+    'NPR', 'CNN', 'BBC', 'The Hollywood Reporter', 'The New York Times',
+    'The Washington Post', 'The Guardian', 'Reuters', 'AP News',
 }
 
 
@@ -299,6 +342,13 @@ def _classify_geopolitical(db, ph):
                 is_non_geo = True
                 break
 
+        # For mixed sources, also check entertainment keywords
+        if not is_non_geo and source in _MIXED_SOURCES:
+            for pattern in _MIXED_SOURCE_NON_GEO_KW:
+                if re.search(pattern, title, re.IGNORECASE):
+                    is_non_geo = True
+                    break
+
         if is_non_geo:
             non_geo_ids.append(aid)
         else:
@@ -321,7 +371,7 @@ def _classify_geopolitical(db, ph):
 
 def main():
     logger.info("=" * 60)
-    logger.info("RiskMap Data Ingestion Pipeline")
+    logger.info("Riskmap A.I. Data Ingestion Pipeline")
     logger.info("=" * 60)
 
     logger.info("Fetching RSS feeds…")

@@ -1,5 +1,5 @@
 """
-Flask API Blueprint for RiskMap System Status
+Flask API Blueprint for Riskmap A.I. System Status
 Provides REST endpoints for system status, health checks, and configuration
 """
 
@@ -101,7 +101,7 @@ def create_api_blueprint(core_orchestrator=None):
         try:
             # Return basic configuration info
             config_info = {
-                'system': 'RiskMap Geopolitical Intelligence',
+                'system': 'Riskmap A.I. Geopolitical Intelligence',
                 'version': '1.0.0',
                 'features': {
                     'rss_ingestion': True,

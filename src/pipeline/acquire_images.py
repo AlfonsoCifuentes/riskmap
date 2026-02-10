@@ -1,5 +1,5 @@
 """
-RiskMap Free Image Acquisition Pipeline
+Riskmap A.I. Free Image Acquisition Pipeline
 ==========================================
 Acquires imagery from free sources for active AOIs / events:
   - Copernicus Browser (Sentinel-2) — 10m resolution, 5-day revisit
@@ -334,7 +334,7 @@ def acquire_for_location(lat: float, lon: float, name: str = '',
 
 def main():
     logger.info("=" * 60)
-    logger.info("RiskMap Image Acquisition Pipeline")
+    logger.info("Riskmap A.I. Image Acquisition Pipeline")
     logger.info("=" * 60)
 
     total_acquired = 0

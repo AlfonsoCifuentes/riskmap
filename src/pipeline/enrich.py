@@ -1,5 +1,5 @@
 """
-RiskMap NLP Enrichment Pipeline
+Riskmap A.I. NLP Enrichment Pipeline
 ==================================
 Enriches raw articles with: geopolitical relevance scoring, sentiment,
 conflict-type classification, location inference, AI summaries.
@@ -339,7 +339,7 @@ def _create_events_from_articles(db):
 
 def main():
     logger.info("=" * 60)
-    logger.info("RiskMap NLP Enrichment Pipeline")
+    logger.info("Riskmap A.I. NLP Enrichment Pipeline")
     logger.info("=" * 60)
     enrich_articles()
     logger.info("Enrichment complete")

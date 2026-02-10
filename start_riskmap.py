@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-LANZADOR SIMPLE PARA RISKMAP
+LANZADOR SIMPLE PARA RISKMAP A.I.
 ============================
 
-Script de lanzamiento simplificado para el sistema RiskMap.
+Script de lanzamiento simplificado para el sistema Riskmap A.I.
 
 Uso: python start_riskmap.py
 
@@ -18,8 +18,8 @@ import webbrowser
 import time
 
 def launch_riskmap():
-    """Lanzar el sistema RiskMap"""
-    print("🚀 INICIANDO RISKMAP - SISTEMA DE ANÁLISIS GEOPOLÍTICO")
+    """Lanzar el sistema Riskmap A.I."""
+    print("🚀 INICIANDO RISKMAP A.I. - SISTEMA DE ANÁLISIS GEOPOLÍTICO")
     print("=" * 80)
     
     # Verificar que el archivo principal existe
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     success = launch_riskmap()
     print()
     if success:
-        print("✅ RISKMAP ejecutado correctamente")
+        print("✅ RISKMAP A.I. ejecutado correctamente")
     else:
-        print("❌ Hubo problemas ejecutando RISKMAP")
+        print("❌ Hubo problemas ejecutando RISKMAP A.I.")
     print("=" * 80)

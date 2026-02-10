@@ -1,5 +1,5 @@
 """
-Módulo de inteligencia externa para RiskMap
+Módulo de inteligencia externa para Riskmap A.I.
 """
 
 from .external_feeds import ExternalIntelligenceFeeds

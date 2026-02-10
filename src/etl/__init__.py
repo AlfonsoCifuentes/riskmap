@@ -24,7 +24,7 @@ except ImportError:
     create_etl_instance = None
 
 __version__ = "1.0.0"
-__author__ = "RiskMap Team"
+__author__ = "Riskmap A.I. Team"
 
 __all__ = [
     'get_etl_config',

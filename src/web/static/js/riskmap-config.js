@@ -1,5 +1,5 @@
 
-// Configuración de endpoints para RiskMap
+// Configuración de endpoints para Riskmap A.I.
 const RISKMAP_CONFIG = {
     API_BASE_URL: window.location.port === '5001' ? window.location.origin : 'http://localhost:5001',
     ENDPOINTS: {
@@ -67,4 +67,4 @@ async function fetchFilteredNews(limit = 20) {
     }
 }
 
-console.log('🔧 RiskMap Config cargado con endpoints corregidos');
+console.log('🔧 Riskmap A.I. Config cargado con endpoints corregidos');

@@ -1,5 +1,5 @@
 """
-RiskMap CV Detection Pipeline
+Riskmap A.I. CV Detection Pipeline
 ================================
 Runs YOLO + custom classifiers on stored images to detect:
   - Conflict INDICATORS: tanks, military vehicles, weapons, destroyed buildings, troops
@@ -243,7 +243,7 @@ def process_undetected_images():
 
 def main():
     logger.info("=" * 60)
-    logger.info("RiskMap CV Detection Pipeline")
+    logger.info("Riskmap A.I. CV Detection Pipeline")
     logger.info("=" * 60)
     process_undetected_images()
     logger.info("Detection complete")

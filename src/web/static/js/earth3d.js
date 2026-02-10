@@ -1,6 +1,6 @@
 
 /**
- * RISKMAP - Modelo 3D de la Tierra
+ * RISKMAP A.I. - Modelo 3D de la Tierra
  * Visualización interactiva de eventos geopolíticos en globo terrestre
  */
 

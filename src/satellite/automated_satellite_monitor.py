@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Sistema Automatizado de Monitoreo Satelital
-Integra las mejores prácticas de la conversación ChatGPT con la arquitectura existente de RiskMap
+Integra las mejores prácticas de la conversación ChatGPT con la arquitectura existente de Riskmap A.I.
 """
 
 import os
@@ -138,7 +138,7 @@ class SatelliteImage:
 class AutomatedSatelliteMonitor:
     """
     Monitor automático de imágenes satelitales basado en zonas de conflicto
-    Implementa las mejores prácticas de la conversación ChatGPT adaptadas a RiskMap
+    Implementa las mejores prácticas de la conversación ChatGPT adaptadas a Riskmap A.I.
     """
     
     def __init__(self, db_path: str = None, config: Dict = None):
