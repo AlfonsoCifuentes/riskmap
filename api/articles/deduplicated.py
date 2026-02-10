@@ -20,9 +20,13 @@ class handler(BaseHTTPRequestHandler):
             # True dedup would need DISTINCT ON which PostgREST doesn't support,
             # so we fetch more and deduplicate in Python.
 
+            # Only fetch articles WITH images for the mosaic
             articles = neon_get(
                 'unified_articles',
-                params={'geopolitical_relevance': 'eq.1'},
+                params={
+                    'geopolitical_relevance': 'eq.1',
+                    'image_url': 'not.is.null',
+                },
                 select='id,title,summary,url,source,published_at,'
                        'country,region,risk_level,risk_score,'
                        'conflict_type,conflict_intensity,'

@@ -635,6 +635,20 @@ class RSSFetcher:
             
             article_id = cursor.lastrowid
             
+            # ===== EXTRACT OG:IMAGE IF MISSING =====
+            if not article_data.get('image_url') and article_data.get('url'):
+                try:
+                    from api._og_image import extract_og_image
+                    og_img = extract_og_image(article_data['url'])
+                    if og_img:
+                        cursor.execute(
+                            'UPDATE unified_articles SET image_url=?, original_image_url=?, has_image=1 WHERE rowid=?',
+                            (og_img, og_img, article_id)
+                        )
+                        logger.info(f"🖼️ og:image extracted for article {article_id}")
+                except Exception as e:
+                    logger.debug(f"og:image extraction failed for {article_id}: {e}")
+            
             # ===== MANDATORY ADVANCED NLP ANALYSIS =====
             logger.info(f"🧠 Performing MANDATORY advanced NLP analysis for article {article_id}")
             

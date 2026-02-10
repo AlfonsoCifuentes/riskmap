@@ -4856,17 +4856,23 @@ async function generateMosaicTiles(mode) {
         }
     }
     
-    // FILTRO: Solo artículos con título válido (imagen NO requerida - se usa placeholder)
+    // FILTRO: Solo artículos con título válido Y con imagen original
     const originalArticlesCount = sampleArticles.length;
     sampleArticles = sampleArticles.filter(article => {
         // Verificar que tenga título válido
         const hasTitle = article.title && article.title.trim() !== '' && article.title !== 'Sin título';
         
+        // Verificar que tenga imagen real (no placeholder ni vacía)
+        const imgUrl = article.original_image_url || article.image_url || '';
+        const hasImage = imgUrl && imgUrl.startsWith('https://');
+        
         if (!hasTitle) {
-            dashboardLogger.debug(`❌ Artículo filtrado - Título: "${article.title || 'VACÍO'}"`);
+            dashboardLogger.debug(`❌ Artículo filtrado (sin título): "${article.title || 'VACÍO'}"`);
+        } else if (!hasImage) {
+            dashboardLogger.debug(`❌ Artículo excluido del mosaico (sin imagen): "${article.title}"`);
         }
         
-        return hasTitle;
+        return hasTitle && hasImage;
     });
     
     if (originalArticlesCount !== sampleArticles.length) {

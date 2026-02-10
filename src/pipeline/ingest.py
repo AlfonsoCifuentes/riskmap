@@ -196,6 +196,34 @@ def store_articles(articles: List[Dict]):
             logger.debug(f"Insert error: {e}")
 
     logger.info(f"✅ Inserted {inserted} new articles (of {len(articles)} fetched)")
+
+    # Extract og:image for articles that don't already have one
+    if inserted > 0:
+        try:
+            from api._og_image import extract_og_image
+            rows = db.execute(
+                "SELECT id, url FROM unified_articles "
+                "WHERE (image_url IS NULL OR image_url = '') "
+                "AND url IS NOT NULL AND url != '' "
+                "ORDER BY id DESC LIMIT 50",
+                fetch=True,
+            )
+            enriched = 0
+            for row in rows:
+                aid, url = row['id'], row['url']
+                img = extract_og_image(url)
+                if img:
+                    db.execute(
+                        f"UPDATE unified_articles SET image_url={ph}, "
+                        f"original_image_url={ph}, has_image=1 WHERE id={ph}",
+                        (img, img, aid),
+                    )
+                    enriched += 1
+            if enriched:
+                logger.info(f"🖼️ Extracted og:image for {enriched}/{len(rows)} articles")
+        except Exception as e:
+            logger.warning(f"⚠️ og:image extraction failed: {e}")
+
     return inserted
 
 
