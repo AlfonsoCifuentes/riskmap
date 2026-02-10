@@ -224,7 +224,99 @@ def store_articles(articles: List[Dict]):
         except Exception as e:
             logger.warning(f"⚠️ og:image extraction failed: {e}")
 
+    # Classify articles as geopolitical or not
+    if inserted > 0:
+        _classify_geopolitical(db, ph)
+
     return inserted
+
+
+# ---------------------------------------------------------------------------
+# Geopolitical classification — keyword-based filtering
+# ---------------------------------------------------------------------------
+
+# Non-geopolitical keyword patterns (reject if title matches)
+_NON_GEO_PATTERNS = [
+    # Sports
+    r'\bNFL\b', r'\bNBA\b', r'\bMLB\b', r'\bNHL\b', r'\bUEFA\b.*LIVE',
+    r'\bSuper Bowl\b', r'\btouchdown\b', r'\bquarterback\b',
+    r'\bpower ranking', r'\bfantasy football\b', r'\bearly odds\b',
+    r'\bWorld Series\b', r'\bPremier League\b', r'\bChampions League\b.*LIVE',
+    r'\bCoachella\b', r'\bSuper Bowl\b',
+    # Entertainment
+    r'\bEmmy\b', r'\bOscar\b(?!.*war|.*conflict|.*sanction)',
+    r'\bGrammy\b', r'\bbox office\b', r'\bNetflix\b(?!.*censor|.*ban)',
+    r'\bstreaming service\b', r'\bred carpet\b', r'\balfombra roja\b',
+    # Celebrity gossip
+    r'\bCardi B\b', r'\bTaylor Swift\b(?!.*politic|.*endorse)',
+    r'\bBieber\b', r'\bKardashian\b',
+    r'\bembarazo\b(?!.*crisis|.*refugee)', r'\bpregnancy\b(?!.*crisis)',
+    # Consumer tech
+    r'\biPhone\b.*(?:preorder|review|stock|spec)',
+    r'\bSnapdragon\b', r'\bAndroid\b.*(?:update|review|spec)',
+    # Local crime (not geopolitical)
+    r'found dead in (?:suitcase|trunk|car)',
+    r'matar a (?:ex )?novi[oa]', r'flesh-eating.*Vibrio',
+    # Pure sports sources articles
+    r'\bJoe Burrow\b', r'\bTom Brady\b', r'\bPete Carroll\b',
+]
+
+# Sources that are NEVER geopolitical
+_NON_GEO_SOURCES = {
+    'CBS Sports', 'NBCSports.com', 'ESPN', 'The Ringer', 'Ed.gov',
+    'Pff.com', 'Sports Illustrated', 'Bleacher Report',
+}
+
+
+def _classify_geopolitical(db, ph):
+    """Classify newly inserted articles (geopolitical_relevance=0) using keywords."""
+    rows = db.execute(
+        "SELECT id, title, source FROM unified_articles "
+        "WHERE geopolitical_relevance = 0 "
+        "ORDER BY id DESC LIMIT 200",
+        fetch=True,
+    )
+    if not rows:
+        return
+
+    geo_ids = []
+    non_geo_ids = []
+
+    for row in rows:
+        aid = row['id']
+        title = row.get('title') or ''
+        source = row.get('source') or ''
+
+        # Reject non-geo sources
+        if source in _NON_GEO_SOURCES:
+            non_geo_ids.append(aid)
+            continue
+
+        # Reject non-geo title patterns
+        is_non_geo = False
+        for pattern in _NON_GEO_PATTERNS:
+            if re.search(pattern, title, re.IGNORECASE):
+                is_non_geo = True
+                break
+
+        if is_non_geo:
+            non_geo_ids.append(aid)
+        else:
+            geo_ids.append(aid)
+
+    # Mark geopolitical articles
+    if geo_ids:
+        placeholders = ','.join([ph] * len(geo_ids))
+        db.execute(
+            f"UPDATE unified_articles SET geopolitical_relevance = 1 "
+            f"WHERE id IN ({placeholders})",
+            tuple(geo_ids),
+        )
+
+    logger.info(
+        f"🏷️ Classified: {len(geo_ids)} geopolitical, "
+        f"{len(non_geo_ids)} non-geopolitical"
+    )
 
 
 def main():

@@ -246,7 +246,7 @@ loadThreeJS();
         width: 100vw;
         height: 100vh;
         z-index: -20; /* Even lower */
-        background: url('/static/espacio.jpg') center center no-repeat;
+        background: url('/space.jpg') center center no-repeat;
         background-size: cover;
         background-attachment: fixed;
         will-change: transform;
@@ -543,7 +543,7 @@ loadThreeJS();
         padding: 120px 0 60px 0; /* Reduced top padding since navbar takes space */
         width: 100%;
         position: relative;
-        background-image: url('/static/images/linkedin__00111_.jpeg');
+        background-image: url('/linkedin_bg.jpeg');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -4290,11 +4290,17 @@ function loadHeroArticle() {
                 
                 // ASEGURAR IMAGEN DE ALTA CALIDAD
                 dashboardLogger.info('🖼️ Optimizando imagen del héroe...');
-                let heroImageUrl = await getOptimizedHeroImage(heroArticle);
+                let heroImgUrl = await getOptimizedHeroImage(heroArticle);
                 
-                // Aplicar la imagen final
+                // Aplicar la imagen final (NEVER set url('null'))
                 const heroElement = document.getElementById('hero-article');
-                heroElement.style.backgroundImage = `url('${heroImageUrl}')`;
+                if (heroImgUrl && heroImgUrl.startsWith('https://')) {
+                    heroElement.style.backgroundImage = `url('${heroImgUrl}')`;
+                    dashboardLogger.success('🖼️ Hero image applied:', heroImgUrl.substring(0, 60));
+                } else {
+                    heroElement.style.backgroundImage = 'linear-gradient(135deg, #1a2040 0%, #0a1628 50%, #0d1f3c 100%)';
+                    dashboardLogger.warn('⚠️ No hero image, using gradient fallback');
+                }
                 
                 dashboardLogger.success('✅ Héroe cargado exitosamente:', finalTitle);
                 resolve(heroArticle); // Resolve with the hero article data
@@ -4320,11 +4326,18 @@ function loadHeroArticle() {
 async function getOptimizedHeroImage(article) {
     dashboardLogger.info('🔍 Optimizando imagen para héroe...');
     
-    // 1. Verificar si hay Analysis CV disponible
+    // 1. Primary: use the article's image_url directly (already validated by API)
+    const originalImage = article.image_url || article.image || article.original_image_url;
+    if (originalImage && originalImage.startsWith('https://')) {
+        dashboardLogger.success('📸 Usando imagen del artículo:', originalImage.substring(0, 80));
+        return originalImage;
+    }
+    
+    // 2. Fallback: try CV analysis
     if (article.id) {
         try {
             const cvAnalysis = await getImageAnalysis(article.id);
-            if (cvAnalysis && cvAnalysis.optimized_url && cvAnalysis.quality_score > 0.6) {
+            if (cvAnalysis && cvAnalysis.optimized_url) {
                 dashboardLogger.success('✨ Usando imagen optimizada por CV:', cvAnalysis.optimized_url);
                 return cvAnalysis.optimized_url;
             }
@@ -4333,15 +4346,8 @@ async function getOptimizedHeroImage(article) {
         }
     }
     
-    // 2. Usar imagen original si es de buena calidad
-    const originalImage = article.image_url || article.image;
-    if (originalImage && isHighQualityImage(originalImage)) {
-        dashboardLogger.info('📸 Usando imagen original de alta calidad');
-        return originalImage;
-    }
-    
-    // 3. No stock fallback — return null so CSS gradient placeholder is used
-    dashboardLogger.info('⚠️ No hay imagen real disponible para el héroe, se usará gradiente CSS');
+    // 3. No image available
+    dashboardLogger.warn('⚠️ No hay imagen real disponible para el héroe');
     return null;
 }
 
