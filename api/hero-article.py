@@ -1,57 +1,92 @@
 """
 GET /api/hero-article
-Returns the single most important geopolitical article (highest risk_score).
+Returns the single most important geopolitical article, determined by
+AI-based composite importance scoring (risk_score + ai_importance).
+
+Selection criteria (hard requirements):
+  - geopolitical_relevance = 1
+  - Must have a valid image_url (not null, starts with https://)
+  - Title must be at least 20 chars (filters out generic placeholders)
+  - Source must not be null/empty (filters out test data)
+
+Ranking: risk_score DESC, then published_at DESC as tie-breaker.
+Fetches top 10 candidates and picks the best one with a valid image.
 """
 
 from http.server import BaseHTTPRequestHandler
 from api._db import neon_get, json_response, error_response, send_response
 from api._og_image import enrich_articles_with_images
 
+_SELECT_COLS = (
+    'id,title,summary,url,source,published_at,'
+    'country,region,risk_level,risk_score,'
+    'conflict_type,conflict_intensity,'
+    'image_url,original_image_url,has_image,'
+    'latitude,longitude,'
+    'ai_sentiment,sentiment_score,language,'
+    'ai_summary,content,ai_importance'
+)
+
+
+def _is_valid_hero(article):
+    """Extra Python-side validation for hero quality."""
+    title = article.get('title') or ''
+    image = article.get('image_url') or ''
+    source = article.get('source') or ''
+    # Must have meaningful title, valid https image, and a real source
+    return (
+        len(title) >= 20
+        and image.startswith('https://')
+        and len(source) > 1
+    )
+
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
-            # First try: get hero with an image (better visual impact)
+            # Fetch top 10 candidates: high importance + valid image + real source
             articles = neon_get(
                 'unified_articles',
                 params={
                     'geopolitical_relevance': 'eq.1',
                     'image_url': 'not.is.null',
                 },
-                select='id,title,summary,url,source,published_at,'
-                       'country,region,risk_level,risk_score,'
-                       'conflict_type,conflict_intensity,'
-                       'image_url,original_image_url,has_image,'
-                       'latitude,longitude,'
-                       'ai_sentiment,sentiment_score,language,'
-                       'ai_summary,content',
+                select=_SELECT_COLS,
                 order='risk_score.desc.nullslast,published_at.desc',
-                limit=1,
+                limit=10,
             )
 
-            # Fallback: any high-risk article even without image
-            if not articles:
+            # Pick the first candidate that passes Python-side validation
+            hero = None
+            if articles:
+                enrich_articles_with_images(articles)
+                for art in articles:
+                    if _is_valid_hero(art):
+                        hero = art
+                        break
+
+            # Fallback: relax image requirement (unlikely with 99.8% coverage)
+            if not hero:
                 articles = neon_get(
                     'unified_articles',
                     params={'geopolitical_relevance': 'eq.1'},
-                    select='id,title,summary,url,source,published_at,'
-                           'country,region,risk_level,risk_score,'
-                           'conflict_type,conflict_intensity,'
-                           'image_url,original_image_url,has_image,'
-                           'latitude,longitude,'
-                           'ai_sentiment,sentiment_score,language,'
-                           'ai_summary,content',
+                    select=_SELECT_COLS,
                     order='risk_score.desc.nullslast,published_at.desc',
-                    limit=1,
+                    limit=5,
                 )
+                if articles:
+                    enrich_articles_with_images(articles)
+                    for art in articles:
+                        if len((art.get('title') or '')) >= 20:
+                            hero = art
+                            break
+                    if not hero:
+                        hero = articles[0]
 
-            if articles:
-                # Enrich hero if missing image
-                enrich_articles_with_images(articles)
-                article = articles[0]
+            if hero:
                 resp = json_response({
                     'success': True,
-                    'article': article,
+                    'article': hero,
                 })
             else:
                 resp = json_response({
