@@ -6053,8 +6053,8 @@ function fetchAnalyticsData() {
                 updateAnalyticsWithMockData();
             }
         })
-        .catch(Error => {
-            dashboardLogger.error('Error fetching analytics data:', error);
+        .catch(err => {
+            console.error('Error fetching analytics data:', err);
             updateAnalyticsWithMockData();
         });
     
@@ -6089,9 +6089,8 @@ function updateAnalyticsStats(stats) {
         // Update region statistics  
         document.getElementById('high-risk-regions').textContent = stats.regions_in_conflict || 0;
         
-        // Update medium risk regions (can be calculated or estimated)
-        const mediumRiskRegions = Math.max(0, (stats.regions_in_conflict || 0) - 2);
-        document.getElementById('medium-risk-regions').textContent = mediumRiskRegions;
+        // Use API-provided medium risk regions count
+        document.getElementById('medium-risk-regions').textContent = stats.medium_risk_regions || 0;
         
         console.log('✅ Analytics stats updated:', {
             total_sources: stats.total_sources,

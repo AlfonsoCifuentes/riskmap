@@ -189,6 +189,13 @@ def json_serial(obj):
         return None
     if isinstance(obj, bytes):
         return None
+    # psycopg2 returns Decimal for AVG / numeric columns
+    try:
+        from decimal import Decimal
+        if isinstance(obj, Decimal):
+            return float(obj)
+    except ImportError:
+        pass
     raise TypeError(f"Type {type(obj)} not serializable")
 
 
