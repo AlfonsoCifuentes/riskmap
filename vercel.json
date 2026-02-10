@@ -8,6 +8,8 @@
     }
   },
   "rewrites": [
+    { "source": "/space.jpg", "destination": "/public/space.jpg" },
+    { "source": "/linkedin_bg.jpeg", "destination": "/public/linkedin_bg.jpeg" },
     { "source": "/static/(.*)", "destination": "/src/web/static/$1" },
     { "source": "/((?!api/).*)", "destination": "/public/index.html" }
   ]
