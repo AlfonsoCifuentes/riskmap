@@ -8,9 +8,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.4/marked.min.js"></script>
 <style>
   .report-shell{display:grid;grid-template-columns:1fr 340px;gap:clamp(12px,2vw,24px)}
-  .report-body{white-space:pre-wrap;line-height:1.75;color:var(--text-1);font-size:.9rem;font-family:"Sora",sans-serif}
+  .report-body{line-height:1.75;color:var(--text-1);font-size:.9rem;font-family:"Sora",sans-serif}
+  .report-body h1{font-size:1.35rem;font-weight:800;background:var(--grad-text);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 6px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .report-body h2{font-size:1rem;font-weight:700;color:var(--accent);margin:22px 0 8px;letter-spacing:.02em}
+  .report-body ul{padding-left:20px;margin:6px 0 14px}
+  .report-body li{margin-bottom:4px;color:var(--text-1)}
+  .report-body li::marker{color:var(--accent)}
+  .report-body p{margin:6px 0 10px}
+  .report-body strong{color:var(--text-0);font-weight:600}
+  .report-body ol{padding-left:20px;margin:6px 0 14px}
+  .report-body ol li::marker{color:var(--accent);font-weight:700}
   .quick-list{display:grid;gap:10px}
   .quick-item{border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;background:rgba(255,255,255,.015);transition:all .25s var(--ease-smooth)}
   .quick-item:hover{border-color:var(--accent);background:rgba(78,161,255,.05);transform:translateX(-3px)}
@@ -156,7 +166,13 @@
 
     reportText = buildReport(model);
     var reportBody = document.getElementById('reportBody');
-    if (reportBody) reportBody.textContent = reportText;
+    if (reportBody) {
+      if (typeof marked !== 'undefined' && marked.parse) {
+        reportBody.innerHTML = marked.parse(reportText);
+      } else {
+        reportBody.innerHTML = reportText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+      }
+    }
 
     renderQuickList((analytics && analytics.conflicts) || []);
   }
