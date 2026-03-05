@@ -289,7 +289,68 @@ CREATE TABLE IF NOT EXISTS gpr_index (
 # ------------------------------------------------------------------
 
 SQLITE_SCHEMA = """
--- New tables for SQLite local dev (unified_articles already exists)
+-- ============================================================
+-- 1. UNIFIED ARTICLES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS unified_articles (
+    id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+    title                   TEXT,
+    content                 TEXT,
+    summary                 TEXT,
+    url                     TEXT,
+    source                  TEXT,
+    published_at            DATETIME,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    language                TEXT DEFAULT 'es',
+    original_language       TEXT,
+    is_translated           INTEGER DEFAULT 0,
+
+    geopolitical_relevance  INTEGER DEFAULT 0,
+    risk_level              TEXT,
+    risk_score              REAL,
+    conflict_type           TEXT,
+    conflict_intensity      REAL,
+
+    country                 TEXT,
+    region                  TEXT,
+    latitude                REAL,
+    longitude               REAL,
+    location_extracted      TEXT,
+    coordinates_source      TEXT,
+
+    image_url               TEXT,
+    original_image_url      TEXT,
+    cv_analysis             TEXT,
+    satellite_image_url     TEXT,
+    has_image               INTEGER DEFAULT 0,
+
+    ai_importance           REAL,
+    ai_summary              TEXT,
+    auto_generated_summary  TEXT,
+    ai_sentiment            TEXT,
+    ai_tags                 TEXT,
+    enrichment_status       TEXT,
+
+    entities_json           TEXT,
+    extracted_entities_json  TEXT,
+    countries_involved      TEXT,
+    politicians_involved    TEXT,
+
+    sentiment_score         REAL,
+    quality_score           REAL,
+    processing_confidence   REAL,
+    enrichment_confidence   REAL,
+
+    source_country          TEXT,
+    source_bias             TEXT,
+    source_credibility      REAL,
+    metadata_json           TEXT,
+    processing_notes        TEXT,
+
+    event_id                INTEGER
+);
 
 CREATE TABLE IF NOT EXISTS events (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -379,6 +440,49 @@ CREATE TABLE IF NOT EXISTS signals (
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Add event_id column to unified_articles if missing
--- (handled programmatically in schema_init.py)
+CREATE TABLE IF NOT EXISTS alerts (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    alert_type      TEXT,
+    title           TEXT,
+    message         TEXT,
+    severity        TEXT,
+    latitude        REAL,
+    longitude       REAL,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    resolved        INTEGER DEFAULT 0,
+    metadata_json   TEXT
+);
+
+CREATE TABLE IF NOT EXISTS conflict_zones (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    name            TEXT,
+    country         TEXT,
+    region          TEXT,
+    latitude        REAL,
+    longitude       REAL,
+    radius_km       REAL,
+    risk_level      TEXT,
+    active          INTEGER DEFAULT 1,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    metadata_json   TEXT
+);
+
+CREATE TABLE IF NOT EXISTS enrichment_log (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    article_id      INTEGER,
+    enrichment_type TEXT,
+    status          TEXT,
+    details         TEXT,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS gpr_index (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    date            DATE,
+    gpr_value       REAL,
+    country         TEXT,
+    source          TEXT,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 """
