@@ -2,111 +2,70 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Registros del Sistema — Riskmap A.I.</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared.css">
 <style>
-  .comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem;margin-bottom:1rem}
-  .comp-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.85rem 1rem;display:flex;align-items:center;gap:.75rem}
-  .comp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-  .comp-dot.ok{background:var(--success)}
-  .comp-dot.warn{background:var(--warning)}
-  .comp-dot.err{background:var(--danger)}
-  .comp-name{font-size:.85rem;font-weight:600;color:var(--text-1)}
-  .comp-status{font-size:.72rem;color:var(--text-2)}
-  .log-line{font-family:'Fira Mono','Courier New',monospace;font-size:.75rem;line-height:1.6;padding:.25rem .5rem;border-radius:4px;margin-bottom:.1rem}
-  .log-line:hover{background:rgba(255,255,255,.03)}
-  .log-info{color:#a0aec0}
-  .log-warn{color:#f59e0b}
-  .log-error{color:#f05252}
-  .log-success{color:#10b981}
-  .log-time{color:rgba(74,158,255,.7);margin-right:.5rem;font-weight:500}
-  .log-level{display:inline-block;padding:0 5px;border-radius:3px;font-size:.68rem;font-weight:700;margin-right:.4rem;text-transform:uppercase}
-  .ll-info{background:rgba(74,158,255,.15);color:#4a9eff}
-  .ll-warn{background:rgba(245,158,11,.15);color:#f59e0b}
-  .ll-error{background:rgba(240,82,82,.15);color:#f05252}
-  .ll-ok{background:rgba(16,185,129,.15);color:#10b981}
-  .log-console{max-height:320px;overflow-y:auto;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:.6rem .8rem}
-  .log-console::-webkit-scrollbar{width:4px}
-  .log-console::-webkit-scrollbar-thumb{background:rgba(74,158,255,.3);border-radius:2px}
-  .refresh-time{font-size:.73rem;color:var(--text-2)}
+  .log-shell{display:grid;gap:clamp(12px,2vw,24px)}
+  .controls{display:flex;flex-wrap:wrap;gap:10px}
+  .log-stream{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.76rem;line-height:1.55;color:#d7e2ff;max-height:340px;overflow:auto;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:var(--r-md);padding:14px;transition:border-color .25s var(--ease-smooth)}
+  .log-stream:hover{border-color:var(--accent)}
+  .data-table tr{transition:background .15s var(--ease-smooth)}
+  .data-table tr:hover{background:rgba(78,161,255,.04)}
 </style>
 </head>
 <body>
-<div class="space-bg"></div>
-<div class="stars"></div>
+<div id="scrollProgress"></div>
 
 <nav class="top-nav">
-  <a href="/" class="nav-brand">⟁ Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
+  <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
   <div class="nav-menu" id="navMenu">
-    <a href="/news-analysis" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
     <div class="nav-divider"></div>
-    <a href="/about" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
-<div class="page-header">
+<header class="page-header reveal">
   <span class="page-icon">📝</span>
-  <h1>Registros del Sistema</h1>
-  <p>Estado de componentes, métricas y actividad del sistema en tiempo real</p>
-</div>
+  <h1>Health &amp; Endpoint Logs</h1>
+  <p>Monitor de salud de endpoints críticos usados por el website y el pipeline operativo.</p>
+</header>
 
-<div class="container">
-  <div class="stats-row">
-    <div class="stat-card"><div class="stat-icon-lg">✅</div><div class="stat-val" id="s-ok">—</div><div class="stat-lbl">Componentes OK</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">⚠️</div><div class="stat-val" id="s-warn">—</div><div class="stat-lbl">Advertencias</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">❌</div><div class="stat-val" id="s-err">—</div><div class="stat-lbl">Errores</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">⏱️</div><div class="stat-val" id="s-upd">—</div><div class="stat-lbl">Última actualización</div></div>
+<div class="container log-shell">
+  <div class="controls reveal">
+    <button class="btn btn-primary" id="checkBtn">Comprobar endpoints</button>
+    <button class="btn" id="autoBtn">Auto-refresh: OFF</button>
   </div>
 
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent)">
-      🔧 Estado de Componentes
-    </div>
-    <button class="btn" onclick="refresh()" style="font-size:.75rem;padding:.35rem .75rem">🔄 Actualizar</button>
-  </div>
-
-  <div class="comp-grid" id="compGrid">
-    <div class="loader"><div class="spin"></div>Verificando componentes...</div>
-  </div>
-
-  <div class="card" style="margin-bottom:1rem">
-    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center">
-      <span>📋 Registro de Actividad del Sistema</span>
-      <span class="refresh-time" id="logTime">—</span>
-    </div>
-    <div class="log-console" id="logConsole">
-      <div class="log-line log-info">Inicializando...</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.75rem">
-      📊 Métricas de Rendimiento
-    </div>
+  <section class="card card-glow reveal">
+    <h2 class="section-title">Estado de APIs</h2>
     <table class="data-table">
-      <thead><tr><th>Métrica</th><th>Valor</th><th>Estado</th></tr></thead>
-      <tbody id="metricsTable">
-        <tr><td colspan="3" style="text-align:center;color:var(--text-2)">Cargando...</td></tr>
-      </tbody>
+      <thead><tr><th>Endpoint</th><th>Estado</th><th>Tiempo</th><th>Items</th><th>Última comprobación</th></tr></thead>
+      <tbody id="statusTable"></tbody>
     </table>
-  </div>
+  </section>
+
+  <section class="card card-glow reveal">
+    <h2 class="section-title">Stream técnico</h2>
+    <div id="stream" class="log-stream"></div>
+  </section>
 </div>
 
 <div id="toast-root"></div>
@@ -114,116 +73,91 @@
 <script>
 (function(){
   'use strict';
-
-  const COMPONENTS = [
-    {name:'API /articles',key:'articles',icon:'📰'},
-    {name:'API /status',key:'status',icon:'📡'},
-    {name:'API /heatmap',key:'heatmap',icon:'🗺️'},
-    {name:'API /events',key:'events',icon:'🗺️'},
-    {name:'API /signals',key:'signals',icon:'📡'},
-    {name:'Base de Datos',key:'db',icon:'🗄️'},
-    {name:'Pipeline NLP',key:'nlp',icon:'🧠'},
-    {name:'Groq AI',key:'ai',icon:'🤖'}
+  var endpoints = [
+    '/api/status',
+    '/api/articles?limit=5',
+    '/api/articles/deduplicated?limit=5',
+    '/api/events?limit=5',
+    '/api/signals?limit=5',
+    '/api/images?limit=5',
+    '/api/heatmap?limit=20',
+    '/api/analytics/conflicts-corrected',
+    '/api/hero-article'
   ];
 
-  async function refresh() {
-    const grid = document.getElementById('compGrid');
-    const logEl = document.getElementById('logConsole');
-    const metricsEl = document.getElementById('metricsTable');
-    if (grid) grid.innerHTML = '<div class="loader"><div class="spin"></div>Verificando...</div>';
+  var intervalId = null;
 
-    const status = await fetchJSON('/api/status');
+  function log(msg){
+    var el = document.getElementById('stream');
+    if (!el) return;
+    var line = '[' + new Date().toLocaleTimeString('es-ES') + '] ' + msg;
+    el.textContent += line + '\n';
+    el.scrollTop = el.scrollHeight;
+  }
 
-    const now = new Date();
-    const upd = document.getElementById('s-upd');
-    if (upd) upd.textContent = now.toLocaleTimeString('es-ES');
-    const logTime = document.getElementById('logTime');
-    if (logTime) logTime.textContent = 'Actualizado: ' + now.toLocaleTimeString('es-ES');
-
-    // Build component statuses
-    const results = [];
-    if (status) {
-      results.push({name:'API /status', icon:'📡', state:'ok', detail:'Respuesta correcta'});
-      results.push({name:'Base de Datos', icon:'🗄️', state: status.total_articles>0?'ok':'warn', detail: (status.total_articles||0)+' artículos'});
-      results.push({name:'Pipeline NLP', icon:'🧠', state:'ok', detail:'Activo'});
-      results.push({name:'Groq AI', icon:'🤖', state:'ok', detail:'Conectado'});
-    } else {
-      results.push({name:'API /status', icon:'📡', state:'err', detail:'Sin respuesta'});
-      results.push({name:'Base de Datos', icon:'🗄️', state:'warn', detail:'Estado desconocido'});
-    }
-    results.push({name:'API /articles', icon:'📰', state:'ok', detail:'Disponible'});
-    results.push({name:'API /heatmap', icon:'🗺️', state:'ok', detail:'Disponible'});
-    results.push({name:'API /events', icon:'🗺️', state:'ok', detail:'Disponible'});
-    results.push({name:'API /signals', icon:'📡', state:'ok', detail:'Disponible'});
-
-    const ok = results.filter(r=>r.state==='ok').length;
-    const warn = results.filter(r=>r.state==='warn').length;
-    const err = results.filter(r=>r.state==='err').length;
-    animCount(document.getElementById('s-ok'), ok);
-    animCount(document.getElementById('s-warn'), warn);
-    animCount(document.getElementById('s-err'), err);
-
-    if (grid) {
-      grid.innerHTML = results.map(function(r) {
-        const cls = r.state==='ok'?'ok':r.state==='warn'?'warn':'err';
-        const label = r.state==='ok'?'Operativo':r.state==='warn'?'Advertencia':'Error';
-        return '<div class="comp-card">'+
-          '<div class="comp-dot '+cls+'"></div>'+
-          '<div>'+
-            '<div class="comp-name">'+r.icon+' '+escH(r.name)+'</div>'+
-            '<div class="comp-status">'+label+' · '+escH(r.detail)+'</div>'+
-          '</div>'+
-        '</div>';
-      }).join('');
-    }
-
-    // Log entries
-    const logs = [
-      {t:now.toLocaleTimeString(),lvl:'ok',msg:'Sistema operativo - todos los componentes activos'},
-      {t:new Date(now-12000).toLocaleTimeString(),lvl:'info',msg:'Pipeline de ingesta de datos ejecutado'},
-      {t:new Date(now-35000).toLocaleTimeString(),lvl:'info',msg:'NLP procesó '+(status?Math.floor(Math.random()*20+5):0)+' artículos nuevos'},
-      {t:new Date(now-60000).toLocaleTimeString(),lvl:'info',msg:'Heatmap actualizado con nuevos puntos de calor'},
-      {t:new Date(now-90000).toLocaleTimeString(),lvl:'warn',msg:'Fuente externa con latencia elevada (>500ms)'},
-      {t:new Date(now-120000).toLocaleTimeString(),lvl:'info',msg:'Análisis de zonas de conflicto completado'},
-      {t:new Date(now-180000).toLocaleTimeString(),lvl:'ok',msg:'Conexión a base de datos Neon: estable'},
-      {t:new Date(now-240000).toLocaleTimeString(),lvl:'info',msg:'Groq API: respuesta promedio 1.2s'},
-      {t:new Date(now-300000).toLocaleTimeString(),lvl:'info',msg:'Ciclo de análisis histórico completado'},
-    ];
-
-    if (logEl) {
-      logEl.innerHTML = logs.map(function(l) {
-        const cls = l.lvl==='ok'?'log-success':l.lvl==='warn'?'log-warn':l.lvl==='error'?'log-error':'log-info';
-        const llCls = l.lvl==='ok'?'ll-ok':l.lvl==='warn'?'ll-warn':l.lvl==='error'?'ll-error':'ll-info';
-        const llText = l.lvl==='ok'?'OK':l.lvl.toUpperCase();
-        return '<div class="log-line '+cls+'">'+
-          '<span class="log-time">'+escH(l.t)+'</span>'+
-          '<span class="log-level '+llCls+'">'+llText+'</span>'+
-          escH(l.msg)+
-        '</div>';
-      }).join('');
-    }
-
-    // Metrics
-    if (metricsEl && status) {
-      const rows = [
-        ['Artículos totales', status.total_articles||0, 'ok'],
-        ['Alertas críticas', status.critical_alerts||0, (status.critical_alerts||0)>5?'warn':'ok'],
-        ['Regiones activas', status.regions_in_conflict||0, 'info'],
-        ['Fuentes activas', status.active_sources||0, 'ok'],
-        ['Latencia API (aprox.)', '<200ms', 'ok'],
-        ['Ciclo de ingesta', 'Cada 1h', 'ok'],
-        ['Ciclo NLP', 'Cada 2h', 'ok'],
-        ['Ciclo análisis histórico', 'Cada 6h', 'ok'],
-      ];
-      const dot = s=>s==='ok'?'🟢':s==='warn'?'🟡':'🔵';
-      metricsEl.innerHTML = rows.map(function(r) {
-        return '<tr><td>'+escH(r[0])+'</td><td><strong>'+escH(String(r[1]))+'</strong></td><td>'+dot(r[2])+'</td></tr>';
-      }).join('');
+  async function checkEndpoint(url){
+    var t0 = performance.now();
+    try {
+      var res = await fetch(url, { cache:'no-store' });
+      var ms = Math.round(performance.now() - t0);
+      var payload = null;
+      try { payload = await res.json(); } catch (_) {}
+      var itemCount = payload
+        ? (typeof payload.count === 'number' ? payload.count
+          : (payload.articles ? payload.articles.length
+          : (payload.events ? payload.events.length
+          : (payload.signals ? payload.signals.length
+          : (payload.images ? payload.images.length
+          : '-')))))
+        : '-';
+      return { url: url, ok: res.ok, ms: ms, itemCount: itemCount, status: res.status };
+    } catch (err) {
+      return { url: url, ok: false, ms: '-', itemCount: '-', status: 'ERR', err: String(err) };
     }
   }
 
-  window.refresh = refresh;
-  document.addEventListener('DOMContentLoaded', refresh);
+  async function runChecks(){
+    log('Iniciando comprobación de endpoints');
+    var results = await Promise.all(endpoints.map(function(ep){return checkEndpoint(ep);}));
+    var tbody = document.getElementById('statusTable');
+    if (!tbody) return;
+
+    tbody.innerHTML = results.map(function(r){
+      var st = r.ok ? 'OK' : 'FAIL';
+      var color = r.ok ? '#3fe49f' : '#ff646e';
+      log(st + ' ' + r.url + ' (' + r.status + ') en ' + r.ms + 'ms' + (r.err ? ' -> ' + r.err : ''));
+      return '<tr>'
+        + '<td>' + escH(r.url) + '</td>'
+        + '<td><span style="color:' + color + ';font-weight:700">' + st + '</span></td>'
+        + '<td>' + r.ms + ' ms</td>'
+        + '<td>' + r.itemCount + '</td>'
+        + '<td>' + new Date().toLocaleTimeString('es-ES') + '</td>'
+        + '</tr>';
+    }).join('');
+
+    if (window.initReveals) window.initReveals();
+  }
+
+  function toggleAuto(){
+    var btn = document.getElementById('autoBtn');
+    if (!intervalId) {
+      intervalId = setInterval(runChecks, 60000);
+      btn.textContent = 'Auto-refresh: ON';
+      showToast('Auto-refresh cada 60s activado', 'success');
+      runChecks();
+    } else {
+      clearInterval(intervalId);
+      intervalId = null;
+      btn.textContent = 'Auto-refresh: OFF';
+      showToast('Auto-refresh desactivado', 'info');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    document.getElementById('checkBtn').addEventListener('click', runChecks);
+    document.getElementById('autoBtn').addEventListener('click', toggleAuto);
+    runChecks();
+  });
 })();
 </script>
 </body>

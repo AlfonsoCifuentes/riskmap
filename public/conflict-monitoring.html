@@ -2,103 +2,74 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Monitor de Conflictos — Riskmap A.I.</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-  .two-col{display:grid;grid-template-columns:1fr 340px;gap:1rem;align-items:start}
-  .zone-list{display:flex;flex-direction:column;gap:.5rem;max-height:480px;overflow-y:auto;padding-right:.25rem}
-  .zone-item{
-    background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);
-    padding:.85rem 1rem;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:.75rem;
-  }
-  .zone-item:hover{background:var(--bg-card-h);border-color:var(--border-blue)}
-  .zone-rank{
-    width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    font-size:.7rem;font-weight:800;flex-shrink:0;
-  }
-  .zone-info{flex:1;min-width:0}
-  .zone-name{font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .zone-arts{font-size:.75rem;color:var(--text-2);margin-top:.15rem}
-  .risk-bar{height:3px;border-radius:2px;margin-top:.4rem}
-  .bar-high{background:var(--danger)}
-  .bar-medium{background:var(--warning)}
-  .bar-low{background:var(--success)}
-  @media(max-width:900px){.two-col{grid-template-columns:1fr}}
+  .layout{display:grid;grid-template-columns:1.4fr .6fr;gap:clamp(12px,2vw,24px);align-items:start}
+  .zone-list{display:grid;gap:8px;max-height:620px;overflow-y:auto;padding-right:4px}
+  .zone-item{border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;background:rgba(255,255,255,.015);cursor:pointer;transition:all .25s var(--ease-smooth)}
+  .zone-item:hover{border-color:var(--accent);background:rgba(78,161,255,.06);transform:translateX(-4px);box-shadow:var(--shadow-glow)}
+  .zone-item h3{margin:0 0 6px;font-size:.88rem;font-weight:600}
+  .zone-item p{margin:0;color:var(--text-1);font-size:.76rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .zone-risk-bar{height:3px;border-radius:2px;background:var(--bg-3);margin-top:8px;overflow:hidden}
+  .zone-risk-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--danger));transition:width .5s var(--ease-out)}
+  .map-wrap{border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-md)}
+  #conflict-map{height:clamp(400px,55vw,620px);background:var(--bg-1)}
+  @media(max-width:1020px){.layout{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="space-bg"></div>
-<div class="stars"></div>
+<div id="scrollProgress"></div>
 
-<!-- Navigation -->
 <nav class="top-nav">
-  <a href="/" class="nav-brand">⟁ Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
+  <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
   <div class="nav-menu" id="navMenu">
-    <a href="/news-analysis" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
     <div class="nav-divider"></div>
-    <a href="/about" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
-<div class="page-header">
+<header class="page-header reveal">
   <span class="page-icon">⚔️</span>
-  <h1>Monitor de Conflictos</h1>
-  <p>Mapa de calor en tiempo real de zonas de conflicto geopolítico y riesgo global</p>
-</div>
+  <h1>Monitor Geoespacial de Conflictos</h1>
+  <p>Mapa operativo en tiempo real basado en artículos geolocalizados, señales y eventos. Todas las capas provienen de datos reales de la plataforma.</p>
+</header>
 
 <div class="container">
-  <!-- Stats -->
-  <div class="stats-row" id="statsRow">
-    <div class="stat-card"><div class="stat-icon-lg">🗺️</div><div class="stat-val" id="zoneCount">—</div><div class="stat-lbl">Zonas Activas</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">📰</div><div class="stat-val" id="artCount">—</div><div class="stat-lbl">Artículos Analizados</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">🚨</div><div class="stat-val" id="alertCount">—</div><div class="stat-lbl">Alertas Críticas</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="regionCount">—</div><div class="stat-lbl">Regiones en Conflicto</div></div>
+  <div class="stats-row reveal stagger">
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📍</div><div class="stat-val" id="kpiPoints">0</div><div class="stat-lbl">Puntos geoespaciales</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🌐</div><div class="stat-val" id="kpiZones">0</div><div class="stat-lbl">Zonas activas</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🔥</div><div class="stat-val" id="kpiHigh">0</div><div class="stat-lbl">Riesgo alto</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📰</div><div class="stat-val" id="kpiArticles">0</div><div class="stat-lbl">Artículos analizados</div></div>
   </div>
 
-  <!-- Filter bar -->
-  <div class="filter-bar">
-    <button class="chip active" data-tf="all" onclick="setTimeframe(this,'all')">Todo</button>
-    <button class="chip" data-tf="7d" onclick="setTimeframe(this,'7d')">7 días</button>
-    <button class="chip" data-tf="30d" onclick="setTimeframe(this,'30d')">30 días</button>
-    <button class="chip" data-tf="90d" onclick="setTimeframe(this,'90d')">90 días</button>
-  </div>
-
-  <!-- Map + Zone list -->
-  <div class="two-col">
-    <div class="map-wrap">
+  <div class="layout">
+    <section class="map-wrap reveal">
       <div id="conflict-map"></div>
-      <div class="map-legend">
-        <h4>Nivel de Riesgo</h4>
-        <div class="legend-item"><div class="legend-dot" style="background:#f05252"></div>Alto / Crítico</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Medio</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Bajo</div>
-        <div class="legend-item"><div class="legend-dot" style="background:rgba(74,158,255,.6);border-radius:0"></div>Calor</div>
-      </div>
-    </div>
-    <div>
-      <div class="section-title">Zonas de Mayor Riesgo</div>
-      <div class="zone-list" id="zoneList">
-        <div class="loader"><div class="spin"></div>Cargando zonas...</div>
-      </div>
-    </div>
+    </section>
+    <aside class="card reveal-right">
+      <h2 class="section-title">Zonas de mayor prioridad</h2>
+      <div class="zone-list" id="zoneList"><div class="loader"><div class="spin"></div>Cargando zonas...</div></div>
+    </aside>
   </div>
 </div>
 
@@ -109,116 +80,96 @@
 <script>
 (function(){
   'use strict';
-  let map, heatLayer;
-  const markers = [];
+  var map, markers = [], heatLayer = null;
 
-  function initMap() {
-    if (typeof L === 'undefined') return;
-    map = L.map('conflict-map', {
-      center:[25,10], zoom:2.5, minZoom:2, maxZoom:12,
-      zoomControl:true, attributionControl:false, scrollWheelZoom:true
+  function initMap(){
+    map = L.map('conflict-map', {center:[24,12], zoom:2.3, minZoom:2, maxZoom:10, attributionControl:false});
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd'}).addTo(map);
+  }
+
+  function colorForRisk(r){
+    var risk = (r || '').toLowerCase();
+    if (risk === 'critical') return '#ff2f5d';
+    if (risk === 'high') return '#ff646e';
+    if (risk === 'medium') return '#ffb84b';
+    return '#3fe49f';
+  }
+
+  function drawZones(zones){
+    markers.forEach(function(m){m.remove();});
+    markers = [];
+    zones.forEach(function(z){
+      var lat = Number(z.latitude), lon = Number(z.longitude);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon) || (lat === 0 && lon === 0)) return;
+      var color = colorForRisk(z.risk_level);
+      var marker = L.circleMarker([lat, lon], {
+        radius: Math.max(6, Math.min(28, (Number(z.article_count) || 1) * 2)),
+        color: color, fillColor: color, fillOpacity: .5, weight: 1.5
+      }).addTo(map);
+      marker.bindPopup('<strong>' + escH(z.location || 'Zona') + '</strong><br>' + Number(z.article_count || 0) + ' artículos<br>Riesgo ' + Math.round(z.avg_risk_score || 0) + '%');
+      markers.push(marker);
     });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-      maxZoom:19, subdomains:'abcd'
+  }
+
+  function drawHeat(points){
+    if (heatLayer) map.removeLayer(heatLayer);
+    var heatPoints = points
+      .map(function(p){return [Number(p.lat), Number(p.lon), Math.max(0.1, Math.min(1, Number(p.weight)/100 || Number(p.weight) || 0.25))];})
+      .filter(function(p){return Number.isFinite(p[0]) && Number.isFinite(p[1]);});
+    if (!heatPoints.length) return;
+    heatLayer = L.heatLayer(heatPoints, {
+      radius:28, blur:24,
+      gradient:{0.2:'#0c8f6b',0.45:'#30b6ff',0.65:'#ffc04d',0.85:'#ff646e',1:'#ff2f5d'}
     }).addTo(map);
   }
 
-  function plotZones(zones) {
-    if (!map) return;
-    markers.forEach(m => m.remove());
-    markers.length = 0;
-    const pts = [];
-
-    zones.forEach(function(z, i) {
-      const lat = parseFloat(z.latitude), lng = parseFloat(z.longitude);
-      if (!lat || !lng || isNaN(lat) || isNaN(lng)) return;
-
-      const score = z.avg_risk_score || 0;
-      const rl = z.risk_level || (score>=40?'high':score>=25?'medium':'low');
-      const color = rl==='high'||rl==='critical' ? '#f05252' : rl==='medium' ? '#f59e0b' : '#10b981';
-      const r = Math.min(Math.max((z.article_count||1)*2.5, 7), 28);
-
-      const m = L.circleMarker([lat,lng],{
-        radius:r, fillColor:color, fillOpacity:.55,
-        color:color, weight:1.5, opacity:.8
-      }).addTo(map);
-
-      m.bindPopup(
-        '<div style="font-family:Inter,sans-serif;font-size:13px;min-width:200px">' +
-        '<strong style="font-size:14px">' + escH(z.location||'Desconocido') + '</strong><br>' +
-        '<span style="color:'+ color +';font-weight:700">' + (rl||'desconocido').toUpperCase() + '</span><br>' +
-        (z.article_count ? '<span>Artículos: '+ z.article_count +'</span><br>':'') +
-        '<span>Riesgo: '+ (score*1).toFixed(0) +'%</span>' +
-        '</div>'
-      );
-      markers.push(m);
-
-      pts.push([lat, lng, Math.min(score/100, 1)]);
-    });
-
-    if (heatLayer) map.removeLayer(heatLayer);
-    if (pts.length && typeof L.heatLayer === 'function') {
-      heatLayer = L.heatLayer(pts, {
-        radius:30, blur:18, maxZoom:10,
-        gradient:{0.2:'#003d33',0.4:'#00e5a0',0.6:'#f59e0b',0.85:'#f05252',1:'#ff2244'}
-      }).addTo(map);
-    }
-  }
-
-  function renderZoneList(zones) {
-    const el = document.getElementById('zoneList');
+  function renderZoneList(zones){
+    var el = document.getElementById('zoneList');
     if (!el) return;
-    if (!zones || !zones.length) {
-      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🗺️</div><h3>Sin datos</h3><p>No hay zonas de conflicto disponibles.</p></div>';
+    if (!zones.length){
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🌐</div><h3>Sin zonas</h3><p>No hay conflictos geolocalizados.</p></div>';
       return;
     }
-    el.innerHTML = zones.slice(0,20).map(function(z, i) {
-      const score = z.avg_risk_score || 0;
-      const rl = z.risk_level || (score>=40?'high':score>=25?'medium':'low');
-      const color = rl==='high'||rl==='critical' ? '#f05252' : rl==='medium' ? '#f59e0b' : '#10b981';
-      const barCls = rl==='high'||rl==='critical' ? 'bar-high' : rl==='medium' ? 'bar-medium' : 'bar-low';
-      return '<div class="zone-item" onclick="flyTo('+ (z.latitude||0) +','+ (z.longitude||0) +')">' +
-        '<div class="zone-rank" style="background:'+color+'22;color:'+color+'">'+((i+1)<10?'0':'')+(i+1)+'</div>' +
-        '<div class="zone-info">' +
-          '<div class="zone-name">'+ escH(z.location||'Desconocido') +'</div>' +
-          '<div class="zone-arts">'+ (z.article_count||0) +' artículos · '+ riskBadge(rl) +'</div>' +
-          '<div class="risk-bar '+ barCls +'" style="width:'+ Math.min(score/100*100,100) +'%"></div>' +
-        '</div>' +
-        '</div>';
+    var maxRisk = Math.max.apply(null, zones.map(function(z){return z.avg_risk_score || 0;})) || 100;
+    el.innerHTML = zones.slice(0, 20).map(function(z){
+      var lat = Number(z.latitude), lon = Number(z.longitude);
+      var pct = Math.min(100, Math.round(((z.avg_risk_score || 0) / maxRisk) * 100));
+      return '<article class="zone-item" onclick="flyToZone(' + lat + ',' + lon + ')">' +
+        '<h3>' + escH(z.location || 'Zona no identificada') + '</h3>' +
+        '<p>' + Number(z.article_count || 0) + ' artículos ' + riskBadge(z.risk_level) + ' score ' + Math.round(z.avg_risk_score || 0) + '%</p>' +
+        '<div class="zone-risk-bar"><div class="zone-risk-fill" style="width:' + pct + '%"></div></div>' +
+      '</article>';
     }).join('');
+    if (window.initReveals) window.initReveals();
   }
 
-  window.flyTo = function(lat, lng) {
-    if (map && lat && lng) map.flyTo([lat,lng], 6, {duration:1.5});
+  window.flyToZone = function(lat, lon){
+    if (Number.isFinite(lat) && Number.isFinite(lon)) map.flyTo([lat, lon], 5, {duration:1.2});
   };
 
-  async function load(timeframe) {
-    const url = '/api/analytics/conflicts-corrected' + (timeframe && timeframe!=='all' ? '?timeframe='+timeframe : '');
-    const data = await fetchJSON(url);
-    if (!data || !data.success) {
-      showToast('Error cargando conflictos','error');
-      return;
-    }
-    const s = data.statistics || {};
-    animCount(document.getElementById('zoneCount'), data.conflicts ? data.conflicts.length : 0);
-    animCount(document.getElementById('artCount'), s.total_articles || 0);
-    animCount(document.getElementById('alertCount'), s.critical_alerts || 0);
-    animCount(document.getElementById('regionCount'), s.regions_in_conflict || s.high_risk_regions || 0);
+  async function load(){
+    var results = await Promise.all([
+      fetchJSON('/api/heatmap?limit=1800'),
+      fetchJSON('/api/analytics/conflicts-corrected')
+    ]);
+    var heat = results[0], analytics = results[1];
+    var zones = (analytics && analytics.conflicts) || [];
+    var points = (heat && heat.points) || [];
+    var dist = (analytics && analytics.statistics && analytics.statistics.risk_distribution) || {};
 
-    plotZones(data.conflicts || []);
-    renderZoneList(data.conflicts || []);
+    animCount(document.getElementById('kpiPoints'), (heat && heat.count) || 0);
+    animCount(document.getElementById('kpiZones'), zones.length);
+    animCount(document.getElementById('kpiHigh'), (dist.high || 0));
+    animCount(document.getElementById('kpiArticles'), (analytics && analytics.statistics && analytics.statistics.total_articles) || 0);
+
+    drawZones(zones);
+    drawHeat(points);
+    renderZoneList(zones);
   }
 
-  function setTimeframe(btn, tf) {
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    load(tf);
-  }
-  window.setTimeframe = setTimeframe;
-
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function(){
     initMap();
-    load('all');
+    load();
   });
 })();
 </script>

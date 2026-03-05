@@ -2,199 +2,113 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Análisis Satelital — Riskmap A.I.</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared.css">
 <style>
-  #satMap{height:420px;border-radius:12px;overflow:hidden}
-  .zone-marker-label{background:rgba(7,12,31,.85);border:1px solid rgba(74,158,255,.4);color:#e2e8f0;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:600;white-space:nowrap}
-  .capability-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.75rem;margin-top:.75rem}
-  .cap-card{background:rgba(74,158,255,.06);border:1px solid rgba(74,158,255,.15);border-radius:10px;padding:.9rem 1rem}
-  .cap-icon{font-size:1.6rem;margin-bottom:.4rem}
-  .cap-title{font-size:.85rem;font-weight:700;color:var(--text-1)}
-  .cap-desc{font-size:.75rem;color:var(--text-2);margin-top:.25rem;line-height:1.5}
-  .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
-  .status-online{background:var(--success)}
-  .status-offline{background:var(--danger)}
-  .status-pending{background:var(--warning)}
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:clamp(10px,1.5vw,18px)}
+  .img-card{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:rgba(255,255,255,.015);transition:all .25s var(--ease-smooth)}
+  .img-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 12px 32px rgba(78,161,255,.12)}
+  .img-card .img-box{height:160px;background:linear-gradient(135deg,#152445,#0b1427);display:flex;align-items:center;justify-content:center;color:var(--text-2);font-size:.8rem;font-family:"Orbitron",sans-serif}
+  .img-card .meta{padding:14px;font-size:.78rem;color:var(--text-2);line-height:1.6}
+  .img-card .meta strong{color:var(--text-1)}
 </style>
 </head>
 <body>
-<div class="space-bg"></div>
-<div class="stars"></div>
+<div id="scrollProgress"></div>
 
 <nav class="top-nav">
-  <a href="/" class="nav-brand">⟁ Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
+  <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
   <div class="nav-menu" id="navMenu">
-    <a href="/news-analysis" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
     <div class="nav-divider"></div>
-    <a href="/about" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
-<div class="page-header">
+<header class="page-header reveal">
   <span class="page-icon">🛰️</span>
-  <h1>Análisis Satelital</h1>
-  <p>Monitoreo satelital de zonas de conflicto y áreas de interés geopolítico</p>
-</div>
+  <h1>Análisis Satelital y Evidencia Visual</h1>
+  <p>Inventario de capturas satelitales/EO y señales asociadas para detección de actividad militar, daños estructurales y desastres.</p>
+</header>
 
 <div class="container">
-  <div class="stats-row">
-    <div class="stat-card"><div class="stat-icon-lg">🛰️</div><div class="stat-val" id="s-zones">—</div><div class="stat-lbl">Zonas Monitorizadas</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">📡</div><div class="stat-val">SentinelHub</div><div class="stat-lbl">Proveedor</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">🔄</div><div class="stat-val">10m</div><div class="stat-lbl">Resolución</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">⏱️</div><div class="stat-val">5 días</div><div class="stat-lbl">Revisita Temporal</div></div>
+  <div class="stats-row reveal stagger">
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🖼️</div><div class="stat-val" id="kpiImages">0</div><div class="stat-lbl">Imágenes registradas</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📍</div><div class="stat-val" id="kpiGeo">0</div><div class="stat-lbl">Con geolocalización</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🚨</div><div class="stat-val" id="kpiSignals">0</div><div class="stat-lbl">Signals vinculadas</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🗂️</div><div class="stat-val" id="kpiEvents">0</div><div class="stat-lbl">Eventos relacionados</div></div>
   </div>
 
-  <div class="card" style="margin-bottom:1rem">
-    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.75rem">
-      🗺️ Mapa de Zonas de Monitoreo Satelital
-    </div>
-    <div id="satMap"></div>
-    <div class="map-legend" style="margin-top:.75rem">
-      <div class="legend-item"><div class="legend-dot" style="background:#f05252"></div>Alto riesgo</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Riesgo medio</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Monitoreo activo</div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom:1rem">
-    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.75rem">
-      🔧 Capacidades del Sistema
-    </div>
-    <div class="capability-grid">
-      <div class="cap-card">
-        <div class="cap-icon">🌡️</div>
-        <div class="cap-title">Análisis Térmico</div>
-        <div class="cap-desc">Detección de calor industrial, incendios y actividad militar mediante imágenes infrarrojas</div>
-      </div>
-      <div class="cap-card">
-        <div class="cap-icon">🏗️</div>
-        <div class="cap-title">Cambios Estructurales</div>
-        <div class="cap-desc">Monitoreo de construcciones militares, movimientos de tropas y cambios en infraestructura</div>
-      </div>
-      <div class="cap-card">
-        <div class="cap-icon">🌊</div>
-        <div class="cap-title">Análisis Náutico</div>
-        <div class="cap-desc">Seguimiento de movimiento naval en zonas de conflicto y rutas marítimas estratégicas</div>
-      </div>
-      <div class="cap-card">
-        <div class="cap-icon">✈️</div>
-        <div class="cap-title">Actividad Aérea</div>
-        <div class="cap-desc">Detección de bases aéreas activas, pistas de aterrizaje y movimientos de aeronaves</div>
-      </div>
-      <div class="cap-card">
-        <div class="cap-icon">🌱</div>
-        <div class="cap-title">Análisis Vegetal (NDVI)</div>
-        <div class="cap-desc">Detección de deforestación, daños ambientales y cambios en uso del suelo</div>
-      </div>
-      <div class="cap-card">
-        <div class="cap-icon">🤖</div>
-        <div class="cap-title">IA + Computer Vision</div>
-        <div class="cap-desc">Modelos YOLO para detección automática de objetos militares en imágenes satelitales</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.75rem">
-      📊 Estado del Sistema Satelital
-    </div>
-    <table class="data-table">
-      <thead><tr><th>Componente</th><th>Estado</th><th>Última actualización</th></tr></thead>
-      <tbody>
-        <tr>
-          <td>SentinelHub API</td>
-          <td><span class="status-dot status-online"></span>Operativo</td>
-          <td id="ts-sentinel">—</td>
-        </tr>
-        <tr>
-          <td>Motor YOLO CV</td>
-          <td><span class="status-dot status-online"></span>Activo</td>
-          <td id="ts-yolo">—</td>
-        </tr>
-        <tr>
-          <td>Actualizaciones automáticas</td>
-          <td><span class="status-dot status-pending"></span>Programado</td>
-          <td id="ts-auto">Cada 24h</td>
-        </tr>
-        <tr>
-          <td>Almacenamiento de imágenes</td>
-          <td><span class="status-dot status-online"></span>Disponible</td>
-          <td>—</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <section class="card reveal">
+    <h2 class="section-title">Galería de imágenes satelitales</h2>
+    <div class="gallery" id="gallery"><div class="loader"><div class="spin"></div>Cargando imágenes...</div></div>
+  </section>
 </div>
 
 <div id="toast-root"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/nav.js"></script>
 <script>
 (function(){
   'use strict';
 
-  // Key conflict zones for satellite monitoring
-  const ZONES = [
-    {name:'Ucrania / Donbás', lat:48.6,lng:37.0, rl:'high'},
-    {name:'Franja de Gaza', lat:31.4,lng:34.3, rl:'high'},
-    {name:'Sudán', lat:15.5,lng:32.5, rl:'high'},
-    {name:'Myanmar / Birmania', lat:21.9,lng:95.9, rl:'high'},
-    {name:'Mar del Sur de China', lat:14.5,lng:113.5, rl:'medium'},
-    {name:'Sahel (Mali/Burkina)', lat:14.0,lng:1.5, rl:'medium'},
-    {name:'Yemen', lat:15.5,lng:44.5, rl:'high'},
-    {name:'Somalia', lat:5.1,lng:46.2, rl:'medium'},
-    {name:'Nagorno-Karabaj', lat:39.8,lng:46.8, rl:'medium'},
-    {name:'Siria', lat:34.8,lng:38.9, rl:'high'},
-    {name:'Líbano', lat:33.8,lng:35.8, rl:'medium'},
-    {name:'Afganistán', lat:33.9,lng:67.7, rl:'medium'}
-  ];
-
-  const colorMap = {high:'#f05252', medium:'#f59e0b', low:'#10b981'};
-
-  function initMap() {
-    const map = L.map('satMap', {
-      center:[20,20],zoom:2,
-      attributionControl:false,zoomControl:true
-    });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:18}).addTo(map);
-
-    ZONES.forEach(function(z) {
-      const color = colorMap[z.rl]||colorMap.medium;
-      const circle = L.circleMarker([z.lat,z.lng],{radius:10,fillColor:color,color:color,weight:2,fillOpacity:.35,opacity:.8}).addTo(map);
-      circle.bindTooltip(z.name,{direction:'top',className:'zone-marker-label',permanent:false});
-      circle.bindPopup('<b>'+escH(z.name)+'</b><br>'+riskBadge(z.rl)+'<br><small>Monitoreo satelital activo</small>');
-    });
-
-    animCount(document.getElementById('s-zones'), ZONES.length);
-
-    // Update timestamps
-    const now = new Date().toLocaleString('es-ES');
-    ['ts-sentinel','ts-yolo'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = now;
-    });
+  function imageCard(img){
+    var srcUrl = img.source_url ? '<a href="' + escH(img.source_url) + '" target="_blank" rel="noopener" class="btn" style="margin-top:8px">Abrir captura</a>' : '';
+    return '<article class="img-card">' +
+      '<div class="img-box">' + (img.image_width ? img.image_width + 'x' + (img.image_height || '?') + ' px' : 'Sin preview binario') + '</div>' +
+      '<div class="meta">' +
+        '<div><strong>' + escH(img.source_type || 'source') + '</strong></div>' +
+        '<div>Evento: ' + (img.event_id || 'N/D') + ' · AOI: ' + (img.aoi_id || 'N/D') + '</div>' +
+        '<div>Coords: ' + (img.latitude || 'N/D') + ', ' + (img.longitude || 'N/D') + '</div>' +
+        '<div>Capturada: ' + (img.captured_at ? new Date(img.captured_at).toLocaleString('es-ES') : 'N/D') + '</div>' +
+        srcUrl +
+      '</div></article>';
   }
 
-  document.addEventListener('DOMContentLoaded', initMap);
+  async function load(){
+    var results = await Promise.all([
+      fetchJSON('/api/images?limit=120&source_type=satellite'),
+      fetchJSON('/api/signals?limit=200')
+    ]);
+    var imagesResp = results[0], signalsResp = results[1];
+
+    var images = (imagesResp && imagesResp.images) || [];
+    var signals = (signalsResp && signalsResp.signals) || [];
+
+    var geocoded = images.filter(function(i){return i.latitude && i.longitude;}).length;
+    var eventsLinked = images.filter(function(i){return i.event_id;}).length;
+
+    animCount(document.getElementById('kpiImages'), images.length);
+    animCount(document.getElementById('kpiGeo'), geocoded);
+    animCount(document.getElementById('kpiSignals'), signals.length);
+    animCount(document.getElementById('kpiEvents'), eventsLinked);
+
+    var gallery = document.getElementById('gallery');
+    if (gallery) {
+      gallery.innerHTML = images.length
+        ? images.slice(0, 60).map(imageCard).join('')
+        : '<div class="empty-state"><div class="empty-icon">🛰️</div><h3>Sin imágenes satelitales</h3><p>No hay registros source_type=satellite en la base actual.</p></div>';
+    }
+    if (window.initReveals) window.initReveals();
+  }
+
+  document.addEventListener('DOMContentLoaded', load);
 })();
 </script>
 </body>

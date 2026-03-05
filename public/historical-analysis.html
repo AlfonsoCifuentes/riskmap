@@ -2,207 +2,140 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Análisis Histórico — Riskmap A.I.</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
-  .timeline-wrap{position:relative;padding-left:1.5rem}
-  .timeline-wrap::before{content:'';position:absolute;left:4px;top:0;bottom:0;width:2px;background:rgba(74,158,255,.2)}
-  .tl-item{position:relative;margin-bottom:1.1rem}
-  .tl-dot{position:absolute;left:-1.55rem;top:.3rem;width:10px;height:10px;border-radius:50%;border:2px solid var(--accent);background:var(--bg-deep);flex-shrink:0}
-  .tl-header{font-size:.78rem;font-weight:700;color:var(--accent);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.06em}
-  .tl-articles{display:flex;flex-direction:column;gap:.4rem}
-  .tl-art{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:.45rem .6rem;font-size:.8rem;color:var(--text-1)}
-  .tl-art a{color:var(--text-1);text-decoration:none;font-weight:500}
-  .tl-art a:hover{color:var(--accent)}
-  .tl-art-meta{font-size:.7rem;color:var(--text-2);margin-top:.15rem}
-  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
-  @media(max-width:700px){.charts-row{grid-template-columns:1fr}}
+  .hist-grid{display:grid;grid-template-columns:1fr .9fr;gap:clamp(12px,2vw,24px)}
+  .country-list{display:grid;gap:10px}
+  .country-item{border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;background:rgba(255,255,255,.015);display:flex;justify-content:space-between;align-items:center;transition:all .2s var(--ease-smooth)}
+  .country-item:hover{border-color:var(--accent);background:rgba(78,161,255,.05);transform:translateX(-3px)}
+  .country-item span{color:var(--text-2);font-size:.8rem;font-family:"Orbitron",sans-serif;font-weight:600}
+  @media(max-width:980px){.hist-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="space-bg"></div>
-<div class="stars"></div>
+<div id="scrollProgress"></div>
 
 <nav class="top-nav">
-  <a href="/" class="nav-brand">⟁ Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
+  <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
   <div class="nav-menu" id="navMenu">
-    <a href="/news-analysis" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
     <div class="nav-divider"></div>
-    <a href="/about" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
-<div class="page-header">
+<header class="page-header reveal">
   <span class="page-icon">🏛️</span>
-  <h1>Análisis Histórico</h1>
-  <p>Evolución temporal del panorama geopolítico global</p>
-</div>
+  <h1>Perspectiva Histórica de Cobertura</h1>
+  <p>Análisis temporal de publicaciones y concentración geográfica para detectar patrones persistentes de conflicto.</p>
+</header>
 
 <div class="container">
-  <div class="stats-row">
-    <div class="stat-card"><div class="stat-icon-lg">📰</div><div class="stat-val" id="s-total">—</div><div class="stat-lbl">Artículos Totales</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">📅</div><div class="stat-val" id="s-span">—</div><div class="stat-lbl">Cobertura Temporal</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="s-countries">—</div><div class="stat-lbl">Países Cubiertos</div></div>
-    <div class="stat-card"><div class="stat-icon-lg">📡</div><div class="stat-val" id="s-sources">—</div><div class="stat-lbl">Fuentes Históricas</div></div>
+  <div class="stats-row reveal stagger">
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📚</div><div class="stat-val" id="kpiLoaded">0</div><div class="stat-lbl">Noticias analizadas</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🗓️</div><div class="stat-val" id="kpiMonths">0</div><div class="stat-lbl">Meses con actividad</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="kpiCountries">0</div><div class="stat-lbl">Países con cobertura</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📌</div><div class="stat-val" id="kpiTop">0</div><div class="stat-lbl">Máx. artículos/mes</div></div>
   </div>
 
-  <div class="charts-row">
-    <div class="chart-card">
-      <div class="chart-title">📈 Artículos por Mes</div>
-      <canvas id="monthChart" height="200"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">⚠️ Evolución del Riesgo (últimos 30 días)</div>
-      <canvas id="riskEvolution" height="200"></canvas>
-    </div>
-  </div>
-
-  <div class="card">
-    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.8rem">
-      🕐 Línea de Tiempo de Eventos Recientes
-    </div>
-    <div class="timeline-wrap" id="timeline">
-      <div class="loader"><div class="spin"></div>Construyendo línea de tiempo...</div>
-    </div>
+  <div class="hist-grid">
+    <section class="chart-card card-glow reveal">
+      <h2 class="section-title">Serie temporal (mensual)</h2>
+      <div class="chart-wrap"><canvas id="historyChart"></canvas></div>
+    </section>
+    <aside class="card reveal-right">
+      <h2 class="section-title">Países más cubiertos</h2>
+      <div class="country-list" id="countryList"><div class="loader"><div class="spin"></div>Cargando histórico...</div></div>
+    </aside>
   </div>
 </div>
 
 <div id="toast-root"></div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="/nav.js"></script>
 <script>
 (function(){
   'use strict';
+  var chart;
 
-  async function init() {
-    const data = await fetchJSON('/api/articles?limit=200');
-    if (!data || !data.articles) {
-      showToast('Error cargando datos históricos','error');
-      return;
-    }
-    const articles = data.articles;
-
-    // Stats
-    const countries = new Set(articles.map(a=>a.country||a.region).filter(Boolean));
-    const sources = new Set(articles.map(a=>a.source).filter(Boolean));
-    animCount(document.getElementById('s-total'), articles.length);
-    animCount(document.getElementById('s-countries'), countries.size);
-    animCount(document.getElementById('s-sources'), sources.size);
-
-    // Date span
-    const dates = articles.map(a=>a.published_at).filter(Boolean).map(d=>new Date(d)).filter(d=>!isNaN(d)).sort((a,b)=>a-b);
-    const spanEl = document.getElementById('s-span');
-    if (dates.length && spanEl) {
-      const diffDays = Math.round((dates[dates.length-1]-dates[0])/(86400000));
-      spanEl.textContent = diffDays + 'd';
-    }
-
-    // Group by month for chart
-    const byMonth = {};
-    articles.forEach(function(a) {
+  function monthlySeries(articles){
+    var map = new Map();
+    articles.forEach(function(a){
       if (!a.published_at) return;
-      const d = new Date(a.published_at);
-      if (isNaN(d)) return;
-      const key = d.getFullYear()+'-'+(String(d.getMonth()+1).padStart(2,'0'));
-      byMonth[key] = (byMonth[key]||0)+1;
+      var d = new Date(a.published_at);
+      if (Number.isNaN(d.getTime())) return;
+      var key = d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0');
+      map.set(key, (map.get(key) || 0) + 1);
     });
-    const months = Object.keys(byMonth).sort().slice(-12);
-    const monthCounts = months.map(k=>byMonth[k]);
-
-    const ctx1 = document.getElementById('monthChart');
-    if (ctx1) {
-      new Chart(ctx1,{
-        type:'bar',
-        data:{
-          labels:months.map(m=>{const[y,mo]=m.split('-');return mo+'/'+y.slice(2)}),
-          datasets:[{label:'Artículos',data:monthCounts,backgroundColor:'rgba(74,158,255,.6)',borderColor:'rgba(74,158,255,1)',borderWidth:1,borderRadius:4}]
-        },
-        options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#718096',font:{size:10}}},y:{ticks:{color:'#718096'}}}}
-      });
-    }
-
-    // Risk evolution (last 30 days)
-    const thirtyDaysAgo = Date.now() - 30*86400000;
-    const recent = articles.filter(a=>a.published_at && new Date(a.published_at).getTime()>thirtyDaysAgo);
-    const byDay = {};
-    recent.forEach(function(a) {
-      const d = new Date(a.published_at);
-      if (isNaN(d)) return;
-      const key = d.toISOString().slice(0,10);
-      if (!byDay[key]) byDay[key]={sum:0,cnt:0};
-      byDay[key].sum += (a.risk_score||30);
-      byDay[key].cnt++;
-    });
-    const days = Object.keys(byDay).sort().slice(-21);
-    const avgRisks = days.map(k=>Math.round(byDay[k].sum/byDay[k].cnt));
-
-    const ctx2 = document.getElementById('riskEvolution');
-    if (ctx2) {
-      new Chart(ctx2,{
-        type:'line',
-        data:{
-          labels:days.map(d=>d.slice(5)),
-          datasets:[{label:'Riesgo Promedio',data:avgRisks,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.1)',tension:.4,fill:true,pointRadius:2}]
-        },
-        options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#718096',font:{size:10}}},y:{min:0,max:100,ticks:{color:'#718096'}}}}
-      });
-    }
-
-    // Timeline grouped by day
-    const byDayMap = {};
-    articles.forEach(function(a) {
-      if (!a.published_at) return;
-      const d = new Date(a.published_at);
-      if (isNaN(d)) return;
-      const key = d.toISOString().slice(0,10);
-      if (!byDayMap[key]) byDayMap[key] = [];
-      byDayMap[key].push(a);
-    });
-    const sortedDays = Object.keys(byDayMap).sort().reverse().slice(0,14);
-
-    const tlEl = document.getElementById('timeline');
-    if (tlEl) {
-      tlEl.innerHTML = sortedDays.map(function(day) {
-        const arts = byDayMap[day].sort(function(a,b){ return (b.risk_score||0)-(a.risk_score||0) }).slice(0,4);
-        const dateFmt = new Date(day+'T00:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
-        return '<div class="tl-item">'+
-          '<div class="tl-dot"></div>'+
-          '<div class="tl-header">'+dateFmt+' — '+byDayMap[day].length+' artículos</div>'+
-          '<div class="tl-articles">'+
-          arts.map(function(a) {
-            return '<div class="tl-art">'+
-              (a.url ? '<a href="'+escH(a.url)+'" target="_blank" rel="noopener">'+escH(a.title)+'</a>' : escH(a.title))+
-              '<div class="tl-art-meta">'+
-                riskBadge(a.risk_level||'medium')+
-                (a.country ? ' 🌍 '+escH(a.country) : '')+
-                ' · '+escH(a.source||'Fuente desconocida')+
-              '</div>'+
-            '</div>';
-          }).join('')+
-          '</div>'+
-        '</div>';
-      }).join('');
-    }
+    var arr = Array.from(map.entries()).sort(function(a,b){return a[0].localeCompare(b[0]);});
+    return {
+      labels: arr.map(function(e){return e[0];}),
+      values: arr.map(function(e){return e[1];})
+    };
   }
 
-  document.addEventListener('DOMContentLoaded', init);
+  function countriesSeries(articles){
+    var map = new Map();
+    articles.forEach(function(a){
+      var key = (a.country || a.region || 'No especificado').trim();
+      map.set(key, (map.get(key) || 0) + 1);
+    });
+    return Array.from(map.entries()).sort(function(a,b){return b[1]-a[1];}).slice(0,12);
+  }
+
+  async function load(){
+    if (window.chartDefaults) window.chartDefaults();
+
+    var pages = await Promise.all([
+      fetchJSON('/api/articles?limit=100&offset=0'),
+      fetchJSON('/api/articles?limit=100&offset=100'),
+      fetchJSON('/api/articles?limit=100&offset=200')
+    ]);
+
+    var articles = [].concat.apply([], pages.map(function(p){return (p && p.articles) || [];}));
+    var monthly = monthlySeries(articles);
+    var countries = countriesSeries(articles);
+
+    if (chart) chart.destroy();
+    chart = new Chart(document.getElementById('historyChart'), {
+      type:'bar',
+      data:{labels:monthly.labels, datasets:[{label:'Artículos', data:monthly.values, backgroundColor:'rgba(78,161,255,.55)', borderRadius:6, borderSkipped:false}]},
+      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#7e93bd'},grid:{display:false}},y:{ticks:{color:'#7e93bd'},grid:{color:'rgba(130,165,255,.08)'}}}}
+    });
+
+    var list = document.getElementById('countryList');
+    if (list) {
+      list.innerHTML = countries.length
+        ? countries.map(function(c){return '<article class="country-item"><strong>' + escH(c[0]) + '</strong><span>' + c[1] + '</span></article>';}).join('')
+        : '<div class="empty-state"><div class="empty-icon">📭</div><h3>Sin histórico</h3><p>No hay artículos disponibles para serie histórica.</p></div>';
+    }
+
+    animCount(document.getElementById('kpiLoaded'), articles.length);
+    animCount(document.getElementById('kpiMonths'), monthly.labels.length);
+    animCount(document.getElementById('kpiCountries'), countries.length);
+    animCount(document.getElementById('kpiTop'), monthly.values.length ? Math.max.apply(null, monthly.values) : 0);
+    if (window.initReveals) window.initReveals();
+  }
+
+  document.addEventListener('DOMContentLoaded', load);
 })();
 </script>
 </body>

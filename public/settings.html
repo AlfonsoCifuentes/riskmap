@@ -2,237 +2,89 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Configuración — Riskmap A.I.</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared.css">
 <style>
-  .settings-grid{display:grid;grid-template-columns:240px 1fr;gap:1rem}
-  @media(max-width:700px){.settings-grid{grid-template-columns:1fr}}
-  .settings-nav{display:flex;flex-direction:column;gap:.25rem}
-  .settings-tab{background:none;border:none;width:100%;text-align:left;padding:.55rem .8rem;border-radius:8px;cursor:pointer;font-size:.85rem;color:var(--text-2);font-family:inherit;display:flex;align-items:center;gap:.5rem;transition:background .15s,color .15s}
-  .settings-tab:hover{background:rgba(255,255,255,.05);color:var(--text-1)}
-  .settings-tab.active{background:rgba(74,158,255,.12);color:var(--accent);font-weight:600}
-  .settings-panel{display:none}
-  .settings-panel.active{display:block}
-  .setting-row{display:flex;justify-content:space-between;align-items:center;padding:.85rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
-  .setting-row:last-child{border:0}
-  .setting-label{font-size:.87rem;font-weight:500;color:var(--text-1)}
-  .setting-desc{font-size:.75rem;color:var(--text-2);margin-top:.15rem}
-  .toggle{position:relative;width:42px;height:22px;flex-shrink:0}
-  .toggle input{opacity:0;width:0;height:0}
-  .toggle-bg{position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:22px;cursor:pointer;transition:background .2s}
-  .toggle input:checked + .toggle-bg{background:var(--accent)}
-  .toggle-bg::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
-  .toggle input:checked + .toggle-bg::after{transform:translateX(20px)}
-  .select-ctrl{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--text-1);padding:.4rem .65rem;font-family:inherit;font-size:.83rem;cursor:pointer}
-  .select-ctrl:focus{outline:2px solid var(--accent);border-color:transparent}
-  .range-ctrl{width:140px;accent-color:var(--accent)}
-  .range-val{font-size:.8rem;color:var(--accent);font-weight:600;min-width:2rem;text-align:center}
-  .save-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(7,12,31,.95);border-top:1px solid rgba(74,158,255,.2);padding:.75rem 1.5rem;display:flex;justify-content:space-between;align-items:center;z-index:50;backdrop-filter:blur(10px);transform:translateY(100%);transition:transform .25s}
-  .save-bar.visible{transform:translateY(0)}
-  .save-msg{font-size:.83rem;color:var(--text-2)}
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,24px)}
+  .form-card label{display:block;font-size:.78rem;color:var(--text-2);margin-bottom:6px;letter-spacing:.02em}
+  .form-card input,.form-card select,.form-card textarea{
+    width:100%;border:1px solid var(--line);border-radius:var(--r-sm);background:rgba(255,255,255,.03);color:var(--text-0);padding:10px 12px;margin-bottom:12px;transition:border-color .2s var(--ease-smooth),box-shadow .2s var(--ease-smooth);font-family:inherit;font-size:.85rem
+  }
+  .form-card input:focus,.form-card select:focus,.form-card textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(78,161,255,.12);outline:none}
+  .toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px;background:rgba(255,255,255,.015);transition:border-color .2s var(--ease-smooth)}
+  .toggle:hover{border-color:var(--accent)}
+  .toggle span{font-size:.82rem}
+  @media(max-width:980px){.settings-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="space-bg"></div>
-<div class="stars"></div>
+<div id="scrollProgress"></div>
 
 <nav class="top-nav">
-  <a href="/" class="nav-brand">⟁ Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
+  <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
   <div class="nav-menu" id="navMenu">
-    <a href="/news-analysis" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
     <div class="nav-divider"></div>
-    <a href="/about" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
-<div class="page-header">
+<header class="page-header reveal">
   <span class="page-icon">⚙️</span>
-  <h1>Configuración</h1>
-  <p>Personaliza tu experiencia en Riskmap A.I.</p>
-</div>
+  <h1>Preferencias Operativas</h1>
+  <p>Personaliza la experiencia del dashboard y guarda configuración local para tu sesión de análisis.</p>
+</header>
 
-<div class="container" style="padding-bottom:80px">
+<div class="container">
   <div class="settings-grid">
-    <!-- Tabs -->
-    <div class="card" style="align-self:start">
-      <div class="settings-nav">
-        <button class="settings-tab active" onclick="showTab('general',this)">🖥️ General</button>
-        <button class="settings-tab" onclick="showTab('notifications',this)">🔔 Notificaciones</button>
-        <button class="settings-tab" onclick="showTab('data',this)">📡 Datos</button>
-        <button class="settings-tab" onclick="showTab('display',this)">🎨 Visualización</button>
-        <button class="settings-tab" onclick="showTab('advanced',this)">🔧 Avanzado</button>
-      </div>
-    </div>
+    <section class="card card-glow form-card reveal">
+      <h2 class="section-title">Perfil de analista</h2>
+      <label for="analystName">Nombre del analista</label>
+      <input id="analystName" type="text" placeholder="Tu nombre">
 
-    <!-- Panels -->
-    <div>
-      <!-- GENERAL -->
-      <div class="card settings-panel active" id="panel-general">
-        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.75rem">🖥️ General</div>
-        <div class="setting-row">
-          <div><div class="setting-label">Idioma de la interfaz</div><div class="setting-desc">Idioma para la interfaz de usuario</div></div>
-          <select class="select-ctrl" id="cfg-lang" onchange="markDirty()">
-            <option value="es">Español</option>
-            <option value="en">English</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Zona horaria</div><div class="setting-desc">Para mostrar fechas y horas</div></div>
-          <select class="select-ctrl" id="cfg-tz" onchange="markDirty()">
-            <option value="Europe/Madrid">Europe/Madrid</option>
-            <option value="UTC">UTC</option>
-            <option value="America/New_York">America/New_York</option>
-            <option value="America/Los_Angeles">America/Los_Angeles</option>
-            <option value="Asia/Tokyo">Asia/Tokyo</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Auto-actualizar al cargar</div><div class="setting-desc">Cargar datos frescos al abrir la app</div></div>
-          <label class="toggle"><input type="checkbox" id="cfg-autoload" onchange="markDirty()"><span class="toggle-bg"></span></label>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Animaciones</div><div class="setting-desc">Habilitar animaciones de interfaz</div></div>
-          <label class="toggle"><input type="checkbox" id="cfg-anims" onchange="markDirty()"><span class="toggle-bg"></span></label>
-        </div>
-      </div>
+      <label for="briefingCadence">Frecuencia de briefing</label>
+      <select id="briefingCadence">
+        <option value="2h">Cada 2 horas</option>
+        <option value="6h">Cada 6 horas</option>
+        <option value="12h">Cada 12 horas</option>
+        <option value="24h">Diario</option>
+      </select>
 
-      <!-- NOTIFICATIONS -->
-      <div class="card settings-panel" id="panel-notifications">
-        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.75rem">🔔 Notificaciones</div>
-        <div class="setting-row">
-          <div><div class="setting-label">Alertas de riesgo alto</div><div class="setting-desc">Notificar cuando hay nuevas alertas críticas</div></div>
-          <label class="toggle"><input type="checkbox" id="cfg-notif-high" onchange="markDirty()"><span class="toggle-bg"></span></label>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Nuevos conflictos detectados</div><div class="setting-desc">Notificar cuando se detecta una nueva zona de conflicto</div></div>
-          <label class="toggle"><input type="checkbox" id="cfg-notif-conflict" onchange="markDirty()"><span class="toggle-bg"></span></label>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Resumen diario</div><div class="setting-desc">Recibir resumen ejecutivo diario</div></div>
-          <label class="toggle"><input type="checkbox" id="cfg-notif-daily" onchange="markDirty()"><span class="toggle-bg"></span></label>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Sonido de alertas</div><div class="setting-desc">Reproducir sonido al recibir alertas críticas</div></div>
-          <label class="toggle"><input type="checkbox" id="cfg-notif-sound" onchange="markDirty()"><span class="toggle-bg"></span></label>
-        </div>
-      </div>
+      <label for="watchRegions">Regiones prioritarias</label>
+      <textarea id="watchRegions" rows="4" placeholder="Ejemplo: Oriente Medio, Mar Negro, Sahel"></textarea>
 
-      <!-- DATA -->
-      <div class="card settings-panel" id="panel-data">
-        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.75rem">📡 Datos</div>
-        <div class="setting-row">
-          <div><div class="setting-label">Intervalo de actualización</div><div class="setting-desc">Con qué frecuencia se actualizan los datos (minutos)</div></div>
-          <div style="display:flex;align-items:center;gap:.5rem">
-            <input type="range" class="range-ctrl" id="cfg-interval" min="1" max="60" value="10" oninput="updRange(this,'cfg-interval-val');markDirty()">
-            <span class="range-val" id="cfg-interval-val">10</span>
-          </div>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Artículos por página</div><div class="setting-desc">Cantidad de artículos a mostrar por carga</div></div>
-          <select class="select-ctrl" id="cfg-pagesize" onchange="markDirty()">
-            <option value="10">10</option>
-            <option value="20" selected>20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Filtro de riesgo mínimo</div><div class="setting-desc">Solo mostrar artículos sobre este nivel</div></div>
-          <select class="select-ctrl" id="cfg-minrisk" onchange="markDirty()">
-            <option value="all">Todos</option>
-            <option value="low">Bajo+</option>
-            <option value="medium">Medio+</option>
-            <option value="high">Alto</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Periodos históricos</div><div class="setting-desc">Días a mostrar en análisis histórico</div></div>
-          <div style="display:flex;align-items:center;gap:.5rem">
-            <input type="range" class="range-ctrl" id="cfg-histdays" min="7" max="90" value="30" oninput="updRange(this,'cfg-histdays-val');markDirty()">
-            <span class="range-val" id="cfg-histdays-val">30</span>
-          </div>
-        </div>
-      </div>
+      <button class="btn btn-primary" id="saveBtn">Guardar configuración</button>
+    </section>
 
-      <!-- DISPLAY -->
-      <div class="card settings-panel" id="panel-display">
-        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.75rem">🎨 Visualización</div>
-        <div class="setting-row">
-          <div><div class="setting-label">Mostrar imágenes en artículos</div><div class="setting-desc">Carga imágenes en las tarjetas de noticias</div></div>
-          <label class="toggle"><input type="checkbox" id="cfg-show-imgs" onchange="markDirty()"><span class="toggle-bg"></span></label>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Modo de mapa predeterminado</div><div class="setting-desc">Vista inicial del mapa de conflictos</div></div>
-          <select class="select-ctrl" id="cfg-mapmode" onchange="markDirty()">
-            <option value="dark">Oscuro</option>
-            <option value="satellite">Satélite</option>
-            <option value="terrain">Terreno</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Densidad del heatmap</div><div class="setting-desc">Intensidad visual del mapa de calor</div></div>
-          <div style="display:flex;align-items:center;gap:.5rem">
-            <input type="range" class="range-ctrl" id="cfg-heatmap-intensity" min="1" max="10" value="5" oninput="updRange(this,'cfg-hi-val');markDirty()">
-            <span class="range-val" id="cfg-hi-val">5</span>
-          </div>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Mostrar badges de riesgo</div><div class="setting-desc">Mostrar etiquetas de nivel de riesgo en artículos</div></div>
-          <label class="toggle"><input type="checkbox" id="cfg-show-badges" onchange="markDirty()"><span class="toggle-bg"></span></label>
-        </div>
-      </div>
+    <section class="card card-glow form-card reveal-right">
+      <h2 class="section-title">Comportamiento del panel</h2>
+      <div class="toggle"><span>Auto-refresh páginas de monitoreo</span><input id="autoRefresh" type="checkbox"></div>
+      <div class="toggle"><span>Animaciones reducidas</span><input id="reduceMotion" type="checkbox"></div>
+      <div class="toggle"><span>Mostrar timestamps absolutos</span><input id="absoluteTime" type="checkbox"></div>
+      <div class="toggle"><span>Modo compacto en tablas</span><input id="compactTables" type="checkbox"></div>
 
-      <!-- ADVANCED -->
-      <div class="card settings-panel" id="panel-advanced">
-        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.75rem">🔧 Avanzado</div>
-        <div class="setting-row">
-          <div><div class="setting-label">Modo debug</div><div class="setting-desc">Mostrar información de depuración en consola</div></div>
-          <label class="toggle"><input type="checkbox" id="cfg-debug" onchange="markDirty()"><span class="toggle-bg"></span></label>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Cache de API</div><div class="setting-desc">Almacenar respuestas de API temporalmente</div></div>
-          <label class="toggle"><input type="checkbox" id="cfg-cache" onchange="markDirty()"><span class="toggle-bg"></span></label>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Modo alto rendimiento</div><div class="setting-desc">Deshabilitar animaciones para mejor rendimiento</div></div>
-          <label class="toggle"><input type="checkbox" id="cfg-perf" onchange="markDirty()"><span class="toggle-bg"></span></label>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Exportar configuración</div><div class="setting-desc">Descargar settings como JSON</div></div>
-          <button class="btn" onclick="exportSettings()" style="font-size:.78rem;padding:.4rem .8rem">📥 Exportar</button>
-        </div>
-        <div class="setting-row">
-          <div><div class="setting-label">Restablecer configuración</div><div class="setting-desc">Volver a valores predeterminados</div></div>
-          <button class="btn" onclick="resetSettings()" style="font-size:.78rem;padding:.4rem .8rem;border-color:rgba(240,82,82,.4);color:#f05252">🔄 Restablecer</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+      <button class="btn" id="resetBtn">Restaurar valores</button>
 
-<!-- Save bar -->
-<div class="save-bar" id="saveBar">
-  <span class="save-msg">⚠️ Hay cambios sin guardar</span>
-  <div style="display:flex;gap:.5rem">
-    <button class="btn" onclick="discardChanges()" style="border-color:rgba(255,255,255,.2);color:var(--text-2)">Cancelar</button>
-    <button class="btn" onclick="saveSettings()" style="background:var(--accent);color:#fff">💾 Guardar</button>
+      <h3 style="margin:18px 0 10px;font-size:.9rem;font-weight:700">Estado rápido de API</h3>
+      <div id="apiStatus"><div class="loader"><div class="spin"></div>Comprobando...</div></div>
+    </section>
   </div>
 </div>
 
@@ -241,120 +93,62 @@
 <script>
 (function(){
   'use strict';
+  var KEY = 'riskmap-user-settings-v2';
 
-  const DEFAULTS = {
-    lang:'es',tz:'Europe/Madrid',autoload:true,anims:true,
-    'notif-high':true,'notif-conflict':false,'notif-daily':false,'notif-sound':false,
-    interval:10,pagesize:'20',minrisk:'all',histdays:30,
-    'show-imgs':true,mapmode:'dark','heatmap-intensity':5,'show-badges':true,
-    debug:false,cache:true,perf:false
-  };
-
-  function load() {
-    let cfg;
-    try { cfg = JSON.parse(localStorage.getItem('riskmap-settings')||'null') || {}; } catch(e) { cfg = {}; }
-    const s = Object.assign({}, DEFAULTS, cfg);
-    // Apply to inputs
-    setInput('cfg-lang', s.lang);
-    setInput('cfg-tz', s.tz);
-    setCheck('cfg-autoload', s.autoload);
-    setCheck('cfg-anims', s.anims);
-    setCheck('cfg-notif-high', s['notif-high']);
-    setCheck('cfg-notif-conflict', s['notif-conflict']);
-    setCheck('cfg-notif-daily', s['notif-daily']);
-    setCheck('cfg-notif-sound', s['notif-sound']);
-    setRange('cfg-interval', s.interval, 'cfg-interval-val');
-    setInput('cfg-pagesize', String(s.pagesize));
-    setInput('cfg-minrisk', s.minrisk);
-    setRange('cfg-histdays', s.histdays, 'cfg-histdays-val');
-    setCheck('cfg-show-imgs', s['show-imgs']);
-    setInput('cfg-mapmode', s.mapmode);
-    setRange('cfg-heatmap-intensity', s['heatmap-intensity'], 'cfg-hi-val');
-    setCheck('cfg-show-badges', s['show-badges']);
-    setCheck('cfg-debug', s.debug);
-    setCheck('cfg-cache', s.cache);
-    setCheck('cfg-perf', s.perf);
+  function readSettings(){
+    try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (_) { return {}; }
   }
 
-  function setInput(id, val) { const el=document.getElementById(id); if(el) el.value=val; }
-  function setCheck(id, val) { const el=document.getElementById(id); if(el) el.checked=!!val; }
-  function setRange(id, val, labelId) {
-    const el=document.getElementById(id);
-    if(el) el.value=val;
-    const lbl=document.getElementById(labelId);
-    if(lbl) lbl.textContent=val;
+  function writeSettings(data){
+    localStorage.setItem(KEY, JSON.stringify(data));
   }
 
-  window.updRange = function(el, labelId) {
-    const lbl = document.getElementById(labelId);
-    if (lbl) lbl.textContent = el.value;
-  };
+  function applyForm(settings){
+    document.getElementById('analystName').value = settings.analystName || '';
+    document.getElementById('briefingCadence').value = settings.briefingCadence || '2h';
+    document.getElementById('watchRegions').value = settings.watchRegions || '';
+    document.getElementById('autoRefresh').checked = !!settings.autoRefresh;
+    document.getElementById('reduceMotion').checked = !!settings.reduceMotion;
+    document.getElementById('absoluteTime').checked = !!settings.absoluteTime;
+    document.getElementById('compactTables').checked = !!settings.compactTables;
+  }
 
-  let dirty = false;
-  window.markDirty = function() {
-    dirty = true;
-    const bar = document.getElementById('saveBar');
-    if (bar) bar.classList.add('visible');
-  };
-
-  window.saveSettings = function() {
-    const s = {
-      lang: val('cfg-lang'), tz: val('cfg-tz'),
-      autoload: chk('cfg-autoload'), anims: chk('cfg-anims'),
-      'notif-high': chk('cfg-notif-high'), 'notif-conflict': chk('cfg-notif-conflict'),
-      'notif-daily': chk('cfg-notif-daily'), 'notif-sound': chk('cfg-notif-sound'),
-      interval: parseInt(val('cfg-interval')||'10'), pagesize: val('cfg-pagesize'),
-      minrisk: val('cfg-minrisk'), histdays: parseInt(val('cfg-histdays')||'30'),
-      'show-imgs': chk('cfg-show-imgs'), mapmode: val('cfg-mapmode'),
-      'heatmap-intensity': parseInt(val('cfg-heatmap-intensity')||'5'), 'show-badges': chk('cfg-show-badges'),
-      debug: chk('cfg-debug'), cache: chk('cfg-cache'), perf: chk('cfg-perf')
+  function collectForm(){
+    return {
+      analystName: document.getElementById('analystName').value.trim(),
+      briefingCadence: document.getElementById('briefingCadence').value,
+      watchRegions: document.getElementById('watchRegions').value.trim(),
+      autoRefresh: document.getElementById('autoRefresh').checked,
+      reduceMotion: document.getElementById('reduceMotion').checked,
+      absoluteTime: document.getElementById('absoluteTime').checked,
+      compactTables: document.getElementById('compactTables').checked
     };
-    try { localStorage.setItem('riskmap-settings', JSON.stringify(s)); } catch(e) {}
-    dirty = false;
-    const bar = document.getElementById('saveBar');
-    if (bar) bar.classList.remove('visible');
-    showToast('Configuración guardada','success',2500);
-  };
+  }
 
-  window.discardChanges = function() {
-    load();
-    dirty = false;
-    const bar = document.getElementById('saveBar');
-    if (bar) bar.classList.remove('visible');
-  };
+  async function checkApi(){
+    var panel = document.getElementById('apiStatus');
+    var res = await fetchJSON('/api/status');
+    panel.innerHTML = res
+      ? '<p style="color:var(--text-1);font-size:.82rem">&#x2705; API activa &middot; ' + (res.total_articles || 0) + ' artículos &middot; ' + (res.critical_alerts || 0) + ' alertas críticas</p>'
+      : '<p style="color:#ff646e;font-size:.82rem">&#x274C; API no disponible</p>';
+  }
 
-  window.resetSettings = function() {
-    try { localStorage.removeItem('riskmap-settings'); } catch(e) {}
-    load();
-    dirty = false;
-    const bar = document.getElementById('saveBar');
-    if (bar) bar.classList.remove('visible');
-    showToast('Configuración restablecida a valores predeterminados','info',3000);
-  };
+  document.addEventListener('DOMContentLoaded', function(){
+    applyForm(readSettings());
+    checkApi();
+    if (window.initReveals) window.initReveals();
 
-  window.exportSettings = function() {
-    let cfg;
-    try { cfg = localStorage.getItem('riskmap-settings')||'{}'; } catch(e) { cfg = '{}'; }
-    const blob = new Blob([cfg], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'riskmap-settings.json';
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
+    document.getElementById('saveBtn').addEventListener('click', function(){
+      writeSettings(collectForm());
+      showToast('Configuración guardada', 'success');
+    });
 
-  function val(id) { const el=document.getElementById(id); return el?el.value:''; }
-  function chk(id) { const el=document.getElementById(id); return el?el.checked:false; }
-
-  window.showTab = function(tab, btn) {
-    document.querySelectorAll('.settings-panel').forEach(p=>p.classList.remove('active'));
-    document.querySelectorAll('.settings-tab').forEach(t=>t.classList.remove('active'));
-    const panel = document.getElementById('panel-'+tab);
-    if (panel) panel.classList.add('active');
-    if (btn) btn.classList.add('active');
-  };
-
-  document.addEventListener('DOMContentLoaded', load);
+    document.getElementById('resetBtn').addEventListener('click', function(){
+      localStorage.removeItem(KEY);
+      applyForm({});
+      showToast('Configuración restablecida', 'info');
+    });
+  });
 })();
 </script>
 </body>

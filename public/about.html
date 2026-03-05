@@ -2,131 +2,88 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Acerca de — Riskmap A.I.</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared.css">
 <style>
-  .about-hero{text-align:center;padding:2.5rem 1rem 2rem;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:2rem}
-  .about-logo{font-size:3rem;margin-bottom:.5rem}
-  .about-tagline{font-size:1.1rem;color:var(--text-2);max-width:500px;margin:0 auto;line-height:1.6}
-  .tech-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.75rem}
-  .tech-card{background:rgba(74,158,255,.06);border:1px solid rgba(74,158,255,.12);border-radius:10px;padding:.8rem 1rem;display:flex;align-items:flex-start;gap:.65rem}
-  .tech-icon{font-size:1.4rem;flex-shrink:0;padding-top:.05rem}
-  .tech-name{font-size:.83rem;font-weight:700;color:var(--text-1)}
-  .tech-desc{font-size:.72rem;color:var(--text-2);margin-top:.1rem;line-height:1.4}
-  .mission-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-  @media(max-width:660px){.mission-grid{grid-template-columns:1fr}}
-  .pillar{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:1rem 1.1rem}
-  .pillar-icon{font-size:1.6rem;margin-bottom:.4rem}
-  .pillar-title{font-size:.9rem;font-weight:700;color:var(--text-1);margin-bottom:.3rem}
-  .pillar-text{font-size:.8rem;color:var(--text-2);line-height:1.55}
-  .team-note{text-align:center;padding:1.5rem;font-size:.88rem;color:var(--text-2);line-height:1.6}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,24px)}
+  .block{border:1px solid var(--line);border-radius:var(--r-md);background:rgba(255,255,255,.015);padding:clamp(14px,2vw,22px);transition:border-color .25s var(--ease-smooth),box-shadow .25s var(--ease-smooth)}
+  .block:hover{border-color:var(--accent);box-shadow:0 0 20px rgba(78,161,255,.06)}
+  .block h3{margin:0 0 10px;font-size:.95rem;font-weight:700}
+  .block p,.block li{margin:0;color:var(--text-1);font-size:.82rem;line-height:1.7}
+  .block ul{margin:0;padding-left:18px;display:grid;gap:7px}
+  .block li::marker{color:var(--accent)}
+  .src-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(130,165,255,.06)}
+  .src-item:last-child{border-bottom:none}
+  .src-item span{color:var(--text-2);font-size:.78rem;font-family:"Orbitron",sans-serif;font-weight:600}
+  @media(max-width:980px){.about-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="space-bg"></div>
-<div class="stars"></div>
+<div id="scrollProgress"></div>
 
 <nav class="top-nav">
-  <a href="/" class="nav-brand">⟁ Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
+  <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
   <div class="nav-menu" id="navMenu">
-    <a href="/news-analysis" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
     <div class="nav-divider"></div>
-    <a href="/about" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
-<div class="page-header">
+<header class="page-header reveal">
   <span class="page-icon">ℹ️</span>
-  <h1>Acerca de Riskmap A.I.</h1>
-  <p>Plataforma de inteligencia geopolítica impulsada por IA</p>
-</div>
+  <h1>Arquitectura y Metodología</h1>
+  <p>Riskmap A.I. integra OSINT, analítica geoespacial y señales visuales para inteligencia geopolítica y respuesta ante desastres.</p>
+</header>
 
 <div class="container">
-  <div class="about-hero">
-    <div class="about-logo">⟁</div>
-    <div style="font-size:1.5rem;font-weight:800;color:var(--text-1);margin-bottom:.5rem">Riskmap <span style="color:var(--accent)">A.I.</span></div>
-    <div class="about-tagline">Plataforma de inteligencia geopolítica en tiempo real que combina ingesta de datos masiva, procesamiento NLP avanzado, análisis satelital y monitoreo 24/7 para mapear el riesgo global.</div>
+  <div class="about-grid reveal stagger">
+    <section class="block card-glow">
+      <h3>Flujo operativo implementado</h3>
+      <ul>
+        <li>Ingesta automatizada multi-fuente con pipeline programado.</li>
+        <li>Filtrado geopolítico y de desastres con reglas de relevancia.</li>
+        <li>Curación y deduplicación de artículos para calidad de señal.</li>
+        <li>Reescritura/resumen para briefing ejecutivo.</li>
+        <li>Geolocalización y generación de mapa de calor.</li>
+        <li>Contraste con eventos y señales (incluyendo etiquetas GDELT cuando existan).</li>
+        <li>Dashboards de tendencias, alertas, histórico y reporting.</li>
+        <li>Correlación con evidencias visuales (satélite/cámara).</li>
+      </ul>
+    </section>
+
+    <section class="block card-glow">
+      <h3>Principios de diseño</h3>
+      <p>La nueva interfaz prioriza narrativa de datos, jerarquía visual clara y lectura rápida en contextos de alta presión operacional. Se ha aplicado una estética editorial inmersiva y navegación consistente para facilitar análisis continuo.</p>
+    </section>
   </div>
 
-  <div class="card" style="margin-bottom:1rem">
-    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.8rem">
-      🎯 Pilares Fundamentales
-    </div>
-    <div class="mission-grid">
-      <div class="pillar">
-        <div class="pillar-icon">📡</div>
-        <div class="pillar-title">Monitoreo Continuo</div>
-        <div class="pillar-text">Ingesta automática de fuentes RSS, APIs de noticias y feeds de inteligencia cada hora para cobertura ininterrumpida.</div>
-      </div>
-      <div class="pillar">
-        <div class="pillar-icon">🧠</div>
-        <div class="pillar-title">Análisis con IA</div>
-        <div class="pillar-text">Modelos BERT, Llama 3.1 y DeepSeek procesan miles de artículos clasificando riesgo, entidades e impacto geopolítico.</div>
-      </div>
-      <div class="pillar">
-        <div class="pillar-icon">🛰️</div>
-        <div class="pillar-title">Visión Satelital</div>
-        <div class="pillar-text">SentinelHub y YOLOv8 para detección de cambios estructurales, movimientos militares y análisis térmico en tiempo real.</div>
-      </div>
-      <div class="pillar">
-        <div class="pillar-icon">⚠️</div>
-        <div class="pillar-title">Alertas Tempranas</div>
-        <div class="pillar-text">Sistema de puntuación de riesgo multicapa que identifica crisis emergentes antes de que escalen a nivel de conflicto.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom:1rem">
-    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.8rem">
-      🔧 Stack Tecnológico
-    </div>
-    <div class="tech-grid">
-      <div class="tech-card"><span class="tech-icon">🐍</span><div><div class="tech-name">Python 3.11</div><div class="tech-desc">Backend principal, procesamiento de datos, NLP</div></div></div>
-      <div class="tech-card"><span class="tech-icon">⚗️</span><div><div class="tech-name">Flask</div><div class="tech-desc">API servidor, rutas web, integración Dash</div></div></div>
-      <div class="tech-card"><span class="tech-icon">🗄️</span><div><div class="tech-name">PostgreSQL/Neon</div><div class="tech-desc">Base de datos cloud escalable, 87 columnas</div></div></div>
-      <div class="tech-card"><span class="tech-icon">🤗</span><div><div class="tech-name">HuggingFace / BERT</div><div class="tech-desc">Modelos NLP para clasificación y análisis</div></div></div>
-      <div class="tech-card"><span class="tech-icon">🦙</span><div><div class="tech-name">Groq / Llama 3.1</div><div class="tech-desc">Generación de resúmenes y análisis ejecutivos</div></div></div>
-      <div class="tech-card"><span class="tech-icon">🌊</span><div><div class="tech-name">DeepSeek</div><div class="tech-desc">Análisis profundo y razonamiento avanzado</div></div></div>
-      <div class="tech-card"><span class="tech-icon">🗺️</span><div><div class="tech-name">Leaflet.js</div><div class="tech-desc">Mapas interactivos y visualización geoespacial</div></div></div>
-      <div class="tech-card"><span class="tech-icon">📊</span><div><div class="tech-name">Chart.js</div><div class="tech-desc">Gráficos interactivos de tendencias y análisis</div></div></div>
-      <div class="tech-card"><span class="tech-icon">🛰️</span><div><div class="tech-name">SentinelHub</div><div class="tech-desc">Imágenes satelitales Sentinel-2, resolución 10m</div></div></div>
-      <div class="tech-card"><span class="tech-icon">🎯</span><div><div class="tech-name">YOLOv8</div><div class="tech-desc">Detección de objetos en imágenes satelitales</div></div></div>
-      <div class="tech-card"><span class="tech-icon">▲</span><div><div class="tech-name">Vercel</div><div class="tech-desc">Despliegue serverless en producción</div></div></div>
-      <div class="tech-card"><span class="tech-icon">📰</span><div><div class="tech-name">NewsAPI + RSS</div><div class="tech-desc">Fuentes de noticias globales en tiempo real</div></div></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.8rem">
-      📊 Datos del Sistema
-    </div>
-    <div class="stats-row" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">
-      <div class="stat-card"><div class="stat-val" id="s-total">—</div><div class="stat-lbl">Artículos en BD</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-sources">—</div><div class="stat-lbl">Fuentes activas</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-regions">—</div><div class="stat-lbl">Regiones cubiertas</div></div>
-      <div class="stat-card"><div class="stat-val">625+</div><div class="stat-lbl">Artículos geopolíticos</div></div>
-    </div>
-    <p class="team-note">
-      Riskmap A.I. se actualiza continuamente. Los datos mostrados reflejan el estado actual del sistema de monitoreo global.<br>
-      <strong style="color:var(--accent)">Versión 2.0</strong> · Septiembre 2025 · Datos en tiempo real
-    </p>
+  <div class="about-grid reveal stagger" style="margin-top:clamp(12px,2vw,24px)">
+    <section class="block card-glow">
+      <h3>Fuentes activas detectadas</h3>
+      <div id="sourcesList"><div class="loader"><div class="spin"></div>Cargando fuentes...</div></div>
+    </section>
+    <section class="block card-glow">
+      <h3>Estado de la plataforma</h3>
+      <div id="statusPanel"><div class="loader"><div class="spin"></div>Consultando estado...</div></div>
+    </section>
   </div>
 </div>
 
@@ -135,12 +92,39 @@
 <script>
 (function(){
   'use strict';
-  fetchJSON('/api/status').then(function(s) {
-    if (!s) return;
-    animCount(document.getElementById('s-total'), s.total_articles||0);
-    animCount(document.getElementById('s-sources'), s.active_sources||0);
-    animCount(document.getElementById('s-regions'), s.regions_in_conflict||0);
-  });
+
+  async function load(){
+    var results = await Promise.all([
+      fetchJSON('/api/status'),
+      fetchJSON('/api/analytics/conflicts-corrected')
+    ]);
+    var status = results[0];
+    var analytics = results[1];
+
+    var sources = (analytics && analytics.top_sources) || [];
+    var srcEl = document.getElementById('sourcesList');
+    if (srcEl) {
+      srcEl.innerHTML = sources.length
+        ? sources.map(function(s){return '<div class="src-item"><strong>' + escH(s.name || 'Fuente') + '</strong><span>' + Number(s.count || 0) + '</span></div>';}).join('')
+        : '<p style="color:var(--text-2);font-size:.82rem">No hay fuentes disponibles.</p>';
+    }
+
+    var stEl = document.getElementById('statusPanel');
+    if (stEl) {
+      stEl.innerHTML = status
+        ? '<ul style="margin:0;padding-left:18px;display:grid;gap:7px">'
+          + '<li style="color:var(--text-1);font-size:.82rem">Artículos geopolíticos: <strong>' + (status.total_articles || 0) + '</strong></li>'
+          + '<li style="color:var(--text-1);font-size:.82rem">Alertas críticas: <strong>' + (status.critical_alerts || 0) + '</strong></li>'
+          + '<li style="color:var(--text-1);font-size:.82rem">Regiones en conflicto: <strong>' + (status.regions_in_conflict || 0) + '</strong></li>'
+          + '<li style="color:var(--text-1);font-size:.82rem">Fuentes activas: <strong>' + (status.active_sources || 0) + '</strong></li>'
+          + '</ul>'
+        : '<p style="color:var(--text-2);font-size:.82rem">No se pudo obtener estado del sistema.</p>';
+    }
+
+    if (window.initReveals) window.initReveals();
+  }
+
+  document.addEventListener('DOMContentLoaded', load);
 })();
 </script>
 </body>
