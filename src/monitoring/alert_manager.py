@@ -15,7 +15,7 @@ def fetch_high_risk_events(window_hours: int = 1):
     cursor.execute(
         """
         SELECT title, url, risk_level, created_at
-        FROM articles
+        FROM unified_articles
         WHERE (risk_level='CRITICAL' OR risk_level='HIGH')
           AND created_at >= ?
         ORDER BY created_at DESC

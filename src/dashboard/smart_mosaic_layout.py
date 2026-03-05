@@ -162,7 +162,7 @@ class MosaicLayoutManager:
                 # Buscar el artículo específico de Ucrania
                 cursor.execute("""
                     SELECT id, title, image_url 
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE LOWER(title) LIKE '%ucrania%' 
                     AND LOWER(title) LIKE '%patriot%'
                     AND LOWER(title) LIKE '%putin%'
@@ -174,7 +174,7 @@ class MosaicLayoutManager:
                 for article_id, title, image_url in ukraine_articles:
                     # Actualizar posición a thumbnail
                     cursor.execute("""
-                        UPDATE articles 
+                        UPDATE unified_articles 
                         SET mosaic_position = 'thumbnail' 
                         WHERE id = ?
                     """, (article_id,))
@@ -201,7 +201,7 @@ class MosaicLayoutManager:
                 # Buscar artículos con indicadores de baja calidad en URL o título
                 cursor.execute("""
                     SELECT id, title, image_url, visual_analysis_json, image_width, image_height
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE image_url IS NOT NULL 
                     AND image_url != ''
                     AND (
@@ -248,7 +248,7 @@ class MosaicLayoutManager:
                     
                     if should_move_to_thumbnail:
                         cursor.execute("""
-                            UPDATE articles 
+                            UPDATE unified_articles 
                             SET mosaic_position = 'thumbnail' 
                             WHERE id = ?
                         """, (article_id,))
@@ -277,11 +277,11 @@ class MosaicLayoutManager:
                 columns = [column[1] for column in cursor.fetchall()]
                 
                 if 'mosaic_position' not in columns:
-                    cursor.execute("ALTER TABLE articles ADD COLUMN mosaic_position TEXT DEFAULT 'standard'")
+                    cursor.execute("ALTER TABLE unified_articles ADD COLUMN mosaic_position TEXT DEFAULT 'standard'")
                     logger.info("✅ Columna mosaic_position añadida a la tabla articles")
                 
                 if 'image_fingerprint' not in columns:
-                    cursor.execute("ALTER TABLE articles ADD COLUMN image_fingerprint TEXT")
+                    cursor.execute("ALTER TABLE unified_articles ADD COLUMN image_fingerprint TEXT")
                     logger.info("✅ Columna image_fingerprint añadida a la tabla articles")
                 
                 conn.commit()
@@ -328,7 +328,7 @@ class MosaicLayoutManager:
                             ) as image_url,
                             a.mosaic_position, a.visual_analysis_json, a.bert_conflict_probability,
                             a.sentiment_score
-                        FROM articles a
+                        FROM unified_articles a
                         WHERE (a.mosaic_position = ? OR a.mosaic_position IS NULL)
                         ORDER BY 
                             CASE 
@@ -370,9 +370,9 @@ class MosaicLayoutManager:
                                 ) as image_url,
                                 a.mosaic_position, a.visual_analysis_json, a.bert_conflict_probability,
                                 a.sentiment_score
-                            FROM articles a
+                            FROM unified_articles a
                             WHERE a.id NOT IN (
-                                SELECT DISTINCT id FROM articles 
+                                SELECT DISTINCT id FROM unified_articles 
                                 WHERE mosaic_position IN ('hero', 'featured')
                             )
                             ORDER BY 
@@ -500,7 +500,7 @@ class MosaicLayoutManager:
                 cursor.execute("""
                     SELECT id, title, content, country, risk_level, source, 
                            published_at, summary, url, image_url
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE image_url IS NOT NULL 
                     ORDER BY published_at DESC 
                     LIMIT 25
@@ -570,7 +570,7 @@ class MosaicLayoutManager:
                         AVG(CASE WHEN visual_analysis_json IS NOT NULL 
                             THEN json_extract(visual_analysis_json, '$.quality_score') 
                             END) as avg_quality
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE image_url IS NOT NULL 
                     GROUP BY COALESCE(mosaic_position, 'standard')
                 """)
@@ -588,7 +588,7 @@ class MosaicLayoutManager:
                         COUNT(*) as total_with_images,
                         COUNT(CASE WHEN mosaic_position IS NOT NULL THEN 1 END) as positioned,
                         COUNT(CASE WHEN visual_analysis_json IS NOT NULL THEN 1 END) as analyzed
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE image_url IS NOT NULL
                 """)
                 

@@ -680,7 +680,7 @@ class RSSFetcher:
                     
                     # Update article with BERT risk analysis
                     cursor.execute('''
-                        UPDATE articles 
+                        UPDATE unified_articles 
                         SET risk_level = ?, risk_score = ?
                         WHERE id = ?
                     ''', (bert_results['level'], bert_results['score'], article_id))

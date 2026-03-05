@@ -116,7 +116,7 @@ class GeographicAnalyzer:
             # Get all articles
             cursor.execute("""
                 SELECT id, title, content, source, language, created_at, risk_level
-                FROM articles
+                FROM unified_articles
                 WHERE content IS NOT NULL AND content != ''
                 ORDER BY created_at DESC
             """)

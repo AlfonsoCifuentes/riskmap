@@ -268,7 +268,7 @@ class DataValidator:
 
             # Check for exact content match
             cursor.execute("""
-                SELECT id, url FROM articles
+                SELECT id, url FROM unified_articles
                 WHERE content_hash = ? OR title_hash = ? OR url = ?
                 LIMIT 1
             """, (content_hash, title_hash, url))

@@ -207,19 +207,19 @@ class DatabaseManager:
 
             # Add new columns if not exist
             try:
-                cursor.execute("ALTER TABLE articles ADD COLUMN processed INTEGER DEFAULT 0")
+                cursor.execute("ALTER TABLE unified_articles ADD COLUMN processed INTEGER DEFAULT 0")
             except sqlite3.OperationalError:
                 pass  # Column already exists
             try:
-                cursor.execute("ALTER TABLE articles ADD COLUMN processing_time REAL")
+                cursor.execute("ALTER TABLE unified_articles ADD COLUMN processing_time REAL")
             except sqlite3.OperationalError:
                 pass
             try:
-                cursor.execute("ALTER TABLE articles ADD COLUMN quality_score REAL")
+                cursor.execute("ALTER TABLE unified_articles ADD COLUMN quality_score REAL")
             except sqlite3.OperationalError:
                 pass
             try:
-                cursor.execute("ALTER TABLE articles ADD COLUMN validation_result TEXT")
+                cursor.execute("ALTER TABLE unified_articles ADD COLUMN validation_result TEXT")
             except sqlite3.OperationalError:
                 pass
 

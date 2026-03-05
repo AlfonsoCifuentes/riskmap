@@ -290,7 +290,7 @@ class AutomatedSatelliteMonitor:
                         risk_level,
                         risk_score,
                         published_at
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE latitude IS NOT NULL 
                     AND longitude IS NOT NULL
                     AND risk_level IN ('high', 'medium')

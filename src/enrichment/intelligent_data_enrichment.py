@@ -266,7 +266,7 @@ class IntelligentDataEnrichment:
                 
                 for col_name, col_def in new_columns:
                     if col_name not in existing_columns:
-                        cursor.execute(f"ALTER TABLE articles ADD COLUMN {col_name} {col_def}")
+                        cursor.execute(f"ALTER TABLE unified_articles ADD COLUMN {col_name} {col_def}")
                         logger.info(f"Added column: {col_name}")
                 
                 # Índices para optimización
@@ -550,7 +550,7 @@ JSON:
                     SELECT id, title, content, url, source, published_at, country, region, 
                            conflict_type, sentiment_score, summary, image_url, key_persons, 
                            key_locations, risk_level, enrichment_status
-                    FROM articles WHERE id = ?
+                    FROM unified_articles WHERE id = ?
                 """, (article_id,))
                 
                 row = cursor.fetchone()
@@ -680,7 +680,7 @@ JSON:
                     
                     with sqlite3.connect(self.db_path) as conn:
                         cursor = conn.cursor()
-                        cursor.execute(f"UPDATE articles SET {set_clause} WHERE id = ?", values)
+                        cursor.execute(f"UPDATE unified_articles SET {set_clause} WHERE id = ?", values)
                         conn.commit()
             
             processing_time = time.time() - start_time
@@ -747,7 +747,7 @@ JSON:
                 # Detectar duplicados exactos por hash semántico
                 cursor.execute("""
                     SELECT semantic_hash, GROUP_CONCAT(id) as article_ids, COUNT(*) as count
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE semantic_hash IS NOT NULL
                     GROUP BY semantic_hash
                     HAVING COUNT(*) > 1
@@ -787,7 +787,7 @@ JSON:
                 
                 # Primero intentar artículos de las últimas 48 horas
                 cursor.execute("""
-                    SELECT id FROM articles 
+                    SELECT id FROM unified_articles 
                     WHERE (enrichment_status IS NULL OR enrichment_status = 'pending')
                     AND created_at >= datetime('now', '-48 hours')
                     ORDER BY created_at DESC
@@ -799,7 +799,7 @@ JSON:
                 # Si no hay artículos nuevos, solo procesar máximo 10 artículos antiguos
                 if not article_ids:
                     cursor.execute("""
-                        SELECT id FROM articles 
+                        SELECT id FROM unified_articles 
                         WHERE (enrichment_status IS NULL OR enrichment_status = 'pending')
                         ORDER BY created_at DESC
                         LIMIT 10
@@ -866,7 +866,7 @@ JSON:
                     CREATE TRIGGER IF NOT EXISTS auto_enrich_new_articles
                     AFTER INSERT ON articles
                     BEGIN
-                        UPDATE articles 
+                        UPDATE unified_articles 
                         SET enrichment_status = 'pending',
                             semantic_hash = NULL
                         WHERE id = NEW.id;
@@ -879,7 +879,7 @@ JSON:
                     AFTER UPDATE OF title, content ON articles
                     WHEN OLD.title != NEW.title OR OLD.content != NEW.content
                     BEGIN
-                        UPDATE articles 
+                        UPDATE unified_articles 
                         SET enrichment_status = 'pending',
                             semantic_hash = NULL,
                             last_enriched = NULL
@@ -965,13 +965,13 @@ JSON:
                 cursor = conn.cursor()
                 
                 # Estadísticas generales
-                cursor.execute("SELECT COUNT(*) FROM articles")
+                cursor.execute("SELECT COUNT(*) FROM unified_articles")
                 total_articles = cursor.fetchone()[0]
                 
-                cursor.execute("SELECT COUNT(*) FROM articles WHERE enrichment_status = 'completed'")
+                cursor.execute("SELECT COUNT(*) FROM unified_articles WHERE enrichment_status = 'completed'")
                 enriched_articles = cursor.fetchone()[0]
                 
-                cursor.execute("SELECT COUNT(*) FROM articles WHERE enrichment_status = 'pending'")
+                cursor.execute("SELECT COUNT(*) FROM unified_articles WHERE enrichment_status = 'pending'")
                 pending_articles = cursor.fetchone()[0]
                 
                 cursor.execute("SELECT COUNT(*) FROM article_duplicates WHERE status = 'pending'")
@@ -980,7 +980,7 @@ JSON:
                 # Campos completados
                 field_stats = {}
                 for field in ['published_at', 'country', 'region', 'conflict_type', 'sentiment_score', 'summary']:
-                    cursor.execute(f"SELECT COUNT(*) FROM articles WHERE {field} IS NOT NULL AND {field} != ''")
+                    cursor.execute(f"SELECT COUNT(*) FROM unified_articles WHERE {field} IS NOT NULL AND {field} != ''")
                     field_stats[field] = cursor.fetchone()[0]
                 
                 return {

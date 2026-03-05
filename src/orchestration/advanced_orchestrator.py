@@ -899,7 +899,7 @@ class AdvancedGeopoliticalOrchestrator(GeopoliticalIntelligenceOrchestrator):
             
             cursor.execute("""
                 SELECT id, title, content, url, image_url, created_at
-                FROM articles 
+                FROM unified_articles 
                 WHERE created_at > datetime('now', '-1 hour')
                 ORDER BY created_at DESC 
                 LIMIT 50

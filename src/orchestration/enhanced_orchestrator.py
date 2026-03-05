@@ -252,7 +252,7 @@ class EnhancedGeopoliticalOrchestrator:
                 cursor = conn.cursor()
                 
                 query = """
-                SELECT * FROM articles 
+                SELECT * FROM unified_articles 
                 WHERE timestamp >= ? 
                 AND processed = 1
                 ORDER BY timestamp DESC
@@ -745,7 +745,7 @@ class EnhancedGeopoliticalOrchestrator:
                 
                 # Get article count
                 if 'articles' in tables:
-                    cursor.execute("SELECT COUNT(*) FROM articles")
+                    cursor.execute("SELECT COUNT(*) FROM unified_articles")
                     article_count = cursor.fetchone()[0]
                 else:
                     article_count = 0

@@ -155,7 +155,7 @@ class NewsImageExtractor:
         # Get articles without images
         cursor.execute("""
             SELECT id, url, source
-            FROM articles
+            FROM unified_articles
             WHERE (image_url IS NULL OR image_url = '')
             AND url IS NOT NULL
             ORDER BY created_at DESC
@@ -171,7 +171,7 @@ class NewsImageExtractor:
                 image_url = self.extract_image_from_url(url, source)
                 if image_url:
                     cursor.execute("""
-                        UPDATE articles
+                        UPDATE unified_articles
                         SET image_url = ?
                         WHERE id = ?
                     """, (image_url, article_id))

@@ -614,7 +614,7 @@ class IntelligenceCollector:
                     )
 
                     cursor.execute("""
-                        INSERT INTO articles
+                        INSERT INTO unified_articles
                         (title, content, url, published_at, source, language, author, description, metadata)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, article_data)
@@ -695,7 +695,7 @@ class IntelligenceCollector:
 
             # Intelligence articles count
             cursor.execute("""
-                SELECT COUNT(*) FROM articles
+                SELECT COUNT(*) FROM unified_articles
                 WHERE JSON_EXTRACT(metadata, '$.article_type') = 'intelligence'
             """)
             intelligence_count = cursor.fetchone()[0]
@@ -705,7 +705,7 @@ class IntelligenceCollector:
                 SELECT
                     JSON_EXTRACT(metadata, '$.credibility') as credibility,
                     COUNT(*)
-                FROM articles
+                FROM unified_articles
                 WHERE JSON_EXTRACT(metadata, '$.article_type') = 'intelligence'
                 GROUP BY credibility
             """)
@@ -716,7 +716,7 @@ class IntelligenceCollector:
                 SELECT
                     JSON_EXTRACT(metadata, '$.category') as category,
                     COUNT(*)
-                FROM articles
+                FROM unified_articles
                 WHERE JSON_EXTRACT(metadata, '$.article_type') = 'intelligence'
                 GROUP BY category
             """)
@@ -724,7 +724,7 @@ class IntelligenceCollector:
 
             # Recent intelligence (last 24 hours)
             cursor.execute("""
-                SELECT COUNT(*) FROM articles
+                SELECT COUNT(*) FROM unified_articles
                 WHERE JSON_EXTRACT(metadata, '$.article_type') = 'intelligence'
                 AND created_at > datetime('now', '-24 hours')
             """)

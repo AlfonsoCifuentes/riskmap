@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiskMap — Global Threat Intelligence</title>
+<meta name="description" content="Real-time geopolitical risk intelligence platform powered by AI, satellite imagery, and OSINT.">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+<meta name="theme-color" content="#030608">
+<meta property="og:title" content="RiskMap A.I. — Global Threat Intelligence">
+<meta property="og:description" content="Real-time geopolitical risk intelligence platform powered by AI, satellite imagery, and OSINT.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="RiskMap A.I.">
+<meta name="twitter:description" content="Real-time geopolitical risk intelligence platform.">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Leaflet Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- Design System -->
+<link rel="stylesheet" href="/static/css/riskmap-v2.css">
+</head>
+<body>
+
+<!-- ====== AMBIENT EFFECTS ====== -->
+<div class="ambient-grid" aria-hidden="true"></div>
+<div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+<!-- ====== INTRO OVERLAY ====== -->
+<div class="intro-overlay" id="intro">
+  <div class="intro-logo">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+  </div>
+  <p class="intro-text">RiskMap A.I.</p>
+</div>
+
+<!-- ====== SCROLL PROGRESS ====== -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- ====== NAVIGATION ====== -->
+<nav class="nav-bar" id="navbar">
+  <a href="/" class="nav-brand">
+    <span class="nav-brand-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+    </span>
+    RiskMap
+  </a>
+
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#news" class="active">Intelligence</a></li>
+    <li><a href="#map">Threat Map</a></li>
+    <li><a href="#analysis">AI Analysis</a></li>
+    <li><a href="#satellite">Satellite</a></li>
+    <li><a href="#gdelt">GDELT</a></li>
+    <li><a href="#pipeline">Pipeline</a></li>
+    <li><a href="/satellite-analysis">Satellite Lab</a></li>
+    <li><a href="/dashboard">Historical</a></li>
+    <li>
+      <span class="nav-live-badge">
+        <span class="nav-live-dot"></span> Live
+      </span>
+    </li>
+  </ul>
+
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+    <span></span>
+  </button>
+</nav>
+
+<!-- ====== NEWS TICKER BAR ====== -->
+<div class="ticker-bar" id="tickerBar" role="marquee" aria-label="Live threat feed">
+  <div class="ticker-content" id="tickerContent">
+    <span class="ticker-item"><span class="dot red"></span> Loading live threat feed...</span>
+  </div>
+</div>
+
+<!-- ====== HERO SECTION ====== -->
+<section class="hero" id="heroSection">
+  <div class="hero-bg">
+    <img id="heroBgImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+  </div>
+  <!-- Decorative glow orbs -->
+  <div class="glow-orb teal" style="top:-10%;left:60%" aria-hidden="true"></div>
+  <div class="glow-orb blue" style="bottom:5%;left:10%" aria-hidden="true"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      <span id="heroBadgeText">Breaking Intelligence</span>
+    </div>
+
+    <h1 class="hero-title" id="heroTitle">
+      <span class="skeleton skeleton-title" style="width:90%;height:48px;display:block;margin-bottom:12px"></span>
+      <span class="skeleton skeleton-title" style="width:65%;height:48px;display:block"></span>
+    </h1>
+
+    <p class="hero-excerpt" id="heroExcerpt">
+      <span class="skeleton skeleton-text" style="display:block"></span>
+      <span class="skeleton skeleton-text short" style="display:block"></span>
+    </p>
+
+    <div class="hero-meta" id="heroMeta" style="display:none">
+      <span class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        <span id="heroLocation">—</span>
+      </span>
+      <span class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+        <span id="heroTime">—</span>
+      </span>
+      <span class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        <span id="heroSource">—</span>
+      </span>
+      <span id="heroRiskBadge" class="risk-badge high" style="display:none"></span>
+    </div>
+
+    <a class="hero-cta" id="heroCta" href="#" target="_blank" rel="noopener" style="display:none">
+      Read Full Report
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ====== STATS BAR ====== -->
+<section class="section" style="padding-top:var(--s-2xl)">
+  <div class="container">
+    <div class="stats-bar radar-sweep" id="statsBar" data-animate="scale-in">
+      <div class="stat-cell">
+        <span class="stat-label">Total Intel Reports</span>
+        <span class="stat-value teal counter-value" id="statArticles" data-target="0">—</span>
+        <span class="stat-change" id="statArticlesChange"></span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-label">Critical Alerts</span>
+        <span class="stat-value red counter-value" id="statAlerts" data-target="0">—</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-label">Regions Monitored</span>
+        <span class="stat-value blue counter-value" id="statRegions" data-target="0">—</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-label">Active Sources</span>
+        <span class="stat-value gold counter-value" id="statSources" data-target="0">—</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-label">AI Confidence</span>
+        <span class="stat-value purple counter-value" id="statConfidence">—</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== NEWS / INTELLIGENCE FEED ====== -->
+<section class="section" id="news">
+  <div class="container">
+    <div class="section-header" data-animate="fade-up">
+      <div>
+        <div class="line-accent"></div>
+        <div class="section-label">Intelligence Feed</div>
+        <h2 class="section-title">Latest Geopolitical Reports</h2>
+        <p class="section-subtitle">Real-time curated intelligence from global OSINT sources, verified and analyzed by AI.</p>
+      </div>
+      <div class="tabs" id="newsTabs">
+        <button class="tab-btn active" data-filter="all">All</button>
+        <button class="tab-btn" data-filter="high">High Risk</button>
+        <button class="tab-btn" data-filter="medium">Medium</button>
+        <button class="tab-btn" data-filter="low">Low</button>
+      </div>
+    </div>
+
+    <div class="news-grid" id="newsGrid" data-stagger>
+      <!-- Skeleton loaders -->
+      <div class="news-card"><div class="news-card-image skeleton skeleton-image"></div><div class="news-card-body"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text short"></div></div></div>
+      <div class="news-card"><div class="news-card-image skeleton skeleton-image"></div><div class="news-card-body"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text short"></div></div></div>
+      <div class="news-card"><div class="news-card-image skeleton skeleton-image"></div><div class="news-card-body"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text short"></div></div></div>
+    </div>
+
+    <div style="text-align:center;margin-top:var(--s-xl)">
+      <button class="btn btn-secondary" id="loadMoreBtn" style="display:none">
+        Load More Intel
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ====== THREAT MAP ====== -->
+<section class="section" id="map">
+  <div class="container">
+    <div class="section-header" data-animate="fade-up">
+      <div>
+        <div class="line-accent"></div>
+        <div class="section-label">Threat Mapping</div>
+        <h2 class="section-title">Global Conflict Heatmap</h2>
+        <p class="section-subtitle">Real-time visualization of active conflict zones correlated with GDELT and ACLED data.</p>
+      </div>
+      <div class="tabs" id="mapTabs">
+        <button class="tab-btn active" data-timeframe="24h">24h</button>
+        <button class="tab-btn" data-timeframe="7d">7 Days</button>
+        <button class="tab-btn" data-timeframe="30d">30 Days</button>
+      </div>
+    </div>
+
+    <div class="map-container" data-animate="scale-in">
+      <div id="heatmap"></div>
+      <div class="map-legend glass-card" style="border-radius:var(--r-md)">
+        <div class="map-legend-title">Risk Level</div>
+        <div class="map-legend-item"><span class="map-legend-dot" style="background:var(--risk-critical)"></span> Critical</div>
+        <div class="map-legend-item"><span class="map-legend-dot" style="background:var(--risk-high)"></span> High</div>
+        <div class="map-legend-item"><span class="map-legend-dot" style="background:var(--risk-medium)"></span> Medium</div>
+        <div class="map-legend-item"><span class="map-legend-dot" style="background:var(--risk-low)"></span> Low</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== AI ANALYSIS ====== -->
+<section class="section relative" id="analysis">
+  <div class="glow-orb red" style="top:20%;right:-5%" aria-hidden="true"></div>
+  <div class="container">
+    <div class="section-header" data-animate="fade-up">
+      <div>
+        <div class="line-accent"></div>
+        <div class="section-label">AI Intelligence</div>
+        <h2 class="section-title">Automated Threat Analysis</h2>
+        <p class="section-subtitle">Deep analysis powered by Groq LLM and DeepSeek AI engines.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="gap:var(--s-lg)" data-animate="fade-up">
+      <!-- AI Analysis Panel -->
+      <div class="ai-panel radar-sweep">
+        <div class="ai-panel-header">
+          <div class="ai-panel-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79s7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.5-9.11 0-12.58 3.51-3.47 9.14-3.49 12.65-.06L21 3v7.12z"/></svg>
+          </div>
+          <div>
+            <h4 style="font-size:.95rem">AI Geopolitical Assessment</h4>
+            <p class="text-sm text-muted">Real-time situation analysis</p>
+          </div>
+        </div>
+        <div class="ai-scan-line" id="aiScanLine"></div>
+        <div class="ai-panel-body" id="aiAnalysisContent">
+          <div class="ai-typing">
+            <span></span><span></span><span></span>
+          </div>
+          <p class="text-sm text-muted">Generating intelligence assessment...</p>
+        </div>
+      </div>
+
+      <!-- Analytics Charts -->
+      <div>
+        <div class="chart-container glass-card" style="margin-bottom:var(--s-lg)">
+          <canvas id="riskDistChart"></canvas>
+        </div>
+        <div class="chart-container glass-card">
+          <canvas id="timelineChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== SATELLITE IMAGERY ====== -->
+<section class="section" id="satellite">
+  <div class="container">
+    <div class="section-header" data-animate="fade-up">
+      <div>
+        <div class="line-accent"></div>
+        <div class="section-label">Computer Vision</div>
+        <h2 class="section-title">Satellite & Imagery Analysis</h2>
+        <p class="section-subtitle">AI-powered detection of military vehicles, destroyed buildings, refugee movements, fires, and floods via satellite and ground imagery.</p>
+      </div>
+      <a href="/satellite-analysis" class="btn btn-secondary btn-sm">
+        Open Satellite Lab
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      </a>
+    </div>
+
+    <div class="sat-gallery" id="satGallery" data-animate="fade-up" data-stagger>
+      <div class="sat-card"><div class="skeleton" style="aspect-ratio:4/3"></div></div>
+      <div class="sat-card"><div class="skeleton" style="aspect-ratio:4/3"></div></div>
+      <div class="sat-card"><div class="skeleton" style="aspect-ratio:4/3"></div></div>
+      <div class="sat-card"><div class="skeleton" style="aspect-ratio:4/3"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== GDELT EVENTS ====== -->
+<section class="section relative" id="gdelt">
+  <div class="glow-orb blue" style="bottom:10%;left:-3%" aria-hidden="true"></div>
+  <div class="container">
+    <div class="section-header" data-animate="fade-up">
+      <div>
+        <div class="line-accent"></div>
+        <div class="section-label">GDELT Cross-Reference</div>
+        <h2 class="section-title">Global Event Database</h2>
+        <p class="section-subtitle">Cross-referencing intelligence with the GDELT Project's event timeline for verification and enrichment.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-2" data-animate="fade-up">
+      <div class="timeline" id="gdeltTimeline">
+        <div class="timeline-event">
+          <div class="skeleton skeleton-text" style="width:120px"></div>
+          <div class="skeleton skeleton-title" style="margin-top:8px"></div>
+          <div class="skeleton skeleton-text" style="margin-top:4px"></div>
+        </div>
+      </div>
+      <div class="chart-container glass-card">
+        <canvas id="gdeltChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== PIPELINE STATUS ====== -->
+<section class="section" id="pipeline">
+  <div class="container">
+    <div class="section-header" data-animate="fade-up">
+      <div>
+        <div class="line-accent"></div>
+        <div class="section-label">Data Pipeline</div>
+        <h2 class="section-title">Intelligence Processing Pipeline</h2>
+        <p class="section-subtitle">End-to-end automated flow from news ingestion to finished intelligence product.</p>
+      </div>
+    </div>
+
+    <div class="pipeline" id="pipelineStatus" data-animate="scale-in">
+      <div class="pipeline-step" id="pipe-ingest">
+        <div class="pipeline-step-num">1</div>
+        <div class="pipeline-step-label">Ingestion</div>
+        <div class="text-xs text-muted" style="margin-top:4px">RSS & API feeds</div>
+      </div>
+      <div class="pipeline-step" id="pipe-filter">
+        <div class="pipeline-step-num">2</div>
+        <div class="pipeline-step-label">Filtering</div>
+        <div class="text-xs text-muted" style="margin-top:4px">Geopolitical filter</div>
+      </div>
+      <div class="pipeline-step" id="pipe-nlp">
+        <div class="pipeline-step-num">3</div>
+        <div class="pipeline-step-label">NLP Analysis</div>
+        <div class="text-xs text-muted" style="margin-top:4px">BERT & sentiment</div>
+      </div>
+      <div class="pipeline-step" id="pipe-rewrite">
+        <div class="pipeline-step-num">4</div>
+        <div class="pipeline-step-label">AI Rewrite</div>
+        <div class="text-xs text-muted" style="margin-top:4px">Groq / DeepSeek</div>
+      </div>
+      <div class="pipeline-step" id="pipe-enrich">
+        <div class="pipeline-step-num">5</div>
+        <div class="pipeline-step-label">Enrichment</div>
+        <div class="text-xs text-muted" style="margin-top:4px">GDELT & geocoding</div>
+      </div>
+      <div class="pipeline-step" id="pipe-cv">
+        <div class="pipeline-step-num">6</div>
+        <div class="pipeline-step-label">Computer Vision</div>
+        <div class="text-xs text-muted" style="margin-top:4px">Satellite & YOLO</div>
+      </div>
+      <div class="pipeline-step" id="pipe-dash">
+        <div class="pipeline-step-num">7</div>
+        <div class="pipeline-step-label">Dashboard</div>
+        <div class="text-xs text-muted" style="margin-top:4px">Visualization</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== FOOTER ====== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid" data-animate="fade-up">
+      <div class="footer-brand">
+        <a href="/" class="nav-brand" style="font-size:1.2rem">
+          <span class="nav-brand-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          </span>
+          RiskMap A.I.
+        </a>
+        <p>Advanced geopolitical intelligence platform. Real-time threat monitoring, AI analysis, satellite imagery, and predictive analytics.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="#news">Intelligence Feed</a>
+        <a href="#map">Threat Map</a>
+        <a href="#analysis">AI Analysis</a>
+        <a href="#satellite">Satellite</a>
+      </div>
+      <div class="footer-col">
+        <h4>Tools</h4>
+        <a href="/satellite-analysis">Satellite Lab</a>
+        <a href="/dashboard">Historical Analysis</a>
+        <a href="/trends-analysis">Trend Analysis</a>
+        <a href="/early-warning">Early Warning</a>
+      </div>
+      <div class="footer-col">
+        <h4>System</h4>
+        <a href="/data-intelligence">Data Intelligence</a>
+        <a href="/executive-reports">Executive Reports</a>
+        <a href="/settings">Settings</a>
+        <a href="/about">About</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>RiskMap A.I. &copy; 2025. Geopolitical Intelligence Platform.</span>
+      <span class="font-mono text-xs" id="footerPing">System: Connecting...</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ====== SEARCH MODAL (CMD+K) ====== -->
+<div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search intelligence reports">
+  <div class="search-box">
+    <label for="searchInput" class="sr-only">Search intelligence reports</label>
+    <input class="search-input" id="searchInput" type="text" placeholder="Search intelligence reports... (Esc to close)" autocomplete="off">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</div>
+
+<!-- ====== TOAST CONTAINER ====== -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ====== ARTICLE MODAL ====== -->
+<div class="modal-overlay" id="articleModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle" style="font-size:1.2rem"></h3>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="modalMeta" class="flex gap-md mb-lg" style="flex-wrap:wrap"></div>
+      <img id="modalImage" src="" alt="" style="width:100%;border-radius:var(--r-md);margin-bottom:var(--s-lg);display:none">
+      <div id="modalContent" style="line-height:1.8;color:var(--text-secondary)"></div>
+      <div id="modalAI" class="mt-lg" style="display:none">
+        <h4 style="font-size:.85rem;color:var(--accent-teal);margin-bottom:var(--s-sm)">AI Assessment</h4>
+        <div class="ai-insight" id="modalAIContent"></div>
+      </div>
+      <a id="modalLink" href="#" target="_blank" class="btn btn-primary mt-lg" style="display:none">Read Original Source</a>
+    </div>
+  </div>
+</div>
+
+<!-- ====== LEAFLET HEATMAP PLUGIN ====== -->
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+<!-- ====== APPLICATION JS ====== -->
+<script src="/static/js/riskmap-v2.js"></script>
+
+</body>
+</html>

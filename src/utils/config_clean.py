@@ -279,11 +279,11 @@ def get_system_status() -> Dict[str, Any]:
         cursor = conn.cursor()
 
         # Estadísticas básicas
-        cursor.execute("SELECT COUNT(*) as total_articles FROM articles")
+        cursor.execute("SELECT COUNT(*) as total_articles FROM unified_articles")
         total_articles = cursor.fetchone()[0]
 
         cursor.execute(
-            "SELECT COUNT(*) as recent_articles FROM articles WHERE created_at > datetime('now', '-24 hours')")
+            "SELECT COUNT(*) as recent_articles FROM unified_articles WHERE created_at > datetime('now', '-24 hours')")
         recent_articles = cursor.fetchone()[0]
 
         conn.close()

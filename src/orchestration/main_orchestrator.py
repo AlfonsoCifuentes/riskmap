@@ -298,7 +298,7 @@ class GeopoliticalIntelligenceOrchestrator:
             # Get articles that need advanced NLP processing - OPTIMIZED QUERY
             query = """
                 SELECT a.id, a.title, a.content, a.country, a.language
-                FROM articles a
+                FROM unified_articles a
                 LEFT JOIN processed_data pd ON a.id = pd.article_id
                 WHERE (pd.advanced_nlp IS NULL OR pd.advanced_nlp = '' OR pd.article_id IS NULL)
                 AND a.is_excluded = 0
@@ -364,7 +364,7 @@ class GeopoliticalIntelligenceOrchestrator:
                     
                     # Update article with BERT risk analysis
                     cursor.execute("""
-                        UPDATE articles 
+                        UPDATE unified_articles 
                         SET risk_level = ?, risk_score = ?
                         WHERE id = ?
                     """, (bert_results['level'], bert_results['score'], article_id))
@@ -494,7 +494,7 @@ class GeopoliticalIntelligenceOrchestrator:
             conn = db.get_connection()
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT COUNT(*) FROM articles WHERE published_at > datetime('now', '-7 days')")
+                "SELECT COUNT(*) FROM unified_articles WHERE published_at > datetime('now', '-7 days')")
             count = cursor.fetchone()[0]
             return count >= 100
         except Exception:
@@ -553,7 +553,7 @@ class GeopoliticalIntelligenceOrchestrator:
             print("ESTADO DEL SISTEMA DE INTELIGENCIA GEOPOLÍTICA")
             print("=" * 60)
 
-            cursor.execute("SELECT COUNT(*) FROM articles")
+            cursor.execute("SELECT COUNT(*) FROM unified_articles")
             total_articles = cursor.fetchone()[0]
             print(f"Total de Artículos en Base de Datos: {total_articles}")
 
@@ -562,18 +562,18 @@ class GeopoliticalIntelligenceOrchestrator:
             print(f"Artículos Procesados: {processed_articles}")
 
             cursor.execute(
-                "SELECT COUNT(*) FROM articles WHERE published_at > datetime('now', '-1 day')")
+                "SELECT COUNT(*) FROM unified_articles WHERE published_at > datetime('now', '-1 day')")
             recent_articles = cursor.fetchone()[0]
             print(f"Artículos (Últimas 24h): {recent_articles}")
 
             cursor.execute(
-                "SELECT language, COUNT(*) as count FROM articles WHERE published_at > datetime('now', '-7 days') GROUP BY language ORDER BY count DESC")
+                "SELECT language, COUNT(*) as count FROM unified_articles WHERE published_at > datetime('now', '-7 days') GROUP BY language ORDER BY count DESC")
             languages = cursor.fetchall()
             print("\nDistribución por Idioma (Últimos 7 días):")
             for lang, count in languages:
                 print(f"  {lang.upper()}: {count} artículos")
 
-            cursor.execute("SELECT p.category, COUNT(*) as count FROM processed_data p JOIN articles a ON p.article_id = a.id WHERE a.published_at > datetime('now', '-7 days') GROUP BY p.category ORDER BY count DESC")
+            cursor.execute("SELECT p.category, COUNT(*) as count FROM processed_data p JOIN unified_articles a ON p.article_id = a.id WHERE a.published_at > datetime('now', '-7 days') GROUP BY p.category ORDER BY count DESC")
             categories = cursor.fetchall()
             print("\nCategorías de Eventos (Últimos 7 días):")
             for category, count in categories:
@@ -581,7 +581,7 @@ class GeopoliticalIntelligenceOrchestrator:
 
             cursor.execute("""
                 SELECT json_extract(p.entities, '$.GPE') as countries, COUNT(*) as event_count, AVG(p.sentiment) as avg_sentiment
-                FROM processed_data p JOIN articles a ON p.article_id = a.id
+                FROM processed_data p JOIN unified_articles a ON p.article_id = a.id
                 WHERE a.published_at > datetime('now', '-7 days') AND json_extract(p.entities, '$.GPE') IS NOT NULL
                 GROUP BY countries HAVING event_count >= 3 ORDER BY avg_sentiment ASC LIMIT 5
             """)
@@ -886,7 +886,7 @@ class GeopoliticalIntelligenceOrchestrator:
                     risk_level = 'medium'
                 
                 cursor.execute("""
-                    UPDATE articles 
+                    UPDATE unified_articles 
                     SET risk_level = ? 
                     WHERE id = ?
                 """, (risk_level, article_id))
@@ -936,7 +936,7 @@ class GeopoliticalIntelligenceOrchestrator:
                     cursor = conn.cursor()
                     cursor.execute("""
                         SELECT id, title, content, url, published_at, country, source_name
-                        FROM articles 
+                        FROM unified_articles 
                         WHERE processed = 0 
                         ORDER BY published_at DESC
                         LIMIT ?
@@ -990,7 +990,7 @@ class GeopoliticalIntelligenceOrchestrator:
                     with db_manager.get_connection() as conn:
                         cursor = conn.cursor()
                         article_ids = [article['id'] for article in articles_data]
-                        cursor.executemany("UPDATE articles SET processed = 1 WHERE id = ?", 
+                        cursor.executemany("UPDATE unified_articles SET processed = 1 WHERE id = ?", 
                                          [(aid,) for aid in article_ids])
                         conn.commit()
                 
@@ -1063,11 +1063,11 @@ class GeopoliticalIntelligenceOrchestrator:
                 cursor = conn.cursor()
                 
                 # Total articles
-                cursor.execute("SELECT COUNT(*) FROM articles")
+                cursor.execute("SELECT COUNT(*) FROM unified_articles")
                 total_articles = cursor.fetchone()[0]
                 
                 # Processed articles
-                cursor.execute("SELECT COUNT(*) FROM articles WHERE processed = 1")
+                cursor.execute("SELECT COUNT(*) FROM unified_articles WHERE processed = 1")
                 processed_articles = cursor.fetchone()[0]
                 
                 # Articles with advanced NLP
@@ -1076,7 +1076,7 @@ class GeopoliticalIntelligenceOrchestrator:
                 
                 # Recent processing (last 24h)
                 cursor.execute("""
-                    SELECT COUNT(*) FROM articles 
+                    SELECT COUNT(*) FROM unified_articles 
                     WHERE processed = 1 AND created_at > datetime('now', '-1 day')
                 """)
                 recent_processed = cursor.fetchone()[0]

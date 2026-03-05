@@ -386,7 +386,7 @@ IMPORTANTE: Solo responde con JSON válido, sin texto adicional."""
         cutoff_date = datetime.now() - timedelta(days=timeframe_days)
         cursor.execute("""
             SELECT id, title, content, url, published_at, risk_level, country, region
-            FROM articles 
+            FROM unified_articles 
             WHERE published_at >= ? 
             AND (content IS NOT NULL AND LENGTH(content) > 100)
             AND (title IS NOT NULL AND LENGTH(title) > 10)

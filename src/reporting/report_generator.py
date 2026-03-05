@@ -290,7 +290,7 @@ class AdvancedReportGenerator:
             cursor.execute("""
                 SELECT title, summary, category, country, sentiment, source,
                        published_at, source_url
-                FROM articles
+                FROM unified_articles
                 WHERE published_at BETWEEN ? AND ?
                 ORDER BY published_at DESC
                 LIMIT 50
@@ -311,26 +311,26 @@ class AdvancedReportGenerator:
 
             # Estadísticas
             cursor.execute("""
-                SELECT COUNT(*) FROM articles
+                SELECT COUNT(*) FROM unified_articles
                 WHERE published_at BETWEEN ? AND ?
             """, (start_date.isoformat(), end_date.isoformat()))
             total_events = cursor.fetchone()[0]
 
             cursor.execute("""
-                SELECT COUNT(*) FROM articles
+                SELECT COUNT(*) FROM unified_articles
                 WHERE published_at BETWEEN ? AND ?
                 AND category IN ('Conflicto militar', 'Crisis diplomática')
             """, (start_date.isoformat(), end_date.isoformat()))
             high_priority = cursor.fetchone()[0]
 
             cursor.execute("""
-                SELECT COUNT(DISTINCT country) FROM articles
+                SELECT COUNT(DISTINCT country) FROM unified_articles
                 WHERE published_at BETWEEN ? AND ?
             """, (start_date.isoformat(), end_date.isoformat()))
             countries = cursor.fetchone()[0]
 
             cursor.execute("""
-                SELECT COUNT(DISTINCT source) FROM articles
+                SELECT COUNT(DISTINCT source) FROM unified_articles
                 WHERE published_at BETWEEN ? AND ?
             """, (start_date.isoformat(), end_date.isoformat()))
             sources = cursor.fetchone()[0]
@@ -361,7 +361,7 @@ class AdvancedReportGenerator:
             # Métricas generales
             cursor.execute("""
                 SELECT COUNT(*), COUNT(DISTINCT language), COUNT(DISTINCT country)
-                FROM articles
+                FROM unified_articles
                 WHERE published_at BETWEEN ? AND ?
             """, (start_date.isoformat(), end_date.isoformat()))
 
@@ -370,7 +370,7 @@ class AdvancedReportGenerator:
             # Métricas por categoría
             cursor.execute("""
                 SELECT category, COUNT(*)
-                FROM articles
+                FROM unified_articles
                 WHERE published_at BETWEEN ? AND ?
                 GROUP BY category
             """, (start_date.isoformat(), end_date.isoformat()))
@@ -381,7 +381,7 @@ class AdvancedReportGenerator:
             cursor.execute("""
                 SELECT title, summary, category, country, sentiment, source,
                        DATE(published_at) as date, source_url
-                FROM articles
+                FROM unified_articles
                 WHERE published_at BETWEEN ? AND ?
                 AND category IN ('Conflicto militar', 'Crisis diplomática', 'Protesta')
                 ORDER BY published_at DESC
@@ -543,7 +543,7 @@ class AdvancedReportGenerator:
 
         # Total articles
         cursor.execute('''
-            SELECT COUNT(*) FROM articles
+            SELECT COUNT(*) FROM unified_articles
             WHERE published_at >= ? AND published_at < ?
         ''', (start_date, end_date))
         data['total_articles'] = cursor.fetchone()[0]
@@ -552,7 +552,7 @@ class AdvancedReportGenerator:
         cursor.execute('''
             SELECT p.category, COUNT(*) as count, AVG(p.sentiment) as avg_sentiment
             FROM processed_data p
-            JOIN articles a ON p.article_id = a.id
+            JOIN unified_articles a ON p.article_id = a.id
             WHERE a.published_at >= ? AND a.published_at < ?
             GROUP BY p.category
             ORDER BY count DESC
@@ -574,7 +574,7 @@ class AdvancedReportGenerator:
                 AVG(p.sentiment) as avg_sentiment,
                 p.category
             FROM processed_data p
-            JOIN articles a ON p.article_id = a.id
+            JOIN unified_articles a ON p.article_id = a.id
             WHERE a.published_at >= ? AND a.published_at < ?
                 AND json_extract(p.entities, '$.GPE') IS NOT NULL
             GROUP BY countries
@@ -605,7 +605,7 @@ class AdvancedReportGenerator:
                 p.category, p.sentiment, p.summary,
                 json_extract(p.entities, '$.GPE') as countries
             FROM processed_data p
-            JOIN articles a ON p.article_id = a.id
+            JOIN unified_articles a ON p.article_id = a.id
             WHERE a.published_at >= ? AND a.published_at < ?
                 AND (p.category IN ('military_conflict', 'protest', 'diplomatic_crisis')
                      OR p.sentiment < -0.3)
@@ -652,7 +652,7 @@ class AdvancedReportGenerator:
         # Language distribution
         cursor.execute('''
             SELECT language, COUNT(*) as count
-            FROM articles
+            FROM unified_articles
             WHERE published_at >= ? AND published_at < ?
             GROUP BY language
             ORDER BY count DESC
@@ -672,7 +672,7 @@ class AdvancedReportGenerator:
 
         # Total articles
         cursor.execute('''
-            SELECT COUNT(*) FROM articles
+            SELECT COUNT(*) FROM unified_articles
             WHERE published_at >= ? AND published_at < ?
         ''', (start_date, end_date))
         data['total_articles'] = cursor.fetchone()[0]
@@ -684,7 +684,7 @@ class AdvancedReportGenerator:
                 COUNT(*) as article_count,
                 AVG(p.sentiment) as avg_sentiment
             FROM processed_data p
-            JOIN articles a ON p.article_id = a.id
+            JOIN unified_articles a ON p.article_id = a.id
             WHERE a.published_at >= ? AND a.published_at < ?
             GROUP BY DATE(a.published_at)
             ORDER BY date
@@ -707,7 +707,7 @@ class AdvancedReportGenerator:
                 MIN(p.sentiment) as min_sentiment,
                 MAX(p.sentiment) as max_sentiment
             FROM processed_data p
-            JOIN articles a ON p.article_id = a.id
+            JOIN unified_articles a ON p.article_id = a.id
             WHERE a.published_at >= ? AND a.published_at < ?
             GROUP BY p.category
             ORDER BY count DESC
@@ -732,7 +732,7 @@ class AdvancedReportGenerator:
                 COUNT(DISTINCT p.category) as category_diversity,
                 GROUP_CONCAT(DISTINCT p.category) as categories
             FROM processed_data p
-            JOIN articles a ON p.article_id = a.id
+            JOIN unified_articles a ON p.article_id = a.id
             WHERE a.published_at >= ? AND a.published_at < ?
                 AND json_extract(p.entities, '$.GPE') IS NOT NULL
             GROUP BY countries
@@ -766,7 +766,7 @@ class AdvancedReportGenerator:
                 p.category, p.sentiment, p.summary,
                 json_extract(p.entities, '$.GPE') as countries
             FROM processed_data p
-            JOIN articles a ON p.article_id = a.id
+            JOIN unified_articles a ON p.article_id = a.id
             WHERE a.published_at >= ? AND a.published_at < ?
                 AND (p.category IN ('military_conflict', 'protest', 'diplomatic_crisis')
                      OR p.sentiment < -0.4)
@@ -1684,7 +1684,7 @@ class AdvancedReportGenerator:
         conn = self.db.get_connection()
         cursor = conn.cursor()
         start = start_date if start_date else date - timedelta(days=1)
-        cursor.execute("""SELECT AVG(sentiment_score), sentiment_label, COUNT(*) FROM articles
+        cursor.execute("""SELECT AVG(sentiment_score), sentiment_label, COUNT(*) FROM unified_articles
                           WHERE published_at BETWEEN ? AND ?
                           GROUP BY sentiment_label""", (start.isoformat(), date.isoformat()))
         sentiments = cursor.fetchall()
@@ -1700,7 +1700,7 @@ class AdvancedReportGenerator:
         conn = self.db.get_connection()
         cursor = conn.cursor()
         start = start_date if start_date else date - timedelta(days=1)
-        cursor.execute("""SELECT key_persons, key_locations FROM articles
+        cursor.execute("""SELECT key_persons, key_locations FROM unified_articles
                           WHERE published_at BETWEEN ? AND ?""", (start.isoformat(), date.isoformat()))
         entities = cursor.fetchall()
         persons = Counter()
@@ -1723,7 +1723,7 @@ class AdvancedReportGenerator:
         conn = self.db.get_connection()
         cursor = conn.cursor()
         start = start_date if start_date else date - timedelta(days=1)
-        cursor.execute("""SELECT source, COUNT(*) FROM articles
+        cursor.execute("""SELECT source, COUNT(*) FROM unified_articles
                           WHERE published_at BETWEEN ? AND ?
                           GROUP BY source""", (start.isoformat(), date.isoformat()))
         sources = cursor.fetchall()
@@ -1913,7 +1913,7 @@ def _generate_sentiment_analysis(self, data: Dict[str, Any], date: datetime, sta
     conn = self.db.get_connection()
     cursor = conn.cursor()
     start = start_date if start_date else date - timedelta(days=1)
-    cursor.execute("""SELECT AVG(sentiment_score), sentiment_label, COUNT(*) FROM articles
+    cursor.execute("""SELECT AVG(sentiment_score), sentiment_label, COUNT(*) FROM unified_articles
                       WHERE published_at BETWEEN ? AND ?
                       GROUP BY sentiment_label""", (start.isoformat(), date.isoformat()))
     sentiments = cursor.fetchall()
@@ -1929,7 +1929,7 @@ def _generate_entity_tracking(self, data: Dict[str, Any], date: datetime, start_
     conn = self.db.get_connection()
     cursor = conn.cursor()
     start = start_date if start_date else date - timedelta(days=1)
-    cursor.execute("""SELECT key_persons, key_locations FROM articles
+    cursor.execute("""SELECT key_persons, key_locations FROM unified_articles
                       WHERE published_at BETWEEN ? AND ?""", (start.isoformat(), date.isoformat()))
     entities = cursor.fetchall()
     persons = Counter()
@@ -1952,7 +1952,7 @@ def _generate_source_reliability(self, data: Dict[str, Any], date: datetime, sta
     conn = self.db.get_connection()
     cursor = conn.cursor()
     start = start_date if start_date else date - timedelta(days=1)
-    cursor.execute("""SELECT source, COUNT(*) FROM articles
+    cursor.execute("""SELECT source, COUNT(*) FROM unified_articles
                       WHERE published_at BETWEEN ? AND ?
                       GROUP BY source""", (start.isoformat(), date.isoformat()))
     sources = cursor.fetchall()
@@ -2145,7 +2145,7 @@ def _generate_sentiment_analysis(self, data: Dict[str, Any], date: datetime, sta
     conn = self.db.get_connection()
     cursor = conn.cursor()
     start = start_date if start_date else date - timedelta(days=1)
-    cursor.execute("""SELECT AVG(sentiment_score), sentiment_label, COUNT(*) FROM articles
+    cursor.execute("""SELECT AVG(sentiment_score), sentiment_label, COUNT(*) FROM unified_articles
                       WHERE published_at BETWEEN ? AND ?
                       GROUP BY sentiment_label""", (start.isoformat(), date.isoformat()))
     sentiments = cursor.fetchall()
@@ -2161,7 +2161,7 @@ def _generate_entity_tracking(self, data: Dict[str, Any], date: datetime, start_
     conn = self.db.get_connection()
     cursor = conn.cursor()
     start = start_date if start_date else date - timedelta(days=1)
-    cursor.execute("""SELECT key_persons, key_locations FROM articles
+    cursor.execute("""SELECT key_persons, key_locations FROM unified_articles
                       WHERE published_at BETWEEN ? AND ?""", (start.isoformat(), date.isoformat()))
     entities = cursor.fetchall()
     persons = Counter()
@@ -2184,7 +2184,7 @@ def _generate_source_reliability(self, data: Dict[str, Any], date: datetime, sta
     conn = self.db.get_connection()
     cursor = conn.cursor()
     start = start_date if start_date else date - timedelta(days=1)
-    cursor.execute("""SELECT source, COUNT(*) FROM articles
+    cursor.execute("""SELECT source, COUNT(*) FROM unified_articles
                       WHERE published_at BETWEEN ? AND ?
                       GROUP BY source""", (start.isoformat(), date.isoformat()))
     sources = cursor.fetchall()

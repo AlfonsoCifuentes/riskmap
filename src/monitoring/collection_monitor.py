@@ -283,7 +283,7 @@ class GlobalCollectionMonitor:
                     json_extract(p.entities, '$.GPE') as countries,
                     COUNT(*) as mentions
                 FROM processed_data p
-                JOIN articles a ON p.article_id = a.id
+                JOIN unified_articles a ON p.article_id = a.id
                 WHERE a.published_at > ?
                     AND json_extract(p.entities, '$.GPE') IS NOT NULL
                 GROUP BY countries

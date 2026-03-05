@@ -118,7 +118,7 @@ class IntegratedGeopoliticalAnalyzer:
                         risk_level, risk_score,
                         sentiment_score,
                         created_at, source, url, image_url
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE created_at >= ? 
                     AND (
                         risk_level IN ('high', 'medium') 

@@ -129,7 +129,7 @@ def api_articles():
         # Build query
         query = """
             SELECT a.*, ar.sentiment, ar.risk_level, ar.summary, ar.entities
-            FROM articles a
+            FROM unified_articles a
             LEFT JOIN analysis_results ar ON a.id = ar.article_id
             WHERE a.created_at > datetime('now', '-{} days')
         """.format(days)
@@ -209,7 +209,7 @@ def api_article_detail(article_id):
         cursor.execute("""
             SELECT a.*, ar.sentiment, ar.risk_level, ar.summary, ar.entities,
                    ar.translated_content, ar.key_topics, ar.confidence_score
-            FROM articles a
+            FROM unified_articles a
             LEFT JOIN analysis_results ar ON a.id = ar.article_id
             WHERE a.id = ?
         """, (article_id,))
@@ -252,7 +252,7 @@ def api_sentiment_analytics():
                 DATE(a.created_at) as date,
                 ar.sentiment,
                 COUNT(*) as count
-            FROM articles a
+            FROM unified_articles a
             JOIN analysis_results ar ON a.id = ar.article_id
             WHERE a.created_at > datetime('now', '-{} days')
             AND ar.sentiment IS NOT NULL
@@ -295,7 +295,7 @@ def api_risk_analytics():
                 ar.risk_level,
                 COUNT(*) as count,
                 AVG(ar.confidence_score) as avg_confidence
-            FROM articles a
+            FROM unified_articles a
             JOIN analysis_results ar ON a.id = ar.article_id
             WHERE a.created_at > datetime('now', '-{} days')
             AND ar.risk_level IS NOT NULL
@@ -336,7 +336,7 @@ def api_entities_analytics():
 
         cursor.execute("""
             SELECT ar.entities
-            FROM articles a
+            FROM unified_articles a
             JOIN analysis_results ar ON a.id = ar.article_id
             WHERE a.created_at > datetime('now', '-{} days')
             AND ar.entities IS NOT NULL
@@ -453,7 +453,7 @@ def api_search():
                     WHEN a.content LIKE ? THEN 2
                     WHEN ar.summary LIKE ? THEN 1
                     ELSE 0 END) as relevance_score
-            FROM articles a
+            FROM unified_articles a
             LEFT JOIN analysis_results ar ON a.id = ar.article_id
             WHERE (a.title LIKE ? OR a.content LIKE ? OR ar.summary LIKE ?)
         """
@@ -505,7 +505,7 @@ def api_stats():
         cursor = conn.cursor()
 
         # Basic counts
-        cursor.execute("SELECT COUNT(*) FROM articles")
+        cursor.execute("SELECT COUNT(*) FROM unified_articles")
         total_articles = cursor.fetchone()[0]
 
         cursor.execute("SELECT COUNT(*) FROM analysis_results")
@@ -513,7 +513,7 @@ def api_stats():
 
         # Recent activity (last 24 hours)
         cursor.execute("""
-            SELECT COUNT(*) FROM articles
+            SELECT COUNT(*) FROM unified_articles
             WHERE created_at > datetime('now', '-24 hours')
         """)
         recent_articles = cursor.fetchone()[0]
@@ -521,7 +521,7 @@ def api_stats():
         # Language distribution
         cursor.execute("""
             SELECT language, COUNT(*)
-            FROM articles
+            FROM unified_articles
             WHERE language IS NOT NULL
             GROUP BY language
             ORDER BY COUNT(*) DESC

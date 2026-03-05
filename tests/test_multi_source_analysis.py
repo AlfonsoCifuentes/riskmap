@@ -31,7 +31,7 @@ def test_multi_source_analysis():
                        risk_score, sentiment_label, sentiment_score, key_persons, key_locations,
                        entities_json, conflict_indicators, created_at,
                        ROW_NUMBER() OVER (PARTITION BY region ORDER BY risk_score DESC, created_at DESC) as rn
-                FROM articles 
+                FROM unified_articles 
                 WHERE created_at > datetime('now', '-7 days')
                 AND risk_score IS NOT NULL
                 AND risk_score > 3
@@ -64,7 +64,7 @@ def test_multi_source_analysis():
                        COALESCE(key_locations, '') as key_locations,
                        COALESCE(entities_json, '[]') as entities_json,
                        COALESCE(conflict_indicators, '') as conflict_indicators
-                FROM articles 
+                FROM unified_articles 
                 WHERE created_at > datetime('now', '-14 days')
                 ORDER BY created_at DESC
                 LIMIT 10

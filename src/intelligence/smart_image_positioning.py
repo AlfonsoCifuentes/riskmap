@@ -174,7 +174,7 @@ class SmartImagePositioning:
                 # Obtener todas las imágenes REALES con sus hashes (excluir placeholders)
                 cursor.execute("""
                     SELECT id, title, image_url, image_fingerprint
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE image_url IS NOT NULL 
                     AND image_url != ''
                     AND image_url NOT LIKE '%placeholder%'
@@ -234,7 +234,7 @@ class SmartImagePositioning:
                     
                     cursor.execute("""
                         SELECT visual_analysis_json 
-                        FROM articles 
+                        FROM unified_articles 
                         WHERE id IN (?, ?)
                     """, (article1_id, article2_id))
                     
@@ -258,7 +258,7 @@ class SmartImagePositioning:
                         if new_image_url:
                             # Actualizar en base de datos
                             cursor.execute("""
-                                UPDATE articles 
+                                UPDATE unified_articles 
                                 SET image_url = ?, image_fingerprint = NULL
                                 WHERE id = ?
                             """, (new_image_url, article_to_replace))
@@ -301,7 +301,7 @@ class SmartImagePositioning:
                 
                 cursor.execute("""
                     SELECT visual_analysis_json, risk_level, bert_conflict_probability
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE id = ?
                 """, (article_id,))
                 
@@ -437,7 +437,7 @@ class SmartImagePositioning:
                 # EXCLUIR explícitamente URLs de placeholder
                 cursor.execute("""
                     SELECT id, image_url 
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE image_url IS NOT NULL 
                     AND image_url != ''
                     AND image_url NOT LIKE '%placeholder%'
@@ -461,7 +461,7 @@ class SmartImagePositioning:
                     if fingerprint:
                         # Actualizar en base de datos
                         cursor.execute("""
-                            UPDATE articles 
+                            UPDATE unified_articles 
                             SET image_fingerprint = ?
                             WHERE id = ?
                         """, (fingerprint, article_id))
@@ -500,7 +500,7 @@ class SmartImagePositioning:
                 # Obtener todos los artículos con imágenes
                 cursor.execute("""
                     SELECT id 
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE image_url IS NOT NULL 
                     AND image_url != ''
                     ORDER BY id DESC
@@ -514,7 +514,7 @@ class SmartImagePositioning:
                     
                     # Actualizar en base de datos
                     cursor.execute("""
-                        UPDATE articles 
+                        UPDATE unified_articles 
                         SET mosaic_position = ?
                         WHERE id = ?
                     """, (position, article_id))
@@ -545,7 +545,7 @@ class SmartImagePositioning:
                 # Estadísticas de posiciones
                 cursor.execute("""
                     SELECT mosaic_position, COUNT(*) 
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE image_url IS NOT NULL 
                     AND image_url != ''
                     GROUP BY mosaic_position
@@ -561,7 +561,7 @@ class SmartImagePositioning:
                         AVG(CASE WHEN visual_analysis_json IS NOT NULL 
                             THEN json_extract(visual_analysis_json, '$.quality_score') 
                             END) as avg_quality
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE image_url IS NOT NULL AND image_url != ''
                 """)
                 
@@ -600,7 +600,7 @@ class SmartImagePositioning:
                 # Encontrar imágenes de baja calidad
                 cursor.execute("""
                     SELECT id, title, image_url, visual_analysis_json
-                    FROM articles 
+                    FROM unified_articles 
                     WHERE image_url IS NOT NULL 
                     AND image_url != ''
                     AND visual_analysis_json IS NOT NULL
@@ -620,7 +620,7 @@ class SmartImagePositioning:
                         if alternative_url and alternative_url != current_url:
                             # Actualizar imagen
                             cursor.execute("""
-                                UPDATE articles 
+                                UPDATE unified_articles 
                                 SET image_url = ?, 
                                     image_fingerprint = NULL,
                                     visual_analysis_json = NULL

@@ -187,7 +187,7 @@ Respuesta:"""
             cursor.execute("""
                 SELECT id, title, content, country, risk_level, 
                        image_url, url, published_at, auto_generated_summary
-                FROM articles 
+                FROM unified_articles 
                 WHERE published_at > ? 
                 ORDER BY published_at DESC 
                 LIMIT ?

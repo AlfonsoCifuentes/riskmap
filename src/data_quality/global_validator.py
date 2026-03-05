@@ -179,7 +179,7 @@ class GlobalDataQualityValidator:
             # Language diversity
             cursor.execute('''
                 SELECT language, COUNT(*) as count, COUNT(DISTINCT source) as unique_sources
-                FROM articles
+                FROM unified_articles
                 WHERE published_at > ?
                 GROUP BY language
                 ORDER BY count DESC
@@ -198,7 +198,7 @@ class GlobalDataQualityValidator:
             # Source diversity
             cursor.execute('''
                 SELECT source, COUNT(*) as count, language
-                FROM articles
+                FROM unified_articles
                 WHERE published_at > ?
                 GROUP BY source, language
                 ORDER BY count DESC
@@ -220,7 +220,7 @@ class GlobalDataQualityValidator:
                     json_extract(p.entities, '$.GPE') as countries,
                     COUNT(*) as mentions
                 FROM processed_data p
-                JOIN articles a ON p.article_id = a.id
+                JOIN unified_articles a ON p.article_id = a.id
                 WHERE a.published_at > ?
                     AND json_extract(p.entities, '$.GPE') IS NOT NULL
                 GROUP BY countries
@@ -295,7 +295,7 @@ class GlobalDataQualityValidator:
                     COUNT(*) as article_count,
                     COUNT(DISTINCT source) as unique_sources,
                     COUNT(DISTINCT language) as unique_languages
-                FROM articles
+                FROM unified_articles
                 WHERE published_at > ?
                 GROUP BY DATE(published_at)
                 ORDER BY collection_date DESC

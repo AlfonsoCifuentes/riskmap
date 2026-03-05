@@ -882,6 +882,24 @@ class RiskMapUnifiedApplication:
             import re
             clean = re.compile('<.*?>')
             return re.sub(clean, '', text).strip()
+
+    def _normalize_risk_level(self, raw_value):
+        """Convert numeric (0-10) or text risk_level to standard text category."""
+        if raw_value is None:
+            return 'low'
+        try:
+            num = float(raw_value)
+            if num >= 8:
+                return 'critical'
+            elif num >= 6:
+                return 'high'
+            elif num >= 4:
+                return 'medium'
+            else:
+                return 'low'
+        except (ValueError, TypeError):
+            text_map = {'high': 'high', 'critical': 'critical', 'medium': 'medium', 'low': 'low'}
+            return text_map.get(str(raw_value).lower().strip(), 'low')
     
     def _extract_zone_info_from_filename(self, filename):
         """Extraer información de zona del nombre del archivo"""
@@ -1015,11 +1033,11 @@ class RiskMapUnifiedApplication:
         
         @self.flask_app.route('/')
         def index():
-            """Página principal - DASHBOARD_BUENO.HTML FIXED"""
-            template_path = 'dashboard_BUENO.html'
-            logger.info(f"🎯 Loading corrected template: {template_path}")
+            """Página principal - AWWWARDS V2 Dashboard"""
+            template_path = 'dashboard_v2.html'
+            logger.info(f"🎯 Loading RiskMap V2 template: {template_path}")
             
-            # Clear template cache
+            # Clear template cache for development
             self.flask_app.jinja_env.cache = {}
             
             return render_template(template_path, 
@@ -1046,17 +1064,8 @@ class RiskMapUnifiedApplication:
 
         @self.flask_app.route('/news-analysis')
         def news_analysis_page():
-            """Página de análisis de noticias - FORZAR dashboard_BUENO.html"""
-            template_path = 'dashboard_BUENO.html'
-            logger.info(f"🎯 /news-analysis usando template: {template_path}")
-            
-            # Forzar recarga de template
-            self.flask_app.jinja_env.cache = {}
-            
-            return render_template(template_path,
-                                 system_state=self.system_state,
-                                 config=self.config,
-                                 timestamp=datetime.now().isoformat())
+            """Página de análisis de noticias - Redirige al dashboard principal V2"""
+            return redirect('/')
 
         @self.flask_app.route('/trends-analysis')
         def trends_analysis_page():
@@ -2604,7 +2613,7 @@ class RiskMapUnifiedApplication:
                 logger.error(f"Error generating geopolitical analysis: {e}")
                 return jsonify({
                     'success': False, 
-                    'error': str(e),
+                    'error': 'Error generating geopolitical analysis',
                     'analysis': 'Error al generar el análisis geopolítico. Por favor, inténtelo de nuevo.'
                 })
         
@@ -3123,7 +3132,8 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                         use_smart_layout = False
                 
                 # Método estándar usando datos reales de la base de datos
-                limit = request.args.get('limit', 50, type=int)  # Aumentado de 20 a 50 para más variedad
+                if not use_smart_layout:
+                    limit = request.args.get('limit', 50, type=int)  # Re-read with higher default for standard layout
                 offset = request.args.get('offset', 0, type=int)
                 
                 # Primero obtener el artículo héroe para excluirlo
@@ -3143,15 +3153,8 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                 # Convertir a formato para el dashboard
                 dashboard_articles = []
                 for article in articles:
-                    # Mapear risk_level a formato esperado por el dashboard
-                    risk_mapping = {
-                        'high': 'high',
-                        'medium': 'medium', 
-                        'low': 'low',
-                        'unknown': 'low'
-                    }
-                    
-                    risk_level = risk_mapping.get(article.get('risk_level', 'unknown'), 'low')
+                    # Normalizar risk_level (numérico o texto) a categoría estándar
+                    risk_level = self._normalize_risk_level(article.get('risk_level', 'unknown'))
                     
                     # Traducir contenido al español con manejo de errores
                     # PRIORITARIO: Si ya hay resumen generado por IA, usarlo
@@ -3190,11 +3193,9 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                     # Limitar títulos a máximo 80 caracteres para evitar textos largos en el mosaico
                     MAX_TITLE_LENGTH = 80
                     original_length = len(translated_title)
-                    logger.info(f"Procesando título para artículo {article.get('id')}: longitud {original_length}")
 
                     if len(translated_title) > MAX_TITLE_LENGTH:
-                        logger.info(f"Título largo detectado, truncando: {translated_title[:50]}...")
-                        # Buscar el mejor punto para truncar (espacio, punto o coma)
+                        logger.debug(f"Título largo ({original_length} chars), truncando art {article.get('id')}")
                         truncated = translated_title[:MAX_TITLE_LENGTH]
 
                         # Buscar puntos de corte en orden de preferencia
@@ -3203,25 +3204,13 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                         last_comma = truncated.rfind(',')
                         last_dash = truncated.rfind('-')
 
-                        # Elegir el mejor punto de corte (el más cercano al límite)
-                        cut_points = [cp for cp in [last_space, last_period, last_comma, last_dash] if cp > 10]  # Mínimo 10 chars
+                        cut_points = [cp for cp in [last_space, last_period, last_comma, last_dash] if cp > 10]
 
                         if cut_points:
-                            # Tomar el punto de corte más cercano al límite máximo
                             best_cut = max(cut_points)
                             translated_title = translated_title[:best_cut] + "..."
-                            logger.info(f"Título truncado exitosamente en posición {best_cut}: {translated_title}")
                         else:
-                            # Si no hay puntos de corte buenos, truncar directamente
                             translated_title = translated_title[:MAX_TITLE_LENGTH-3] + "..."
-                            logger.info(f"Título truncado directamente: {translated_title}")
-
-                        final_length = len(translated_title)
-                        logger.info(f"Truncamiento completado: {original_length} -> {final_length} caracteres")
-                    else:
-                        logger.info(f"Título dentro del límite, no se trunca: {original_length} caracteres")
-
-                        logger.info(f"Título truncado para artículo {article.get('id')}: {translated_title}")
 
                     # GENERAR UBICACIÓN INTELIGENTE basada en datos disponibles
                     location_parts = []
@@ -3367,90 +3356,6 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                 'message': 'Test endpoint works',
                 'no_database_access': True
             })
-            """DEBUG: Endpoint para debuggear el problema de location"""
-            try:
-                import sqlite3
-                import traceback
-                
-                db_path = "./data/geopolitical_intel.db"
-                if not os.path.exists(db_path):
-                    return jsonify({'error': 'Database not found'}), 404
-                
-                conn = sqlite3.connect(db_path)
-                cursor = conn.cursor()
-                
-                # Test simple query first
-                try:
-                    cursor.execute("SELECT COUNT(*) FROM unified_articles WHERE geopolitical_relevance = 1")
-                    count = cursor.fetchone()[0]
-                    step1_result = f"✅ Basic query works: {count} articles"
-                except Exception as e:
-                    step1_result = f"❌ Basic query failed: {str(e)}"
-                
-                # Test the problematic query
-                step2_traceback = None
-                try:
-                    query = """
-                        SELECT id, title, content, summary, auto_generated_summary, 
-                               country, region, location_extracted, original_image_url,
-                               CASE 
-                                   WHEN original_image_url IS NOT NULL AND original_image_url != '' AND original_image_url LIKE 'https://%'
-                                   THEN original_image_url
-                                   WHEN image_url IS NOT NULL AND image_url != '' AND image_url LIKE 'https://%' 
-                                        AND image_url NOT LIKE '%placeholder%' 
-                                        AND image_url NOT LIKE '%via.placeholder%'
-                                        AND image_url NOT LIKE '%default%'
-                                   THEN image_url
-                                   ELSE NULL
-                               END as image_url, 
-                               COALESCE(risk_level, 'medium') as risk_level,
-                               COALESCE(url, '') as original_url
-                        FROM unified_articles 
-                        WHERE geopolitical_relevance = 1 
-                          AND title IS NOT NULL 
-                          AND title != ''
-                          AND LENGTH(TRIM(title)) > 10
-                          AND (
-                              (original_image_url IS NOT NULL AND original_image_url != '' AND original_image_url LIKE 'https://%') OR
-                              (image_url IS NOT NULL AND image_url != '' AND image_url LIKE 'https://%' 
-                               AND image_url NOT LIKE '%placeholder%' 
-                               AND image_url NOT LIKE '%via.placeholder%'
-                               AND image_url NOT LIKE '%default%'
-                               AND image_url NOT LIKE '%no-image%'
-                               AND image_url NOT LIKE '%missing%')
-                          )
-                          AND created_at >= datetime('now', '-30 days')
-                        ORDER BY 
-                            COALESCE(importance_score, 0) DESC,
-                            COALESCE(risk_score, 0) DESC,
-                            created_at DESC 
-                        LIMIT 13
-                    """
-                    
-                    cursor.execute(query)
-                    rows = cursor.fetchall()
-                    step2_result = f"✅ Main query works: {len(rows)} articles"
-                    
-                except Exception as e:
-                    step2_result = f"❌ Main query failed: {str(e)}"
-                    step2_traceback = traceback.format_exc()
-                
-                conn.close()
-                
-                return jsonify({
-                    'debug_results': {
-                        'step1_basic_query': step1_result,
-                        'step2_main_query': step2_result,
-                        'traceback': step2_traceback,
-                        'database_path': db_path
-                    }
-                })
-                
-            except Exception as e:
-                return jsonify({
-                    'debug_error': str(e),
-                    'traceback': traceback.format_exc()
-                }), 500
         
         @self.flask_app.route('/api/hero-article')
         def get_hero_article():
@@ -3488,7 +3393,7 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                                     'title': translated_title,
                                     'text': translated_text,
                                     'location': hero_article.get('location', 'Global'),
-                                    'risk': hero_article.get('risk_level', 'medium'),
+                                    'risk': self._normalize_risk_level(hero_article.get('risk_level', 'medium')),
                                     'image': hero_article.get('image_url', ''),
                                     'original_url': hero_article.get('original_url'),
                                     'auto_generated_summary': hero_article.get('auto_generated_summary')
@@ -3515,14 +3420,6 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                 
                 article = articles[0]
                 
-                # Mapear risk_level a formato esperado
-                risk_mapping = {
-                    'high': 'high',
-                    'medium': 'medium',
-                    'low': 'low', 
-                    'unknown': 'medium'
-                }
-                
                 # Traducir contenido del artículo héroe con manejo de errores
                 try:
                     if self.translation_system:
@@ -3541,11 +3438,15 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                     translated_text = self._strip_html(article.get('summary') or article.get('content', '')[:300]) + '...'
                 
                 hero_article = {
+                    'id': article.get('id'),
                     'title': translated_title,
                     'text': translated_text,
                     'location': article.get('location') or article.get('country') or article.get('region') or 'Global',
-                    'risk': risk_mapping.get(article.get('risk_level', 'unknown'), 'medium'),
-                    'image': article.get('image_url') or ''
+                    'risk': self._normalize_risk_level(article.get('risk_level', 'unknown')),
+                    'image': article.get('image_url') or '',
+                    'source': article.get('source', 'OSINT'),
+                    'url': article.get('url', ''),
+                    'published_at': article.get('published_at', ''),
                 }
                 
                 return jsonify({
@@ -3557,13 +3458,17 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                 logger.error(f"Error en endpoint /api/hero-article: {e}")
                 return jsonify({
                     'success': False,
-                    'error': str(e),
+                    'error': 'Error loading hero article',
                     'article': {
+                        'id': None,
                         'title': 'Error al cargar artículo principal',
                         'text': 'No se pudo cargar el contenido principal.',
                         'location': 'Sistema',
                         'risk': 'low',
-                        'image': ''
+                        'image': '',
+                        'source': 'System',
+                        'url': '',
+                        'published_at': ''
                     }
                 }), 500
         
@@ -5546,7 +5451,7 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                         # Fallback: usar datos de articles con filtrado estricto
                         logger.info("⚠️ Tabla conflict_zones no existe, usando fallback desde articles")
                         
-                        cursor.execute(f"""
+                        cursor.execute("""
                             SELECT 
                                 COALESCE(country, region, 'Unknown') as location,
                                 0.0 as avg_lat,
@@ -5564,12 +5469,12 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                             WHERE (is_excluded IS NULL OR is_excluded != 1)
                             AND risk_level IS NOT NULL
                             AND country IS NOT NULL
-                            AND datetime(published_at) > datetime('now', '-{timeframe_days} days')
+                            AND datetime(published_at) > datetime('now', ? || ' days')
                             GROUP BY COALESCE(country, region)
                             HAVING COUNT(*) >= 1
                             ORDER BY avg_risk_score DESC, article_count DESC
                             LIMIT 50
-                        """)
+                        """, (f'-{timeframe_days}',))
                         
                         conflict_zones = []
                         for row in cursor.fetchall():
@@ -5612,6 +5517,16 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                     cursor.execute("SELECT COUNT(DISTINCT country) FROM unified_articles WHERE country IS NOT NULL AND risk_level = 'high'")
                     regions_in_conflict = cursor.fetchone()[0] or 0
                     
+                    # Risk level breakdown counts
+                    cursor.execute("SELECT COUNT(*) FROM unified_articles WHERE risk_level = 'high' AND (is_excluded IS NULL OR is_excluded != 1)")
+                    high_risk_count = cursor.fetchone()[0] or 0
+                    
+                    cursor.execute("SELECT COUNT(*) FROM unified_articles WHERE risk_level = 'medium' AND (is_excluded IS NULL OR is_excluded != 1)")
+                    medium_risk_count = cursor.fetchone()[0] or 0
+                    
+                    cursor.execute("SELECT COUNT(*) FROM unified_articles WHERE risk_level = 'low' AND (is_excluded IS NULL OR is_excluded != 1)")
+                    low_risk_count = cursor.fetchone()[0] or 0
+                    
                     # Calculate reliability score (percentage of articles with valid data)
                     cursor.execute("SELECT COUNT(*) FROM unified_articles WHERE title IS NOT NULL AND content IS NOT NULL")
                     articles_with_data = cursor.fetchone()[0] or 0
@@ -5628,6 +5543,9 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                             'reliability_score': reliability_score,
                             'critical_alerts': critical_alerts,
                             'regions_in_conflict': regions_in_conflict,
+                            'high_risk': high_risk_count,
+                            'medium_risk': medium_risk_count,
+                            'low_risk': low_risk_count,
                             'timeframe': timeframe,
                             'timeframe_days': timeframe_days,
                             'data_source': 'conflict_zones_table' if has_conflict_zones else 'articles_fallback',
@@ -5640,7 +5558,7 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                 logger.error(f"Error obteniendo zonas de conflicto corregidas: {e}")
                 return jsonify({
                     'success': False,
-                    'error': str(e),
+                    'error': 'Error retrieving corrected conflict zones',
                     'conflicts': [],
                     'statistics': {
                         'total_zones': 0,
@@ -7812,65 +7730,8 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                 }), 500
 
         # ========================================
-        # ULTRA HD SATELLITE ANALYSIS API ENDPOINTS
+        # ULTRA HD SATELLITE ANALYSIS API ENDPOINTS (Gallery/Stats)
         # ========================================
-        
-        @self.flask_app.route('/api/satellite/ultra-hd/auto-execute', methods=['POST'])
-        def api_ultra_hd_auto_execute():
-            """API: Ejecutar análisis Ultra HD automático con fallback"""
-            try:
-                logger.info("🚀 Iniciando análisis Ultra HD automático")
-                
-                # Cargar GeoJSON de fallback
-                fallback_path = os.path.join("data", "geojson", "fallback.geojson")
-                if not os.path.exists(fallback_path):
-                    return jsonify({
-                        'success': False,
-                        'error': 'Archivo fallback GeoJSON no encontrado'
-                    }), 404
-                
-                with open(fallback_path, 'r', encoding='utf-8') as f:
-                    geojson_data = json.load(f)
-                
-                features = geojson_data.get('features', [])
-                if not features:
-                    return jsonify({
-                        'success': False,
-                        'error': 'No se encontraron zonas en el GeoJSON'
-                    }), 400
-                
-                # Procesar cada zona con análisis Ultra HD
-                results = []
-                for i, feature in enumerate(features[:3]):  # Limitar a 3 zonas para evitar timeout
-                    zone_data = {
-                        'zone_id': f"gaza_hd_{i+1}",
-                        'coordinates': feature.get('geometry', {}).get('coordinates', [])
-                    }
-                    
-                    result = ultra_hd_system.process_ultra_hd_zone(zone_data)
-                    if result:
-                        results.append(result)
-                
-                # Generar estadísticas y predicciones
-                statistics = ultra_hd_system.generate_statistics()
-                predictions = ultra_hd_system.generate_predictions()
-                
-                return jsonify({
-                    'success': True,
-                    'message': f'Análisis Ultra HD completado para {len(results)} zonas',
-                    'zones_processed': len(results),
-                    'results': results,
-                    'statistics': statistics,
-                    'predictions': predictions,
-                    'timestamp': datetime.now().isoformat()
-                })
-                
-            except Exception as e:
-                logger.error(f"Error en análisis Ultra HD automático: {e}")
-                return jsonify({
-                    'success': False,
-                    'error': str(e)
-                }), 500
         
         @self.flask_app.route('/api/satellite/ultra-hd/gallery-all', methods=['GET'])
         def api_ultra_hd_gallery_all():
@@ -7933,30 +7794,6 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                 
             except Exception as e:
                 logger.error(f"Error obteniendo galería Ultra HD: {e}")
-                return jsonify({
-                    'success': False,
-                    'error': str(e),
-                    'images': []
-                }), 500
-        
-        @self.flask_app.route('/api/satellite/ultra-hd/gallery-detections', methods=['GET'])
-        def api_ultra_hd_gallery_detections():
-            """API: Segunda galería - Solo imágenes con detecciones"""
-            try:
-                logger.info("🎯 Obteniendo galería Ultra HD con detecciones")
-                
-                images_with_detections = ultra_hd_system.get_images_with_detections()
-                
-                return jsonify({
-                    'success': True,
-                    'images': images_with_detections,
-                    'total': len(images_with_detections),
-                    'timestamp': datetime.now().isoformat(),
-                    'gallery_type': 'ultra_hd_detections'
-                })
-                
-            except Exception as e:
-                logger.error(f"Error obteniendo galería de detecciones: {e}")
                 return jsonify({
                     'success': False,
                     'error': str(e),
@@ -12874,11 +12711,11 @@ La estabilidad internacional dependerá de la capacidad de los líderes mundiale
                 columns = [column[1] for column in cursor.fetchall()]
                 
                 if 'mosaic_position' not in columns:
-                    cursor.execute("ALTER TABLE articles ADD COLUMN mosaic_position TEXT DEFAULT 'standard'")
+                    cursor.execute("ALTER TABLE unified_articles ADD COLUMN mosaic_position TEXT DEFAULT 'standard'")
                     logger.info("✅ Columna mosaic_position añadida")
                 
                 if 'image_fingerprint' not in columns:
-                    cursor.execute("ALTER TABLE articles ADD COLUMN image_fingerprint TEXT")
+                    cursor.execute("ALTER TABLE unified_articles ADD COLUMN image_fingerprint TEXT")
                     logger.info("✅ Columna image_fingerprint añadida")
                 
                 conn.commit()
@@ -14093,23 +13930,6 @@ La estabilidad internacional dependerá de la capacidad de los líderes mundiale
         except Exception as e:
             logger.error(f"Error starting application: {e}")
             raise
-    
-    def stop_application(self):
-        """Detener la aplicación gracefully"""
-        try:
-            logger.info("Stopping RiskMap Unified Application...")
-            
-            # Stop background tasks
-            for task_name in list(self.system_state['background_tasks'].keys()):
-                task_info = self.system_state['background_tasks'][task_name]
-                if task_info.get('thread') and task_info['thread'].is_alive():
-                    logger.info(f"Stopping background task: {task_name}")
-                    # Note: Thread stopping logic would go here
-            
-            logger.info("RiskMap Unified Application stopped")
-            
-        except Exception as e:
-            logger.error(f"Error stopping application: {e}")
     
     def _get_fast_coordinates(self, location):
         """Versión rápida para obtener coordenadas - solo coincidencias exactas"""

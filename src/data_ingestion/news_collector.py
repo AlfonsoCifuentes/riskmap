@@ -168,7 +168,7 @@ class NewsAPICollector:
         for article in articles:
             try:
                 cursor.execute('''
-                    INSERT OR IGNORE INTO articles
+                    INSERT OR IGNORE INTO unified_articles
                     (title, content, url, source, published_at, language)
                     VALUES (?, ?, ?, ?, ?, ?)
                 ''', (
@@ -252,7 +252,7 @@ class RSSCollector:
                         continue
                         
                     cursor.execute('''
-                        INSERT OR IGNORE INTO articles
+                        INSERT OR IGNORE INTO unified_articles
                         (title, content, url, source, published_at, language)
                         VALUES (?, ?, ?, ?, ?, ?)
                     ''', (
