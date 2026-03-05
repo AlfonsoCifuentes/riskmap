@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reportes Ejecutivos — Riskmap A.I.</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/shared.css">
+<style>
+  .exec-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:700px){.exec-grid{grid-template-columns:1fr}}
+  .exec-section-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.6rem}
+  .exec-kpi-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+  .exec-kpi{
+    flex:1;min-width:110px;background:rgba(74,158,255,.08);border:1px solid rgba(74,158,255,.15);
+    border-radius:8px;padding:.65rem .75rem;
+  }
+  .exec-kpi-val{font-size:1.5rem;font-weight:800;color:var(--text-1)}
+  .exec-kpi-lbl{font-size:.7rem;color:var(--text-2);margin-top:.1rem}
+  .threat-item{
+    display:flex;align-items:center;gap:.75rem;padding:.5rem 0;
+    border-bottom:1px solid rgba(255,255,255,.05);
+  }
+  .threat-item:last-child{border:0}
+  .threat-num{font-size:1rem;font-weight:700;color:var(--accent);width:1.5rem;text-align:center;flex-shrink:0}
+  .threat-name{font-size:.85rem;font-weight:600;color:var(--text-1);flex:1}
+  .threat-score-bar{height:4px;border-radius:2px;background:var(--accent);transition:width .5s ease}
+  .story-item{padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
+  .story-item:last-child{border:0}
+  .story-title{font-size:.83rem;font-weight:600;color:var(--text-1);line-height:1.35}
+  .story-meta{font-size:.73rem;color:var(--text-2);margin-top:.2rem;display:flex;gap:.5rem;flex-wrap:wrap}
+  .summary-box{background:rgba(74,158,255,.06);border:1px solid rgba(74,158,255,.2);border-radius:12px;padding:1.1rem 1.2rem;margin-bottom:1rem}
+  .summary-box p{font-size:.88rem;line-height:1.65;color:var(--text-1)}
+  .print-btn{position:fixed;bottom:1.5rem;right:1.5rem;z-index:100}
+  @media print{.top-nav,.space-bg,.stars,.print-btn{display:none!important}body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+<div class="space-bg"></div>
+<div class="stars"></div>
+
+<nav class="top-nav">
+  <a href="/" class="nav-brand">⟁ Riskmap <span class="brand-accent">A.I.</span></a>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-menu" id="navMenu">
+    <a href="/news-analysis" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
+    <a href="/conflict-monitoring" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
+    <a href="/trends-analysis" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
+    <a href="/early-warning" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
+    <a href="/executive-reports" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <div class="nav-divider"></div>
+    <a href="/data-intelligence" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
+    <a href="/satellite-analysis" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
+    <a href="/video-surveillance" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
+    <a href="/historical-analysis" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <div class="nav-divider"></div>
+    <a href="/about" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
+    <a href="/logs" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
+    <a href="/settings" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+  </div>
+  <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
+<div class="page-header">
+  <span class="page-icon">📋</span>
+  <h1>Reportes Ejecutivos</h1>
+  <p>Resumen ejecutivo del panorama geopolítico global</p>
+</div>
+
+<div class="container">
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-icon-lg">📰</div><div class="stat-val" id="s-total">—</div><div class="stat-lbl">Total Artículos</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">🚨</div><div class="stat-val" id="s-alerts">—</div><div class="stat-lbl">Alertas Críticas</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="s-regions">—</div><div class="stat-lbl">Regiones Activas</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">📡</div><div class="stat-val" id="s-sources">—</div><div class="stat-lbl">Fuentes Activas</div></div>
+  </div>
+
+  <div class="summary-box">
+    <div class="exec-section-title">🔒 RESUMEN EJECUTIVO</div>
+    <p id="execSummary">Cargando resumen inteligente...</p>
+  </div>
+
+  <div class="exec-grid">
+    <!-- Top Threats -->
+    <div class="card">
+      <div class="exec-section-title">🔴 Principales Zonas de Amenaza</div>
+      <div id="threatList"><div class="loader"><div class="spin"></div>Cargando...</div></div>
+    </div>
+
+    <!-- Top Stories -->
+    <div class="card">
+      <div class="exec-section-title">📰 Noticias Críticas Recientes</div>
+      <div id="storyList"><div class="loader"><div class="spin"></div>Cargando...</div></div>
+    </div>
+  </div>
+
+  <div class="exec-grid" style="margin-top:1rem">
+    <!-- KPIs by risk level -->
+    <div class="card">
+      <div class="exec-section-title">📊 Distribución de Riesgo</div>
+      <div class="exec-kpi-row" id="kpiRow">
+        <div class="exec-kpi"><div class="exec-kpi-val" id="k-high">—</div><div class="exec-kpi-lbl">⬆ Alto Riesgo</div></div>
+        <div class="exec-kpi"><div class="exec-kpi-val" id="k-med">—</div><div class="exec-kpi-lbl">➡ Riesgo Medio</div></div>
+        <div class="exec-kpi"><div class="exec-kpi-val" id="k-low">—</div><div class="exec-kpi-lbl">⬇ Bajo Riesgo</div></div>
+      </div>
+      <canvas id="riskChart" height="140"></canvas>
+    </div>
+
+    <!-- Top regions table -->
+    <div class="card">
+      <div class="exec-section-title">🌐 Tabla Regional</div>
+      <table class="data-table">
+        <thead><tr><th>Región</th><th>Artículos</th><th>Riesgo</th><th>Score</th></tr></thead>
+        <tbody id="regionTable"><tr><td colspan="4" style="text-align:center;color:var(--text-2)">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<button class="btn print-btn" onclick="window.print()">🖨️ Imprimir</button>
+<div id="toast-root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/nav.js"></script>
+<script>
+(function(){
+  'use strict';
+  async function init() {
+    const [status, conflictData, articlesData] = await Promise.all([
+      fetchJSON('/api/status'),
+      fetchJSON('/api/analytics/conflicts-corrected?timeframe=30d'),
+      fetchJSON('/api/articles?limit=50')
+    ]);
+
+    // Stats
+    if (status) {
+      animCount(document.getElementById('s-total'), status.total_articles||0);
+      animCount(document.getElementById('s-alerts'), status.critical_alerts||0);
+      animCount(document.getElementById('s-regions'), status.regions_in_conflict||0);
+      animCount(document.getElementById('s-sources'), status.active_sources||0);
+    }
+
+    const articles = (articlesData && articlesData.articles) ? articlesData.articles : [];
+    const conflicts = (conflictData && conflictData.zones) ? conflictData.zones : [];
+    const stats = (conflictData && conflictData.stats) ? conflictData.stats : {};
+
+    // Risk distribution
+    const high = stats.high_risk||0, med = stats.medium_risk||0, low = stats.low_risk||0;
+    animCount(document.getElementById('k-high'), high);
+    animCount(document.getElementById('k-med'), med);
+    animCount(document.getElementById('k-low'), low);
+
+    // Executive Summary
+    const summaryEl = document.getElementById('execSummary');
+    if (summaryEl) {
+      const totalConf = conflicts.length;
+      const topConf = conflicts.slice(0,3).map(z=>z.zone_name||z.country||'Desconocido').join(', ');
+      summaryEl.textContent = 'El sistema monitorea actualmente '+(status?status.total_articles:articles.length)+
+        ' artículos geopolíticos de '+(status?status.active_sources||0:'múltiples')+' fuentes activas. '+
+        'Se han identificado '+totalConf+' zonas de conflicto activas, con las principales áreas de preocupación en: '+
+        (topConf||'múltiples regiones')+'. '+
+        'Se registran '+(status?status.critical_alerts||0:0)+' alertas críticas que requieren atención inmediata.';
+    }
+
+    // Threat list
+    const threatEl = document.getElementById('threatList');
+    if (threatEl) {
+      const sorted = conflicts.slice(0,8).sort(function(a,b){ return (b.article_count||0)-(a.article_count||0)});
+      const maxCount = sorted[0] ? sorted[0].article_count||1 : 1;
+      if (!sorted.length) { threatEl.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><p>Sin amenazas activas</p></div>'; }
+      else {
+        threatEl.innerHTML = sorted.map(function(z,i){
+          const name = z.zone_name||z.country||'Desconocido';
+          const cnt = z.article_count||0;
+          const pct = Math.round((cnt/maxCount)*100);
+          const rl = z.risk_level||'medium';
+          return '<div class="threat-item">'+
+            '<span class="threat-num">'+(i+1)+'</span>'+
+            '<div style="flex:1">'+
+              '<div style="display:flex;justify-content:space-between;align-items:center">'+
+                '<span class="threat-name">'+escH(name)+'</span>'+
+                riskBadge(rl)+
+              '</div>'+
+              '<div style="margin-top:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden">'+
+                '<div class="threat-score-bar" style="width:'+pct+'%"></div>'+
+              '</div>'+
+              '<span style="font-size:.7rem;color:var(--text-2)">'+cnt+' artículos</span>'+
+            '</div>'+
+          '</div>';
+        }).join('');
+      }
+    }
+
+    // Story list
+    const storyEl = document.getElementById('storyList');
+    if (storyEl) {
+      const critical = articles.filter(function(a){ return (a.risk_score||0)>=50 || a.risk_level==='high'}).slice(0,8);
+      if (!critical.length) { storyEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📰</div><p>Sin noticias críticas</p></div>'; }
+      else {
+        storyEl.innerHTML = critical.map(function(a){
+          return '<div class="story-item">'+
+            (a.url ? '<a href="'+escH(a.url)+'" target="_blank" rel="noopener" style="text-decoration:none">' : '')+
+              '<div class="story-title">'+escH(a.title)+'</div>'+
+            (a.url ? '</a>' : '')+
+            '<div class="story-meta">'+
+              riskBadge(a.risk_level||'medium')+
+              (a.country ? '<span>🌍 '+escH(a.country)+'</span>' : '')+
+              '<span>⏱ '+timeAgo(a.published_at)+'</span>'+
+            '</div>'+
+          '</div>';
+        }).join('');
+      }
+    }
+
+    // Risk pie
+    const ctx = document.getElementById('riskChart');
+    if (ctx && (high||med||low)) {
+      new Chart(ctx.getContext('2d'),{
+        type:'doughnut',
+        data:{
+          labels:['Alto','Medio','Bajo'],
+          datasets:[{data:[high,med,low],backgroundColor:['#f05252','#f59e0b','#10b981'],borderWidth:0}]
+        },
+        options:{plugins:{legend:{position:'right',labels:{color:'#a0aec0',boxWidth:12,font:{size:12}}}},cutout:'60%'}
+      });
+    }
+
+    // Region table
+    const tbody = document.getElementById('regionTable');
+    if (tbody) {
+      const regionMap = {};
+      articles.forEach(function(a){
+        const r = a.country||a.region||'Desconocido';
+        if (!regionMap[r]) regionMap[r]={count:0,score:0};
+        regionMap[r].count++;
+        regionMap[r].score += (a.risk_score||0);
+      });
+      const rows = Object.entries(regionMap).sort(function(a,b){return b[1].count-a[1].count}).slice(0,10);
+      if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-2)">Sin datos</td></tr>'; }
+      else {
+        tbody.innerHTML = rows.map(function(e,i){
+          const avg = Math.round(e[1].score/e[1].count);
+          const rl = avg>=60?'high':avg>=30?'medium':'low';
+          return '<tr>'+
+            '<td>'+escH(e[0])+'</td>'+
+            '<td>'+e[1].count+'</td>'+
+            '<td>'+riskBadge(rl)+'</td>'+
+            '<td><span style="font-weight:600;color:'+(avg>=60?'var(--danger)':avg>=30?'var(--warning)':'var(--success)')+'">'+avg+'</span></td>'+
+          '</tr>';
+        }).join('');
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>

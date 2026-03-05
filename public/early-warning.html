@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alertas Tempranas — Riskmap A.I.</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/shared.css">
+<style>
+  .alert-grid{display:flex;flex-direction:column;gap:.65rem}
+  .pulse-dot{
+    width:10px;height:10px;border-radius:50%;background:var(--danger);
+    animation:pulse 1.4s ease infinite;flex-shrink:0;
+  }
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+  .alert-card-title{font-size:.9rem;font-weight:600;line-height:1.35;color:var(--text-1)}
+  .alert-meta{display:flex;flex-wrap:wrap;gap:.5rem;font-size:.75rem;color:var(--text-2);margin-top:.3rem}
+  .alert-excerpt{font-size:.8rem;color:var(--text-2);margin-top:.4rem;line-height:1.5}
+  .live-indicator{
+    display:inline-flex;align-items:center;gap:.4rem;
+    font-size:.75rem;font-weight:700;color:var(--danger);
+    text-transform:uppercase;letter-spacing:.06em;
+  }
+  .filter-row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem}
+  .filter-row label{font-size:.8rem;color:var(--text-2);margin-right:.25rem}
+</style>
+</head>
+<body>
+<div class="space-bg"></div>
+<div class="stars"></div>
+
+<nav class="top-nav">
+  <a href="/" class="nav-brand">⟁ Riskmap <span class="brand-accent">A.I.</span></a>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-menu" id="navMenu">
+    <a href="/news-analysis" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
+    <a href="/conflict-monitoring" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
+    <a href="/trends-analysis" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
+    <a href="/early-warning" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
+    <a href="/executive-reports" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <div class="nav-divider"></div>
+    <a href="/data-intelligence" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
+    <a href="/satellite-analysis" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
+    <a href="/video-surveillance" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
+    <a href="/historical-analysis" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <div class="nav-divider"></div>
+    <a href="/about" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
+    <a href="/logs" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
+    <a href="/settings" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+  </div>
+  <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
+<div class="page-header">
+  <span class="page-icon">⚠️</span>
+  <h1>Alertas Tempranas</h1>
+  <p>
+    <span class="live-indicator"><span class="pulse-dot"></span>En vivo</span>
+    — Artículos de alto riesgo geopolítico en tiempo real
+  </p>
+</div>
+
+<div class="container">
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-icon-lg">🚨</div><div class="stat-val" id="s-crit">—</div><div class="stat-lbl">Críticas</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">⚠️</div><div class="stat-val" id="s-high">—</div><div class="stat-lbl">Alto Riesgo</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="s-reg">—</div><div class="stat-lbl">Regiones Afectadas</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">⏱️</div><div class="stat-val" id="s-last">—</div><div class="stat-lbl">Última Alerta</div></div>
+  </div>
+
+  <div class="filter-row">
+    <label>Filtrar:</label>
+    <button class="chip active" onclick="filter(this,'all')">Todos</button>
+    <button class="chip" onclick="filter(this,'conflict')">Conflicto</button>
+    <button class="chip" onclick="filter(this,'disaster')">Desastres</button>
+    <button class="chip" onclick="filter(this,'humanitarian')">Humanitario</button>
+    <button class="chip" onclick="filter(this,'military')">Militar</button>
+  </div>
+
+  <div class="alert-grid" id="alertGrid">
+    <div class="loader"><div class="spin"></div>Cargando alertas...</div>
+  </div>
+
+  <div style="text-align:center;margin-top:1.5rem">
+    <button class="btn" id="loadMore" onclick="loadMore()" style="display:none">Cargar más alertas</button>
+  </div>
+</div>
+
+<div id="toast-root"></div>
+<script src="/nav.js"></script>
+<script>
+(function(){
+  'use strict';
+  let allAlerts = [];
+  let currentFilter = 'all';
+  let offset = 0;
+  const LIMIT = 20;
+
+  const CATEGORY_MAP = {
+    conflict:['war','conflict','military','attack','strike','missile','bomb','troops','combat','offensive','assault','armed'],
+    disaster:['earthquake','flood','hurricane','tsunami','wildfire','storm','cyclone','volcano','disaster'],
+    humanitarian:['refugee','displaced','food','famine','humanitarian','crisis','aid','civilian'],
+    military:['military','army','navy','air force','troops','weapon','nuclear','nato','defense']
+  };
+
+  function inferCategory(a) {
+    const text = ((a.title||'')+' '+(a.summary||'')+' '+(a.conflict_type||'')).toLowerCase();
+    for (const [cat, words] of Object.entries(CATEGORY_MAP)) {
+      if (words.some(function(w){ return text.indexOf(w)>-1 })) return cat;
+    }
+    return 'general';
+  }
+
+  async function load(reset) {
+    if (reset) offset = 0;
+    const url = '/api/articles?limit='+ LIMIT +'&offset='+ offset +'&risk_level=high';
+    const data = await fetchJSON(url);
+    if (!data || !data.success) {
+      showToast('Error cargando alertas','error');
+      return;
+    }
+    const articles = data.articles || [];
+    if (reset) allAlerts = articles;
+    else allAlerts = allAlerts.concat(articles);
+
+    // Stats
+    const regions = new Set(allAlerts.map(function(a){ return a.country||a.region }).filter(Boolean));
+    animCount(document.getElementById('s-high'), allAlerts.length);
+    animCount(document.getElementById('s-crit'), allAlerts.filter(function(a){ return (a.risk_score||0)>=70 }).length);
+    animCount(document.getElementById('s-reg'), regions.size);
+    const lastEl = document.getElementById('s-last');
+    if (lastEl && allAlerts[0]) lastEl.textContent = timeAgo(allAlerts[0].published_at);
+
+    const btn = document.getElementById('loadMore');
+    if (btn) btn.style.display = articles.length >= LIMIT ? '' : 'none';
+
+    renderAlerts();
+  }
+
+  function renderAlerts() {
+    const grid = document.getElementById('alertGrid');
+    if (!grid) return;
+    const filtered = currentFilter==='all' ? allAlerts : allAlerts.filter(function(a){
+      return inferCategory(a)===currentFilter;
+    });
+    if (!filtered.length) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Sin alertas</h3><p>No hay alertas para este filtro.</p></div>';
+      return;
+    }
+    grid.innerHTML = filtered.map(function(a) {
+      const rs = a.risk_score||0;
+      const rl = rs>=60?'critical':rs>=40?'high':'medium';
+      const cat = inferCategory(a);
+      const catLabel = {conflict:'Conflicto',disaster:'Desastre',humanitarian:'Humanitario',military:'Militar',general:'General'}[cat]||cat;
+      const dot = rl==='critical'?'#f05252':rl==='high'?'#f87171':'#f59e0b';
+      return '<div class="alert-card '+(rl==='critical'||rl==='high'?'':'medium')+'" style="border-left-color:'+ dot +'">' +
+        '<div style="display:flex;align-items:flex-start;gap:.6rem">' +
+          '<div class="pulse-dot" style="background:'+ dot +';margin-top:4px"></div>' +
+          '<div style="flex:1">' +
+            (a.url ? '<a href="'+escH(a.url)+'" target="_blank" rel="noopener" style="text-decoration:none">' : '') +
+              '<div class="alert-card-title">'+ escH(a.title)||'Alerta sin título' +'</div>' +
+            (a.url ? '</a>' : '') +
+            '<div class="alert-meta">' +
+              riskBadge(rl) +
+              '<span class="badge badge-info">'+catLabel+'</span>' +
+              (a.country ? '<span>🌍 '+escH(a.country)+'</span>' : '') +
+              (a.source ? '<span>📡 '+escH(a.source)+'</span>' : '') +
+              '<span>⏱ '+timeAgo(a.published_at)+'</span>' +
+            '</div>' +
+            (a.summary ? '<div class="alert-excerpt">'+escH(a.summary.substring(0,200))+'...</div>' : '') +
+          '</div>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  window.filter = function(btn, cat) {
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = cat;
+    renderAlerts();
+  };
+
+  window.loadMore = function() {
+    offset += LIMIT;
+    load(false);
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){ load(true) });
+})();
+</script>
+</body>
+</html>

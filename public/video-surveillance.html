@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigilancia por Video — Riskmap A.I.</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/shared.css">
+<style>
+  .feed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+  .feed-card{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;position:relative}
+  .feed-thumb{height:158px;background:linear-gradient(135deg,rgba(7,12,31,1),rgba(20,30,60,1));display:flex;align-items:center;justify-content:center;font-size:2.5rem;position:relative}
+  .feed-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5)}
+  .feed-status{position:absolute;top:8px;right:8px;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em}
+  .feed-status.live{background:rgba(240,82,82,.2);color:#f05252;border:1px solid rgba(240,82,82,.4)}
+  .feed-status.offline{background:rgba(100,100,100,.2);color:#888;border:1px solid rgba(100,100,100,.4)}
+  .feed-info{padding:.75rem}
+  .feed-loc{font-size:.85rem;font-weight:600;color:var(--text-1)}
+  .feed-meta{font-size:.72rem;color:var(--text-2);margin-top:.3rem}
+  .rec-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#f05252;animation:pulse 1.4s infinite;margin-right:4px}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .capability-list{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+  @media(max-width:600px){.capability-list{grid-template-columns:1fr}}
+  .cap-row{display:flex;align-items:flex-start;gap:.6rem;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
+  .cap-row:last-child{border:0}
+  .cap-row-icon{font-size:1.2rem;flex-shrink:0}
+  .cap-row-text{font-size:.82rem;color:var(--text-1)}
+  .cap-row-sub{font-size:.72rem;color:var(--text-2);margin-top:.1rem}
+</style>
+</head>
+<body>
+<div class="space-bg"></div>
+<div class="stars"></div>
+
+<nav class="top-nav">
+  <a href="/" class="nav-brand">⟁ Riskmap <span class="brand-accent">A.I.</span></a>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-menu" id="navMenu">
+    <a href="/news-analysis" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
+    <a href="/conflict-monitoring" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
+    <a href="/trends-analysis" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
+    <a href="/early-warning" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
+    <a href="/executive-reports" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <div class="nav-divider"></div>
+    <a href="/data-intelligence" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
+    <a href="/satellite-analysis" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
+    <a href="/video-surveillance" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
+    <a href="/historical-analysis" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <div class="nav-divider"></div>
+    <a href="/about" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
+    <a href="/logs" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
+    <a href="/settings" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+  </div>
+  <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
+<div class="page-header">
+  <span class="page-icon">📹</span>
+  <h1>Vigilancia por Video</h1>
+  <p>Análisis de video en tiempo real con visión artificial e inteligencia de imagen</p>
+</div>
+
+<div class="container">
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-icon-lg">📹</div><div class="stat-val">12</div><div class="stat-lbl">Cámaras configuradas</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">👁️</div><div class="stat-val">motpy</div><div class="stat-lbl">Motor de tracking</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">🤖</div><div class="stat-val">YOLOv8</div><div class="stat-lbl">Modelo de detección</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">⚡</div><div class="stat-val">RT</div><div class="stat-lbl">Procesamiento</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:1rem">
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.8rem">
+      📺 Feeds de Video Monitorizados
+    </div>
+    <div class="feed-grid" id="feedGrid"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:1rem">
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.8rem">
+      🔧 Capacidades de Visión Artificial
+    </div>
+    <div class="capability-list">
+      <div>
+        <div class="cap-row"><span class="cap-row-icon">🎯</span><div><div class="cap-row-text">Detección de Objetos</div><div class="cap-row-sub">YOLOv8: vehículos militares, personas, armas</div></div></div>
+        <div class="cap-row"><span class="cap-row-icon">🏃</span><div><div class="cap-row-text">Tracking de Movimiento</div><div class="cap-row-sub">motpy: seguimiento multi-objeto en tiempo real</div></div></div>
+        <div class="cap-row"><span class="cap-row-icon">🔥</span><div><div class="cap-row-text">Detección Térmica</div><div class="cap-row-sub">Análisis de calor e incendios en feeds IR</div></div></div>
+      </div>
+      <div>
+        <div class="cap-row"><span class="cap-row-icon">🚨</span><div><div class="cap-row-text">Alertas Automáticas</div><div class="cap-row-sub">Notificaciones al detectar actividad inusual</div></div></div>
+        <div class="cap-row"><span class="cap-row-icon">📊</span><div><div class="cap-row-text">Análisis Estadístico</div><div class="cap-row-sub">Densidad de movimiento, patrones temporales</div></div></div>
+        <div class="cap-row"><span class="cap-row-icon">💾</span><div><div class="cap-row-text">Archivo de Eventos</div><div class="cap-row-sub">Grabación automática de eventos detectados</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.6rem">
+      ⚠️ Nota Operacional
+    </div>
+    <p style="font-size:.84rem;color:var(--text-2);line-height:1.65">
+      El módulo de vigilancia por video opera en el servidor local (puerto 5001). Los feeds de video en tiempo real
+      requieren acceso directo al servidor de análisis. Esta interfaz muestra el estado y las configuraciones del sistema.
+      Para acceder al streaming en vivo, conéctese al servidor de análisis local.
+    </p>
+  </div>
+</div>
+
+<div id="toast-root"></div>
+<script src="/nav.js"></script>
+<script>
+(function(){
+  'use strict';
+  const FEEDS = [
+    {loc:'Kiev, Ucrania', type:'OSINT Stream', status:'live'},
+    {loc:'Gaza Strip', type:'Media Feed', status:'live'},
+    {loc:'Port Sudan', type:'CCTV Network', status:'live'},
+    {loc:'Taipei Strait', type:'Maritime Cam', status:'live'},
+    {loc:'Damascus, Syria', type:'OSINT Stream', status:'offline'},
+    {loc:'Kabul, Afganistán', type:'OSINT Stream', status:'offline'},
+    {loc:'Sana\'a, Yemen', type:'Media Feed', status:'live'},
+    {loc:'Mogadishu, Somalia', type:'OSINT Stream', status:'offline'},
+    {loc:'Bamako, Mali', type:'CCTV Network', status:'live'},
+    {loc:'North Korea (border)', type:'Satellite/IR', status:'live'},
+    {loc:'Taiwan Strait ROC', type:'Military Cam', status:'live'},
+    {loc:'Kharkiv, Ukraine', type:'OSINT Stream', status:'live'}
+  ];
+
+  const ICONS = {'OSINT Stream':'📡','Media Feed':'📺','CCTV Network':'📷','Maritime Cam':'⚓','Military Cam':'🎖️','Satellite/IR':'🛰️'};
+
+  const grid = document.getElementById('feedGrid');
+  if (grid) {
+    grid.innerHTML = FEEDS.map(function(f) {
+      const icon = ICONS[f.type]||'📹';
+      const isLive = f.status==='live';
+      return '<div class="feed-card">'+
+        '<div class="feed-thumb">'+
+          '<span>'+icon+'</span>'+
+          '<span class="feed-status '+(isLive?'live':'offline')+'">'+
+            (isLive ? '<span class="rec-dot"></span>EN VIVO' : 'OFFLINE')+
+          '</span>'+
+        '</div>'+
+        '<div class="feed-info">'+
+          '<div class="feed-loc">'+escH(f.loc)+'</div>'+
+          '<div class="feed-meta">'+escH(f.type)+' · '+(isLive?'Streaming activo':'Sin señal')+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+})();
+</script>
+</body>
+</html>

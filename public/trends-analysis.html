@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Análisis de Tendencias — Riskmap A.I.</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/shared.css">
+<style>
+  .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+  .chart-full{grid-column:1/-1}
+  .risk-table-wrap{overflow-x:auto}
+  .trend-badge{
+    display:inline-flex;align-items:center;gap:.25rem;
+    font-size:.72rem;font-weight:700;padding:.2rem .5rem;border-radius:4px;
+  }
+  .trend-up{background:rgba(240,82,82,.15);color:#f87171}
+  .trend-dn{background:rgba(16,185,129,.15);color:#34d399}
+  @media(max-width:700px){.charts-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="space-bg"></div>
+<div class="stars"></div>
+
+<nav class="top-nav">
+  <a href="/" class="nav-brand">⟁ Riskmap <span class="brand-accent">A.I.</span></a>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-menu" id="navMenu">
+    <a href="/news-analysis" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
+    <a href="/conflict-monitoring" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
+    <a href="/trends-analysis" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
+    <a href="/early-warning" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
+    <a href="/executive-reports" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <div class="nav-divider"></div>
+    <a href="/data-intelligence" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
+    <a href="/satellite-analysis" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
+    <a href="/video-surveillance" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
+    <a href="/historical-analysis" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <div class="nav-divider"></div>
+    <a href="/about" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
+    <a href="/logs" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
+    <a href="/settings" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+  </div>
+  <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+</nav>
+
+<div class="page-header">
+  <span class="page-icon">📈</span>
+  <h1>Análisis de Tendencias</h1>
+  <p>Distribución de riesgos, volumen temporal y análisis de fuentes OSINT</p>
+</div>
+
+<div class="container">
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-icon-lg">📰</div><div class="stat-val" id="s-total">—</div><div class="stat-lbl">Total Artículos</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">🔴</div><div class="stat-val" id="s-high">—</div><div class="stat-lbl">Riesgo Alto</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">🟡</div><div class="stat-val" id="s-med">—</div><div class="stat-lbl">Riesgo Medio</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">🟢</div><div class="stat-val" id="s-low">—</div><div class="stat-lbl">Riesgo Bajo</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="s-reg">—</div><div class="stat-lbl">Regiones</div></div>
+    <div class="stat-card"><div class="stat-icon-lg">📡</div><div class="stat-val" id="s-src">—</div><div class="stat-lbl">Fuentes</div></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="section-title">Distribución de Riesgos</div>
+      <div class="chart-wrap"><canvas id="chartRisk"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="section-title">Top Regiones Afectadas</div>
+      <div class="chart-wrap"><canvas id="chartRegions"></canvas></div>
+    </div>
+    <div class="chart-card chart-full">
+      <div class="section-title">Volumen de Reportes — 30 días</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="chartTimeline"></canvas></div>
+    </div>
+    <div class="chart-card chart-full">
+      <div class="section-title">Score de Riesgo por Región</div>
+      <div class="chart-wrap" style="height:280px"><canvas id="chartRiskScore"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Top countries table -->
+  <div class="card" style="margin-top:1rem">
+    <div class="section-title">Regiones por Nivel de Riesgo</div>
+    <div class="risk-table-wrap">
+      <table class="data-table" id="regionTable">
+        <thead><tr><th>#</th><th>Región</th><th>Artículos</th><th>Avg. Risk Score</th><th>Nivel</th></tr></thead>
+        <tbody id="regionTbody"><tr><td colspan="5" style="text-align:center;padding:2rem"><div class="spin" style="margin:0 auto"></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="toast-root"></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/nav.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const CHART_DEFAULTS = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#9aa3b0',font:{family:'Inter',size:11}}}},
+  };
+
+  function mkChart(id, type, data, opts) {
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    return new Chart(ctx, {type, data, options: Object.assign({}, CHART_DEFAULTS, opts||{})});
+  }
+
+  async function loadData() {
+    const [status, conflicts] = await Promise.all([
+      fetchJSON('/api/status'),
+      fetchJSON('/api/analytics/conflicts-corrected')
+    ]);
+
+    if (status) {
+      animCount(document.getElementById('s-total'), status.total_articles||0);
+      animCount(document.getElementById('s-reg'), status.regions_in_conflict||0);
+      animCount(document.getElementById('s-src'), status.active_sources||0);
+    }
+
+    if (conflicts && conflicts.success) {
+      const s = conflicts.statistics || {};
+      animCount(document.getElementById('s-high'), s.high_risk||s.critical_alerts||0);
+      animCount(document.getElementById('s-med'), s.medium_risk||0);
+      animCount(document.getElementById('s-low'), s.low_risk||0);
+
+      buildRiskChart(s);
+      buildRegionsChart(conflicts.conflicts || []);
+      buildRiskScoreChart(conflicts.conflicts || []);
+      buildRegionTable(conflicts.conflicts || []);
+    }
+
+    // Load articles for timeline
+    const arts = await fetchJSON('/api/articles?limit=100');
+    if (arts && arts.articles) buildTimeline(arts.articles);
+  }
+
+  function buildRiskChart(s) {
+    const high = s.high_risk||s.critical_alerts||0;
+    const med = s.medium_risk||0;
+    const low = s.low_risk||0;
+    const total = high+med+low;
+
+    if (!total) return;
+    mkChart('chartRisk','doughnut',{
+      labels:['Alto','Medio','Bajo'],
+      datasets:[{
+        data:[high,med,low],
+        backgroundColor:['rgba(240,82,82,.8)','rgba(245,158,11,.8)','rgba(16,185,129,.8)'],
+        borderColor:'rgba(255,255,255,.06)',borderWidth:2,hoverOffset:6
+      }]
+    },{
+      cutout:'68%',
+      plugins:{
+        legend:{position:'bottom',labels:{color:'#9aa3b0',font:{size:11},padding:12}},
+        title:{display:false}
+      }
+    });
+  }
+
+  function buildRegionsChart(zones) {
+    const top = zones.slice(0,8);
+    mkChart('chartRegions','bar',{
+      labels:top.map(z=>z.location||'?'),
+      datasets:[{
+        label:'Artículos',
+        data:top.map(z=>z.article_count||0),
+        backgroundColor:top.map(z=>{
+          const s=z.avg_risk_score||0;
+          return s>=40 ? 'rgba(240,82,82,.7)' : s>=25 ? 'rgba(245,158,11,.7)' : 'rgba(16,185,129,.7)';
+        }),
+        borderRadius:4
+      }]
+    },{
+      indexAxis:'y',
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5c6677',font:{size:10}}},
+        y:{grid:{display:false},ticks:{color:'#9aa3b0',font:{size:10}}}
+      },
+      plugins:{legend:{display:false}}
+    });
+  }
+
+  function buildTimeline(articles) {
+    const counts = {};
+    articles.forEach(function(a) {
+      const d = (a.published_at||'').substring(0,10);
+      if (d) counts[d] = (counts[d]||0)+1;
+    });
+    const sorted = Object.entries(counts).sort((a,b)=>a[0].localeCompare(b[0]));
+    if (!sorted.length) return;
+
+    mkChart('chartTimeline','line',{
+      labels:sorted.map(function([d]){
+        return new Date(d).toLocaleDateString('es-ES',{day:'numeric',month:'short'});
+      }),
+      datasets:[{
+        label:'Reportes',
+        data:sorted.map(function([,c]){return c}),
+        borderColor:'#4a9eff',backgroundColor:'rgba(74,158,255,.08)',
+        fill:true,tension:.4,pointRadius:3,
+        pointBackgroundColor:'#4a9eff',pointBorderWidth:0
+      }]
+    },{
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5c6677',font:{size:10}}},
+        y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5c6677',font:{size:10}}}
+      },
+      plugins:{legend:{display:false}}
+    });
+  }
+
+  function buildRiskScoreChart(zones) {
+    const top = zones.slice(0,15);
+    mkChart('chartRiskScore','bar',{
+      labels:top.map(z=>z.location||'?'),
+      datasets:[{
+        label:'Avg. Risk Score',
+        data:top.map(z=>+(z.avg_risk_score||0).toFixed(1)),
+        backgroundColor:top.map(z=>{
+          const s=z.avg_risk_score||0;
+          return s>=40?'rgba(240,82,82,.7)':s>=25?'rgba(245,158,11,.7)':'rgba(16,185,129,.7)';
+        }),
+        borderRadius:4
+      }]
+    },{
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5c6677',font:{size:9},maxRotation:45}},
+        y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#5c6677',font:{size:10}}}
+      },
+      plugins:{legend:{display:false}}
+    });
+  }
+
+  function buildRegionTable(zones) {
+    const tb = document.getElementById('regionTbody');
+    if (!tb) return;
+    if (!zones.length) { tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-2)">Sin datos.</td></tr>'; return; }
+    tb.innerHTML = zones.slice(0,30).map(function(z,i) {
+      const rl = z.risk_level||'unknown';
+      const score = z.avg_risk_score||0;
+      return '<tr><td>'+(i+1)+'</td>' +
+        '<td style="font-weight:600">'+ escH(z.location||'?') +'</td>' +
+        '<td>'+ (z.article_count||0) +'</td>' +
+        '<td style="color:var(--accent)">'+ score.toFixed(1) +'</td>' +
+        '<td>'+ riskBadge(rl) +'</td></tr>';
+    }).join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', loadData);
+})();
+</script>
+</body>
+</html>
