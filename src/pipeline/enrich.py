@@ -15,6 +15,7 @@ import sys
 import json
 import logging
 import re
+import time
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
@@ -287,6 +288,7 @@ def _create_events_from_articles(db):
         if len(articles) < 1:
             continue
 
+        ctype = ctype or 'unknown'
         is_disaster = ctype == 'natural_disaster'
         event_type = 'disaster' if is_disaster else 'conflict'
         avg_score = sum(a.get('risk_score', 0) for a in articles) / len(articles)
@@ -337,11 +339,192 @@ def _create_events_from_articles(db):
     logger.info(f"✅ Created {created} events from article clusters")
 
 
+# ---------------------------------------------------------------------------
+# Translation: auto-translate non-Spanish articles using Groq
+# ---------------------------------------------------------------------------
+
+_SPANISH_STOPS = frozenset([
+    'de', 'la', 'el', 'los', 'las', 'en', 'por', 'con', 'que', 'del',
+    'para', 'una', 'un', 'es', 'se', 'al', 'como', 'pero', 'su',
+    'le', 'ya', 'son', 'fue', 'ser', 'hay', 'muy', 'cada', 'sobre',
+])
+
+
+def _is_likely_spanish(text: str) -> bool:
+    """Quick heuristic: check for common Spanish stopwords."""
+    words = text.lower().split()
+    if len(words) < 3:
+        return False
+    count = sum(1 for w in words if w in _SPANISH_STOPS)
+    return count >= 2 and (count / len(words)) >= 0.12
+
+
+def _detect_script_lang(text: str) -> str:
+    """Detect language from non-Latin character scripts."""
+    for ch in text:
+        cp = ord(ch)
+        if 0x0400 <= cp <= 0x04FF: return 'ru'
+        if 0x0600 <= cp <= 0x06FF: return 'ar'
+        if 0x4E00 <= cp <= 0x9FFF: return 'zh'
+        if 0x0900 <= cp <= 0x097F: return 'hi'
+        if 0x0370 <= cp <= 0x03FF: return 'el'
+        if 0x3040 <= cp <= 0x30FF: return 'ja'
+        if 0xAC00 <= cp <= 0xD7AF: return 'ko'
+    return ''
+
+
+def _translate_via_groq(title: str, summary: str, api_key: str):
+    """Translate title + summary to Spanish in one Groq API call.
+
+    Returns (new_title, new_summary, detected_lang) or None on error.
+    """
+    import requests as _req
+
+    text_block = f"TITLE: {title}"
+    has_summary = (summary and summary.strip() != title.strip()
+                   and len(summary.strip()) > 15)
+    if has_summary:
+        text_block += f"\nSUMMARY: {summary[:800]}"
+
+    try:
+        resp = _req.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'model': 'llama-3.1-8b-instant',
+                'messages': [
+                    {'role': 'system', 'content': (
+                        'You are a professional translator. Translate to Spanish.\n'
+                        'RULES:\n'
+                        '- If the text is already in Spanish, return it unchanged.\n'
+                        '- Preserve proper nouns, acronyms, numbers, and place names.\n'
+                        '- Reply ONLY with:\n'
+                        'LANG: <ISO 639-1 code of the source language>\n'
+                        'TITLE: <Spanish translation of title>\n'
+                        'SUMMARY: <Spanish translation of summary>\n'
+                        '- If no SUMMARY was given, omit the SUMMARY line.'
+                    )},
+                    {'role': 'user', 'content': text_block},
+                ],
+                'max_tokens': 400,
+                'temperature': 0.1,
+            },
+            timeout=20,
+        )
+        content = resp.json()['choices'][0]['message']['content'].strip()
+
+        lang = ''
+        new_title = title
+        new_summary = summary
+
+        for line in content.split('\n'):
+            stripped = line.strip()
+            upper = stripped.upper()
+            if upper.startswith('LANG:'):
+                lang = stripped.split(':', 1)[1].strip().lower()[:5]
+            elif upper.startswith('TITLE:'):
+                val = stripped.split(':', 1)[1].strip()
+                if val:
+                    new_title = val
+            elif upper.startswith('SUMMARY:'):
+                val = stripped.split(':', 1)[1].strip()
+                if val:
+                    new_summary = val
+
+        return new_title, new_summary, lang
+    except Exception as e:
+        logger.debug(f"Translation API error: {e}")
+        return None
+
+
+def translate_articles():
+    """Translate non-Spanish articles to Spanish using Groq API."""
+    db = get_db()
+    ph = db.placeholder
+    api_key = os.getenv('GROQ_API_KEY', '')
+
+    if not api_key:
+        logger.info('⏭ No GROQ_API_KEY — skipping translation')
+        return 0
+
+    rows = db.execute(
+        "SELECT id, title, summary, language FROM unified_articles "
+        "WHERE (is_translated IS NULL OR is_translated = 0) "
+        "ORDER BY id DESC LIMIT 60",
+        fetch=True,
+    )
+
+    if not rows:
+        logger.info('No articles need translation')
+        return 0
+
+    logger.info(f"Found {len(rows)} articles to check for translation")
+
+    translated = 0
+    skipped_es = 0
+
+    for row in rows:
+        title = (row.get('title') or '').strip()
+        summary = (row.get('summary') or '').strip()
+
+        if not title:
+            continue
+
+        # Skip if already in Spanish
+        if _is_likely_spanish(title):
+            db.execute(
+                f"UPDATE unified_articles SET language = 'es', is_translated = 0 "
+                f"WHERE id = {ph}",
+                (row['id'],),
+            )
+            skipped_es += 1
+            continue
+
+        # Translate via Groq
+        result = _translate_via_groq(title, summary, api_key)
+        if result is None:
+            continue
+
+        new_title, new_summary, orig_lang = result
+
+        if not orig_lang:
+            orig_lang = _detect_script_lang(title) or 'en'
+
+        db.execute(
+            f"""UPDATE unified_articles SET
+                title = {ph},
+                summary = {ph},
+                language = 'es',
+                original_language = {ph},
+                is_translated = 1,
+                processing_notes = {ph}
+            WHERE id = {ph}""",
+            (
+                new_title,
+                new_summary,
+                orig_lang,
+                f'Original: {title[:200]}',
+                row['id'],
+            ),
+        )
+        translated += 1
+
+        # Rate limit: ~2 seconds between Groq calls
+        time.sleep(2)
+
+    logger.info(f"✅ Translated {translated} articles, {skipped_es} already Spanish")
+    return translated
+
+
 def main():
     logger.info("=" * 60)
     logger.info("Riskmap A.I. NLP Enrichment Pipeline")
     logger.info("=" * 60)
     enrich_articles()
+    translate_articles()
     logger.info("Enrichment complete")
 
 
