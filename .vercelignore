@@ -6,14 +6,14 @@ RISKMAP.py
 start_riskmap.py
 quick_system_check.py
 
-# Dependencies and venvs
+# Dependencies and venvs (root-level only — api/requirements.txt must be kept!)
 .venv/
 .venv_dashboard/
 venv/
-requirements.txt
-requirements-vercel.txt
-pyproject.toml
-uv.lock
+/requirements.txt
+/requirements-vercel.txt
+/pyproject.toml
+/uv.lock
 
 # Data, logs, models
 data/
