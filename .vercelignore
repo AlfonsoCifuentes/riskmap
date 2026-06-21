@@ -1,0 +1,55 @@
+# Exclude everything not needed for Vercel (API functions live in api/, frontend in public/)
+
+# Heavy Python backend (not needed by serverless API functions)
+src/
+RISKMAP.py
+start_riskmap.py
+quick_system_check.py
+
+# Dependencies and venvs
+.venv/
+.venv_dashboard/
+venv/
+requirements.txt
+requirements-vercel.txt
+pyproject.toml
+uv.lock
+
+# Data, logs, models
+data/
+logs/
+models/
+*.db
+*.sqlite
+*.backup*
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+# Tests and docs
+tests/
+docs/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.mypy_cache/
+.flake8
+mypy.ini
+
+# Config
+config/
+
+# Node
+node_modules/
+
+# Git
+.git/
+
+# IDE
+.vscode/
+.agents/
+.qodo/

@@ -4,21 +4,39 @@
   "framework": null,
   "functions": {
     "api/**/*.py": {
-      "excludeFiles": "{data/**,logs/**,models/**,*.db,*.sqlite,*.backup*,tests/**,__pycache__/**,*.pyc,node_modules/**,.git/**,src/web/templates/**,src/web/static/images/**}"
+      "excludeFiles": "{src/**,data/**,logs/**,models/**,*.db,*.sqlite,*.backup*,tests/**,docs/**,__pycache__/**,*.pyc,node_modules/**,.git/**,.venv/**}"
     }
   },
   "rewrites": [
     { "source": "/static/(.*)", "destination": "/src/web/static/$1" },
     { "source": "/", "destination": "/index.html" },
     { "source": "/news-analysis", "destination": "/index.html" },
-    { "source": "/conflict-monitoring", "destination": "/conflict-monitoring.html" },
+    {
+      "source": "/conflict-monitoring",
+      "destination": "/conflict-monitoring.html"
+    },
     { "source": "/trends-analysis", "destination": "/trends-analysis.html" },
     { "source": "/early-warning", "destination": "/early-warning.html" },
-    { "source": "/executive-reports", "destination": "/executive-reports.html" },
-    { "source": "/data-intelligence", "destination": "/data-intelligence.html" },
-    { "source": "/satellite-analysis", "destination": "/satellite-analysis.html" },
-    { "source": "/video-surveillance", "destination": "/video-surveillance.html" },
-    { "source": "/historical-analysis", "destination": "/historical-analysis.html" },
+    {
+      "source": "/executive-reports",
+      "destination": "/executive-reports.html"
+    },
+    {
+      "source": "/data-intelligence",
+      "destination": "/data-intelligence.html"
+    },
+    {
+      "source": "/satellite-analysis",
+      "destination": "/satellite-analysis.html"
+    },
+    {
+      "source": "/video-surveillance",
+      "destination": "/video-surveillance.html"
+    },
+    {
+      "source": "/historical-analysis",
+      "destination": "/historical-analysis.html"
+    },
     { "source": "/about", "destination": "/about.html" },
     { "source": "/logs", "destination": "/logs.html" },
     { "source": "/settings", "destination": "/settings.html" },
