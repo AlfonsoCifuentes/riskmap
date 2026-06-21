@@ -2,13 +2,13 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "framework": null,
+  "outputDirectory": "public",
   "functions": {
     "api/**/*.py": {
       "excludeFiles": "{src/**,data/**,logs/**,models/**,*.db,*.sqlite,*.backup*,tests/**,docs/**,__pycache__/**,*.pyc,node_modules/**,.git/**,.venv/**}"
     }
   },
   "rewrites": [
-    { "source": "/static/(.*)", "destination": "/src/web/static/$1" },
     { "source": "/", "destination": "/index.html" },
     { "source": "/news-analysis", "destination": "/index.html" },
     {
@@ -40,6 +40,6 @@
     { "source": "/about", "destination": "/about.html" },
     { "source": "/logs", "destination": "/logs.html" },
     { "source": "/settings", "destination": "/settings.html" },
-    { "source": "/((?!api/|static/|.*\\..*).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|.*\\..*).*)", "destination": "/index.html" }
   ]
 }
