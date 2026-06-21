@@ -26,69 +26,73 @@
 
 <nav class="top-nav">
   <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="nav-actions">
+    <button class="lang-toggle" onclick="window.i18n&&i18n.toggle()" title="ES / EN">ES</button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
   <div class="nav-menu" id="navMenu">
-    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span><span data-i18n="nav.news">Análisis de Noticias</span></a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span><span data-i18n="nav.conflicts">Monitor de Conflictos</span></a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span><span data-i18n="nav.trends">Análisis de Tendencias</span></a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span><span data-i18n="nav.earlyWarning">Alertas Tempranas</span></a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span><span data-i18n="nav.reports">Reportes Ejecutivos</span></a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span><span data-i18n="nav.dataIntel">Inteligencia de Datos</span></a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span><span data-i18n="nav.satellite">Análisis Satelital</span></a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span><span data-i18n="nav.video">Vigilancia por Video</span></a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span><span data-i18n="nav.historical">Análisis Histórico</span></a>
     <div class="nav-divider"></div>
-    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span><span data-i18n="nav.about">Acerca de</span></a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span><span data-i18n="nav.logs">Registros</span></a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span><span data-i18n="nav.settings">Configuración</span></a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
 <header class="page-header reveal">
   <span class="page-icon">⚙️</span>
-  <h1>Preferencias Operativas</h1>
-  <p>Personaliza la experiencia del dashboard y guarda configuración local para tu sesión de análisis.</p>
+  <h1 data-i18n="settings.title">Preferencias Operativas</h1>
+  <p data-i18n="settings.desc">Personaliza la experiencia del dashboard y guarda configuración local para tu sesión de análisis.</p>
 </header>
 
 <div class="container">
   <div class="settings-grid">
     <section class="card card-glow form-card reveal">
-      <h2 class="section-title">Perfil de analista</h2>
-      <label for="analystName">Nombre del analista</label>
-      <input id="analystName" type="text" placeholder="Tu nombre">
+      <h2 class="section-title" data-i18n="settings.profile">Perfil de analista</h2>
+      <label for="analystName" data-i18n="settings.analystName">Nombre del analista</label>
+      <input id="analystName" type="text" data-i18n-placeholder="settings.namePlaceholder" placeholder="Tu nombre">
 
-      <label for="briefingCadence">Frecuencia de briefing</label>
+      <label for="briefingCadence" data-i18n="settings.briefingFreq">Frecuencia de briefing</label>
       <select id="briefingCadence">
-        <option value="2h">Cada 2 horas</option>
-        <option value="6h">Cada 6 horas</option>
-        <option value="12h">Cada 12 horas</option>
-        <option value="24h">Diario</option>
+        <option value="2h" data-i18n="settings.freq2h">Cada 2 horas</option>
+        <option value="6h" data-i18n="settings.freq6h">Cada 6 horas</option>
+        <option value="12h" data-i18n="settings.freq12h">Cada 12 horas</option>
+        <option value="24h" data-i18n="settings.freqDaily">Diario</option>
       </select>
 
-      <label for="watchRegions">Regiones prioritarias</label>
-      <textarea id="watchRegions" rows="4" placeholder="Ejemplo: Oriente Medio, Mar Negro, Sahel"></textarea>
+      <label for="watchRegions" data-i18n="settings.watchRegions">Regiones prioritarias</label>
+      <textarea id="watchRegions" rows="4" data-i18n-placeholder="settings.regionsPlaceholder" placeholder="Ejemplo: Oriente Medio, Mar Negro, Sahel"></textarea>
 
-      <button class="btn btn-primary" id="saveBtn">Guardar configuración</button>
+      <button class="btn btn-primary" id="saveBtn" data-i18n="settings.save">Guardar configuración</button>
     </section>
 
     <section class="card card-glow form-card reveal-right">
-      <h2 class="section-title">Comportamiento del panel</h2>
-      <div class="toggle"><span>Auto-refresh páginas de monitoreo</span><input id="autoRefresh" type="checkbox"></div>
-      <div class="toggle"><span>Animaciones reducidas</span><input id="reduceMotion" type="checkbox"></div>
-      <div class="toggle"><span>Mostrar timestamps absolutos</span><input id="absoluteTime" type="checkbox"></div>
-      <div class="toggle"><span>Modo compacto en tablas</span><input id="compactTables" type="checkbox"></div>
+      <h2 class="section-title" data-i18n="settings.panelBehavior">Comportamiento del panel</h2>
+      <div class="toggle"><span data-i18n="settings.autoRefresh">Auto-refresh páginas de monitoreo</span><input id="autoRefresh" type="checkbox"></div>
+      <div class="toggle"><span data-i18n="settings.reduceMotion">Animaciones reducidas</span><input id="reduceMotion" type="checkbox"></div>
+      <div class="toggle"><span data-i18n="settings.absoluteTime">Mostrar timestamps absolutos</span><input id="absoluteTime" type="checkbox"></div>
+      <div class="toggle"><span data-i18n="settings.compactTables">Modo compacto en tablas</span><input id="compactTables" type="checkbox"></div>
 
-      <button class="btn" id="resetBtn">Restaurar valores</button>
+      <button class="btn" id="resetBtn" data-i18n="settings.reset">Restaurar valores</button>
 
-      <h3 style="margin:18px 0 10px;font-size:.9rem;font-weight:700">Estado rápido de API</h3>
-      <div id="apiStatus"><div class="loader"><div class="spin"></div>Comprobando...</div></div>
+      <h3 style="margin:18px 0 10px;font-size:.9rem;font-weight:700" data-i18n="settings.apiQuickStatus">Estado rápido de API</h3>
+      <div id="apiStatus"><div class="loader"><div class="spin"></div><span data-i18n="settings.checking">Comprobando...</span></div></div>
     </section>
   </div>
 </div>
 
 <div id="toast-root"></div>
+<script src="/i18n.js"></script>
 <script src="/nav.js"></script>
 <script>
 (function(){
@@ -129,8 +133,8 @@
     var panel = document.getElementById('apiStatus');
     var res = await fetchJSON('/api/status');
     panel.innerHTML = res
-      ? '<p style="color:var(--text-1);font-size:.82rem">&#x2705; API activa &middot; ' + (res.total_articles || 0) + ' artículos &middot; ' + (res.critical_alerts || 0) + ' alertas críticas</p>'
-      : '<p style="color:#ff646e;font-size:.82rem">&#x274C; API no disponible</p>';
+      ? '<p style="color:var(--text-1);font-size:.82rem">&#x2705; ' + i18n.t('settings.apiActive') + ' &middot; ' + (res.total_articles || 0) + ' ' + i18n.t('common.articles') + ' &middot; ' + (res.critical_alerts || 0) + ' ' + i18n.t('settings.criticalAlerts') + '</p>'
+      : '<p style="color:#ff646e;font-size:.82rem">&#x274C; ' + i18n.t('settings.apiUnavailable') + '</p>';
   }
 
   document.addEventListener('DOMContentLoaded', function(){
@@ -140,15 +144,16 @@
 
     document.getElementById('saveBtn').addEventListener('click', function(){
       writeSettings(collectForm());
-      showToast('Configuración guardada', 'success');
+      showToast(i18n.t('settings.saved'), 'success');
     });
 
     document.getElementById('resetBtn').addEventListener('click', function(){
       localStorage.removeItem(KEY);
       applyForm({});
-      showToast('Configuración restablecida', 'info');
+      showToast(i18n.t('settings.resetDone'), 'info');
     });
   });
+  window.addEventListener('langchange', function(){ i18n.apply(); checkApi(); });
 })();
 </script>
 </body>

@@ -153,6 +153,18 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .nav-brand:hover { transform: scale(1.03); }
 .brand-accent { color: var(--accent-2); }
 
+/* ── Language Toggle ── */
+.nav-actions { display: flex; align-items: center; gap: 8px; }
+.lang-toggle {
+  height: 32px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  background: transparent; color: var(--accent);
+  font-family: "Orbitron", sans-serif; font-size: .68rem; font-weight: 700;
+  letter-spacing: .1em; cursor: pointer;
+  transition: border-color .2s, background .2s, color .2s;
+}
+.lang-toggle:hover { border-color: var(--accent); background: rgba(78,161,255,.12); color: var(--text-0); }
+
 /* ── Hamburger ── */
 .hamburger {
   width: 40px; height: 40px;

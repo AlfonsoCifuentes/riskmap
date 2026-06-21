@@ -23,15 +23,18 @@ class handler(BaseHTTPRequestHandler):
             if event_id:
                 params['event_id'] = f'eq.{event_id}'
 
-            signals = neon_get(
-                'signals',
-                params=params,
-                select='id,signal_type,severity,title,'
-                       'description,latitude,longitude,created_at,'
-                       'event_id,detection_id,image_id',
-                order='created_at.desc',
-                limit=limit,
-            )
+            try:
+                signals = neon_get(
+                    'signals',
+                    params=params,
+                    select='id,signal_type,severity,title,'
+                           'description,latitude,longitude,created_at,'
+                           'event_id,detection_id,image_id',
+                    order='created_at.desc',
+                    limit=limit,
+                )
+            except Exception:
+                signals = []
 
             resp = json_response({'signals': signals, 'count': len(signals)})
             send_response(self, resp)

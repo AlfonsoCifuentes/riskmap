@@ -7,7 +7,7 @@ Deduplication: selects the latest article per (source, country) combination.
 
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
-from api._db import neon_get, json_response, error_response, send_response
+from api._db import neon_get, json_response, error_response, send_response, clean_articles
 from api._og_image import enrich_articles_with_images
 
 
@@ -16,17 +16,22 @@ class handler(BaseHTTPRequestHandler):
         try:
             qs = parse_qs(urlparse(self.path).query)
             limit = min(int(qs.get('limit', ['20'])[0]), 50)
+            lang = qs.get('lang', [None])[0]
             # hours param accepted but we just fetch recent articles ordered by date
             # True dedup would need DISTINCT ON which PostgREST doesn't support,
             # so we fetch more and deduplicate in Python.
 
             # Only fetch articles WITH images for the mosaic
+            params = {
+                'geopolitical_relevance': 'eq.1',
+                'image_url': 'not.is.null',
+            }
+            if lang and lang in ('es', 'en'):
+                params['language'] = f'eq.{lang}'
+
             articles = neon_get(
                 'unified_articles',
-                params={
-                    'geopolitical_relevance': 'eq.1',
-                    'image_url': 'not.is.null',
-                },
+                params=params,
                 select='id,title,summary,url,source,published_at,'
                        'country,region,risk_level,risk_score,'
                        'conflict_type,conflict_intensity,'
@@ -53,6 +58,9 @@ class handler(BaseHTTPRequestHandler):
 
             # Enrich articles missing images with og:image from source
             enrich_articles_with_images(mosaic)
+
+            # Strip HTML from text fields
+            clean_articles(mosaic)
 
             resp = json_response({
                 'success': True,

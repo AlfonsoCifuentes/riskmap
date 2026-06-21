@@ -14,6 +14,57 @@ from datetime import datetime, date
 
 
 # ---------------------------------------------------------------------------
+# HTML / text cleanup
+# ---------------------------------------------------------------------------
+
+_RE_TAGS = re.compile(r'<[^>]*?>|<[^>]*$', re.DOTALL)
+_RE_ENTITIES = re.compile(r'&(?:nbsp|amp|lt|gt|quot|#0?39|#x27|#\d{1,5});?', re.IGNORECASE)
+
+_ENTITY_MAP = {
+    'nbsp': ' ', 'amp': '&', 'lt': '<', 'gt': '>',
+    'quot': '"', '#039': "'", '#0039': "'", '#x27': "'",
+}
+
+
+def _decode_entity(m):
+    key = m.group(0).lstrip('&').rstrip(';').lower()
+    if key in _ENTITY_MAP:
+        return _ENTITY_MAP[key]
+    if key.startswith('#'):
+        try:
+            return chr(int(key[1:]))
+        except (ValueError, OverflowError):
+            pass
+    return m.group(0)
+
+
+def strip_html(text):
+    """Remove HTML tags (including truncated ones) and decode entities."""
+    if not text:
+        return text
+    s = str(text)
+    s = _RE_TAGS.sub('', s)
+    s = _RE_ENTITIES.sub(_decode_entity, s)
+    s = re.sub(r'\s+', ' ', s).strip()
+    return s
+
+
+def clean_article(article):
+    """Strip HTML from title, summary, content, and ai_summary fields."""
+    for field in ('title', 'summary', 'content', 'ai_summary'):
+        if field in article and article[field]:
+            article[field] = strip_html(article[field])
+    return article
+
+
+def clean_articles(articles):
+    """Strip HTML from a list of articles."""
+    for a in articles:
+        clean_article(a)
+    return articles
+
+
+# ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 

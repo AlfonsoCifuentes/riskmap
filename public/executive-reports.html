@@ -35,58 +35,62 @@
 
 <nav class="top-nav">
   <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="nav-actions">
+    <button class="lang-toggle" onclick="window.i18n&&i18n.toggle()" title="ES / EN">ES</button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
   <div class="nav-menu" id="navMenu">
-    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span><span data-i18n="nav.news">Análisis de Noticias</span></a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span><span data-i18n="nav.conflicts">Monitor de Conflictos</span></a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span><span data-i18n="nav.trends">Análisis de Tendencias</span></a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span><span data-i18n="nav.earlyWarning">Alertas Tempranas</span></a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span><span data-i18n="nav.reports">Reportes Ejecutivos</span></a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span><span data-i18n="nav.dataIntel">Inteligencia de Datos</span></a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span><span data-i18n="nav.satellite">Análisis Satelital</span></a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span><span data-i18n="nav.video">Vigilancia por Video</span></a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span><span data-i18n="nav.historical">Análisis Histórico</span></a>
     <div class="nav-divider"></div>
-    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span><span data-i18n="nav.about">Acerca de</span></a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span><span data-i18n="nav.logs">Registros</span></a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span><span data-i18n="nav.settings">Configuración</span></a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
 <header class="page-header reveal">
   <span class="page-icon">📋</span>
-  <h1>Informe Ejecutivo Dinámico</h1>
-  <p>Resumen estratégico generado con el estado actual de la plataforma, datos de conflicto, eventos y señales de riesgo.</p>
+  <h1 data-i18n="reports.title">Informe Ejecutivo Dinámico</h1>
+  <p data-i18n="reports.desc">Resumen estratégico generado con el estado actual de la plataforma, datos de conflicto, eventos y señales de riesgo.</p>
 </header>
 
 <div class="container">
   <div class="stats-row reveal stagger">
-    <div class="stat-card card-glow"><div class="stat-icon-lg">📰</div><div class="stat-val" id="kpiArticles">0</div><div class="stat-lbl">Artículos analizados</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">⚠️</div><div class="stat-val" id="kpiCritical">0</div><div class="stat-lbl">Alertas críticas</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">📡</div><div class="stat-val" id="kpiSignals">0</div><div class="stat-lbl">Signals activas</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">📌</div><div class="stat-val" id="kpiEvents">0</div><div class="stat-lbl">Eventos en seguimiento</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📰</div><div class="stat-val" id="kpiArticles">0</div><div class="stat-lbl" data-i18n="reports.kpiArticles">Artículos analizados</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">⚠️</div><div class="stat-val" id="kpiCritical">0</div><div class="stat-lbl" data-i18n="reports.kpiCritical">Alertas críticas</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📡</div><div class="stat-val" id="kpiSignals">0</div><div class="stat-lbl" data-i18n="reports.kpiSignals">Signals activas</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📌</div><div class="stat-val" id="kpiEvents">0</div><div class="stat-lbl" data-i18n="reports.kpiEvents">Eventos en seguimiento</div></div>
   </div>
 
   <div class="filter-bar">
-    <button class="btn btn-primary" id="refreshBtn">Actualizar informe</button>
-    <button class="btn" id="downloadBtn">Descargar .md</button>
+    <button class="btn btn-primary" id="refreshBtn" data-i18n="reports.refresh">Actualizar informe</button>
+    <button class="btn" id="downloadBtn" data-i18n="reports.download">Descargar .md</button>
   </div>
 
   <div class="report-shell">
     <section class="card card-glow reveal">
-      <h2 class="section-title">Narrativa Ejecutiva</h2>
-      <div class="report-body" id="reportBody">Cargando informe...</div>
+      <h2 class="section-title" data-i18n="reports.narrative">Narrativa Ejecutiva</h2>
+      <div class="report-body" id="reportBody" data-i18n="reports.loading">Cargando informe...</div>
     </section>
     <aside class="card reveal-right">
-      <h2 class="section-title">Focos prioritarios</h2>
+      <h2 class="section-title" data-i18n="reports.hotspots">Focos prioritarios</h2>
       <div class="quick-list" id="quickList"></div>
     </aside>
   </div>
 </div>
 
 <div id="toast-root"></div>
+<script src="/i18n.js"></script>
 <script src="/nav.js"></script>
 <script>
 (function(){
@@ -94,14 +98,14 @@
   var reportText = '';
 
   function buildReport(data){
-    var today = new Date().toLocaleString('es-ES');
+    var today = new Date().toLocaleString(i18n.getLang() === 'en' ? 'en-US' : 'es-ES');
     var status = data.status || {};
     var analytics = data.analytics || {};
     var events = data.events || [];
     var signals = data.signals || [];
     var conflicts = analytics.conflicts || [];
 
-    var topZones = conflicts.slice(0,5).map(function(z,i){return (i+1) + '. ' + z.location + ' (' + Math.round(z.avg_risk_score || 0) + '% · ' + (z.article_count || 0) + ' artículos)';}).join('\n') || 'Sin zonas críticas identificadas.';
+    var topZones = conflicts.slice(0,5).map(function(z,i){return (i+1) + '. ' + z.location + ' (' + Math.round(z.avg_risk_score || 0) + '% · ' + (z.article_count || 0) + ' ' + i18n.t('common.articles') + ')';}).join('\n') || i18n.t('reports.noHotspotsDesc');
 
     var narrative = [
       '# Executive Report — Riskmap A.I.',
@@ -134,11 +138,11 @@
     var el = document.getElementById('quickList');
     if (!el) return;
     if (!conflicts.length) {
-      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📌</div><h3>Sin focos</h3><p>No hay hotspots disponibles.</p></div>';
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📌</div><h3>' + i18n.t('reports.noHotspots') + '</h3><p>' + i18n.t('reports.noHotspotsDesc') + '</p></div>';
       return;
     }
     el.innerHTML = conflicts.slice(0,8).map(function(z){
-      return '<article class="quick-item"><h3>' + escH(z.location || 'Zona') + '</h3><p>' + Number(z.article_count || 0) + ' artículos · riesgo ' + Math.round(z.avg_risk_score || 0) + '%</p></article>';
+      return '<article class="quick-item"><h3>' + escH(z.location || i18n.t('conflicts.unknownZone')) + '</h3><p>' + Number(z.article_count || 0) + ' ' + i18n.t('common.articles') + ' · ' + i18n.t('common.risk').toLowerCase() + ' ' + Math.round(z.avg_risk_score || 0) + '%</p></article>';
     }).join('');
     if (window.initReveals) window.initReveals();
   }
@@ -195,6 +199,7 @@
     document.getElementById('refreshBtn').addEventListener('click', load);
     document.getElementById('downloadBtn').addEventListener('click', downloadReport);
   });
+  window.addEventListener('langchange', function(){ i18n.apply(); load(); });
 })();
 </script>
 </body>

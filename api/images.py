@@ -27,17 +27,20 @@ class handler(BaseHTTPRequestHandler):
             if source_type:
                 params['source_type'] = f'eq.{source_type}'
 
-            images = neon_get(
-                'images',
-                params=params,
-                select='id,source_type,source_url,'
-                       'latitude,longitude,captured_at,stored_at,'
-                       'image_format,image_width,image_height,'
-                       'image_size_kb,cloud_cover,resolution_m,'
-                       'aoi_id,event_id',
-                order='captured_at.desc',
-                limit=limit,
-            )
+            try:
+                images = neon_get(
+                    'images',
+                    params=params,
+                    select='id,source_type,source_url,'
+                           'latitude,longitude,captured_at,stored_at,'
+                           'image_format,image_width,image_height,'
+                           'image_size_kb,cloud_cover,resolution_m,'
+                           'aoi_id,event_id',
+                    order='captured_at.desc',
+                    limit=limit,
+                )
+            except Exception:
+                images = []
 
             resp = json_response({'images': images, 'count': len(images)})
             send_response(self, resp)

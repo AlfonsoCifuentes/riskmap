@@ -31,28 +31,56 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 CONFLICT_CLASSES = {
-    'truck', 'bus', 'car',  # potential military vehicles
-    'airplane', 'helicopter',  # military aircraft
-    'person',  # troops / combatants (in military context)
-    'boat',  # naval
+    # Vehicles that may be military (context-dependent)
+    'truck', 'bus', 'car', 'vehicle', 'military vehicle',
+    'airplane', 'helicopter', 'aircraft',
+    'person', 'boat', 'ship',
 }
 
 DISASTER_CLASSES = {
-    'fire', 'smoke',  # wildfire, explosion
-    'flood', 'water',  # flood detection
+    'fire', 'smoke', 'flood', 'water',
 }
 
-# Custom keywords for YOLO class names in fine-tuned models
+# Keywords in YOLO class names (standard or fine-tuned models)
 INDICATOR_KEYWORDS = [
-    'tank', 'military', 'weapon', 'missile', 'artillery', 'armored',
-    'destroyed', 'damage', 'explosion', 'rubble', 'crater',
-    'soldier', 'troop', 'uniform', 'barricade',
+    # Military hardware
+    'tank', 'apc', 'armored', 'armoured', 'military', 'combat',
+    'weapon', 'missile', 'rocket', 'artillery', 'cannon', 'gun',
+    'aircraft carrier', 'warship', 'fighter',
+    # Personnel
+    'soldier', 'troop', 'uniform', 'combatant', 'sniper', 'gunman',
+    # Destruction
+    'destroyed', 'damage', 'explosion', 'rubble', 'crater', 'debris',
+    'ruin', 'wreckage', 'collapse', 'bombed', 'shelled',
+    # Barriers / conflict infrastructure
+    'barricade', 'checkpoint', 'bunker', 'trench', 'fortification',
 ]
 
 SIGNAL_KEYWORDS = [
-    'fire', 'smoke', 'flood', 'debris', 'collapse', 'landslide',
-    'destruction', 'damage', 'ruin', 'wreckage',
+    'fire', 'smoke', 'column', 'plume', 'flood', 'debris', 'collapse',
+    'landslide', 'destruction', 'damage', 'ruin', 'wreckage', 'hazmat',
 ]
+
+# Groq Vision: what elements to detect in conflict imagery
+VISION_DETECTION_PROMPT = """\
+Analyse this satellite or news photograph for geopolitical / conflict / disaster indicators.
+List ONLY what you can clearly see. Reply in VALID JSON:
+{
+  "elements": [
+    "<element 1>",
+    "<element 2>"
+  ],
+  "conflict_indicators": ["tanks","troops","artillery","destroyed buildings","smoke columns",
+                           "missile launchers","military aircraft","warships","explosions",
+                           "trenches","armored vehicles","weapons","armed personnel"],
+  "disaster_signals": ["fire","smoke plume","flood","rubble","landslide","structural collapse"],
+  "refugee_displacement": true/false,
+  "is_conflict_scene": true/false,
+  "is_disaster_scene": true/false,
+  "primary_subject": "<one sentence>",
+  "confidence": 0.0-1.0
+}
+Only include keys that are relevant. Omit speculation."""
 
 
 def load_yolo_model():
@@ -64,6 +92,72 @@ def load_yolo_model():
         return model
     except Exception as e:
         logger.warning(f"YOLO load failed: {e}")
+        return None
+
+
+def describe_image_with_ai(image_data: bytes) -> Optional[Dict]:
+    """Use Groq Vision (llama-3.2-11b-vision-preview) to describe conflict/disaster elements.
+
+    Returns parsed JSON dict or None on failure.
+    This serves as a high-accuracy fallback when YOLO finds nothing or only generic objects.
+    """
+    api_key = os.getenv('GROQ_API_KEY', '')
+    if not api_key:
+        return None
+
+    import base64
+    import requests
+
+    # Encode image to base64
+    b64 = base64.b64encode(image_data).decode('utf-8')
+
+    # Detect MIME type from first bytes
+    if image_data[:3] == b'\xff\xd8\xff':
+        mime = 'image/jpeg'
+    elif image_data[:4] == b'\x89PNG':
+        mime = 'image/png'
+    elif image_data[:4] == b'RIFF' and image_data[8:12] == b'WEBP':
+        mime = 'image/webp'
+    else:
+        mime = 'image/jpeg'  # default
+
+    try:
+        resp = requests.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'model': 'llama-3.2-11b-vision-preview',
+                'messages': [
+                    {
+                        'role': 'user',
+                        'content': [
+                            {
+                                'type': 'image_url',
+                                'image_url': {
+                                    'url': f'data:{mime};base64,{b64}',
+                                    'detail': 'low',
+                                },
+                            },
+                            {
+                                'type': 'text',
+                                'text': VISION_DETECTION_PROMPT,
+                            },
+                        ],
+                    }
+                ],
+                'max_tokens': 300,
+                'temperature': 0.1,
+                'response_format': {'type': 'json_object'},
+            },
+            timeout=20,
+        )
+        content = resp.json()['choices'][0]['message']['content'].strip()
+        return json.loads(content)
+    except Exception as e:
+        logger.debug(f"Groq Vision failed: {e}")
         return None
 
 
@@ -144,17 +238,19 @@ def process_undetected_images():
 
     if not rows:
         logger.info("No unprocessed images found")
-        return
+        return 0
 
     logger.info(f"Processing {len(rows)} images…")
 
     model = load_yolo_model()
-    if not model:
-        logger.error("Cannot proceed without YOLO model")
-        return
+    # model may be None — we'll fall back to AI vision in that case
 
     detected_count = 0
     signal_count = 0
+    ai_vision_count = 0
+    # Rate-limit AI vision calls (Groq Vision has limited free quota)
+    ai_vision_used = 0
+    AI_VISION_MAX = 10  # max per pipeline run
 
     for row in rows:
         image_id = row['id']
@@ -166,7 +262,48 @@ def process_undetected_images():
         if isinstance(image_data, memoryview):
             image_data = bytes(image_data)
 
-        detections = run_detection_on_image(model, image_data)
+        detections = None
+        ai_desc = None
+        detector_name = 'yolov8n'
+
+        # Primary: YOLO detection
+        if model:
+            detections = run_detection_on_image(model, image_data)
+
+        # Determine if we need AI vision:
+        # - YOLO not available, OR
+        # - YOLO found only generic non-conflict objects and AI quota not exhausted
+        yolo_only_generic = (
+            detections is not None
+            and not any(
+                any(kw in d.get('class', '').lower() for kw in INDICATOR_KEYWORDS + SIGNAL_KEYWORDS)
+                for d in (detections or [])
+            )
+        )
+        use_ai_vision = (
+            (model is None or yolo_only_generic or not detections)
+            and ai_vision_used < AI_VISION_MAX
+        )
+
+        if use_ai_vision:
+            ai_desc = describe_image_with_ai(image_data)
+            if ai_desc:
+                ai_vision_used += 1
+                detector_name = 'yolov8n+groq_vision' if model else 'groq_vision'
+                # Convert AI description to detection-list format
+                ai_classes = (
+                    ai_desc.get('conflict_indicators', []) +
+                    ai_desc.get('disaster_signals', []) +
+                    ai_desc.get('elements', [])
+                )
+                ai_detections = [
+                    {'class': cls, 'score': float(ai_desc.get('confidence', 0.7)), 'bbox': []}
+                    for cls in ai_classes
+                ]
+                if ai_detections:
+                    detections = ai_detections  # replace or supplement YOLO
+                ai_vision_count += 1
+
         if detections is None:
             continue
 
@@ -177,34 +314,60 @@ def process_undetected_images():
                     (image_id, event_id, detector, detection_type,
                      classes_json, top_class, top_score, total_objects,
                      is_conflict, is_disaster)
-                    VALUES ({ph},{ph},'yolov8n','neutral',
+                    VALUES ({ph},{ph},{ph},'neutral',
                             '[]', NULL, 0, 0, 0, 0)""",
-                (image_id, row.get('event_id')),
+                (image_id, row.get('event_id'), detector_name),
             )
             continue
 
         # Classify
         is_conflict, is_disaster, detection_type = classify_detections(detections)
 
+        # Override with AI description flags if available
+        if ai_desc:
+            if ai_desc.get('is_conflict_scene'):
+                is_conflict = True
+                detection_type = 'indicator'
+            if ai_desc.get('is_disaster_scene'):
+                is_disaster = True
+                if not is_conflict:
+                    detection_type = 'signal'
+            if ai_desc.get('refugee_displacement'):
+                is_conflict = True
+                detection_type = 'indicator'
+
         # Sort by score desc
-        detections.sort(key=lambda x: x['score'], reverse=True)
-        top_class = detections[0]['class']
-        top_score = detections[0]['score']
+        detections_with_score = [d for d in detections if d.get('score', 0) > 0]
+        if detections_with_score:
+            detections_with_score.sort(key=lambda x: x['score'], reverse=True)
+            top_class = detections_with_score[0]['class']
+            top_score = detections_with_score[0]['score']
+        else:
+            top_class = detections[0]['class']
+            top_score = float(ai_desc.get('confidence', 0.5)) if ai_desc else 0.5
+
+        # Build explanation
+        ai_primary = ai_desc.get('primary_subject', '') if ai_desc else ''
+        explanation = (
+            f"{'[AI+YOLO]' if ai_desc else '[YOLO]'} "
+            f"Detected {len(detections)} objects: {', '.join(d['class'] for d in detections[:5])}."
+            + (f" AI: {ai_primary}" if ai_primary else '')
+        )
 
         db.execute(
             f"""INSERT INTO detections
                 (image_id, event_id, detector, detection_type,
                  classes_json, top_class, top_score, total_objects,
                  is_conflict, is_disaster, explanation)
-                VALUES ({ph},{ph},'yolov8n',{ph},
+                VALUES ({ph},{ph},{ph},{ph},
                         {ph},{ph},{ph},{ph},{ph},{ph},{ph})""",
             (
-                image_id, row.get('event_id'), detection_type,
+                image_id, row.get('event_id'), detector_name, detection_type,
                 json.dumps(detections), top_class, top_score,
                 len(detections),
                 1 if is_conflict else 0,
                 1 if is_disaster else 0,
-                f"Detected {len(detections)} objects: {', '.join(d['class'] for d in detections[:5])}",
+                explanation,
             ),
         )
         detected_count += 1
@@ -229,16 +392,19 @@ def process_undetected_images():
                     row.get('event_id'), detection_id, image_id,
                     signal_type, severity,
                     f"{detection_type.title()}: {top_class} detected",
-                    f"YOLOv8 detected {len(detections)} objects. "
+                    f"{detector_name} detected {len(detections)} objects. "
                     f"Top: {top_class} ({top_score:.0%}). "
-                    f"{'⚔️ Conflict' if is_conflict else '🌪️ Disaster'} signal.",
+                    f"{'⚔️ Conflict' if is_conflict else '🌪️ Disaster'} signal."
+                    + (f" {ai_desc.get('primary_subject', '')}" if ai_desc else ''),
                     row.get('latitude'), row.get('longitude'),
                 ),
             )
             signal_count += 1
 
     logger.info(f"✅ Processed {len(rows)} images: "
-                f"{detected_count} with objects, {signal_count} signals generated")
+                f"{detected_count} with objects, {signal_count} signals generated, "
+                f"{ai_vision_count} AI-vision analyses")
+    return detected_count
 
 
 def main():

@@ -28,24 +28,30 @@ class handler(BaseHTTPRequestHandler):
                 limit=limit,
             )
 
-            # Event locations
-            event_locs = neon_get(
-                'event_locations',
-                select='latitude,longitude,event_id',
-                limit=200,
-            )
+            event_locs = []
+            try:
+                event_locs = neon_get(
+                    'event_locations',
+                    select='latitude,longitude,event_id',
+                    limit=200,
+                )
+            except Exception:
+                pass
 
-            # Signals
-            signals = neon_get(
-                'signals',
-                params={
-                    'latitude': 'not.is.null',
-                    'longitude': 'not.is.null',
-                },
-                select='latitude,longitude,severity,signal_type',
-                order='created_at.desc',
-                limit=200,
-            )
+            signals = []
+            try:
+                signals = neon_get(
+                    'signals',
+                    params={
+                        'latitude': 'not.is.null',
+                        'longitude': 'not.is.null',
+                    },
+                    select='latitude,longitude,severity,signal_type',
+                    order='created_at.desc',
+                    limit=200,
+                )
+            except Exception:
+                pass
 
             points = []
             for a in articles:

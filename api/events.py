@@ -21,24 +21,29 @@ class handler(BaseHTTPRequestHandler):
             if event_type:
                 params['event_type'] = f'eq.{event_type}'
 
-            events = neon_get(
-                'events',
-                params=params,
-                select='id,event_type,subtype,title,severity,'
-                       'started_at,ended_at,explanation',
-                order='last_updated.desc',
-                limit=limit,
-            )
+            try:
+                events = neon_get(
+                    'events',
+                    params=params,
+                    select='id,event_type,subtype,title,severity,'
+                           'started_at,ended_at,explanation',
+                    order='last_updated.desc',
+                    limit=limit,
+                )
+            except Exception:
+                events = []
 
             # Fetch locations for each event
             if events:
-                event_ids = [e['id'] for e in events]
                 for ev in events:
-                    locs = neon_get(
-                        'event_locations',
-                        params={'event_id': f'eq.{ev["id"]}'},
-                        select='latitude,longitude,name,precision_km',
-                    )
+                    try:
+                        locs = neon_get(
+                            'event_locations',
+                            params={'event_id': f'eq.{ev["id"]}'},
+                            select='latitude,longitude,name,precision_km',
+                        )
+                    except Exception:
+                        locs = []
                     ev['locations'] = locs
 
             resp = json_response({'success': True, 'events': events, 'count': len(events)})
