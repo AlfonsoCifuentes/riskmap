@@ -5,7 +5,7 @@ Operational counters for end-to-end data pipeline stages.
 
 from http.server import BaseHTTPRequestHandler
 
-from api._db import neon_sql, json_response, error_response, send_response
+from api._db import neon_sql, json_response, error_response, send_response, error_from_exc
 
 
 class handler(BaseHTTPRequestHandler):
@@ -69,4 +69,4 @@ class handler(BaseHTTPRequestHandler):
             }
             send_response(self, json_response(payload))
         except Exception as exc:
-            send_response(self, error_response(str(exc)))
+            send_response(self, error_from_exc(exc))

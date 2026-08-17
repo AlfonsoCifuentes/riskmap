@@ -119,68 +119,115 @@ def _neon_headers():
     return headers
 
 
+# ---------------------------------------------------------------------------
+# Safe query builder
+# ---------------------------------------------------------------------------
+#
+# SECURITY: every SQL identifier (table / column) is validated against a strict
+# lowercase-identifier regex, and every user-supplied *value* is passed to the
+# driver as a bound parameter (%s), never interpolated into the SQL string.
+# This closes the SQL-injection vector documented in the audit addendum (B1).
+
+class BadRequest(ValueError):
+    """Raised when a request references an invalid identifier or operator.
+
+    API handlers should map this to HTTP 400 (not 500)."""
+
+
+_IDENT_RE = re.compile(r'^[a-z_][a-z0-9_]*$')
+
+# PostgREST-style operator -> SQL operator. Anything not here is rejected.
+_OP_MAP = {
+    'eq': '=', 'neq': '!=', 'gt': '>', 'gte': '>=',
+    'lt': '<', 'lte': '<=', 'like': 'LIKE', 'ilike': 'ILIKE',
+}
+
+
+def _ident(name: str) -> str:
+    """Validate a single SQL identifier (table or column). Returns it unchanged."""
+    if not isinstance(name, str) or not _IDENT_RE.match(name):
+        raise BadRequest(f"invalid identifier: {name!r}")
+    return name
+
+
 def neon_get(table: str, params: dict = None, select: str = '*',
              order: str = None, limit: int = None, offset: int = None) -> list:
     """
-    Query a table. Uses PostgREST if configured, otherwise builds SQL
-    and queries via direct Postgres connection (psycopg2).
+    Query a table safely. Uses PostgREST if configured, otherwise builds a
+    parameterized SQL query and runs it via a direct Postgres connection.
+
+    Identifiers (table/columns/order columns) are validated; all filter values
+    are bound as parameters. Raises BadRequest (-> HTTP 400) on invalid input.
     """
     if _USE_POSTGREST:
         return _postgrest_get(table, params, select, order, limit, offset)
 
-    # Build SQL query from PostgREST-style params
-    columns = select if select != '*' else '*'
-    sql = f"SELECT {columns} FROM {table}"
+    table = _ident(table)
 
+    # --- SELECT columns (validated identifiers only) ---
+    if select and select != '*':
+        cols = [_ident(c.strip()) for c in select.split(',') if c.strip()]
+        columns = ', '.join(cols) if cols else '*'
+    else:
+        columns = '*'
+
+    sql = f"SELECT {columns} FROM {table}"
+    values: list = []
+
+    # --- WHERE clauses: identifiers validated, values bound ---
     where_clauses = []
     if params:
         for col, expr in params.items():
-            # Handle PostgREST IS NULL / IS NOT NULL operators
+            col = _ident(col)
             if expr == 'is.null':
                 where_clauses.append(f"{col} IS NULL")
             elif expr == 'not.is.null':
                 where_clauses.append(f"{col} IS NOT NULL")
-            elif '.' in expr:
-                # Parse PostgREST operators: eq.val, gte.val, etc.
+            elif isinstance(expr, str) and '.' in expr:
                 op, val = expr.split('.', 1)
-                op_map = {
-                    'eq': '=', 'neq': '!=', 'gt': '>', 'gte': '>=',
-                    'lt': '<', 'lte': '<=', 'like': 'LIKE', 'ilike': 'ILIKE',
-                }
-                sql_op = op_map.get(op, '=')
-                where_clauses.append(f"{col} {sql_op} '{val}'")
+                if op not in _OP_MAP:
+                    raise BadRequest(f"invalid operator: {op!r}")
+                where_clauses.append(f"{col} {_OP_MAP[op]} %s")
+                values.append(val)
             else:
-                where_clauses.append(f"{col} = '{expr}'")
+                where_clauses.append(f"{col} = %s")
+                values.append(expr)
 
     if where_clauses:
         sql += " WHERE " + " AND ".join(where_clauses)
 
+    # --- ORDER BY: column identifiers validated, direction from fixed set ---
     if order:
-        # Convert PostgREST order: "published_at.desc.nullslast" → "published_at DESC NULLS LAST"
         order_parts = []
         for part in order.split(','):
             tokens = part.strip().split('.')
-            col_name = tokens[0]
+            col_name = _ident(tokens[0])
             direction = 'ASC'
             nulls = ''
             for t in tokens[1:]:
-                if t.lower() == 'desc':
+                tl = t.lower()
+                if tl == 'desc':
                     direction = 'DESC'
-                elif t.lower() == 'asc':
+                elif tl == 'asc':
                     direction = 'ASC'
-                elif t.lower() == 'nullslast':
+                elif tl == 'nullslast':
                     nulls = ' NULLS LAST'
-                elif t.lower() == 'nullsfirst':
+                elif tl == 'nullsfirst':
                     nulls = ' NULLS FIRST'
+                else:
+                    raise BadRequest(f"invalid order token: {t!r}")
             order_parts.append(f"{col_name} {direction}{nulls}")
         sql += " ORDER BY " + ", ".join(order_parts)
 
-    if limit:
-        sql += f" LIMIT {int(limit)}"
+    # --- LIMIT / OFFSET: bound integers ---
+    if limit is not None:
+        sql += " LIMIT %s"
+        values.append(int(limit))
     if offset:
-        sql += f" OFFSET {int(offset)}"
+        sql += " OFFSET %s"
+        values.append(int(offset))
 
-    return _pg_query(sql)
+    return _pg_query(sql, tuple(values) if values else None)
 
 
 def _postgrest_get(table, params, select, order, limit, offset):
@@ -266,6 +313,28 @@ def json_response(data, status=200):
 
 def error_response(message, status=500):
     return json_response({'error': message}, status)
+
+
+def error_from_exc(exc):
+    """Map an exception to a safe HTTP response.
+
+    SECURITY: never leak internal detail (SQL, driver messages, stack traces)
+    to the client. BadRequest -> 400 with a generic 'invalid request'; anything
+    else -> 500 with a generic message. Full detail is logged server-side with a
+    correlation id the client can quote when reporting a problem (addendum B3).
+    """
+    import logging
+    import uuid
+    correlation_id = uuid.uuid4().hex[:12]
+    if isinstance(exc, BadRequest):
+        logging.getLogger('riskmap.api').warning(
+            "bad request [%s]: %s", correlation_id, exc)
+        return json_response(
+            {'error': 'invalid request parameters', 'ref': correlation_id}, 400)
+    logging.getLogger('riskmap.api').exception(
+        "unhandled error [%s]", correlation_id)
+    return json_response(
+        {'error': 'internal server error', 'ref': correlation_id}, 500)
 
 
 def send_response(handler, resp):

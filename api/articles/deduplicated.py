@@ -7,7 +7,7 @@ Deduplication: selects the latest article per (source, country) combination.
 
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
-from api._db import neon_get, json_response, error_response, send_response, clean_articles
+from api._db import neon_get, json_response, error_response, send_response, clean_articles, error_from_exc
 from api._og_image import enrich_articles_with_images
 
 
@@ -71,4 +71,4 @@ class handler(BaseHTTPRequestHandler):
             send_response(self, resp)
 
         except Exception as e:
-            send_response(self, error_response(str(e)))
+            send_response(self, error_from_exc(e))

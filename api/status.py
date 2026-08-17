@@ -6,7 +6,7 @@ Returns fields that the dashboard JS expects:
 """
 
 from http.server import BaseHTTPRequestHandler
-from api._db import neon_sql, json_response, error_response, send_response
+from api._db import neon_sql, json_response, error_response, send_response, error_from_exc
 from datetime import datetime
 
 
@@ -36,4 +36,4 @@ class handler(BaseHTTPRequestHandler):
             send_response(self, resp)
 
         except Exception as e:
-            send_response(self, error_response(str(e)))
+            send_response(self, error_from_exc(e))
