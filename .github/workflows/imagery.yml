@@ -16,6 +16,7 @@ env:
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
   COPERNICUS_CLIENT_ID: ${{ secrets.COPERNICUS_CLIENT_ID }}
   COPERNICUS_CLIENT_SECRET: ${{ secrets.COPERNICUS_CLIENT_SECRET }}
+  NASA_FIRMS_MAP_KEY: ${{ secrets.NASA_FIRMS_MAP_KEY }}
 
 jobs:
   imagery:
