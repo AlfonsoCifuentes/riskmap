@@ -61,23 +61,23 @@ class UnifiedAIService:
         # Configuración de modelos por tarea
         self.task_models = {
             TaskType.ANALYSIS: {
-                AIProvider.GROQ: "llama-3.1-8b-instant",
+                AIProvider.GROQ: "openai/gpt-oss-20b",
                 AIProvider.OLLAMA: OllamaModel.DEEPSEEK_R1_7B  # DeepSeek para análisis profundo
             },
             TaskType.GENERATION: {
-                AIProvider.GROQ: "llama-3.1-8b-instant", 
+                AIProvider.GROQ: "openai/gpt-oss-20b", 
                 AIProvider.OLLAMA: OllamaModel.LLAMA3_1_8B
             },
             TaskType.SUMMARIZATION: {
-                AIProvider.GROQ: "llama-3.1-8b-instant",
+                AIProvider.GROQ: "openai/gpt-oss-20b",
                 AIProvider.OLLAMA: OllamaModel.GEMMA2_2B  # Gemma para resúmenes rápidos
             },
             TaskType.TRANSLATION: {
-                AIProvider.GROQ: "llama-3.1-8b-instant",
+                AIProvider.GROQ: "openai/gpt-oss-20b",
                 AIProvider.OLLAMA: OllamaModel.QWEN_7B  # Qwen para multiidioma
             },
             TaskType.CLASSIFICATION: {
-                AIProvider.GROQ: "llama-3.1-8b-instant",
+                AIProvider.GROQ: "openai/gpt-oss-20b",
                 AIProvider.OLLAMA: OllamaModel.GEMMA2_9B  # Gemma avanzado para clasificación
             }
         }

@@ -194,7 +194,7 @@ def enhance_article_with_fallback(content: str, title: str = "") -> Dict[str, An
     client = Groq(api_key=os.getenv('GROQ_API_KEY'))
     
     response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="openai/gpt-oss-20b",
         messages=[
             {"role": "system", "content": "Analiza el contenido y proporciona análisis geopolítico."},
             {"role": "user", "content": f"Título: {title}\nContenido: {content}"}
@@ -206,7 +206,7 @@ def enhance_article_with_fallback(content: str, title: str = "") -> Dict[str, An
     return {
         "summary": response.choices[0].message.content.strip(),
         "provider": "groq",
-        "model": "llama-3.1-8b-instant"
+        "model": "openai/gpt-oss-20b"
     }
 
 if __name__ == "__main__":

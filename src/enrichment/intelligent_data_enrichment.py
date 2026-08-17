@@ -88,7 +88,7 @@ class EnrichmentConfig:
     sentiment_model_name: str = "cardiffnlp/twitter-roberta-base-sentiment-latest"
     embedding_model_name: str = "thenlper/gte-small"
     yolo_model_path: str = "yolov8n.pt"
-    groq_model: str = "llama-3.1-8b-instant"
+    groq_model: str = "openai/gpt-oss-20b"
     
     # Configuración de procesamiento - OPTIMIZADO PARA ARTÍCULOS NUEVOS
     batch_size: int = 5  # Reducido para procesamiento más rápido

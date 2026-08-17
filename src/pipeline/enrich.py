@@ -21,6 +21,7 @@ from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+from src.ai.model_registry import get_model
 from src.database.connection import get_db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [ENRICH] %(message)s")
@@ -287,7 +288,7 @@ def extract_event_location_ai(title: str, content: str) -> Dict:
                 'Content-Type': 'application/json',
             },
             json={
-                'model': 'llama-3.1-8b-instant',
+                'model': get_model('geocoding_assist'),
                 'messages': [
                     {
                         'role': 'system',
@@ -340,7 +341,7 @@ def enrich_with_ai(title: str, content: str) -> Optional[str]:
                 'Content-Type': 'application/json',
             },
             json={
-                'model': 'llama-3.1-70b-versatile',
+                'model': get_model('summarization'),
                 'messages': [
                     {'role': 'system', 'content': (
                         'You are a geopolitical analyst. Provide a 2-sentence summary '
@@ -600,7 +601,7 @@ def _translate_via_groq(title: str, summary: str, api_key: str):
                 'Content-Type': 'application/json',
             },
             json={
-                'model': 'llama-3.1-8b-instant',
+                'model': get_model('translation'),
                 'messages': [
                     {'role': 'system', 'content': (
                         'You are a professional translator. Translate to Spanish.\n'

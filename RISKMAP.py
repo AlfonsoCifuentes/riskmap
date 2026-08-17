@@ -2233,7 +2233,7 @@ class RiskMapUnifiedApplication:
                             "content": "Responde brevemente: ¿Funciona la API de Groq?"
                         }
                     ],
-                    model="llama-3.1-8b-instant",
+                    model="openai/gpt-oss-20b",
                     max_tokens=50
                 )
                 
@@ -2796,7 +2796,7 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                                 {"role": "system", "content": "Eres un analista geopolítico experto que genera descripciones precisas y concisas."},
                                 {"role": "user", "content": prompt}
                             ],
-                            model="llama-3.1-70b-versatile",
+                            model="openai/gpt-oss-120b",
                             max_tokens=200,
                             temperature=0.3
                         )
@@ -11804,7 +11804,7 @@ Artículo {i+1}:
                         "content": optimized_prompt
                     }
                 ],
-                model="llama-3.1-8b-instant",
+                model="openai/gpt-oss-20b",
                 temperature=0.75,
                 max_tokens=2000
             )
@@ -11887,7 +11887,7 @@ Artículo {i+1}:
                         "content": prompt
                     }
                 ],
-                model="llama-3.1-8b-instant",
+                model="openai/gpt-oss-20b",
                 temperature=0.75,
                 max_tokens=3000,
                 response_format={"type": "json_object"}

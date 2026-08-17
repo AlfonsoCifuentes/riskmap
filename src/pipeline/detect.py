@@ -21,6 +21,7 @@ from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+from src.ai.model_registry import get_model
 from src.database.connection import get_db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [CV-DETECT] %(message)s")
@@ -96,11 +97,22 @@ def load_yolo_model():
 
 
 def describe_image_with_ai(image_data: bytes) -> Optional[Dict]:
-    """Use Groq Vision (llama-3.2-11b-vision-preview) to describe conflict/disaster elements.
+    """Optional VLM triage of an image via the model configured for the
+    'vision' task in the model registry.
 
-    Returns parsed JSON dict or None on failure.
-    This serves as a high-accuracy fallback when YOLO finds nothing or only generic objects.
+    Returns parsed JSON dict, or None if unavailable. This is a *triage* aid,
+    never a calibrated detector: its output must be stored as ``vlm_assessment``
+    and kept separate from validated detector output (spec §11).
+
+    Disabled by default: Groq currently exposes no production vision LLM, so
+    ``get_model('vision')`` is empty unless the operator sets
+    ``RISKMAP_MODEL_VISION`` to a model they have verified. When disabled we
+    return None (DEGRADED), never a fabricated result.
     """
+    model = get_model('vision')
+    if not model:
+        return None
+
     api_key = os.getenv('GROQ_API_KEY', '')
     if not api_key:
         return None
@@ -129,7 +141,7 @@ def describe_image_with_ai(image_data: bytes) -> Optional[Dict]:
                 'Content-Type': 'application/json',
             },
             json={
-                'model': 'llama-3.2-11b-vision-preview',
+                'model': model,
                 'messages': [
                     {
                         'role': 'user',

@@ -616,7 +616,7 @@ class IntegratedGeopoliticalAnalyzer:
             
             response = self.groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model="llama-3.1-8b-instant",
+                model="openai/gpt-oss-20b",
                 max_tokens=200,
                 temperature=0.3
             )
