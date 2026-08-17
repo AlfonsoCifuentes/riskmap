@@ -1,0 +1,16 @@
+# Gitleaks configuration for RiskMap.
+# Extends the default ruleset. The allowlist covers the sanitized template
+# placeholders so the empty-value example never trips the scanner.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Sanitized template files and docs"
+paths = [
+    '''\.env\.example$''',
+    '''docs/adr/ADR-007-secret-history-purge\.md$''',
+]
+# Only allow EMPTY assignments in the template (KEY= with nothing after it).
+regexes = [
+    '''^[A-Z0-9_]+=\s*$''',
+]
