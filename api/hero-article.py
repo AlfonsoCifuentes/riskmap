@@ -14,7 +14,8 @@ Fetches top 10 candidates and picks the best one with a valid image.
 """
 
 from http.server import BaseHTTPRequestHandler
-from api._db import neon_get, json_response, error_response, send_response
+from urllib.parse import parse_qs, urlparse
+from api._db import neon_get, json_response, error_response, send_response, clean_article
 from api._og_image import enrich_articles_with_images
 
 _SELECT_COLS = (
@@ -44,13 +45,20 @@ def _is_valid_hero(article):
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
+            qs = parse_qs(urlparse(self.path).query)
+            lang = qs.get('lang', [None])[0]
+
+            params = {
+                'geopolitical_relevance': 'eq.1',
+                'image_url': 'not.is.null',
+            }
+            if lang and lang in ('es', 'en'):
+                params['language'] = f'eq.{lang}'
+
             # Fetch top 10 candidates: high importance + valid image + real source
             articles = neon_get(
                 'unified_articles',
-                params={
-                    'geopolitical_relevance': 'eq.1',
-                    'image_url': 'not.is.null',
-                },
+                params=params,
                 select=_SELECT_COLS,
                 order='risk_score.desc.nullslast,published_at.desc',
                 limit=10,
@@ -84,6 +92,7 @@ class handler(BaseHTTPRequestHandler):
                         hero = articles[0]
 
             if hero:
+                clean_article(hero)
                 resp = json_response({
                     'success': True,
                     'article': hero,

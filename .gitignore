@@ -139,3 +139,5 @@ temp_military_*.jpg
 .qodo/
 .agents/
 _vscode/
+
+.vercel

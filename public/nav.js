@@ -201,6 +201,21 @@
       .replace(/"/g, "&quot;");
   };
 
+  /** Strip HTML tags from text (RSS/GDELT content cleanup) */
+  window.stripHtml = function (s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/<[^>]*?>|<[^>]*$/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#0?39;/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
   /** Toast notification */
   window.showToast = function (msg, type, duration) {
     var t = type || "info";
@@ -251,27 +266,30 @@
     requestAnimationFrame(frame);
   };
 
-  /** Relative time in Spanish */
+  /** Relative time — language-aware */
   window.timeAgo = function (dateLike) {
-    if (!dateLike) return "N/D";
+    var _t = window.i18n ? window.i18n.t : function (k) { return k; };
+    if (!dateLike) return _t('common.na');
     var dt = new Date(dateLike);
-    if (Number.isNaN(dt.getTime())) return "N/D";
+    if (Number.isNaN(dt.getTime())) return _t('common.na');
     var sec = Math.max(0, Math.floor((Date.now() - dt.getTime()) / 1000));
-    if (sec < 60) return "Ahora";
+    if (sec < 60) return _t('common.now');
     if (sec < 3600) return Math.floor(sec / 60) + "m";
     if (sec < 86400) return Math.floor(sec / 3600) + "h";
     if (sec < 604800) return Math.floor(sec / 86400) + "d";
-    return dt.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
+    var locale = (window.i18n && window.i18n.getLang() === 'en') ? 'en-US' : 'es-ES';
+    return dt.toLocaleDateString(locale, { day: "2-digit", month: "short" });
   };
 
-  /** Risk level badge HTML */
+  /** Risk level badge HTML — language-aware */
   window.riskBadge = function (riskLevel) {
+    var _t = window.i18n ? window.i18n.t : function (k) { return k; };
     var r = (riskLevel || "unknown").toLowerCase();
-    if (r === "critical") return '<span class="badge badge-critical">Crítico</span>';
-    if (r === "high") return '<span class="badge badge-high">Alto</span>';
-    if (r === "medium") return '<span class="badge badge-medium">Medio</span>';
-    if (r === "low") return '<span class="badge badge-low">Bajo</span>';
-    return '<span class="badge badge-unknown">Sin clasificar</span>';
+    if (r === "critical") return '<span class="badge badge-critical">' + _t('risk.critical') + '</span>';
+    if (r === "high") return '<span class="badge badge-high">' + _t('risk.high') + '</span>';
+    if (r === "medium") return '<span class="badge badge-medium">' + _t('risk.medium') + '</span>';
+    if (r === "low") return '<span class="badge badge-low">' + _t('risk.low') + '</span>';
+    return '<span class="badge badge-unknown">' + _t('risk.unknown') + '</span>';
   };
 
   /** Re-init scroll reveals (call after dynamic content insertion) */

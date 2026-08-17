@@ -687,7 +687,7 @@ class ConflictIndicatorAnalyzer:
                 try:
                     indicators = json.loads(row[0])
                     common_indicators.append({'indicators': indicators, 'frequency': row[1]})
-                except:
+                except Exception:
                     pass
             
             conn.close()

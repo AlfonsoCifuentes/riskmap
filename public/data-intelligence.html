@@ -33,85 +33,89 @@
 
 <nav class="top-nav">
   <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="nav-actions">
+    <button class="lang-toggle" onclick="window.i18n&&i18n.toggle()" title="ES / EN">ES</button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
   <div class="nav-menu" id="navMenu">
-    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span><span data-i18n="nav.news">Análisis de Noticias</span></a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span><span data-i18n="nav.conflicts">Monitor de Conflictos</span></a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span><span data-i18n="nav.trends">Análisis de Tendencias</span></a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span><span data-i18n="nav.earlyWarning">Alertas Tempranas</span></a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span><span data-i18n="nav.reports">Reportes Ejecutivos</span></a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span><span data-i18n="nav.dataIntel">Inteligencia de Datos</span></a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span><span data-i18n="nav.satellite">Análisis Satelital</span></a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span><span data-i18n="nav.video">Vigilancia por Video</span></a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span><span data-i18n="nav.historical">Análisis Histórico</span></a>
     <div class="nav-divider"></div>
-    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span><span data-i18n="nav.about">Acerca de</span></a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span><span data-i18n="nav.logs">Registros</span></a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span><span data-i18n="nav.settings">Configuración</span></a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
 <header class="page-header reveal">
   <span class="page-icon">🧠</span>
-  <h1>Orquestación de Data Intelligence</h1>
-  <p>Vista integral del flujo operativo: ingesta, filtrado, curación, reescritura, georreferenciación, contraste con eventos y análisis por visión computacional.</p>
+  <h1 data-i18n="dataIntel.title">Orquestación de Data Intelligence</h1>
+  <p data-i18n="dataIntel.desc">Vista integral del flujo operativo: ingesta, filtrado, curación, reescritura, georreferenciación, contraste con eventos y análisis por visión computacional.</p>
 </header>
 
 <div class="container">
   <div class="stats-row reveal stagger">
-    <div class="stat-card card-glow"><div class="stat-icon-lg">📥</div><div class="stat-val" id="kpiIngest">0</div><div class="stat-lbl">Ingesta total</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">🧪</div><div class="stat-val" id="kpiFiltered">0</div><div class="stat-lbl">Filtrado geopolítico</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">🗺️</div><div class="stat-val" id="kpiHeat">0</div><div class="stat-lbl">Puntos heatmap</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">👁️</div><div class="stat-val" id="kpiVision">0</div><div class="stat-lbl">Evidencia visual</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📥</div><div class="stat-val" id="kpiIngest">0</div><div class="stat-lbl" data-i18n="dataIntel.kpiIngest">Ingesta total</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🧪</div><div class="stat-val" id="kpiFiltered">0</div><div class="stat-lbl" data-i18n="dataIntel.kpiFiltered">Filtrado geopolítico</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🗺️</div><div class="stat-val" id="kpiHeat">0</div><div class="stat-lbl" data-i18n="dataIntel.kpiHeat">Puntos heatmap</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">👁️</div><div class="stat-val" id="kpiVision">0</div><div class="stat-lbl" data-i18n="dataIntel.kpiVision">Evidencia visual</div></div>
   </div>
 
-  <h2 class="section-title reveal">Pipeline end-to-end</h2>
+  <h2 class="section-title reveal" data-i18n="dataIntel.pipeline">Pipeline end-to-end</h2>
   <div class="pipeline-grid reveal stagger" id="pipelineGrid"></div>
 
   <div class="intel-grid">
     <section class="card reveal">
-      <h2 class="section-title">Validación de fuentes</h2>
+      <h2 class="section-title" data-i18n="dataIntel.sourceValidation">Validación de fuentes</h2>
       <table class="data-table">
-        <thead><tr><th>Fuente</th><th>Artículos</th><th>Estado</th></tr></thead>
+        <thead><tr><th data-i18n="dataIntel.thSource">Fuente</th><th data-i18n="dataIntel.thArticles">Artículos</th><th data-i18n="dataIntel.thStatus">Estado</th></tr></thead>
         <tbody id="sourcesTable"></tbody>
       </table>
     </section>
     <section class="card reveal-right">
-      <h2 class="section-title">Eventos operativos recientes</h2>
-      <div id="eventsPanel"><div class="loader"><div class="spin"></div>Cargando...</div></div>
+      <h2 class="section-title" data-i18n="dataIntel.recentEvents">Eventos operativos recientes</h2>
+      <div id="eventsPanel"><div class="loader"><div class="spin"></div><span data-i18n="common.loading">Cargando...</span></div></div>
     </section>
   </div>
 </div>
 
 <div id="toast-root"></div>
+<script src="/i18n.js"></script>
 <script src="/nav.js"></script>
 <script>
 (function(){
   'use strict';
 
   function statusDot(n){
-    if (n > 0) return '<span class="status-dot ok"></span>Activo';
-    return '<span class="status-dot off"></span>Sin datos';
+    if (n > 0) return '<span class="status-dot ok"></span>' + i18n.t('common.active');
+    return '<span class="status-dot off"></span>' + i18n.t('common.noDataShort');
   }
 
   function renderPipeline(metrics){
     var steps = [
-      ['1. Ingesta multi-medio', metrics.ingest, 'Noticias incorporadas desde fuentes RSS/API.'],
-      ['2. Filtrado geopolítico', metrics.filtered, 'Artículos relevantes retenidos por el clasificador.'],
-      ['3. Curación editorial', metrics.curated, 'Deduplicación y priorización de contenido.'],
-      ['4. Reescritura IA', metrics.rewritten, 'Artículos con resumen IA / síntesis estructurada.'],
-      ['5. Mapa de calor', metrics.heat, 'Puntos geográficos para monitorización cartográfica.'],
-      ['6. Contraste eventos', metrics.events, 'Eventos correlacionados en la base operacional.'],
-      ['7. Dashboards analíticos', metrics.zones, 'Zonas activas para explotación analítica.'],
-      ['8. Computer Vision', metrics.vision, 'Signals e imágenes para validación visual.']
+      [i18n.t('dataIntel.step1'), metrics.ingest, i18n.t('dataIntel.step1Desc')],
+      [i18n.t('dataIntel.step2'), metrics.filtered, i18n.t('dataIntel.step2Desc')],
+      [i18n.t('dataIntel.step3'), metrics.curated, i18n.t('dataIntel.step3Desc')],
+      [i18n.t('dataIntel.step4'), metrics.rewritten, i18n.t('dataIntel.step4Desc')],
+      [i18n.t('dataIntel.step5'), metrics.heat, i18n.t('dataIntel.step5Desc')],
+      [i18n.t('dataIntel.step6'), metrics.events, i18n.t('dataIntel.step6Desc')],
+      [i18n.t('dataIntel.step7'), metrics.zones, i18n.t('dataIntel.step7Desc')],
+      [i18n.t('dataIntel.step8'), metrics.vision, i18n.t('dataIntel.step8Desc')]
     ];
 
     var el = document.getElementById('pipelineGrid');
     if (!el) return;
     el.innerHTML = steps.map(function(s){
-      return '<article class="step-card"><h3>' + s[0] + '</h3><p>' + s[2] + '</p><p style="margin-top:8px"><strong>' + Number(s[1] || 0).toLocaleString('es-ES') + '</strong> · ' + statusDot(Number(s[1] || 0)) + '</p></article>';
+      return '<article class="step-card"><h3>' + s[0] + '</h3><p>' + s[2] + '</p><p style="margin-top:8px"><strong>' + Number(s[1] || 0).toLocaleString(i18n.getLang() === 'en' ? 'en-US' : 'es-ES') + '</strong> · ' + statusDot(Number(s[1] || 0)) + '</p></article>';
     }).join('');
   }
 
@@ -119,7 +123,7 @@
     var body = document.getElementById('sourcesTable');
     if (!body) return;
     if (!sources.length) {
-      body.innerHTML = '<tr><td colspan="3">Sin fuentes disponibles</td></tr>';
+      body.innerHTML = '<tr><td colspan="3">' + i18n.t('dataIntel.noSources') + '</td></tr>';
       return;
     }
     body.innerHTML = sources.map(function(s){
@@ -132,25 +136,26 @@
     if (!el) return;
     var rows = (events && events.events) || [];
     if (!rows.length){
-      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🔎</div><h3>Sin eventos</h3><p>No se detectaron eventos recientes.</p></div>';
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🔎</div><h3>' + i18n.t('dataIntel.noEvents') + '</h3><p>' + i18n.t('dataIntel.noEventsDesc') + '</p></div>';
       return;
     }
     el.innerHTML = '<div style="display:grid;gap:10px">' + rows.slice(0,8).map(function(r){
-      return '<div class="event-mini"><strong>' + escH(r.title || r.event_type || 'Evento') + '</strong><p>' + escH(r.explanation || r.summary || 'Sin descripción') + '</p></div>';
+      return '<div class="event-mini"><strong>' + escH(r.title || r.event_type || i18n.t('common.na')) + '</strong><p>' + escH(r.explanation || r.summary || i18n.t('earlyWarning.noDesc')) + '</p></div>';
     }).join('') + '</div>';
     if (window.initReveals) window.initReveals();
   }
 
   async function load(){
+    var lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'es';
     var results = await Promise.all([
       fetchJSON('/api/status'),
       fetchJSON('/api/analytics/conflicts-corrected'),
-      fetchJSON('/api/articles/deduplicated?limit=60'),
+      fetchJSON('/api/articles/deduplicated?limit=60&lang=' + lang),
       fetchJSON('/api/heatmap?limit=2000'),
       fetchJSON('/api/signals?limit=200'),
       fetchJSON('/api/images?limit=200'),
       fetchJSON('/api/events?limit=120'),
-      fetchJSON('/api/hero-article')
+      fetchJSON('/api/hero-article?lang=' + lang)
     ]);
     var status = results[0], analytics = results[1], curated = results[2];
     var heat = results[3], signalsResp = results[4], imagesResp = results[5];
@@ -178,6 +183,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', load);
+  window.addEventListener('langchange', function(){ i18n.apply(); load(); });
 })();
 </script>
 </body>

@@ -22,53 +22,57 @@
 
 <nav class="top-nav">
   <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="nav-actions">
+    <button class="lang-toggle" onclick="window.i18n&&i18n.toggle()" title="ES / EN">ES</button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
   <div class="nav-menu" id="navMenu">
-    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span><span data-i18n="nav.news">Análisis de Noticias</span></a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span><span data-i18n="nav.conflicts">Monitor de Conflictos</span></a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span><span data-i18n="nav.trends">Análisis de Tendencias</span></a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span><span data-i18n="nav.earlyWarning">Alertas Tempranas</span></a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span><span data-i18n="nav.reports">Reportes Ejecutivos</span></a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span><span data-i18n="nav.dataIntel">Inteligencia de Datos</span></a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span><span data-i18n="nav.satellite">Análisis Satelital</span></a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span><span data-i18n="nav.video">Vigilancia por Video</span></a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span><span data-i18n="nav.historical">Análisis Histórico</span></a>
     <div class="nav-divider"></div>
-    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span><span data-i18n="nav.about">Acerca de</span></a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span><span data-i18n="nav.logs">Registros</span></a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span><span data-i18n="nav.settings">Configuración</span></a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
 <header class="page-header reveal">
   <span class="page-icon">📝</span>
-  <h1>Health &amp; Endpoint Logs</h1>
-  <p>Monitor de salud de endpoints críticos usados por el website y el pipeline operativo.</p>
+  <h1 data-i18n="logs.title">Health &amp; Endpoint Logs</h1>
+  <p data-i18n="logs.desc">Monitor de salud de endpoints críticos usados por el website y el pipeline operativo.</p>
 </header>
 
 <div class="container log-shell">
   <div class="controls reveal">
-    <button class="btn btn-primary" id="checkBtn">Comprobar endpoints</button>
-    <button class="btn" id="autoBtn">Auto-refresh: OFF</button>
+    <button class="btn btn-primary" id="checkBtn" data-i18n="logs.checkEndpoints">Comprobar endpoints</button>
+    <button class="btn" id="autoBtn" data-i18n="logs.autoRefreshOff">Auto-refresh: OFF</button>
   </div>
 
   <section class="card card-glow reveal">
-    <h2 class="section-title">Estado de APIs</h2>
+    <h2 class="section-title" data-i18n="logs.apiStatus">Estado de APIs</h2>
     <table class="data-table">
-      <thead><tr><th>Endpoint</th><th>Estado</th><th>Tiempo</th><th>Items</th><th>Última comprobación</th></tr></thead>
+      <thead><tr><th data-i18n="logs.thEndpoint">Endpoint</th><th data-i18n="logs.thStatus">Estado</th><th data-i18n="logs.thTime">Tiempo</th><th data-i18n="logs.thItems">Items</th><th data-i18n="logs.thLastCheck">Última comprobación</th></tr></thead>
       <tbody id="statusTable"></tbody>
     </table>
   </section>
 
   <section class="card card-glow reveal">
-    <h2 class="section-title">Stream técnico</h2>
+    <h2 class="section-title" data-i18n="logs.techStream">Stream técnico</h2>
     <div id="stream" class="log-stream"></div>
   </section>
 </div>
 
 <div id="toast-root"></div>
+<script src="/i18n.js"></script>
 <script src="/nav.js"></script>
 <script>
 (function(){
@@ -90,7 +94,7 @@
   function log(msg){
     var el = document.getElementById('stream');
     if (!el) return;
-    var line = '[' + new Date().toLocaleTimeString('es-ES') + '] ' + msg;
+    var line = '[' + new Date().toLocaleTimeString(i18n.getLang() === 'en' ? 'en-US' : 'es-ES') + '] ' + msg;
     el.textContent += line + '\n';
     el.scrollTop = el.scrollHeight;
   }
@@ -131,7 +135,7 @@
         + '<td><span style="color:' + color + ';font-weight:700">' + st + '</span></td>'
         + '<td>' + r.ms + ' ms</td>'
         + '<td>' + r.itemCount + '</td>'
-        + '<td>' + new Date().toLocaleTimeString('es-ES') + '</td>'
+        + '<td>' + new Date().toLocaleTimeString(i18n.getLang() === 'en' ? 'en-US' : 'es-ES') + '</td>'
         + '</tr>';
     }).join('');
 
@@ -142,14 +146,14 @@
     var btn = document.getElementById('autoBtn');
     if (!intervalId) {
       intervalId = setInterval(runChecks, 60000);
-      btn.textContent = 'Auto-refresh: ON';
-      showToast('Auto-refresh cada 60s activado', 'success');
+      btn.textContent = i18n.t('logs.btnAutoOn');
+      showToast(i18n.t('logs.autoOn'), 'success');
       runChecks();
     } else {
       clearInterval(intervalId);
       intervalId = null;
-      btn.textContent = 'Auto-refresh: OFF';
-      showToast('Auto-refresh desactivado', 'info');
+      btn.textContent = i18n.t('logs.btnAutoOff');
+      showToast(i18n.t('logs.autoOff'), 'info');
     }
   }
 
@@ -158,6 +162,7 @@
     document.getElementById('autoBtn').addEventListener('click', toggleAuto);
     runChecks();
   });
+  window.addEventListener('langchange', function(){ i18n.apply(); runChecks(); });
 })();
 </script>
 </body>
