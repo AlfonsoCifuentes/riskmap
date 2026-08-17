@@ -23,53 +23,57 @@
 
 <nav class="top-nav">
   <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="nav-actions">
+    <button class="lang-toggle" onclick="window.i18n&&i18n.toggle()" title="ES / EN">ES</button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
   <div class="nav-menu" id="navMenu">
-    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span><span data-i18n="nav.news">Análisis de Noticias</span></a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span><span data-i18n="nav.conflicts">Monitor de Conflictos</span></a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span><span data-i18n="nav.trends">Análisis de Tendencias</span></a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span><span data-i18n="nav.earlyWarning">Alertas Tempranas</span></a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span><span data-i18n="nav.reports">Reportes Ejecutivos</span></a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span><span data-i18n="nav.dataIntel">Inteligencia de Datos</span></a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span><span data-i18n="nav.satellite">Análisis Satelital</span></a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span><span data-i18n="nav.video">Vigilancia por Video</span></a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span><span data-i18n="nav.historical">Análisis Histórico</span></a>
     <div class="nav-divider"></div>
-    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span><span data-i18n="nav.about">Acerca de</span></a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span><span data-i18n="nav.logs">Registros</span></a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span><span data-i18n="nav.settings">Configuración</span></a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
 <header class="page-header reveal">
   <span class="page-icon">🏛️</span>
-  <h1>Perspectiva Histórica de Cobertura</h1>
-  <p>Análisis temporal de publicaciones y concentración geográfica para detectar patrones persistentes de conflicto.</p>
+  <h1 data-i18n="historical.title">Perspectiva Histórica de Cobertura</h1>
+  <p data-i18n="historical.desc">Análisis temporal de publicaciones y concentración geográfica para detectar patrones persistentes de conflicto.</p>
 </header>
 
 <div class="container">
   <div class="stats-row reveal stagger">
-    <div class="stat-card card-glow"><div class="stat-icon-lg">📚</div><div class="stat-val" id="kpiLoaded">0</div><div class="stat-lbl">Noticias analizadas</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">🗓️</div><div class="stat-val" id="kpiMonths">0</div><div class="stat-lbl">Meses con actividad</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="kpiCountries">0</div><div class="stat-lbl">Países con cobertura</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">📌</div><div class="stat-val" id="kpiTop">0</div><div class="stat-lbl">Máx. artículos/mes</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📚</div><div class="stat-val" id="kpiLoaded">0</div><div class="stat-lbl" data-i18n="historical.kpiLoaded">Noticias analizadas</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🗓️</div><div class="stat-val" id="kpiMonths">0</div><div class="stat-lbl" data-i18n="historical.kpiMonths">Meses con actividad</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="kpiCountries">0</div><div class="stat-lbl" data-i18n="historical.kpiCountries">Países con cobertura</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📌</div><div class="stat-val" id="kpiTop">0</div><div class="stat-lbl" data-i18n="historical.kpiTop">Máx. artículos/mes</div></div>
   </div>
 
   <div class="hist-grid">
     <section class="chart-card card-glow reveal">
-      <h2 class="section-title">Serie temporal (mensual)</h2>
+      <h2 class="section-title" data-i18n="historical.timeSeries">Serie temporal (mensual)</h2>
       <div class="chart-wrap"><canvas id="historyChart"></canvas></div>
     </section>
     <aside class="card reveal-right">
-      <h2 class="section-title">Países más cubiertos</h2>
-      <div class="country-list" id="countryList"><div class="loader"><div class="spin"></div>Cargando histórico...</div></div>
+      <h2 class="section-title" data-i18n="historical.topCountries">Países más cubiertos</h2>
+      <div class="country-list" id="countryList"><div class="loader"><div class="spin"></div><span data-i18n="historical.loadingHistory">Cargando histórico...</span></div></div>
     </aside>
   </div>
 </div>
 
 <div id="toast-root"></div>
+<script src="/i18n.js"></script>
 <script src="/nav.js"></script>
 <script>
 (function(){
@@ -95,7 +99,7 @@
   function countriesSeries(articles){
     var map = new Map();
     articles.forEach(function(a){
-      var key = (a.country || a.region || 'No especificado').trim();
+      var key = (a.country || a.region || i18n.t('historical.unspecified')).trim();
       map.set(key, (map.get(key) || 0) + 1);
     });
     return Array.from(map.entries()).sort(function(a,b){return b[1]-a[1];}).slice(0,12);
@@ -104,10 +108,11 @@
   async function load(){
     if (window.chartDefaults) window.chartDefaults();
 
+    var lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'es';
     var pages = await Promise.all([
-      fetchJSON('/api/articles?limit=100&offset=0'),
-      fetchJSON('/api/articles?limit=100&offset=100'),
-      fetchJSON('/api/articles?limit=100&offset=200')
+      fetchJSON('/api/articles?limit=100&offset=0&lang=' + lang),
+      fetchJSON('/api/articles?limit=100&offset=100&lang=' + lang),
+      fetchJSON('/api/articles?limit=100&offset=200&lang=' + lang)
     ]);
 
     var articles = [].concat.apply([], pages.map(function(p){return (p && p.articles) || [];}));
@@ -117,7 +122,7 @@
     if (chart) chart.destroy();
     chart = new Chart(document.getElementById('historyChart'), {
       type:'bar',
-      data:{labels:monthly.labels, datasets:[{label:'Artículos', data:monthly.values, backgroundColor:'rgba(78,161,255,.55)', borderRadius:6, borderSkipped:false}]},
+      data:{labels:monthly.labels, datasets:[{label:i18n.t('historical.chartLabel'), data:monthly.values, backgroundColor:'rgba(78,161,255,.55)', borderRadius:6, borderSkipped:false}]},
       options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#7e93bd'},grid:{display:false}},y:{ticks:{color:'#7e93bd'},grid:{color:'rgba(130,165,255,.08)'}}}}
     });
 
@@ -125,7 +130,7 @@
     if (list) {
       list.innerHTML = countries.length
         ? countries.map(function(c){return '<article class="country-item"><strong>' + escH(c[0]) + '</strong><span>' + c[1] + '</span></article>';}).join('')
-        : '<div class="empty-state"><div class="empty-icon">📭</div><h3>Sin histórico</h3><p>No hay artículos disponibles para serie histórica.</p></div>';
+        : '<div class="empty-state"><div class="empty-icon">📭</div><h3>' + i18n.t('historical.noData') + '</h3><p>' + i18n.t('historical.noDataDesc') + '</p></div>';
     }
 
     animCount(document.getElementById('kpiLoaded'), articles.length);
@@ -136,6 +141,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', load);
+  window.addEventListener('langchange', function(){ i18n.apply(); load(); });
 })();
 </script>
 </body>

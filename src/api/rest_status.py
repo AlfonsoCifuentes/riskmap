@@ -116,7 +116,7 @@ def create_api_blueprint(core_orchestrator=None):
                 try:
                     orchestrator_config = core_orchestrator.get_config()
                     config_info['orchestrator'] = orchestrator_config
-                except:
+                except Exception:
                     pass
             
             return jsonify(config_info)

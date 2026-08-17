@@ -275,7 +275,7 @@ class HistoricalAnalysisService:
                     'message': f"Energy supply below normal: {row['indicator']}",
                     'timestamp': row['date']
                 })
-        except:
+        except Exception:
             pass  # Skip if query fails
         
         # Alert 4: Large displacement movements

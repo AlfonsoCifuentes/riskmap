@@ -1,0 +1,10 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content":
+    - /url: "#geist-skip-nav"
+  - main [ref=e3]
+  - alert [ref=e4]
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - img

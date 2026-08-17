@@ -8,23 +8,20 @@
     }
   },
   "rewrites": [
-    { "source": "/space.jpg", "destination": "/public/space.jpg" },
-    { "source": "/linkedin_bg.jpeg", "destination": "/public/linkedin_bg.jpeg" },
     { "source": "/static/(.*)", "destination": "/src/web/static/$1" },
-    { "source": "/shared.css", "destination": "/public/shared.css" },
-    { "source": "/nav.js", "destination": "/public/nav.js" },
-    { "source": "/news-analysis", "destination": "/public/index.html" },
-    { "source": "/conflict-monitoring", "destination": "/public/conflict-monitoring.html" },
-    { "source": "/trends-analysis", "destination": "/public/trends-analysis.html" },
-    { "source": "/early-warning", "destination": "/public/early-warning.html" },
-    { "source": "/executive-reports", "destination": "/public/executive-reports.html" },
-    { "source": "/data-intelligence", "destination": "/public/data-intelligence.html" },
-    { "source": "/satellite-analysis", "destination": "/public/satellite-analysis.html" },
-    { "source": "/video-surveillance", "destination": "/public/video-surveillance.html" },
-    { "source": "/historical-analysis", "destination": "/public/historical-analysis.html" },
-    { "source": "/about", "destination": "/public/about.html" },
-    { "source": "/logs", "destination": "/public/logs.html" },
-    { "source": "/settings", "destination": "/public/settings.html" },
-    { "source": "/((?!api/).*)", "destination": "/public/index.html" }
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/news-analysis", "destination": "/index.html" },
+    { "source": "/conflict-monitoring", "destination": "/conflict-monitoring.html" },
+    { "source": "/trends-analysis", "destination": "/trends-analysis.html" },
+    { "source": "/early-warning", "destination": "/early-warning.html" },
+    { "source": "/executive-reports", "destination": "/executive-reports.html" },
+    { "source": "/data-intelligence", "destination": "/data-intelligence.html" },
+    { "source": "/satellite-analysis", "destination": "/satellite-analysis.html" },
+    { "source": "/video-surveillance", "destination": "/video-surveillance.html" },
+    { "source": "/historical-analysis", "destination": "/historical-analysis.html" },
+    { "source": "/about", "destination": "/about.html" },
+    { "source": "/logs", "destination": "/logs.html" },
+    { "source": "/settings", "destination": "/settings.html" },
+    { "source": "/((?!api/|static/|.*\\..*).*)", "destination": "/index.html" }
   ]
 }

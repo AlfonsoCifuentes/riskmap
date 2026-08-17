@@ -964,7 +964,7 @@ class AdvancedGeopoliticalOrchestrator(GeopoliticalIntelligenceOrchestrator):
                                     if 'records' in str(v)
                                 ])
                                 summary['total_records'] += records
-                            except:
+                            except Exception:
                                 pass
         
         return summary

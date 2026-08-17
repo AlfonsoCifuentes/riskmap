@@ -158,6 +158,52 @@ def fetch_newsapi() -> List[Dict]:
     return articles
 
 
+def fetch_gdelt() -> List[Dict]:
+    """Fetch recent conflict/disaster coverage from GDELT DOC API."""
+    queries = [
+        '(geopolitical OR military OR conflict OR war)',
+        '(earthquake OR flood OR wildfire OR hurricane OR humanitarian crisis)',
+    ]
+    articles: List[Dict] = []
+    endpoint = 'https://api.gdeltproject.org/api/v2/doc/doc'
+
+    for q in queries:
+        try:
+            resp = requests.get(
+                endpoint,
+                params={
+                    'query': q,
+                    'mode': 'ArtList',
+                    'format': 'json',
+                    'sort': 'DateDesc',
+                    'maxrecords': 40,
+                },
+                timeout=18,
+            )
+            data = resp.json()
+            entries = data.get('articles', []) or []
+            for art in entries:
+                title = (art.get('title') or '').strip()
+                url = (art.get('url') or '').strip()
+                if not title or not url:
+                    continue
+                articles.append({
+                    'title': title[:500],
+                    'content': (art.get('seendate') or '')[:2000],
+                    'summary': (art.get('title') or '')[:1000],
+                    'url': url,
+                    'source': f"GDELT:{(art.get('domain') or 'unknown')[:48]}",
+                    'published_at': datetime.utcnow().isoformat(),
+                    'image_url': art.get('socialimage'),
+                    'language': 'en',
+                })
+            logger.info(f"  ✓ GDELT [{q}]: {len(entries)} articles")
+        except Exception as e:
+            logger.warning(f"  ✗ GDELT [{q}]: {e}")
+
+    return articles
+
+
 def store_articles(articles: List[Dict]):
     """Deduplicate and insert articles into unified_articles."""
     db = get_db()
@@ -380,7 +426,10 @@ def main():
     logger.info("Fetching NewsAPI…")
     news_articles = fetch_newsapi()
 
-    all_articles = rss_articles + news_articles
+    logger.info("Fetching GDELT…")
+    gdelt_articles = fetch_gdelt()
+
+    all_articles = rss_articles + news_articles + gdelt_articles
     logger.info(f"Total fetched: {len(all_articles)}")
 
     inserted = store_articles(all_articles)

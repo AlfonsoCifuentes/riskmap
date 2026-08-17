@@ -55,7 +55,7 @@ class LoggingConfig(BaseModel):
 class DashboardConfig(BaseModel):
     """Configuración del dashboard."""
     secret_key: str = Field(
-        default="geopolitical-intelligence-secure-key-2024",
+        default_factory=lambda: os.getenv('FLASK_SECRET_KEY', 'geopolitical-intelligence-secure-key-2024-dev'),
         description="Clave secreta")
     refresh_interval: int = Field(
         default=30, description="Intervalo de actualización en segundos")

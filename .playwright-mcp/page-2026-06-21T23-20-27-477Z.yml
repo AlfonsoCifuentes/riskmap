@@ -1,0 +1,295 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - link "⟁ Riskmap A.I." [ref=e3] [cursor=pointer]:
+      - /url: /index.html
+      - text: ⟁ Riskmap
+      - generic [ref=e4]: A.I.
+    - generic [ref=e5]:
+      - button "ES" [ref=e6] [cursor=pointer]
+      - button "Menu" [ref=e7] [cursor=pointer]
+    - generic [ref=e11]:
+      - link "📰 Análisis de Noticias" [ref=e12] [cursor=pointer]:
+        - /url: /index.html
+        - generic [ref=e13]: 📰
+        - generic [ref=e14]: Análisis de Noticias
+      - link "⚔️ Monitor de Conflictos" [ref=e15] [cursor=pointer]:
+        - /url: /conflict-monitoring.html
+        - generic [ref=e16]: ⚔️
+        - generic [ref=e17]: Monitor de Conflictos
+      - link "📈 Análisis de Tendencias" [ref=e18] [cursor=pointer]:
+        - /url: /trends-analysis.html
+        - generic [ref=e19]: 📈
+        - generic [ref=e20]: Análisis de Tendencias
+      - link "⚠️ Alertas Tempranas" [ref=e21] [cursor=pointer]:
+        - /url: /early-warning.html
+        - generic [ref=e22]: ⚠️
+        - generic [ref=e23]: Alertas Tempranas
+      - link "📋 Reportes Ejecutivos" [ref=e24] [cursor=pointer]:
+        - /url: /executive-reports.html
+        - generic [ref=e25]: 📋
+        - generic [ref=e26]: Reportes Ejecutivos
+      - link "🧠 Inteligencia de Datos" [ref=e28] [cursor=pointer]:
+        - /url: /data-intelligence.html
+        - generic [ref=e29]: 🧠
+        - generic [ref=e30]: Inteligencia de Datos
+      - link "🛰️ Análisis Satelital" [ref=e31] [cursor=pointer]:
+        - /url: /satellite-analysis.html
+        - generic [ref=e32]: 🛰️
+        - generic [ref=e33]: Análisis Satelital
+      - link "📹 Vigilancia por Video" [ref=e34] [cursor=pointer]:
+        - /url: /video-surveillance.html
+        - generic [ref=e35]: 📹
+        - generic [ref=e36]: Vigilancia por Video
+      - link "🏛️ Análisis Histórico" [ref=e37] [cursor=pointer]:
+        - /url: /historical-analysis.html
+        - generic [ref=e38]: 🏛️
+        - generic [ref=e39]: Análisis Histórico
+      - link "ℹ️ Acerca de" [ref=e41] [cursor=pointer]:
+        - /url: /about.html
+        - generic [ref=e42]: ℹ️
+        - generic [ref=e43]: Acerca de
+      - link "📝 Registros" [ref=e44] [cursor=pointer]:
+        - /url: /logs.html
+        - generic [ref=e45]: 📝
+        - generic [ref=e46]: Registros
+      - link "⚙️ Configuración" [ref=e47] [cursor=pointer]:
+        - /url: /settings.html
+        - generic [ref=e48]: ⚙️
+        - generic [ref=e49]: Configuración
+  - generic [ref=e50]:
+    - generic [ref=e51]:
+      - generic [ref=e54]: Inteligencia Geopolítica Operativa
+      - heading "Monitoreo global de conflictos en tiempo real" [level=1] [ref=e55]
+      - paragraph [ref=e56]: Pipeline automatizado de ingesta multi-fuente, filtrado de conflictos geopolíticos y desastres naturales, curación editorial, análisis con IA y visualización geoespacial — sin simulaciones, solo datos operacionales.
+      - generic [ref=e57]:
+        - generic [ref=e58]: Ingesta multi-fuente
+        - generic [ref=e59]: Filtrado geopolítico
+        - generic [ref=e60]: Mapa de calor
+        - generic [ref=e61]: GDELT & ACLED
+        - generic [ref=e62]: Computer Vision
+    - complementary [ref=e63]:
+      - generic [ref=e66]: Destacado
+      - generic [ref=e67]:
+        - heading "Scores killed by RSF drone strike on mosque in besieged Sudanese city" [level=2] [ref=e102]
+        - paragraph [ref=e103]: First responders say 75 worshippers dead as paramilitaries push to capture last foothold of Sudanese army in DarfurA drone strike by the paramilitary Rapid Support Forces on the besieged Sudanese city of El Fasher has killed 75 people worshipping in a mosque, first responders hav…
+        - generic [ref=e104]:
+          - generic [ref=e105]: www.theguardian.com
+          - generic [ref=e106]: ·
+          - generic [ref=e107]: 22 sept
+        - link "Leer fuente" [ref=e109] [cursor=pointer]:
+          - /url: https://www.theguardian.com/world/2025/sep/19/rsf-drone-strike-kills-scores-people-mosque-sudan
+  - generic [ref=e70]:
+    - generic [ref=e71]:
+      - generic [ref=e72]:
+        - generic [ref=e73]: 📰
+        - generic [ref=e74]: "521"
+        - generic [ref=e75]: Artículos geopolíticos
+      - generic [ref=e76]:
+        - generic [ref=e77]: 🚨
+        - generic [ref=e78]: "25"
+        - generic [ref=e79]: Alertas críticas
+      - generic [ref=e80]:
+        - generic [ref=e81]: 🌍
+        - generic [ref=e82]: "109"
+        - generic [ref=e83]: Regiones en conflicto
+      - generic [ref=e84]:
+        - generic [ref=e85]: 📡
+        - generic [ref=e86]: "188"
+        - generic [ref=e87]: Fuentes activas
+    - heading "Pipeline de Inteligencia" [level=2] [ref=e88]
+    - generic [ref=e110]:
+      - generic [ref=e111]:
+        - generic [ref=e112]: "01"
+        - generic [ref=e113]: Ingesta
+        - generic [ref=e114]: "521"
+        - generic [ref=e115]: Multi-fuente
+      - generic [ref=e116]:
+        - generic [ref=e117]: "02"
+        - generic [ref=e118]: Filtrado
+        - generic [ref=e119]: "521"
+        - generic [ref=e120]: Geopolítico/desastre
+      - generic [ref=e121]:
+        - generic [ref=e122]: "03"
+        - generic [ref=e123]: Curación
+        - generic [ref=e124]: "12"
+        - generic [ref=e125]: Dedup + calidad
+      - generic [ref=e126]:
+        - generic [ref=e127]: "04"
+        - generic [ref=e128]: Reescritura
+        - generic [ref=e129]: "0"
+        - generic [ref=e130]: IA normalización
+      - generic [ref=e131]:
+        - generic [ref=e132]: "05"
+        - generic [ref=e133]: Heatmap
+        - generic [ref=e134]: "179"
+        - generic [ref=e135]: Geoespacial
+      - generic [ref=e136]:
+        - generic [ref=e137]: "06"
+        - generic [ref=e138]: GDELT
+        - generic [ref=e139]: "50"
+        - generic [ref=e140]: Correlación
+      - generic [ref=e141]:
+        - generic [ref=e142]: "07"
+        - generic [ref=e143]: Dashboards
+        - generic [ref=e144]: "60"
+        - generic [ref=e145]: Zonas activas
+      - generic [ref=e146]:
+        - generic [ref=e147]: "08"
+        - generic [ref=e148]: CV
+        - generic [ref=e149]: "0"
+        - generic [ref=e150]: Señales visuales
+    - generic [ref=e89]:
+      - generic [ref=e90]:
+        - heading "Noticias Curadas" [level=2] [ref=e91]
+        - generic [ref=e92]:
+          - article [ref=e151]:
+            - generic [ref=e153]:
+              - 'heading "Israel military warnings to Beirut residents spark fears of imminent escalation : Leave now" [level=3] [ref=e154]':
+                - 'link "Israel military warnings to Beirut residents spark fears of imminent escalation : Leave now" [ref=e155] [cursor=pointer]':
+                  - /url: https://www.bankingnews.gr/diethni/articles/860515/israel-s-military-warnings-to-beirut-residents-spark-fears-of-imminent-escalation-leave-now%20title=
+              - paragraph [ref=e156]: "Israel military warnings to Beirut residents spark fears of imminent escalation : Leave now"
+            - generic [ref=e157]:
+              - generic [ref=e158]: GDELT:bankingnews.gr · 05 mar
+              - generic [ref=e159]: Medio
+          - article [ref=e160]:
+            - generic [ref=e162]:
+              - 'heading "Live Updates: Europe Ramps Up Response as Iranian Crisis Spills Beyond Mideast" [level=3] [ref=e163]':
+                - 'link "Live Updates: Europe Ramps Up Response as Iranian Crisis Spills Beyond Mideast" [ref=e164] [cursor=pointer]':
+                  - /url: https://www.nytimes.com/live/2026/03/05/world/iran-war-israel-trump
+              - paragraph [ref=e165]: Italy pledged air defense weapons to help Gulf nations defend against Iran’s retaliatory attacks. Iranian drones landed in Azerbaijan, a day after NATO shot dow…
+            - generic [ref=e166]:
+              - generic [ref=e167]: NYT > World News · 05 mar
+              - generic [ref=e168]: Medio
+          - article [ref=e169]:
+            - generic [ref=e171]:
+              - heading "As Iran Widens Retaliatory Strikes, Europe Accelerates Response for Gulf Allies" [level=3] [ref=e172]:
+                - link "As Iran Widens Retaliatory Strikes, Europe Accelerates Response for Gulf Allies" [ref=e173] [cursor=pointer]:
+                  - /url: https://www.nytimes.com/2026/03/05/world/middleeast/europe-iran-war-military-defense.html
+              - paragraph [ref=e174]: Defense Minister Guido Crosetto said that Italy would provide “air defense systems, anti-drone and antimissile systems” as Iran widened its retaliatory strikes.
+            - generic [ref=e175]:
+              - generic [ref=e176]: NYT > World News · 05 mar
+              - generic [ref=e177]: Medio
+          - article [ref=e178]:
+            - generic [ref=e180]:
+              - heading "El directorio de propaganda de Israel está siendo demandado por activistas no pagados que reclaman millones" [level=3] [ref=e181]:
+                - link "El directorio de propaganda de Israel está siendo demandado por activistas no pagados que reclaman millones" [ref=e182] [cursor=pointer]:
+                  - /url: https://www.middleeasteye.net/news/israels-hasbara-directorate-being-sued-unpaid-activists-claiming-millions
+              - paragraph [ref=e183]: Israel's propaganda directorate being sued by unpaid activists claiming millions Submitted by Nadav Rapaport on Thu, 03/05/2026 - 13:48 Former Israeli spokesper…
+            - generic [ref=e184]:
+              - generic [ref=e185]: Section Feed · 05 mar
+              - generic [ref=e186]: Alto
+          - article [ref=e187]:
+            - generic [ref=e189]:
+              - 'heading "Mundo: Asignaciones de financiamiento no etiquetado indicativo 2026, 28 de febrero de 2026" [level=3] [ref=e190]':
+                - 'link "Mundo: Asignaciones de financiamiento no etiquetado indicativo 2026, 28 de febrero de 2026" [ref=e191] [cursor=pointer]':
+                  - /url: https://reliefweb.int/report/world/indicative-unearmarked-funding-allocations-2026-28-february-2026
+              - paragraph [ref=e192]: "Países: Mundo, Afganistán, Chad, Etiopía, Kenia, Líbano, Níger, Sudán, República Árabe Siria, Uganda, Ucrania"
+            - generic [ref=e193]:
+              - generic [ref=e194]: ReliefWeb - Updates · 05 mar
+              - generic [ref=e195]: Bajo
+          - article [ref=e196]:
+            - generic [ref=e198]:
+              - heading "Actualización de emergencia de la OMS – Territorio Palestino Ocupado – 4 de marzo de 2026" [level=3] [ref=e199]:
+                - link "Actualización de emergencia de la OMS – Territorio Palestino Ocupado – 4 de marzo de 2026" [ref=e200] [cursor=pointer]:
+                  - /url: https://reliefweb.int/report/occupied-palestinian-territory/who-occupied-palestinian-territory-flash-update-4-march-2026
+              - paragraph [ref=e201]: "Países: territorio palestino ocupado, Egipto"
+            - generic [ref=e202]:
+              - generic [ref=e203]: ReliefWeb - Updates · 05 mar
+              - generic [ref=e204]: Medio
+          - article [ref=e205]:
+            - generic [ref=e207]:
+              - 'heading "Mundo: Grupos armados no estatales y los separados, desaparecidos y muertos - Obligaciones bajo el derecho internacional humanitario y ejemplos de cómo implementarlas" [level=3] [ref=e208]':
+                - 'link "Mundo: Grupos armados no estatales y los separados, desaparecidos y muertos - Obligaciones bajo el derecho internacional humanitario y ejemplos de cómo implementarlas" [ref=e209] [cursor=pointer]':
+                  - /url: https://reliefweb.int/report/world/non-state-armed-groups-and-separated-missing-and-dead-obligations-under-international-humanitarian-law-and-examples-how-implement-them
+              - paragraph [ref=e210]: "País: Mundo"
+            - generic [ref=e211]:
+              - generic [ref=e212]: ReliefWeb - Updates · 05 mar
+              - generic [ref=e213]: Alto
+          - article [ref=e214]:
+            - generic [ref=e216]:
+              - 'heading "Lebanon: Statement on the escalating conflict in the Middle East" [level=3] [ref=e217]':
+                - 'link "Lebanon: Statement on the escalating conflict in the Middle East" [ref=e218] [cursor=pointer]':
+                  - /url: https://reliefweb.int/report/lebanon/statement-escalating-conflict-middle-east
+              - paragraph [ref=e219]: "Countries: Lebanon, Iran (Islamic Republic of) Source: Humanitarian Coalition The Humanitarian Coalition is deeply concerned about the escalating military viole…"
+            - generic [ref=e220]:
+              - generic [ref=e221]: ReliefWeb - Updates · 05 mar
+              - generic [ref=e222]: Crítico
+          - article [ref=e223]:
+            - generic [ref=e225]:
+              - 'heading "Irán: Edición especial de ACLED de Medio Oriente: marzo de 2026" [level=3] [ref=e226]':
+                - 'link "Irán: Edición especial de ACLED de Medio Oriente: marzo de 2026" [ref=e227] [cursor=pointer]':
+                  - /url: https://reliefweb.int/report/iran-islamic-republic/acled-middle-east-special-issue-march-2026
+              - paragraph [ref=e228]: "Países: Irán (República Islámica de), Líbano, territorio palestino ocupado, República Árabe Siria, Yemen"
+            - generic [ref=e229]:
+              - generic [ref=e230]: ReliefWeb - Updates · 05 mar
+              - generic [ref=e231]: Crítico
+          - article [ref=e232]:
+            - generic [ref=e234]:
+              - 'heading "Mundo: Conflicto y Hambre: Los Efectos Resonantes de las Armas Explosivas en Áreas Pobladas sobre la Inseguridad Alimentaria en Conflictos (diciembre de 2025)" [level=3] [ref=e235]':
+                - 'link "Mundo: Conflicto y Hambre: Los Efectos Resonantes de las Armas Explosivas en Áreas Pobladas sobre la Inseguridad Alimentaria en Conflictos (diciembre de 2025)" [ref=e236] [cursor=pointer]':
+                  - /url: https://reliefweb.int/report/world/conflict-and-hunger-reverberating-effects-explosive-weapons-populated-areas-food-insecurity-conflict-december-2025
+              - paragraph [ref=e237]: "País: Mundo"
+            - generic [ref=e238]:
+              - generic [ref=e239]: ReliefWeb - Updates · 05 mar
+              - generic [ref=e240]: Alto
+          - article [ref=e241]:
+            - generic [ref=e243]:
+              - heading "Fallout From Mideast Swirls Over the War in Ukraine" [level=3] [ref=e244]:
+                - link "Fallout From Mideast Swirls Over the War in Ukraine" [ref=e245] [cursor=pointer]:
+                  - /url: https://www.nytimes.com/2026/03/05/world/europe/ukraine-zelensky-iran-middle-east.html
+              - paragraph [ref=e246]: Three-way peace talks are on hold, and Kyiv fears that U.S. air defense systems it needs to counter Russia could be diverted to the Iran conflict.
+            - generic [ref=e247]:
+              - generic [ref=e248]: NYT > World News · 05 mar
+              - generic [ref=e249]: Bajo
+          - article [ref=e250]:
+            - generic [ref=e252]:
+              - heading "La guerra en Irán ha encendido disturbios civiles raros en Baréin" [level=3] [ref=e253]:
+                - link "La guerra en Irán ha encendido disturbios civiles raros en Baréin" [ref=e254] [cursor=pointer]:
+                  - /url: https://www.middleeasteye.net/news/war-iran-ignited-civil-unrest-bahrain
+              - paragraph [ref=e255]: The war on Iran has ignited rare civil unrest in Bahrain Submitted by Rayhan Uddin on Thu, 03/05/2026 - 12:05 Bahraini authorities are cracking down violently o…
+            - generic [ref=e256]:
+              - generic [ref=e257]: Section Feed · 05 mar
+              - generic [ref=e258]: Crítico
+      - complementary [ref=e96]:
+        - heading "Hotspots Globales" [level=2] [ref=e97]
+        - generic [ref=e98]:
+          - generic [ref=e259]:
+            - heading "Israel/Palestina (Gaza)" [level=4] [ref=e260]
+            - generic [ref=e261]:
+              - generic [ref=e262]: 1 artículos
+              - generic [ref=e263]: Riesgo 45%
+          - generic [ref=e266]:
+            - heading "Mali" [level=4] [ref=e267]
+            - generic [ref=e268]:
+              - generic [ref=e269]: 1 artículos
+              - generic [ref=e270]: Riesgo 38%
+          - generic [ref=e273]:
+            - heading "Israel/Gaza" [level=4] [ref=e274]
+            - generic [ref=e275]:
+              - generic [ref=e276]: 1 artículos
+              - generic [ref=e277]: Riesgo 34%
+          - generic [ref=e280]:
+            - heading "www.theguardian.com" [level=4] [ref=e281]
+            - generic [ref=e282]:
+              - generic [ref=e283]: 2 artículos
+              - generic [ref=e284]: Riesgo 34%
+          - generic [ref=e287]:
+            - heading "The Conversation Africa" [level=4] [ref=e288]
+            - generic [ref=e289]:
+              - generic [ref=e290]: 1 artículos
+              - generic [ref=e291]: Riesgo 30%
+          - generic [ref=e294]:
+            - heading "Italia/India (posiblemente otro país involucrado)" [level=4] [ref=e295]
+            - generic [ref=e296]:
+              - generic [ref=e297]: 1 artículos
+              - generic [ref=e298]: Riesgo 29%
+          - generic [ref=e301]:
+            - heading "Rusia/Ucrania" [level=4] [ref=e302]
+            - generic [ref=e303]:
+              - generic [ref=e304]: 1 artículos
+              - generic [ref=e305]: Riesgo 26%
+          - generic [ref=e308]:
+            - heading "Al Jazeera English" [level=4] [ref=e309]
+            - generic [ref=e310]:
+              - generic [ref=e311]: 2 artículos
+              - generic [ref=e312]: Riesgo 25%

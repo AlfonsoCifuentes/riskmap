@@ -516,7 +516,7 @@ class IntegratedGeopoliticalAnalyzer:
             latest_date = datetime.fromisoformat(zone['latest_event_date'].replace('Z', '+00:00'))
             days_ago = (datetime.now() - latest_date.replace(tzinfo=None)).days
             recency_factor = max(0, 0.1 - (days_ago * 0.01))
-        except:
+        except Exception:
             pass
         
         # Score final
