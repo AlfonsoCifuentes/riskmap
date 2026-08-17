@@ -6,7 +6,13 @@ Returns metadata only (no binary data). Use /api/image/[id] for actual image.
 
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
-from api._db import neon_get, json_response, error_response, send_response, error_from_exc
+
+from api._db import (
+    error_from_exc,
+    json_response,
+    neon_get,
+    send_response,
+)
 
 
 class handler(BaseHTTPRequestHandler):

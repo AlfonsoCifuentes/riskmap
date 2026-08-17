@@ -11,12 +11,12 @@ Keeps a negative cache to avoid re-trying failed URLs within the
 same serverless cold-start window.
 """
 
+import json
 import re
 import ssl
-import json
-import urllib.request
 import urllib.error
 import urllib.parse
+import urllib.request
 
 _TIMEOUT = 6  # seconds — keep it fast for serverless
 
@@ -226,7 +226,7 @@ def enrich_articles_with_images(articles: list) -> list:
     For each article missing an image, attempt to extract og:image
     from the article URL. Updates the article dict in-place and
     also writes back to the database if successful.
-    
+
     Limits extraction to max 5 articles per request to stay fast.
     """
     enriched = 0

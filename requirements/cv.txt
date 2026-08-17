@@ -1,0 +1,8 @@
+# Deps for Computer Vision / imagery jobs (heavier; CPU-only).
+-r api.txt
+Pillow>=10.2.0
+opencv-python-headless>=4.9.0
+numpy>=1.26.0
+# ultralytics (YOLO) is installed on-demand in the imagery workflow to keep
+# other jobs lean:
+#   ultralytics>=8.2.0

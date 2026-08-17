@@ -4,14 +4,13 @@ Uses psycopg2-binary to connect directly to Neon Postgres via DATABASE_URL.
 Falls back to PostgREST API if NEON_API_URL + NEON_API_KEY are set.
 """
 
+import json
 import os
 import re
-import json
-import urllib.request
-import urllib.parse
 import urllib.error
-from datetime import datetime, date
-
+import urllib.parse
+import urllib.request
+from datetime import date, datetime
 
 # ---------------------------------------------------------------------------
 # HTML / text cleanup
@@ -254,7 +253,7 @@ def _postgrest_get(table, params, select, order, limit, offset):
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         body = e.read().decode() if e.fp else ''
-        raise RuntimeError(f"Neon API {e.code}: {body}")
+        raise RuntimeError(f"Neon API {e.code}: {body}") from e
 
 
 def neon_rpc(function_name: str, params: dict = None) -> list:
@@ -267,7 +266,7 @@ def neon_rpc(function_name: str, params: dict = None) -> list:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         body = e.read().decode() if e.fp else ''
-        raise RuntimeError(f"Neon RPC {e.code}: {body}")
+        raise RuntimeError(f"Neon RPC {e.code}: {body}") from e
 
 
 def neon_sql(query: str, params: list = None) -> list:

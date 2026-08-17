@@ -5,9 +5,15 @@ Returns fields that the dashboard JS expects:
   total_articles, critical_alerts, regions_in_conflict, active_sources
 """
 
-from http.server import BaseHTTPRequestHandler
-from api._db import neon_sql, json_response, error_response, send_response, error_from_exc
 from datetime import datetime
+from http.server import BaseHTTPRequestHandler
+
+from api._db import (
+    error_from_exc,
+    json_response,
+    neon_sql,
+    send_response,
+)
 
 
 class handler(BaseHTTPRequestHandler):

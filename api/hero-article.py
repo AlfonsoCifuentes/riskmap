@@ -15,7 +15,14 @@ Fetches top 10 candidates and picks the best one with a valid image.
 
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
-from api._db import neon_get, json_response, error_response, send_response, clean_article, error_from_exc
+
+from api._db import (
+    clean_article,
+    error_from_exc,
+    json_response,
+    neon_get,
+    send_response,
+)
 from api._og_image import enrich_articles_with_images
 
 _SELECT_COLS = (
@@ -85,7 +92,7 @@ class handler(BaseHTTPRequestHandler):
                 if articles:
                     enrich_articles_with_images(articles)
                     for art in articles:
-                        if len((art.get('title') or '')) >= 20:
+                        if len(art.get('title') or '') >= 20:
                             hero = art
                             break
                     if not hero:

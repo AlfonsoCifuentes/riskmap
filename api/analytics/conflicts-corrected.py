@@ -6,7 +6,13 @@ Returns conflict zones + comprehensive statistics from unified_articles.
 
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
-from api._db import neon_sql, json_response, error_response, send_response, error_from_exc
+
+from api._db import (
+    error_from_exc,
+    json_response,
+    neon_sql,
+    send_response,
+)
 
 
 class handler(BaseHTTPRequestHandler):
