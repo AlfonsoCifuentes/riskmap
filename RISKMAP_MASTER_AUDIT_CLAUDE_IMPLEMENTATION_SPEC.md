@@ -8709,3 +8709,45 @@ Groq: llama-3.1-70b-versatile decommissioned; llama-3.1-8b-instant deprecated 20
 - History rewrite (`git filter-repo`) — prepared as a documented, opt-in runbook; not executed unprompted.
 
 *End of Agent Independent Audit Addendum. Implementation progress will be recorded below under `# Implementation Log`, and a final `# Post-Implementation Independent Re-Audit` will be appended when the main phases are complete.*
+
+
+---
+
+# Implementation Log
+
+Append-only record of changes made during the v2 recovery. Newest phase last.
+Branch: `feat/riskmap-v2-recovery` · PR #1 · CI green (build + gitleaks + Vercel build).
+
+## Phase 0 — Branch safety net (2026-08-18)
+- Snapshotted the uncommitted working tree to `wip/pre-v2-snapshot` (pushed) so
+  nothing is lost. Created `feat/riskmap-v2-recovery` from `origin/master`.
+- Adopted the newest internally-consistent working set (HTML-stripping `_db`,
+  `i18n.js`, and the `pipeline-status` + `gdelt-events` endpoints that production
+  currently 404s on) as the recovery baseline.
+
+## P0 — Operational truth & security (2026-08-18) — COMPLETE
+
+| Item | Result | Verification |
+|---|---|---|
+| P0.1 SQL injection | `api/_db.py` rewritten: identifier allowlist regex + bound params; `BadRequest`→400 | 11 tests incl. live payload `Israel'\|\|'1'='1` |
+| P0.2 Secrets | `.env.example` sanitized; **all 7 secrets purged from git history across every branch** (git-filter-repo, force-pushed); gitleaks CI + pre-commit; ADR-007 + runbook | `git grep` over all refs = 0 matches; live GitHub `.env.example` shows `***REMOVED***` |
+| P0.3 Error leakage | `error_from_exc()`: generic message + correlation id, detail logged server-side; all handlers updated | test asserts SQL text never in response body |
+| P0.4 CI green | split `requirements/{api,pipeline,cv,dev}.txt`; scoped ruff+pytest to v2 surface; actions v4/v5 | CI `build` pass on PR #1 |
+| P0.5 AI models | `src/ai/model_registry.py` (task→env→valid default `openai/gpt-oss-20b`); every decommissioned Groq ID replaced across the repo; vision fallback disabled (no prod Groq vision model) | 7 registry tests incl. "no default is retired" |
+| P0.6 EO honesty | FIRMS uses `NASA_FIRMS_MAP_KEY` + correct URL order; Sentinel-2 stub replaced with a real CDSE **Process API** true-color call; honest DEGRADED without creds | compile + code review; documents 10 m/px limit |
+| P0.7 TLS + SSRF | removed all TLS bypasses (`_og_image`, `external_feeds`×3, `RISKMAP.py` global); `is_safe_url()` SSRF guard + redirect revalidation; image fetch removed from the API request path (worker-only) | 6 SSRF/TLS tests + no-outbound-fetch regression |
+| P0.8 Status/freshness | `/api/status` reports `data_age_seconds` + freshness level + deploy SHA; `active_sources` redefined to "recent" | 8 freshness-threshold tests |
+
+**Totals:** 26 unit tests (all pass), CI green, `.git` history secret-free.
+
+### Known follow-ups opened during P0
+- **Live SQLi still in PRODUCTION** until PR #1 is merged (production runs the old
+  deploy). Recommend merging P0 promptly to close it.
+- **Key rotation** remains the owner's action (history purge ≠ revocation; ADR-007).
+- **SonarCloud** external gate flags the identifier f-strings as a SQL hotspot
+  (false positive — identifiers are regex-validated, values are bound). To be
+  reviewed / annotated in a later pass; not part of the project's own CI.
+- **Legacy `src/` lint**: only `api/` + `tests/unit` are gated; `src/pipeline`
+  (~78 ruff issues) and the wider tree are linted incrementally as migrated.
+- **Crons** remain disabled on purpose — re-enable only after the pipeline schema
+  (`schema_init`) is made reproducible in P1.
