@@ -60,16 +60,26 @@ def compress_to_webp(image_bytes: bytes, max_size_px: int = 512, quality: int = 
 # ---------------------------------------------------------------------------
 
 def fetch_firms_hotspots(lat: float, lon: float, radius_km: float = 50) -> List[Dict]:
-    """Fetch recent fire hotspots from NASA FIRMS (free, no key needed for CSV)."""
-    # FIRMS provides free CSV data for recent fires
-    # Using the open VIIRS data feed
+    """Fetch recent fire hotspots from NASA FIRMS.
+
+    The FIRMS area API requires a free MAP_KEY (see
+    https://firms.modaps.eosdis.nasa.gov/api/map_key/). Contract (addendum B7):
+        /api/area/csv/[MAP_KEY]/[SOURCE]/[west,south,east,north]/[DAY_RANGE]
+    Without the key we return [] and stay DEGRADED — never a fake/empty-success.
+    """
+    map_key = os.getenv('NASA_FIRMS_MAP_KEY', '').strip()
+    if not map_key:
+        logger.info("⏭ NASA_FIRMS_MAP_KEY not set — FIRMS hotspots DEGRADED (skipped)")
+        return []
     try:
+        # bbox order is west,south,east,north (minLon,minLat,maxLon,maxLat).
         url = (
             f"https://firms.modaps.eosdis.nasa.gov/api/area/csv/"
-            f"VIIRS_SNPP_NRT/{lon-1},{lat-1},{lon+1},{lat+1}/1"
+            f"{map_key}/VIIRS_SNPP_NRT/{lon-1},{lat-1},{lon+1},{lat+1}/1"
         )
         resp = requests.get(url, timeout=30)
         if resp.status_code != 200:
+            logger.warning(f"FIRMS HTTP {resp.status_code}")
             return []
 
         lines = resp.text.strip().split('\n')
@@ -170,19 +180,25 @@ def fetch_gdacs_alerts() -> List[Dict]:
 # 4. Copernicus Open Access Hub (Sentinel-2)
 # ---------------------------------------------------------------------------
 
-def fetch_sentinel2_preview(lat: float, lon: float) -> Optional[bytes]:
-    """
-    Fetch a Sentinel-2 quicklook/preview via Copernicus Browser API.
-    Requires COPERNICUS_CLIENT_ID and COPERNICUS_CLIENT_SECRET.
-    """
+# Sentinel-2 true-color evalscript (L2A bands B04/B03/B02).
+_S2_TRUECOLOR_EVALSCRIPT = """//VERSION=3
+function setup() {
+  return { input: ["B02", "B03", "B04"], output: { bands: 3 } };
+}
+function evaluatePixel(s) {
+  return [2.5 * s.B04, 2.5 * s.B03, 2.5 * s.B02];
+}
+"""
+
+
+def _copernicus_token() -> Optional[str]:
+    """Obtain a CDSE OAuth token from client credentials, or None."""
     client_id = os.getenv('COPERNICUS_CLIENT_ID', '')
     client_secret = os.getenv('COPERNICUS_CLIENT_SECRET', '')
     if not client_id or not client_secret:
         return None
-
     try:
-        # Get OAuth token
-        token_resp = requests.post(
+        resp = requests.post(
             'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token',
             data={
                 'grant_type': 'client_credentials',
@@ -191,38 +207,76 @@ def fetch_sentinel2_preview(lat: float, lon: float) -> Optional[bytes]:
             },
             timeout=15,
         )
-        token = token_resp.json().get('access_token')
-        if not token:
-            return None
-
-        # Search for recent Sentinel-2 images
-        bbox = f"{lon-0.1},{lat-0.1},{lon+0.1},{lat+0.1}"
-        search_resp = requests.get(
-            f"https://catalogue.dataspace.copernicus.eu/odata/v1/Products"
-            f"?$filter=Collection/Name eq 'SENTINEL-2'"
-            f" and OData.CSC.Intersects(area=geography'SRID=4326;POINT({lon} {lat})')"
-            f" and ContentDate/Start gt {(datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%dT00:00:00Z')}"
-            f"&$top=1&$orderby=ContentDate/Start desc",
-            headers={'Authorization': f'Bearer {token}'},
-            timeout=20,
-        )
-        results = search_resp.json().get('value', [])
-        if not results:
-            return None
-
-        product_id = results[0]['Id']
-
-        # Download quicklook
-        ql_resp = requests.get(
-            f"https://zipper.dataspace.copernicus.eu/odata/v1/Products({product_id})/Nodes",
-            headers={'Authorization': f'Bearer {token}'},
-            timeout=20,
-        )
-        # Simplified: return the preview image if available
-        return None  # Full implementation needs product-specific quicklook URL
-
+        return resp.json().get('access_token')
     except Exception as e:
-        logger.debug(f"Sentinel-2 fetch failed: {e}")
+        logger.debug(f"Copernicus token failed: {e}")
+        return None
+
+
+def fetch_sentinel2_preview(lat: float, lon: float,
+                            box_deg: float = 0.08,
+                            size_px: int = 512,
+                            max_cloud: int = 40,
+                            days_back: int = 30) -> Optional[bytes]:
+    """Fetch a real Sentinel-2 L2A true-color PNG via the CDSE Sentinel Hub
+    Process API (addendum B8, spec §6.3).
+
+    Returns PNG bytes, or None (DEGRADED) if credentials are missing or no
+    suitable low-cloud scene exists. Never returns synthetic data.
+
+    NOTE on scientific honesty (spec §5.1): Sentinel-2 is 10 m/px — suitable for
+    wildfire scars, floods, large-scale change and vegetation, NOT for detecting
+    individual vehicles. The AOI planner must not request S2 for such tasks.
+    """
+    token = _copernicus_token()
+    if not token:
+        logger.info("⏭ COPERNICUS creds not set — Sentinel-2 DEGRADED (skipped)")
+        return None
+
+    to_date = datetime.utcnow()
+    from_date = to_date - timedelta(days=days_back)
+    bbox = [lon - box_deg, lat - box_deg, lon + box_deg, lat + box_deg]
+    payload = {
+        "input": {
+            "bounds": {
+                "bbox": bbox,
+                "properties": {"crs": "http://www.opengis.net/def/crs/EPSG/0/4326"},
+            },
+            "data": [{
+                "type": "sentinel-2-l2a",
+                "dataFilter": {
+                    "timeRange": {
+                        "from": from_date.strftime('%Y-%m-%dT00:00:00Z'),
+                        "to": to_date.strftime('%Y-%m-%dT23:59:59Z'),
+                    },
+                    "maxCloudCoverage": max_cloud,
+                    "mosaickingOrder": "leastCC",
+                },
+            }],
+        },
+        "output": {
+            "width": size_px,
+            "height": size_px,
+            "responses": [{"identifier": "default",
+                           "format": {"type": "image/png"}}],
+        },
+        "evalscript": _S2_TRUECOLOR_EVALSCRIPT,
+    }
+    try:
+        resp = requests.post(
+            'https://sh.dataspace.copernicus.eu/api/v1/process',
+            headers={'Authorization': f'Bearer {token}'},
+            json=payload,
+            timeout=45,
+        )
+        if resp.status_code != 200:
+            logger.warning(f"Sentinel-2 Process API HTTP {resp.status_code}: {resp.text[:200]}")
+            return None
+        if not resp.content or not resp.headers.get('Content-Type', '').startswith('image/'):
+            return None
+        return resp.content
+    except Exception as e:
+        logger.debug(f"Sentinel-2 Process API failed: {e}")
         return None
 
 

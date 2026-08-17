@@ -77,7 +77,7 @@ class GroqService:
                         "content": prompt
                     }
                 ],
-                model="llama-3.1-8b-instant",
+                model="openai/gpt-oss-20b",
                 temperature=0.75,
                 max_tokens=self._get_max_tokens(analysis_type),
                 response_format={"type": "json_object"}
@@ -202,7 +202,7 @@ class GroqService:
                 'generation_timestamp': datetime.now().isoformat(),
                 'ai_generated': True,
                 'service_used': 'Groq AI',
-                'model': 'llama-3.1-8b-instant'
+                'model': 'openai/gpt-oss-20b'
             })
             
             return analysis_data
@@ -248,7 +248,7 @@ class GroqService:
                     {"role": "system", "content": "Eres un analista económico-geopolítico experto. Solo respondes JSON válido."},
                     {"role": "user", "content": prompt}
                 ],
-                model="llama-3.1-8b-instant",
+                model="openai/gpt-oss-20b",
                 temperature=0.7,
                 max_tokens=3000,
                 response_format={"type": "json_object"}
@@ -300,7 +300,7 @@ class GroqService:
             'service_available': self.available,
             'api_key_configured': bool(self.api_key),
             'client_initialized': self.client is not None,
-            'supported_models': ['llama-3.1-8b-instant', 'llama-3.1-70b-versatile'],
+            'supported_models': ['openai/gpt-oss-20b', 'openai/gpt-oss-120b'],
             'max_tokens_limit': 8000,
             'service_name': 'Groq AI'
         }

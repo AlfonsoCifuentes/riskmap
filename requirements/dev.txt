@@ -1,0 +1,6 @@
+# Deps for CI + local development (lint / type / test). No native builds.
+-r api.txt
+pytest>=8.0.0
+pytest-cov>=5.0.0
+ruff>=0.6.0
+requests>=2.31.0

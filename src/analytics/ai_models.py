@@ -134,7 +134,7 @@ class AIModels:
             self.logger.info("Sending request to Groq API...")
             completion = client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 max_tokens=max_tokens,
                 temperature=0.3
             )

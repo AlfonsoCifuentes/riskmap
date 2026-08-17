@@ -1,0 +1,10 @@
+# Deps for the ingestion / enrichment pipeline (GitHub Actions).
+-r api.txt
+requests>=2.31.0
+feedparser>=6.0.11
+beautifulsoup4>=4.12.0
+lxml>=5.0.0
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+geopy>=2.4.1
+groq>=0.11.0

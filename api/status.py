@@ -1,13 +1,40 @@
 """
 GET /api/status
-System status / health endpoint for Vercel deployment.
-Returns fields that the dashboard JS expects:
-  total_articles, critical_alerts, regions_in_conflict, active_sources
+System health endpoint. Returns the fields the dashboard expects PLUS honest
+freshness + deployment provenance (audit addendum B4, spec §1.2 / §92).
+
+Key principle: HTTP 200 != HEALTHY. This endpoint reports how OLD the data is
+and derives a freshness level, so stale data can never masquerade as live.
 """
 
+import os
+from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler
-from api._db import neon_sql, json_response, error_response, send_response
-from datetime import datetime
+
+from api._db import (
+    error_from_exc,
+    json_response,
+    neon_sql,
+    send_response,
+)
+
+# Freshness SLA thresholds (seconds). Spec §1.2.
+_HEALTHY = 3 * 3600      # < 3h
+_WARNING = 8 * 3600      # 3-8h
+_DEGRADED = 24 * 3600    # 8-24h
+# > 24h => stale; no data / error => offline
+
+
+def _freshness(age_seconds):
+    if age_seconds is None:
+        return "offline"
+    if age_seconds < _HEALTHY:
+        return "healthy"
+    if age_seconds < _WARNING:
+        return "warning"
+    if age_seconds < _DEGRADED:
+        return "degraded"
+    return "stale"
 
 
 class handler(BaseHTTPRequestHandler):
@@ -17,23 +44,61 @@ class handler(BaseHTTPRequestHandler):
                 SELECT
                     COUNT(*) FILTER (WHERE geopolitical_relevance = 1) AS total_articles,
                     COUNT(*) FILTER (WHERE risk_level IN ('high','critical')) AS critical_alerts,
-                    COUNT(DISTINCT country) FILTER (WHERE country IS NOT NULL AND country != '') AS regions_in_conflict,
-                    COUNT(DISTINCT source) FILTER (WHERE source IS NOT NULL AND source != '') AS active_sources
+                    COUNT(DISTINCT country) FILTER (
+                        WHERE country IS NOT NULL AND country <> ''
+                    ) AS regions_in_conflict,
+                    -- A source is "active" only if it produced data recently,
+                    -- not merely because it appears somewhere in history (§197).
+                    COUNT(DISTINCT source) FILTER (
+                        WHERE source IS NOT NULL AND source <> ''
+                          AND published_at >= NOW() - INTERVAL '48 hours'
+                    ) AS active_sources,
+                    COUNT(DISTINCT source) FILTER (
+                        WHERE source IS NOT NULL AND source <> ''
+                    ) AS known_sources,
+                    MAX(published_at) AS latest_published_at,
+                    MAX(created_at)   AS latest_ingested_at
                 FROM unified_articles
             """)
+            s = rows[0] if rows else {}
 
-            stats = rows[0] if rows else {}
+            latest_pub = s.get("latest_published_at")
+            latest_ing = s.get("latest_ingested_at")
+
+            # Data age is measured from the most recent thing we ingested.
+            reference = latest_ing or latest_pub
+            age_seconds = None
+            if reference is not None:
+                if reference.tzinfo is None:
+                    reference = reference.replace(tzinfo=UTC)
+                age_seconds = max(
+                    0, int((datetime.now(UTC) - reference).total_seconds()))
+
+            level = _freshness(age_seconds)
 
             resp = json_response({
-                'success': True,
-                'status': 'ok',
-                'timestamp': datetime.utcnow().isoformat(),
-                'total_articles': stats.get('total_articles', 0),
-                'critical_alerts': stats.get('critical_alerts', 0),
-                'regions_in_conflict': stats.get('regions_in_conflict', 0),
-                'active_sources': stats.get('active_sources', 0),
+                "success": True,
+                # 'status' reflects freshness, not just "the endpoint replied".
+                "status": "ok" if level in ("healthy", "warning") else level,
+                "timestamp": datetime.now(UTC).isoformat(),
+                "total_articles": s.get("total_articles", 0),
+                "critical_alerts": s.get("critical_alerts", 0),
+                "regions_in_conflict": s.get("regions_in_conflict", 0),
+                "active_sources": s.get("active_sources", 0),
+                "known_sources": s.get("known_sources", 0),
+                "freshness": {
+                    "level": level,
+                    "data_age_seconds": age_seconds,
+                    "latest_published_at": latest_pub.isoformat() if latest_pub else None,
+                    "latest_ingested_at": latest_ing.isoformat() if latest_ing else None,
+                },
+                "deployment": {
+                    "git_sha": os.getenv("VERCEL_GIT_COMMIT_SHA", "")[:12] or None,
+                    "branch": os.getenv("VERCEL_GIT_COMMIT_REF") or None,
+                    "environment": os.getenv("VERCEL_ENV") or "development",
+                },
             })
             send_response(self, resp)
 
         except Exception as e:
-            send_response(self, error_response(str(e)))
+            send_response(self, error_from_exc(e))

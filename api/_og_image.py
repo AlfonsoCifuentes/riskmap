@@ -11,18 +11,72 @@ Keeps a negative cache to avoid re-trying failed URLs within the
 same serverless cold-start window.
 """
 
-import re
-import ssl
+import ipaddress
 import json
-import urllib.request
+import re
+import socket
+import ssl
 import urllib.error
 import urllib.parse
+import urllib.request
 
 _TIMEOUT = 6  # seconds — keep it fast for serverless
 
+# SECURITY (addendum B9): use a normal *verified* TLS context. Never disable
+# certificate verification — a broken chain on one feed must be handled for that
+# feed, not globally.
 _ssl_ctx = ssl.create_default_context()
-_ssl_ctx.check_hostname = False
-_ssl_ctx.verify_mode = ssl.CERT_NONE
+
+_ALLOWED_SCHEMES = {"http", "https"}
+# Cloud metadata endpoints that must never be reachable via SSRF.
+_BLOCKED_HOSTS = {"169.254.169.254", "metadata.google.internal", "metadata"}
+
+
+def _host_is_public(host: str) -> bool:
+    """Resolve a host and return True only if every resolved address is a
+    public, routable IP (blocks loopback/private/link-local/reserved)."""
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except socket.gaierror:
+        return False
+    for info in infos:
+        ip = info[4][0]
+        try:
+            addr = ipaddress.ip_address(ip)
+        except ValueError:
+            return False
+        if (addr.is_private or addr.is_loopback or addr.is_link_local
+                or addr.is_reserved or addr.is_multicast
+                or addr.is_unspecified):
+            return False
+    return True
+
+
+def is_safe_url(url: str) -> bool:
+    """SSRF guard: allow only http(s) URLs whose host resolves to public IPs
+    and is not a known cloud-metadata endpoint (addendum B10)."""
+    try:
+        p = urllib.parse.urlparse(url)
+    except ValueError:
+        return False
+    if p.scheme not in _ALLOWED_SCHEMES or not p.hostname:
+        return False
+    if p.hostname.lower() in _BLOCKED_HOSTS:
+        return False
+    return _host_is_public(p.hostname)
+
+
+class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Re-validate every redirect hop against the SSRF guard."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not is_safe_url(newurl):
+            return None
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+# Opener that validates redirects. Used for fetches to *arbitrary* article URLs.
+_safe_opener = urllib.request.build_opener(_SafeRedirectHandler)
 
 _HEADERS = {
     'User-Agent': (
@@ -75,6 +129,10 @@ def extract_og_image(article_url: str) -> str | None:
         return None
     if article_url in _FAILED_URLS:
         return None
+    if not is_safe_url(article_url):
+        # Reject SSRF / non-public targets before any network call.
+        _FAILED_URLS.add(article_url)
+        return None
 
     url = _CLEAN_PARAMS.sub('', article_url).rstrip('?&')
 
@@ -100,9 +158,12 @@ def extract_og_image(article_url: str) -> str | None:
 
 def _extract_direct(url: str) -> str | None:
     """Extract og:image via direct HTML fetch."""
+    if not is_safe_url(url):
+        return None
     try:
         req = urllib.request.Request(url, headers=_HEADERS)
-        with urllib.request.urlopen(req, timeout=_TIMEOUT, context=_ssl_ctx) as resp:
+        # Verified TLS + redirect-validating opener (SSRF-safe).
+        with _safe_opener.open(req, timeout=_TIMEOUT) as resp:
             html = resp.read(80_000).decode('utf-8', errors='ignore')
 
             # Try meta tags
@@ -226,7 +287,7 @@ def enrich_articles_with_images(articles: list) -> list:
     For each article missing an image, attempt to extract og:image
     from the article URL. Updates the article dict in-place and
     also writes back to the database if successful.
-    
+
     Limits extraction to max 5 articles per request to stay fast.
     """
     enriched = 0

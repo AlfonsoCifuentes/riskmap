@@ -88,7 +88,7 @@ class EnrichmentConfig:
     sentiment_model_name: str = "cardiffnlp/twitter-roberta-base-sentiment-latest"
     embedding_model_name: str = "thenlper/gte-small"
     yolo_model_path: str = "yolov8n.pt"
-    groq_model: str = "llama-3.1-8b-instant"
+    groq_model: str = "openai/gpt-oss-20b"
     
     # Configuración de procesamiento - OPTIMIZADO PARA ARTÍCULOS NUEVOS
     batch_size: int = 5  # Reducido para procesamiento más rápido
@@ -270,9 +270,9 @@ class IntelligentDataEnrichment:
                         logger.info(f"Added column: {col_name}")
                 
                 # Índices para optimización
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_enrichment_status ON articles (enrichment_status)")
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_last_enriched ON articles (last_enriched)")
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_semantic_hash ON articles (semantic_hash)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_enrichment_status ON unified_articles (enrichment_status)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_last_enriched ON unified_articles (last_enriched)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_semantic_hash ON unified_articles (semantic_hash)")
                 
                 conn.commit()
                 logger.info("✅ Enrichment tables ensured")

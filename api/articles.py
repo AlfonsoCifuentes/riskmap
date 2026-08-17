@@ -5,8 +5,14 @@ Query params: limit (default 20), offset (default 0), country, risk_level
 
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
-from api._db import neon_get, json_response, error_response, send_response
-from api._og_image import enrich_articles_with_images
+
+from api._db import (
+    clean_articles,
+    error_from_exc,
+    json_response,
+    neon_get,
+    send_response,
+)
 
 
 class handler(BaseHTTPRequestHandler):
@@ -17,6 +23,7 @@ class handler(BaseHTTPRequestHandler):
             offset = int(qs.get('offset', ['0'])[0])
             country = qs.get('country', [None])[0]
             risk = qs.get('risk_level', [None])[0]
+            lang = qs.get('lang', [None])[0]
 
             # PostgREST filter params
             params = {'geopolitical_relevance': 'eq.1'}
@@ -24,6 +31,8 @@ class handler(BaseHTTPRequestHandler):
                 params['country'] = f'eq.{country}'
             if risk:
                 params['risk_level'] = f'eq.{risk}'
+            if lang and lang in ('es', 'en'):
+                params['language'] = f'eq.{lang}'
 
             articles = neon_get(
                 'unified_articles',
@@ -39,8 +48,11 @@ class handler(BaseHTTPRequestHandler):
                 offset=offset,
             )
 
-            # Enrich articles missing images with og:image from source
-            enrich_articles_with_images(articles)
+            # NOTE: og:image extraction happens in the ingest worker (SSRF-safe),
+            # never in the request path. The API returns the stored image_url only.
+
+            # Strip HTML from text fields
+            clean_articles(articles)
 
             resp = json_response({
                 'success': True,
@@ -52,4 +64,4 @@ class handler(BaseHTTPRequestHandler):
             send_response(self, resp)
 
         except Exception as e:
-            send_response(self, error_response(str(e)))
+            send_response(self, error_from_exc(e))

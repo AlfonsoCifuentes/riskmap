@@ -5,7 +5,13 @@ Query params: type (conflict_indicator|disaster_signal), limit, event_id
 
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
-from api._db import neon_get, json_response, error_response, send_response
+
+from api._db import (
+    error_from_exc,
+    json_response,
+    neon_get,
+    send_response,
+)
 
 
 class handler(BaseHTTPRequestHandler):
@@ -37,4 +43,4 @@ class handler(BaseHTTPRequestHandler):
             send_response(self, resp)
 
         except Exception as e:
-            send_response(self, error_response(str(e)))
+            send_response(self, error_from_exc(e))

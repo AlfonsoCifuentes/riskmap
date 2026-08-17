@@ -223,10 +223,10 @@ El artículo debe fluir naturalmente desde una introducción hasta conclusiones,
 
             # Usar modelos actuales disponibles en Groq
             models_to_try = [
-                "llama-3.1-8b-instant",
-                "llama-3.2-11b-text-preview",
-                "llama-3.2-3b-preview",
-                "mixtral-8x7b-32768"
+                "openai/gpt-oss-20b",
+                "openai/gpt-oss-20b",
+                "openai/gpt-oss-20b",
+                "openai/gpt-oss-20b"
             ]
 
             for model in models_to_try:

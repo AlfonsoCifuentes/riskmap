@@ -24,64 +24,68 @@
 
 <nav class="top-nav">
   <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="nav-actions">
+    <button class="lang-toggle" onclick="window.i18n&&i18n.toggle()" title="ES / EN">ES</button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
   <div class="nav-menu" id="navMenu">
-    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span><span data-i18n="nav.news">Análisis de Noticias</span></a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span><span data-i18n="nav.conflicts">Monitor de Conflictos</span></a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span><span data-i18n="nav.trends">Análisis de Tendencias</span></a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span><span data-i18n="nav.earlyWarning">Alertas Tempranas</span></a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span><span data-i18n="nav.reports">Reportes Ejecutivos</span></a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span><span data-i18n="nav.dataIntel">Inteligencia de Datos</span></a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span><span data-i18n="nav.satellite">Análisis Satelital</span></a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span><span data-i18n="nav.video">Vigilancia por Video</span></a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span><span data-i18n="nav.historical">Análisis Histórico</span></a>
     <div class="nav-divider"></div>
-    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span><span data-i18n="nav.about">Acerca de</span></a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span><span data-i18n="nav.logs">Registros</span></a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span><span data-i18n="nav.settings">Configuración</span></a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
 <header class="page-header reveal">
   <span class="page-icon">📈</span>
-  <h1>Tendencias de Riesgo y Cobertura</h1>
-  <p>Monitor de evolución temporal, distribución de riesgo y fuentes predominantes del sistema de inteligencia.</p>
+  <h1 data-i18n="trends.title">Tendencias de Riesgo y Cobertura</h1>
+  <p data-i18n="trends.desc">Monitor de evolución temporal, distribución de riesgo y fuentes predominantes del sistema de inteligencia.</p>
 </header>
 
 <div class="container">
   <div class="stats-row reveal stagger">
-    <div class="stat-card card-glow"><div class="stat-icon-lg">🗞️</div><div class="stat-val" id="kpiTotal">0</div><div class="stat-lbl">Artículos geopolíticos</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">📊</div><div class="stat-val" id="kpiAvgRisk">0</div><div class="stat-lbl">Riesgo promedio</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">📡</div><div class="stat-val" id="kpiSources">0</div><div class="stat-lbl">Fuentes activas</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="kpiZones">0</div><div class="stat-lbl">Zonas activas</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🗞️</div><div class="stat-val" id="kpiTotal">0</div><div class="stat-lbl" data-i18n="trends.kpiArticles">Artículos geopolíticos</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📊</div><div class="stat-val" id="kpiAvgRisk">0</div><div class="stat-lbl" data-i18n="trends.kpiRisk">Riesgo promedio</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📡</div><div class="stat-val" id="kpiSources">0</div><div class="stat-lbl" data-i18n="trends.kpiSources">Fuentes activas</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="kpiZones">0</div><div class="stat-lbl" data-i18n="trends.kpiZones">Zonas activas</div></div>
   </div>
 
   <div class="chart-grid reveal stagger">
     <section class="chart-card card-glow">
-      <h2 class="section-title">Evolución diaria de noticias</h2>
+      <h2 class="section-title" data-i18n="trends.dailyEvolution">Evolución diaria de noticias</h2>
       <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
     </section>
     <section class="chart-card card-glow">
-      <h2 class="section-title">Distribución de riesgo</h2>
+      <h2 class="section-title" data-i18n="trends.riskDistribution">Distribución de riesgo</h2>
       <div class="chart-wrap"><canvas id="riskChart"></canvas></div>
     </section>
   </div>
 
   <div class="chart-grid" style="margin-top:clamp(12px,2vw,24px)">
     <section class="chart-card reveal">
-      <h2 class="section-title">Categorías de conflicto</h2>
+      <h2 class="section-title" data-i18n="trends.conflictCategories">Categorías de conflicto</h2>
       <div class="chart-wrap"><canvas id="categoryChart"></canvas></div>
     </section>
     <aside class="card reveal-right">
-      <h2 class="section-title">Top fuentes</h2>
-      <div class="source-list" id="sourcesList"><div class="loader"><div class="spin"></div>Cargando fuentes...</div></div>
+      <h2 class="section-title" data-i18n="trends.topSources">Top fuentes</h2>
+      <div class="source-list" id="sourcesList"><div class="loader"><div class="spin"></div><span data-i18n="trends.loadingSources">Cargando fuentes...</span></div></div>
     </aside>
   </div>
 </div>
 
 <div id="toast-root"></div>
+<script src="/i18n.js"></script>
 <script src="/nav.js"></script>
 <script>
 (function(){
@@ -119,7 +123,7 @@
     if (riskChart) riskChart.destroy();
     riskChart = new Chart(document.getElementById('riskChart'), {
       type:'doughnut',
-      data:{labels:['Alto','Medio','Bajo'], datasets:[{data:[riskDist.high||0, riskDist.medium||0, riskDist.low||0], backgroundColor:['#ff5a65','#ffb038','#22d68e'], borderColor:'transparent', borderWidth:2}]},
+      data:{labels:[i18n.t('risk.high'),i18n.t('risk.medium'),i18n.t('risk.low')], datasets:[{data:[riskDist.high||0, riskDist.medium||0, riskDist.low||0], backgroundColor:['#ff5a65','#ffb038','#22d68e'], borderColor:'transparent', borderWidth:2}]},
       options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#c2d4f0',font:{family:'Sora'}}}}}
     });
 
@@ -135,7 +139,7 @@
     var el = document.getElementById('sourcesList');
     if (!el) return;
     if (!sources.length){
-      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📡</div><h3>Sin fuentes</h3><p>No hay fuentes activas registradas.</p></div>';
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📡</div><h3>' + i18n.t('trends.noSources') + '</h3><p>' + i18n.t('trends.noSourcesDesc') + '</p></div>';
       return;
     }
     el.innerHTML = sources.map(function(s){
@@ -145,14 +149,15 @@
   }
 
   async function load(){
+    var lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'es';
     var results = await Promise.all([
       fetchJSON('/api/analytics/conflicts-corrected'),
-      fetchJSON('/api/articles?limit=200')
+      fetchJSON('/api/articles?limit=200&lang=' + lang)
     ]);
     var analytics = results[0], articlesResp = results[1];
 
     if (!analytics || !analytics.success){
-      showToast('No se pudo cargar analytics', 'error');
+      showToast(i18n.t('trends.errorAnalytics'), 'error');
       return;
     }
     var articles = (articlesResp && articlesResp.articles) || [];
@@ -167,6 +172,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', load);
+  window.addEventListener('langchange', function(){ i18n.apply(); load(); });
 })();
 </script>
 </body>

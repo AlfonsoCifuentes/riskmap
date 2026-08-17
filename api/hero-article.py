@@ -14,8 +14,15 @@ Fetches top 10 candidates and picks the best one with a valid image.
 """
 
 from http.server import BaseHTTPRequestHandler
-from api._db import neon_get, json_response, error_response, send_response
-from api._og_image import enrich_articles_with_images
+from urllib.parse import parse_qs, urlparse
+
+from api._db import (
+    clean_article,
+    error_from_exc,
+    json_response,
+    neon_get,
+    send_response,
+)
 
 _SELECT_COLS = (
     'id,title,summary,url,source,published_at,'
@@ -44,13 +51,20 @@ def _is_valid_hero(article):
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
+            qs = parse_qs(urlparse(self.path).query)
+            lang = qs.get('lang', [None])[0]
+
+            params = {
+                'geopolitical_relevance': 'eq.1',
+                'image_url': 'not.is.null',
+            }
+            if lang and lang in ('es', 'en'):
+                params['language'] = f'eq.{lang}'
+
             # Fetch top 10 candidates: high importance + valid image + real source
             articles = neon_get(
                 'unified_articles',
-                params={
-                    'geopolitical_relevance': 'eq.1',
-                    'image_url': 'not.is.null',
-                },
+                params=params,
                 select=_SELECT_COLS,
                 order='risk_score.desc.nullslast,published_at.desc',
                 limit=10,
@@ -59,7 +73,7 @@ class handler(BaseHTTPRequestHandler):
             # Pick the first candidate that passes Python-side validation
             hero = None
             if articles:
-                enrich_articles_with_images(articles)
+                # image_url is populated by the ingest worker (SSRF-safe).
                 for art in articles:
                     if _is_valid_hero(art):
                         hero = art
@@ -75,15 +89,15 @@ class handler(BaseHTTPRequestHandler):
                     limit=5,
                 )
                 if articles:
-                    enrich_articles_with_images(articles)
                     for art in articles:
-                        if len((art.get('title') or '')) >= 20:
+                        if len(art.get('title') or '') >= 20:
                             hero = art
                             break
                     if not hero:
                         hero = articles[0]
 
             if hero:
+                clean_article(hero)
                 resp = json_response({
                     'success': True,
                     'article': hero,
@@ -97,4 +111,4 @@ class handler(BaseHTTPRequestHandler):
             send_response(self, resp)
 
         except Exception as e:
-            send_response(self, error_response(str(e)))
+            send_response(self, error_from_exc(e))

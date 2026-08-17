@@ -64,7 +64,11 @@ def analyze_geopolitical_enhanced(title, content=""):
 
 
 # ===== PARCHE YOLO/PYTORCH - DEBE SER PRIMERO =====
-import yolo_permanent_patch
+try:
+    import yolo_permanent_patch
+except ImportError as e:
+    print(f"⚠️  yolo_permanent_patch no disponible: {e}")
+    print("     Continuando sin parche YOLO/PyTorch...")
 
 """
 RiskMap - Aplicación Web Moderna Unificada
@@ -204,11 +208,11 @@ from typing import Dict, List, Optional, Any
 import signal
 import atexit
 
-# Configuración SSL robusta para todas las conexiones
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-import ssl
-ssl._create_default_https_context = ssl._create_unverified_context
+# SECURITY (addendum B9): TLS certificate verification is left ENABLED.
+# Previously this module globally disabled verification via
+# `ssl._create_default_https_context = ssl._create_unverified_context`, which
+# turned off TLS validation for the entire process. That line has been removed.
+import ssl  # noqa: F401  (kept for modules that reference ssl below)
 
 import sqlite3
 import requests
@@ -355,10 +359,6 @@ except Exception as e:
     
     # Create mock functions for compatibility
     class MockAIService:
-        def __init__(self):
-            self.ollama_available = False
-            self.groq_available = bool(os.getenv('GROQ_API_KEY'))
-            
         def get_service_status(self):
             return {
                 'ollama_available': self.ollama_available,
@@ -420,19 +420,9 @@ except Exception as e:
     
     def generate_summary_ai(title: str, content: str, prefer_local: bool = True):
         return f"Resumen de: {title}"
-    
-    # Crear funciones mock para AI services
-    def unified_ai_service():
-        return None
-    
-    def analyze_with_ai(text, task="analyze"):
-        return {'error': 'AI services not available', 'analysis': 'Sin análisis disponible'}
-    
-    def generate_summary_ai(text):
-        return {'error': 'AI services not available', 'summary': 'Sin resumen disponible'}
+
 except Exception as e:
     print(f"⚠️  Error inesperado en AI services: {type(e).__name__}: {e}")
-    AI_SERVICES_AVAILABLE = False
 
 try:
     # Ultra HD Satellite Analysis System
@@ -686,7 +676,7 @@ class RiskMapUnifiedApplication:
         self.flask_app = Flask(__name__, 
                               template_folder='src/web/templates',
                               static_folder='src/web/static')
-        self.flask_app.secret_key = 'riskmap_unified_2024'
+        self.flask_app.secret_key = os.getenv('FLASK_SECRET_KEY', 'riskmap_unified_2024_dev')
         CORS(self.flask_app)
         
         # Initialize SocketIO for real-time features
@@ -1974,7 +1964,87 @@ class RiskMapUnifiedApplication:
                 })
             except Exception as e:
                 return jsonify({'success': False, 'error': str(e)})
-        
+
+        @self.flask_app.route('/api/heatmap')
+        def api_heatmap():
+            """API: Risk heatmap data — lat/lon/weight points for the Leaflet heatmap overlay."""
+            try:
+                limit = min(int(request.args.get('limit', 1000)), 3000)
+                conn = sqlite3.connect(DATABASE_PATH)
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+
+                points = []
+
+                # 1. Geopolitical articles with location & risk score
+                cursor.execute(
+                    '''SELECT latitude, longitude, risk_score
+                       FROM unified_articles
+                       WHERE geopolitical_relevance = 1
+                         AND latitude IS NOT NULL AND longitude IS NOT NULL
+                         AND risk_score IS NOT NULL AND risk_score > 0
+                       ORDER BY published_at DESC
+                       LIMIT ?''',
+                    (limit,),
+                )
+                for row in cursor.fetchall():
+                    points.append({
+                        'lat': row['latitude'],
+                        'lon': row['longitude'],
+                        'weight': float(row['risk_score']),
+                        'source': 'article',
+                    })
+
+                # 2. Event locations (higher weight)
+                try:
+                    cursor.execute(
+                        '''SELECT el.latitude, el.longitude, e.severity
+                           FROM event_locations el
+                           JOIN events e ON e.id = el.event_id
+                           WHERE el.latitude IS NOT NULL AND el.longitude IS NOT NULL
+                           ORDER BY e.last_updated DESC
+                           LIMIT 500'''
+                    )
+                    for row in cursor.fetchall():
+                        points.append({
+                            'lat': row['latitude'],
+                            'lon': row['longitude'],
+                            'weight': min(float(row['severity'] or 0.7), 1.0),
+                            'source': 'event',
+                        })
+                except Exception:
+                    pass
+
+                # 3. Signals (conflict indicators from CV detection)
+                try:
+                    cursor.execute(
+                        '''SELECT latitude, longitude, severity, signal_type
+                           FROM signals
+                           WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+                           ORDER BY created_at DESC
+                           LIMIT 300'''
+                    )
+                    for row in cursor.fetchall():
+                        points.append({
+                            'lat': row['latitude'],
+                            'lon': row['longitude'],
+                            'weight': min(float(row['severity'] or 0.6), 1.0),
+                            'source': row['signal_type'] or 'signal',
+                        })
+                except Exception:
+                    pass
+
+                conn.close()
+                return jsonify({
+                    'success': True,
+                    'points': points,
+                    'count': len(points),
+                    'timestamp': datetime.now().isoformat(),
+                })
+            except Exception as e:
+                logger.error(f"Heatmap API error: {e}")
+                return jsonify({'success': False, 'error': str(e), 'points': []})
+
         @self.flask_app.route('/api/alerts')
         def api_alerts():
             """API: Alertas del sistema"""
@@ -2163,7 +2233,7 @@ class RiskMapUnifiedApplication:
                             "content": "Responde brevemente: ¿Funciona la API de Groq?"
                         }
                     ],
-                    model="llama-3.1-8b-instant",
+                    model="openai/gpt-oss-20b",
                     max_tokens=50
                 )
                 
@@ -2726,7 +2796,7 @@ Responde solo con la descripción, sin preámbulos ni explicaciones adicionales.
                                 {"role": "system", "content": "Eres un analista geopolítico experto que genera descripciones precisas y concisas."},
                                 {"role": "user", "content": prompt}
                             ],
-                            model="llama-3.1-70b-versatile",
+                            model="openai/gpt-oss-120b",
                             max_tokens=200,
                             temperature=0.3
                         )
@@ -11734,7 +11804,7 @@ Artículo {i+1}:
                         "content": optimized_prompt
                     }
                 ],
-                model="llama-3.1-8b-instant",
+                model="openai/gpt-oss-20b",
                 temperature=0.75,
                 max_tokens=2000
             )
@@ -11817,7 +11887,7 @@ Artículo {i+1}:
                         "content": prompt
                     }
                 ],
-                model="llama-3.1-8b-instant",
+                model="openai/gpt-oss-20b",
                 temperature=0.75,
                 max_tokens=3000,
                 response_format={"type": "json_object"}

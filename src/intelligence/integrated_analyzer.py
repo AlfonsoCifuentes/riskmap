@@ -516,7 +516,7 @@ class IntegratedGeopoliticalAnalyzer:
             latest_date = datetime.fromisoformat(zone['latest_event_date'].replace('Z', '+00:00'))
             days_ago = (datetime.now() - latest_date.replace(tzinfo=None)).days
             recency_factor = max(0, 0.1 - (days_ago * 0.01))
-        except:
+        except Exception:
             pass
         
         # Score final
@@ -616,7 +616,7 @@ class IntegratedGeopoliticalAnalyzer:
             
             response = self.groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model="llama-3.1-8b-instant",
+                model="openai/gpt-oss-20b",
                 max_tokens=200,
                 temperature=0.3
             )

@@ -231,7 +231,7 @@ class MosaicLayoutManager:
                             quality_score = visual_data.get('quality_score', 0.5)
                             if quality_score < 0.4:
                                 should_move_to_thumbnail = True
-                        except:
+                        except Exception:
                             pass
                     
                     # Verificar dimensiones

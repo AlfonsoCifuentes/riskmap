@@ -59,24 +59,27 @@
 
 <nav class="top-nav">
   <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
+  <div class="nav-actions">
+    <button class="lang-toggle" id="langToggle" onclick="i18n.toggle()">ES</button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
   <div class="nav-menu" id="navMenu">
-    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span><span data-i18n="nav.news">Análisis de Noticias</span></a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span><span data-i18n="nav.conflicts">Monitor de Conflictos</span></a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span><span data-i18n="nav.trends">Análisis de Tendencias</span></a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span><span data-i18n="nav.earlyWarning">Alertas Tempranas</span></a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span><span data-i18n="nav.reports">Reportes Ejecutivos</span></a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span><span data-i18n="nav.dataIntel">Inteligencia de Datos</span></a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span><span data-i18n="nav.satellite">Análisis Satelital</span></a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span><span data-i18n="nav.video">Vigilancia por Video</span></a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span><span data-i18n="nav.historical">Análisis Histórico</span></a>
     <div class="nav-divider"></div>
-    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span><span data-i18n="nav.about">Acerca de</span></a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span><span data-i18n="nav.logs">Registros</span></a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span><span data-i18n="nav.settings">Configuración</span></a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
@@ -84,19 +87,19 @@
 <!-- ═══ HERO ═══ -->
 <section class="hero-split reveal">
   <div class="hero-copy">
-    <div class="hero-eyebrow"><span class="pulse-dot"></span> Inteligencia Geopolítica Operativa</div>
-    <h1 class="hero-title">Monitoreo global de conflictos en tiempo real</h1>
-    <p class="hero-desc">Pipeline automatizado de ingesta multi-fuente, filtrado de conflictos geopolíticos y desastres naturales, curación editorial, análisis con IA y visualización geoespacial — sin simulaciones, solo datos operacionales.</p>
+    <div class="hero-eyebrow"><span class="pulse-dot"></span> <span data-i18n="index.eyebrow">Inteligencia Geopolítica Operativa</span></div>
+    <h1 class="hero-title" data-i18n="index.title">Monitoreo global de conflictos en tiempo real</h1>
+    <p class="hero-desc" data-i18n="index.desc">Pipeline automatizado de ingesta multi-fuente, filtrado de conflictos geopolíticos y desastres naturales, curación editorial, análisis con IA y visualización geoespacial — sin simulaciones, solo datos operacionales.</p>
     <div class="hero-tags">
-      <span class="hero-tag">Ingesta multi-fuente</span>
-      <span class="hero-tag">Filtrado geopolítico</span>
-      <span class="hero-tag">Mapa de calor</span>
-      <span class="hero-tag">GDELT &amp; ACLED</span>
-      <span class="hero-tag">Computer Vision</span>
+      <span class="hero-tag" data-i18n="index.tag1">Ingesta multi-fuente</span>
+      <span class="hero-tag" data-i18n="index.tag2">Filtrado geopolítico</span>
+      <span class="hero-tag" data-i18n="index.tag3">Mapa de calor</span>
+      <span class="hero-tag" data-i18n="index.tag4">GDELT &amp; ACLED</span>
+      <span class="hero-tag" data-i18n="index.tag5">Computer Vision</span>
     </div>
   </div>
   <aside class="hero-feature reveal-right">
-    <div class="hero-feature-label"><span class="pulse-dot"></span> Destacado</div>
+    <div class="hero-feature-label"><span class="pulse-dot"></span> <span data-i18n="index.featured">Destacado</span></div>
     <div id="heroArticleBody">
       <div class="loader"><div class="spin"></div>Cargando...</div>
     </div>
@@ -109,47 +112,48 @@
     <div class="stat-card card-glow">
       <div class="stat-icon-lg">📰</div>
       <div class="stat-val" id="kpiArticles">0</div>
-      <div class="stat-lbl">Artículos geopolíticos</div>
+      <div class="stat-lbl" data-i18n="index.kpiArticles">Artículos geopolíticos</div>
     </div>
     <div class="stat-card card-glow">
       <div class="stat-icon-lg">🚨</div>
       <div class="stat-val" id="kpiAlerts">0</div>
-      <div class="stat-lbl">Alertas críticas</div>
+      <div class="stat-lbl" data-i18n="index.kpiAlerts">Alertas críticas</div>
     </div>
     <div class="stat-card card-glow">
       <div class="stat-icon-lg">🌍</div>
       <div class="stat-val" id="kpiRegions">0</div>
-      <div class="stat-lbl">Regiones en conflicto</div>
+      <div class="stat-lbl" data-i18n="index.kpiRegions">Regiones en conflicto</div>
     </div>
     <div class="stat-card card-glow">
       <div class="stat-icon-lg">📡</div>
       <div class="stat-val" id="kpiSources">0</div>
-      <div class="stat-lbl">Fuentes activas</div>
+      <div class="stat-lbl" data-i18n="index.kpiSources">Fuentes activas</div>
     </div>
   </div>
 
   <!-- ═══ PIPELINE FLOW ═══ -->
-  <h2 class="section-title reveal">Pipeline de Inteligencia</h2>
+  <h2 class="section-title reveal" data-i18n="index.pipeline">Pipeline de Inteligencia</h2>
   <div class="pipeline reveal stagger" id="flowGrid"></div>
 
   <!-- ═══ NEWS + HOTSPOTS ═══ -->
   <div class="main-split">
     <section class="reveal">
-      <h2 class="section-title">Noticias Curadas</h2>
+      <h2 class="section-title" data-i18n="index.curatedNews">Noticias Curadas</h2>
       <div class="news-grid" id="newsGrid">
-        <div class="loader"><div class="spin"></div>Cargando artículos...</div>
+        <div class="loader"><div class="spin"></div><span data-i18n="index.loadingArticles">Cargando artículos...</span></div>
       </div>
     </section>
     <aside class="reveal-right">
-      <h2 class="section-title">Hotspots Globales</h2>
+      <h2 class="section-title" data-i18n="index.hotspots">Hotspots Globales</h2>
       <div id="hotspotsList" style="display:grid;gap:10px">
-        <div class="loader"><div class="spin"></div>Calculando zonas...</div>
+        <div class="loader"><div class="spin"></div><span data-i18n="index.loadingHotspots">Calculando zonas...</span></div>
       </div>
     </aside>
   </div>
 </div>
 
 <div id="toast-root"></div>
+<script src="/i18n.js"></script>
 <script src="/nav.js"></script>
 <script>
 (function(){
@@ -160,23 +164,24 @@
     var el = document.getElementById('heroArticleBody');
     if (!el) return;
     if (!data || !data.article) {
-      el.innerHTML = '<p style="color:var(--text-2)">No hay noticia destacada disponible.</p>';
+      el.innerHTML = '<p style="color:var(--text-2)">' + i18n.t('index.noFeatured') + '</p>';
       return;
     }
     var a = data.article;
-    var summary = a.ai_summary || a.summary || a.content || '';
+    var title = stripHtml(a.title) || i18n.t('common.noTitle');
+    var summary = stripHtml(a.ai_summary || a.summary || a.content || '');
     var truncated = summary.length > 280 ? escH(summary).slice(0, 280) + '…' : escH(summary);
     el.innerHTML =
-      '<h2 style="font-size:1rem;margin:0 0 8px;line-height:1.4">' + escH(a.title || 'Sin título') + '</h2>' +
+      '<h2 style="font-size:1rem;margin:0 0 8px;line-height:1.4">' + escH(title) + '</h2>' +
       '<p style="font-size:.84rem;color:var(--text-2);line-height:1.6;margin:0">' + truncated + '</p>' +
       '<div class="hero-feature-meta">' +
-        '<span>' + escH(a.source || 'Fuente desconocida') + '</span>' +
+        '<span>' + escH(a.source || i18n.t('common.unknownSource')) + '</span>' +
         '<span>·</span>' +
         '<span>' + timeAgo(a.published_at) + '</span>' +
         (a.risk_level ? '<span>·</span>' + riskBadge(a.risk_level) : '') +
       '</div>' +
       '<div class="hero-feature-actions">' +
-        '<a class="btn btn-primary" href="' + escH(a.url || '#') + '" target="_blank" rel="noopener">Leer fuente</a>' +
+        '<a class="btn btn-primary" href="' + escH(a.url || '#') + '" target="_blank" rel="noopener">' + i18n.t('common.readSource') + '</a>' +
       '</div>';
   }
 
@@ -185,16 +190,17 @@
     var img = a.image_url
       ? '<img src="' + escH(a.image_url) + '" alt="" loading="lazy">'
       : '';
-    var summary = a.summary || a.ai_summary || '';
+    var title = stripHtml(a.title) || i18n.t('common.noTitle');
+    var summary = stripHtml(a.summary || a.ai_summary || '');
     var excerpt = summary.length > 160 ? escH(summary).slice(0, 160) + '…' : escH(summary);
     return '<article class="news-card card-hover">' +
       '<div class="news-card-img">' + img + '</div>' +
       '<div class="news-card-body">' +
-        '<h3 class="news-card-title"><a href="' + escH(a.url || '#') + '" target="_blank" rel="noopener">' + escH(a.title || 'Sin título') + '</a></h3>' +
+        '<h3 class="news-card-title"><a href="' + escH(a.url || '#') + '" target="_blank" rel="noopener">' + escH(title) + '</a></h3>' +
         '<p class="news-card-excerpt">' + excerpt + '</p>' +
       '</div>' +
       '<div class="news-card-footer">' +
-        '<span>' + escH(a.source || 'N/D') + ' · ' + timeAgo(a.published_at) + '</span>' +
+        '<span>' + escH(a.source || i18n.t('common.na')) + ' · ' + timeAgo(a.published_at) + '</span>' +
         riskBadge(a.risk_level) +
       '</div>' +
     '</article>';
@@ -203,14 +209,14 @@
   /* ── Pipeline Flow ── */
   function renderPipeline(m) {
     var steps = [
-      ['01', 'Ingesta',   m.totalArticles, 'Multi-fuente'],
-      ['02', 'Filtrado',  m.geoArticles,   'Geopolítico/desastre'],
-      ['03', 'Curación',  m.curatedCount,  'Dedup + calidad'],
-      ['04', 'Reescritura', m.rewriteCount, 'IA normalización'],
-      ['05', 'Heatmap',   m.heatPoints,    'Geoespacial'],
-      ['06', 'GDELT',     m.eventsCount,   'Correlación'],
-      ['07', 'Dashboards', m.zoneCount,     'Zonas activas'],
-      ['08', 'CV',        m.cvCount,       'Señales visuales']
+      ['01', i18n.t('pipe.ingest'),   m.totalArticles, i18n.t('pipe.ingestDesc')],
+      ['02', i18n.t('pipe.filter'),  m.geoArticles,   i18n.t('pipe.filterDesc')],
+      ['03', i18n.t('pipe.curation'),  m.curatedCount,  i18n.t('pipe.curationDesc')],
+      ['04', i18n.t('pipe.rewrite'), m.rewriteCount, i18n.t('pipe.rewriteDesc')],
+      ['05', i18n.t('pipe.heatmap'),   m.heatPoints,    i18n.t('pipe.heatmapDesc')],
+      ['06', i18n.t('pipe.gdelt'),     m.eventsCount,   i18n.t('pipe.gdeltDesc')],
+      ['07', i18n.t('pipe.dashboards'), m.zoneCount,     i18n.t('pipe.dashboardsDesc')],
+      ['08', i18n.t('pipe.cv'),        m.cvCount,       i18n.t('pipe.cvDesc')]
     ];
     var el = document.getElementById('flowGrid');
     if (!el) return;
@@ -219,7 +225,7 @@
       return '<div class="pipe-step">' +
         '<div class="pipe-num">' + s[0] + '</div>' +
         '<div class="pipe-label">' + s[1] + '</div>' +
-        '<div class="pipe-val">' + v.toLocaleString('es-ES') + '</div>' +
+        '<div class="pipe-val">' + v.toLocaleString(i18n.getLang() === 'en' ? 'en-US' : 'es-ES') + '</div>' +
         '<div class="pipe-desc">' + s[3] + '</div>' +
       '</div>';
     }).join('');
@@ -231,17 +237,17 @@
     var el = document.getElementById('hotspotsList');
     if (!el) return;
     if (!conflicts || !conflicts.length) {
-      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🌐</div><h3>Sin hotspots</h3><p>No hay zonas disponibles.</p></div>';
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🌐</div><h3>' + i18n.t('index.noHotspots') + '</h3><p>' + i18n.t('index.noHotspotsDesc') + '</p></div>';
       return;
     }
     var maxRisk = Math.max.apply(null, conflicts.map(function(c){return c.avg_risk_score || 0})) || 100;
     el.innerHTML = conflicts.slice(0, 8).map(function(z) {
       var pct = Math.min(100, Math.round(((z.avg_risk_score || 0) / maxRisk) * 100));
       return '<div class="hotspot">' +
-        '<h4>' + escH(z.location || 'Zona desconocida') + '</h4>' +
+        '<h4>' + escH(z.location || i18n.t('index.unknownZone')) + '</h4>' +
         '<div class="hotspot-stats">' +
-          '<span>' + (z.article_count || 0) + ' artículos</span>' +
-          '<span>Riesgo ' + Math.round(z.avg_risk_score || 0) + '%</span>' +
+          '<span>' + (z.article_count || 0) + ' ' + i18n.t('common.articles') + '</span>' +
+          '<span>' + i18n.t('common.risk') + ' ' + Math.round(z.avg_risk_score || 0) + '%</span>' +
         '</div>' +
         '<div class="hotspot-bar"><div class="hotspot-bar-fill" style="width:' + pct + '%"></div></div>' +
       '</div>';
@@ -250,11 +256,12 @@
 
   /* ── Load Everything ── */
   async function load() {
+    var lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'es';
     var results = await Promise.all([
       fetchJSON('/api/status'),
       fetchJSON('/api/analytics/conflicts-corrected'),
-      fetchJSON('/api/hero-article'),
-      fetchJSON('/api/articles/deduplicated?limit=12'),
+      fetchJSON('/api/hero-article?lang=' + lang),
+      fetchJSON('/api/articles/deduplicated?limit=12&lang=' + lang),
       fetchJSON('/api/heatmap?limit=1500'),
       fetchJSON('/api/events?limit=50'),
       fetchJSON('/api/signals?limit=120'),
@@ -285,7 +292,7 @@
     if (grid) {
       grid.innerHTML = news.length
         ? news.map(articleCard).join('')
-        : '<div class="empty-state"><div class="empty-icon">🗞️</div><h3>Sin artículos</h3><p>No hay noticias curadas disponibles.</p></div>';
+        : '<div class="empty-state"><div class="empty-icon">🗞️</div><h3>' + i18n.t('index.noArticles') + '</h3><p>' + i18n.t('index.noArticlesDesc') + '</p></div>';
     }
 
     /* Pipeline Metrics — derived from real API data */
@@ -309,6 +316,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', load);
+
+  /* Re-render dynamic content on language change */
+  window.addEventListener('langchange', function () { load(); });
 })();
 </script>
 </body>

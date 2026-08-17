@@ -22,47 +22,51 @@
 
 <nav class="top-nav">
   <a href="/index.html" class="nav-brand">&#x27C1; Riskmap <span class="brand-accent">A.I.</span></a>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="nav-actions">
+    <button class="lang-toggle" onclick="window.i18n&&i18n.toggle()" title="ES / EN">ES</button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
   <div class="nav-menu" id="navMenu">
-    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span>Análisis de Noticias</a>
-    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span>Monitor de Conflictos</a>
-    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span>Análisis de Tendencias</a>
-    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span>Alertas Tempranas</a>
-    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span>Reportes Ejecutivos</a>
+    <a href="/index.html" class="nav-link"><span class="nav-icon">📰</span><span data-i18n="nav.news">Análisis de Noticias</span></a>
+    <a href="/conflict-monitoring.html" class="nav-link"><span class="nav-icon">⚔️</span><span data-i18n="nav.conflicts">Monitor de Conflictos</span></a>
+    <a href="/trends-analysis.html" class="nav-link"><span class="nav-icon">📈</span><span data-i18n="nav.trends">Análisis de Tendencias</span></a>
+    <a href="/early-warning.html" class="nav-link"><span class="nav-icon">⚠️</span><span data-i18n="nav.earlyWarning">Alertas Tempranas</span></a>
+    <a href="/executive-reports.html" class="nav-link"><span class="nav-icon">📋</span><span data-i18n="nav.reports">Reportes Ejecutivos</span></a>
     <div class="nav-divider"></div>
-    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span>Inteligencia de Datos</a>
-    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span>Análisis Satelital</a>
-    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span>Vigilancia por Video</a>
-    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span>Análisis Histórico</a>
+    <a href="/data-intelligence.html" class="nav-link"><span class="nav-icon">🧠</span><span data-i18n="nav.dataIntel">Inteligencia de Datos</span></a>
+    <a href="/satellite-analysis.html" class="nav-link"><span class="nav-icon">🛰️</span><span data-i18n="nav.satellite">Análisis Satelital</span></a>
+    <a href="/video-surveillance.html" class="nav-link"><span class="nav-icon">📹</span><span data-i18n="nav.video">Vigilancia por Video</span></a>
+    <a href="/historical-analysis.html" class="nav-link"><span class="nav-icon">🏛️</span><span data-i18n="nav.historical">Análisis Histórico</span></a>
     <div class="nav-divider"></div>
-    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span>Acerca de</a>
-    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span>Registros</a>
-    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span>Configuración</a>
+    <a href="/about.html" class="nav-link"><span class="nav-icon">ℹ️</span><span data-i18n="nav.about">Acerca de</span></a>
+    <a href="/logs.html" class="nav-link"><span class="nav-icon">📝</span><span data-i18n="nav.logs">Registros</span></a>
+    <a href="/settings.html" class="nav-link"><span class="nav-icon">⚙️</span><span data-i18n="nav.settings">Configuración</span></a>
   </div>
   <div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
 </nav>
 
 <header class="page-header reveal">
   <span class="page-icon">📹</span>
-  <h1>Vigilancia Visual Operativa</h1>
-  <p>Consolidación de capturas de cámaras públicas/feeds visuales y señales vinculadas para detección temprana de actividad anómala.</p>
+  <h1 data-i18n="video.title">Vigilancia Visual Operativa</h1>
+  <p data-i18n="video.desc">Consolidación de capturas de cámaras públicas/feeds visuales y señales vinculadas para detección temprana de actividad anómala.</p>
 </header>
 
 <div class="container">
   <div class="stats-row reveal stagger">
-    <div class="stat-card card-glow"><div class="stat-icon-lg">🎥</div><div class="stat-val" id="kpiFeeds">0</div><div class="stat-lbl">Feeds detectados</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">📡</div><div class="stat-val" id="kpiSignals">0</div><div class="stat-lbl">Signals visuales</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">🧱</div><div class="stat-val" id="kpiDetections">0</div><div class="stat-lbl">Con detección</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="kpiGeo">0</div><div class="stat-lbl">Feeds geolocalizados</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🎥</div><div class="stat-val" id="kpiFeeds">0</div><div class="stat-lbl" data-i18n="video.kpiFeeds">Feeds detectados</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📡</div><div class="stat-val" id="kpiSignals">0</div><div class="stat-lbl" data-i18n="video.kpiSignals">Signals visuales</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🧱</div><div class="stat-val" id="kpiDetections">0</div><div class="stat-lbl" data-i18n="video.kpiDetections">Con detección</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="kpiGeo">0</div><div class="stat-lbl" data-i18n="video.kpiGeo">Feeds geolocalizados</div></div>
   </div>
 
   <section class="card reveal">
-    <h2 class="section-title">Feeds y evidencias</h2>
-    <div class="feed-grid" id="feedGrid"><div class="loader"><div class="spin"></div>Cargando feeds...</div></div>
+    <h2 class="section-title" data-i18n="video.feedsTitle">Feeds y evidencias</h2>
+    <div class="feed-grid" id="feedGrid"><div class="loader"><div class="spin"></div><span data-i18n="video.loadingFeeds">Cargando feeds...</span></div></div>
   </section>
 </div>
 
 <div id="toast-root"></div>
+<script src="/i18n.js"></script>
 <script src="/nav.js"></script>
 <script>
 (function(){
@@ -74,13 +78,13 @@
   }
 
   function feedCard(img){
-    var link = img.source_url ? '<a class="btn" href="' + escH(img.source_url) + '" target="_blank" rel="noopener" style="margin-top:8px">Abrir feed</a>' : '';
+    var link = img.source_url ? '<a class="btn" href="' + escH(img.source_url) + '" target="_blank" rel="noopener" style="margin-top:8px">' + i18n.t('video.openFeed') + '</a>' : '';
     return '<article class="feed-card">' +
       '<div class="frame">' + escH(img.source_type || 'video source') + '</div>' +
       '<div class="meta">' +
-        '<div><strong>Source:</strong> ' + escH(img.source_type || 'N/D') + '</div>' +
-        '<div><strong>Coords:</strong> ' + (img.latitude || 'N/D') + ', ' + (img.longitude || 'N/D') + '</div>' +
-        '<div><strong>Captura:</strong> ' + (img.captured_at ? new Date(img.captured_at).toLocaleString('es-ES') : 'N/D') + '</div>' +
+        '<div><strong>' + i18n.t('video.source') + '</strong> ' + escH(img.source_type || i18n.t('common.na')) + '</div>' +
+        '<div><strong>' + i18n.t('video.coords') + '</strong> ' + (img.latitude || i18n.t('common.na')) + ', ' + (img.longitude || i18n.t('common.na')) + '</div>' +
+        '<div><strong>' + i18n.t('video.capture') + '</strong> ' + (img.captured_at ? new Date(img.captured_at).toLocaleString(i18n.getLang() === 'en' ? 'en-US' : 'es-ES') : i18n.t('common.na')) + '</div>' +
         link +
       '</div></article>';
   }
@@ -105,11 +109,12 @@
     if (!grid) return;
     grid.innerHTML = feeds.length
       ? feeds.slice(0, 60).map(feedCard).join('')
-      : '<div class="empty-state"><div class="empty-icon">📷</div><h3>Sin feeds de video</h3><p>No hay registros de cámaras/webcams en images.source_type.</p></div>';
+      : '<div class="empty-state"><div class="empty-icon">📷</div><h3>' + i18n.t('video.noFeeds') + '</h3><p>' + i18n.t('video.noFeedsDesc') + '</p></div>';
     if (window.initReveals) window.initReveals();
   }
 
   document.addEventListener('DOMContentLoaded', load);
+  window.addEventListener('langchange', function(){ i18n.apply(); load(); });
 })();
 </script>
 </body>

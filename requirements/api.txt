@@ -1,0 +1,2 @@
+# Runtime deps for the Vercel serverless API (kept minimal & fast).
+psycopg2-binary==2.9.10

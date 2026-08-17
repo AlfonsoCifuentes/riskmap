@@ -139,3 +139,17 @@ temp_military_*.jpg
 .qodo/
 .agents/
 _vscode/
+
+.vercel
+
+# Browser-automation scratch output
+.playwright-mcp/
+
+# Secret redaction lists (used by scripts/purge_secrets_history.sh) — NEVER commit
+replacements.txt
+*.secrets.txt
+
+# Coverage artifacts
+.coverage
+htmlcov/
+coverage.xml

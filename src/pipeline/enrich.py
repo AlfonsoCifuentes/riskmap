@@ -21,6 +21,7 @@ from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+from src.ai.model_registry import get_model
 from src.database.connection import get_db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [ENRICH] %(message)s")
@@ -66,23 +67,108 @@ CONFLICT_TYPES = {
     'natural_disaster': ['earthquake', 'flood', 'hurricane', 'wildfire', 'tsunami', 'volcanic'],
 }
 
-# Rough country → coords mapping for location inference
+# Comprehensive country → coords mapping for location inference
+# Ordered by geopolitical relevance (conflict zones first for faster matching)
 COUNTRY_COORDS = {
+    # ── Active conflict zones (highest priority) ──────────────────────────
     'ukraine': (48.38, 31.17), 'russia': (55.75, 37.62),
     'israel': (31.77, 35.21), 'palestine': (31.95, 35.20), 'gaza': (31.50, 34.47),
+    'west bank': (31.97, 35.30),
     'iran': (35.69, 51.39), 'iraq': (33.31, 44.37), 'syria': (33.51, 36.29),
     'yemen': (15.37, 44.19), 'lebanon': (33.89, 35.50),
-    'china': (39.90, 116.40), 'taiwan': (25.03, 121.57),
     'north korea': (39.02, 125.75), 'south korea': (37.57, 127.00),
+    'taiwan': (25.03, 121.57),
     'afghanistan': (34.53, 69.17), 'pakistan': (33.69, 73.04),
     'myanmar': (19.76, 96.07), 'sudan': (15.50, 32.56),
-    'ethiopia': (9.02, 38.75), 'somalia': (2.05, 45.32),
-    'libya': (32.90, 13.18), 'mali': (12.64, -8.00),
-    'niger': (13.51, 2.13), 'nigeria': (9.06, 7.49),
-    'congo': (-4.32, 15.31), 'mozambique': (-25.97, 32.57),
+    'south sudan': (4.85, 31.60), 'ethiopia': (9.02, 38.75),
+    'somalia': (2.05, 45.32), 'libya': (32.90, 13.18),
+    'mali': (12.64, -8.00), 'niger': (13.51, 2.13),
+    'burkina faso': (12.37, -1.53),
+    'nigeria': (9.06, 7.49), 'cameroon': (3.85, 11.52),
+    'central african republic': (4.36, 18.56),
+    'democratic republic of congo': (-4.32, 15.31),
+    'drc': (-4.32, 15.31), 'congo': (-4.32, 15.31),
+    'mozambique': (-25.97, 32.57), 'chad': (12.11, 15.04),
     'haiti': (18.54, -72.34), 'venezuela': (10.49, -66.88),
-    'mexico': (19.43, -99.13), 'colombia': (4.71, -74.07),
-    'turkey': (39.93, 32.86), 'india': (28.61, 77.21),
+    'colombia': (4.71, -74.07), 'mexico': (19.43, -99.13),
+    'el salvador': (13.69, -89.22), 'honduras': (14.08, -87.21),
+    'guatemala': (14.64, -90.51),
+    # ── Major geopolitical actors ──────────────────────────────────────────
+    'china': (39.90, 116.40), 'united states': (38.90, -77.04),
+    'usa': (38.90, -77.04), 'us ': (38.90, -77.04),
+    'russia': (55.75, 37.62), 'india': (28.61, 77.21),
+    'turkey': (39.93, 32.86), 'saudi arabia': (24.69, 46.72),
+    'egypt': (30.06, 31.25), 'brazil': (-15.78, -47.93),
+    'united kingdom': (51.51, -0.13), 'uk ': (51.51, -0.13),
+    'france': (48.86, 2.35), 'germany': (52.52, 13.41),
+    'japan': (35.68, 139.69), 'south africa': (-25.75, 28.19),
+    # ── Middle East & Gulf ─────────────────────────────────────────────────
+    'jordan': (31.95, 35.93), 'kuwait': (29.37, 47.98),
+    'bahrain': (26.22, 50.59), 'qatar': (25.29, 51.53),
+    'uae': (24.47, 54.37), 'united arab emirates': (24.47, 54.37),
+    'oman': (23.61, 58.59), 'tunisia': (36.82, 10.17),
+    'algeria': (36.74, 3.06), 'morocco': (34.02, -6.85),
+    # ── Caucasus & Central Asia ────────────────────────────────────────────
+    'azerbaijan': (40.41, 49.87), 'armenia': (40.18, 44.51),
+    'georgia': (41.69, 44.83), 'kazakhstan': (51.18, 71.45),
+    'uzbekistan': (41.30, 69.28), 'tajikistan': (38.54, 68.77),
+    'kyrgyzstan': (42.87, 74.59), 'turkmenistan': (37.95, 58.38),
+    # ── South & Southeast Asia ────────────────────────────────────────────
+    'bangladesh': (23.72, 90.41), 'sri lanka': (6.93, 79.86),
+    'nepal': (27.71, 85.32), 'thailand': (13.75, 100.52),
+    'indonesia': (-6.21, 106.85), 'philippines': (14.60, 120.98),
+    'malaysia': (3.15, 101.70), 'vietnam': (21.03, 105.85),
+    'cambodia': (11.56, 104.92),
+    # ── Africa (expanded) ─────────────────────────────────────────────────
+    'kenya': (-1.29, 36.82), 'tanzania': (-6.37, 34.89),
+    'uganda': (0.32, 32.58), 'rwanda': (-1.95, 30.06),
+    'burundi': (-3.39, 29.36), 'zimbabwe': (-17.83, 31.05),
+    'zambia': (-13.13, 27.85), 'angola': (-8.84, 13.23),
+    'guinea': (9.54, -13.68), 'sierra leone': (8.49, -13.23),
+    'liberia': (6.30, -10.80), 'ivory coast': (5.35, -4.01),
+    'ghana': (5.60, -0.19), 'senegal': (14.69, -17.44),
+    'togo': (6.14, 1.22), 'benin': (6.37, 2.33),
+    'mauritania': (18.08, -15.97),
+    # ── Europe (conflict-relevant) ────────────────────────────────────────
+    'belarus': (53.91, 27.55), 'moldova': (47.00, 28.86),
+    'serbia': (44.80, 20.46), 'kosovo': (42.67, 21.17),
+    'bosnia': (43.85, 18.36), 'albania': (41.33, 19.83),
+    'north macedonia': (41.99, 21.43),
+    # ── Americas (conflict-relevant) ──────────────────────────────────────
+    'peru': (-12.05, -77.05), 'bolivia': (-16.50, -68.15),
+    'ecuador': (-0.23, -78.52), 'argentina': (-34.62, -58.44),
+    'chile': (-33.46, -70.65), 'cuba': (23.12, -82.38),
+    'nicaragua': (12.13, -86.29), 'costa rica': (9.93, -84.08),
+    'dominican republic': (18.47, -69.90),
+}
+
+# High-confidence city/location → coords for precise event location
+CITY_COORDS = {
+    # Ukraine conflict
+    'kyiv': (50.45, 30.52), 'mariupol': (47.10, 37.56),
+    'kharkiv': (49.99, 36.23), 'bakhmut': (48.60, 37.99),
+    'zaporizhzhia': (47.84, 35.12), 'kherson': (46.64, 32.62),
+    'odessa': (46.47, 30.73), 'dnipro': (48.46, 35.05),
+    'donetsk': (48.02, 37.80), 'luhansk': (48.57, 39.31),
+    # Middle East
+    'rafah': (31.28, 34.24), 'khan yunis': (31.35, 34.30),
+    'ramallah': (31.90, 35.21), 'jenin': (32.47, 35.30),
+    'nablus': (32.22, 35.26), 'hebron': (31.53, 35.10),
+    'beirut': (33.89, 35.50), 'aleppo': (36.20, 37.16),
+    'mosul': (36.34, 43.14), 'fallujah': (33.35, 43.79),
+    'erbil': (36.19, 44.01), 'raqqa': (35.95, 39.02),
+    'kabul': (34.52, 69.18), 'kandahar': (31.61, 65.71),
+    # Africa
+    'khartoum': (15.55, 32.53), 'addis ababa': (9.02, 38.75),
+    'mogadishu': (2.05, 45.34), 'tripoli': (32.90, 13.18),
+    'bamako': (12.65, -8.00), 'niamey': (13.51, 2.11),
+    'ouagadougou': (12.37, -1.53), 'bangui': (4.36, 18.56),
+    'kinshasa': (-4.32, 15.32), 'goma': (-1.68, 29.22),
+    # Asia
+    'pyongyang': (39.02, 125.75), 'taipei': (25.03, 121.57),
+    'yangon': (16.87, 96.19), 'naypyidaw': (19.75, 96.13),
+    'islamabad': (33.72, 73.04), 'karachi': (24.86, 67.01),
+    'peshawar': (34.01, 71.57),
 }
 
 
@@ -132,12 +218,112 @@ def simple_sentiment(text: str) -> Tuple[str, float]:
 
 
 def infer_location(text: str) -> Tuple[Optional[str], Optional[float], Optional[float]]:
-    """Infer country and coordinates from article text."""
+    """Infer EVENT location from article text using frequency scoring.
+
+    Strategy:
+    1. Check city-level coordinates first (most precise).
+    2. Score each country by number of mentions (not first-match).
+    3. Penalise 'United States'/'US' because it is often the NEWS SOURCE,
+       not the event location – keep it only if it scores clearly highest.
+
+    Returns (name, lat, lon) for the most likely event location.
+    """
     text_lower = text.lower()
-    for country, (lat, lon) in COUNTRY_COORDS.items():
-        if country in text_lower:
-            return country.title(), lat, lon
-    return None, None, None
+
+    # 1. City-level match (highest precision)
+    city_scores: Dict[str, int] = {}
+    for city in CITY_COORDS:
+        count = text_lower.count(city)
+        if count:
+            city_scores[city] = count
+    if city_scores:
+        best_city = max(city_scores, key=lambda c: city_scores[c])
+        lat, lon = CITY_COORDS[best_city]
+        return best_city.title(), lat, lon
+
+    # 2. Country-level frequency scoring
+    scores: Dict[str, Tuple[int, Tuple[float, float]]] = {}
+    for country, coords in COUNTRY_COORDS.items():
+        count = text_lower.count(country)
+        if count:
+            scores[country] = (count, coords)
+
+    if not scores:
+        return None, None, None
+
+    # 3. If USA/UK appear but score is not decisively higher than other countries,
+    #    prefer the other country (usually the event location).
+    western_sources = {'united states', 'usa', 'us ', 'united kingdom', 'uk ', 'france',
+                       'germany', 'united nations', 'nato'}
+    non_source = {k: v for k, v in scores.items() if k not in western_sources}
+    if non_source:
+        best = max(non_source, key=lambda c: non_source[c][0])
+        lat, lon = non_source[best][1]
+        return best.title(), lat, lon
+
+    # Fallback: use the most-mentioned country regardless
+    best = max(scores, key=lambda c: scores[c][0])
+    lat, lon = scores[best][1]
+    return best.title(), lat, lon
+
+
+def extract_event_location_ai(title: str, content: str) -> Dict:
+    """Use Groq to extract WHERE the event happened (not where news comes from).
+
+    Returns dict with keys: country, city, latitude, longitude, confidence (0-1).
+    Returns empty dict on failure or if Groq unavailable.
+    """
+    api_key = os.getenv('GROQ_API_KEY', '')
+    if not api_key:
+        return {}
+
+    text = f"Title: {title}\n\n{content[:1500]}" if content else f"Title: {title}"
+
+    try:
+        import requests
+        resp = requests.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'model': get_model('geocoding_assist'),
+                'messages': [
+                    {
+                        'role': 'system',
+                        'content': (
+                            'You are a geopolitical expert. Given a news article, identify '
+                            'the PRIMARY GEOGRAPHIC LOCATION WHERE THE EVENT TOOK PLACE — '
+                            'not where the news agency is from, not where the author is, '
+                            'but where the military operation / conflict / disaster / crisis '
+                            'is PHYSICALLY happening.\n\n'
+                            'Reply with ONLY this JSON (no extra text):\n'
+                            '{"country":"<country name>","city":"<city or region, or null>","latitude":<decimal>,"longitude":<decimal>,"confidence":<0.0-1.0>}'
+                        ),
+                    },
+                    {'role': 'user', 'content': text},
+                ],
+                'max_tokens': 80,
+                'temperature': 0.1,
+                'response_format': {'type': 'json_object'},
+            },
+            timeout=10,
+        )
+        content_str = resp.json()['choices'][0]['message']['content'].strip()
+        data = json.loads(content_str)
+        # Validate required fields
+        if 'country' in data and 'latitude' in data and 'longitude' in data:
+            return {
+                'country': str(data.get('country', '')),
+                'city': str(data.get('city', '')) if data.get('city') else None,
+                'latitude': float(data['latitude']),
+                'longitude': float(data['longitude']),
+                'confidence': float(data.get('confidence', 0.5)),
+            }
+    except Exception as e:
+        logger.debug(f"AI location extraction failed: {e}")
+    return {}
 
 
 def enrich_with_ai(title: str, content: str) -> Optional[str]:
@@ -155,7 +341,7 @@ def enrich_with_ai(title: str, content: str) -> Optional[str]:
                 'Content-Type': 'application/json',
             },
             json={
-                'model': 'llama-3.1-70b-versatile',
+                'model': get_model('summarization'),
                 'messages': [
                     {'role': 'system', 'content': (
                         'You are a geopolitical analyst. Provide a 2-sentence summary '
@@ -201,7 +387,25 @@ def enrich_articles():
         risk_score, is_geo = score_geopolitical(text)
         conflict_type = classify_conflict(text)
         sentiment, sentiment_score = simple_sentiment(text)
-        country, lat, lon = infer_location(text)
+
+        # Location inference: for geopolitical articles, try AI first
+        country, lat, lon = None, None, None
+        ai_location_used = False
+        if is_geo and ai_count < 20:
+            loc_data = extract_event_location_ai(
+                row.get('title', ''), row.get('content', '') or row.get('summary', '')
+            )
+            if loc_data and loc_data.get('confidence', 0) >= 0.5:
+                city_name = loc_data.get('city') or loc_data.get('country', '')
+                country = city_name or loc_data.get('country')
+                lat = loc_data['latitude']
+                lon = loc_data['longitude']
+                ai_location_used = True
+                ai_count += 1
+
+        # Fallback to improved frequency-based location
+        if not country:
+            country, lat, lon = infer_location(text)
 
         # Risk level
         if risk_score >= 0.7:
@@ -213,14 +417,15 @@ def enrich_articles():
         else:
             risk_level = 'low'
 
-        # AI summary (rate-limited)
+        # AI summary (rate-limited) — only if Groq wasn't already used for location
         ai_summary = None
-        if is_geo and ai_count < 20:  # max 20 AI calls per run
+        if is_geo and not ai_location_used and ai_count < 20:
             ai_summary = enrich_with_ai(row.get('title', ''), row.get('content', ''))
             if ai_summary:
                 ai_count += 1
 
         # Update article
+        coords_src = 'ai_groq' if ai_location_used else ('regex' if country else None)
         db.execute(
             f"""UPDATE unified_articles SET
                 geopolitical_relevance = {ph},
@@ -232,6 +437,7 @@ def enrich_articles():
                 country = COALESCE(country, {ph}),
                 latitude = COALESCE(latitude, {ph}),
                 longitude = COALESCE(longitude, {ph}),
+                coordinates_source = COALESCE(coordinates_source, {ph}),
                 ai_summary = COALESCE(ai_summary, {ph}),
                 enrichment_status = 'enriched',
                 quality_score = {ph}
@@ -246,6 +452,7 @@ def enrich_articles():
                 country,
                 lat,
                 lon,
+                coords_src,
                 ai_summary,
                 risk_score,  # quality_score = risk_score as baseline
                 article_id,
@@ -394,7 +601,7 @@ def _translate_via_groq(title: str, summary: str, api_key: str):
                 'Content-Type': 'application/json',
             },
             json={
-                'model': 'llama-3.1-8b-instant',
+                'model': get_model('translation'),
                 'messages': [
                     {'role': 'system', 'content': (
                         'You are a professional translator. Translate to Spanish.\n'
