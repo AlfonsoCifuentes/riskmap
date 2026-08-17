@@ -148,3 +148,8 @@ _vscode/
 # Secret redaction lists (used by scripts/purge_secrets_history.sh) — NEVER commit
 replacements.txt
 *.secrets.txt
+
+# Coverage artifacts
+.coverage
+htmlcov/
+coverage.xml
