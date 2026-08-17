@@ -15,7 +15,6 @@ from api._db import (
     neon_get,
     send_response,
 )
-from api._og_image import enrich_articles_with_images
 
 
 class handler(BaseHTTPRequestHandler):
@@ -63,8 +62,7 @@ class handler(BaseHTTPRequestHandler):
                 if len(mosaic) >= limit:
                     break
 
-            # Enrich articles missing images with og:image from source
-            enrich_articles_with_images(mosaic)
+            # og:image extraction runs in the ingest worker (SSRF-safe), not here.
 
             # Strip HTML from text fields
             clean_articles(mosaic)

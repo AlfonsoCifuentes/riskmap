@@ -13,7 +13,6 @@ from api._db import (
     neon_get,
     send_response,
 )
-from api._og_image import enrich_articles_with_images
 
 
 class handler(BaseHTTPRequestHandler):
@@ -49,8 +48,8 @@ class handler(BaseHTTPRequestHandler):
                 offset=offset,
             )
 
-            # Enrich articles missing images with og:image from source
-            enrich_articles_with_images(articles)
+            # NOTE: og:image extraction happens in the ingest worker (SSRF-safe),
+            # never in the request path. The API returns the stored image_url only.
 
             # Strip HTML from text fields
             clean_articles(articles)

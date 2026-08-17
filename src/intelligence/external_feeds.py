@@ -272,7 +272,7 @@ class ExternalIntelligenceFeeds:
             url = self.sources['acled']['base_url']
             
             logger.info(f"📡 Consultando ACLED API: {start_date} a {end_date}")
-            response = self.session.get(url, params=params, timeout=60, verify=False)
+            response = self.session.get(url, params=params, timeout=60)
             response.raise_for_status()
             
             # Leer CSV desde la respuesta
@@ -314,7 +314,7 @@ class ExternalIntelligenceFeeds:
             url = f"{self.sources['gdelt']['base_url']}/{date_str}.export.CSV.zip"
             
             logger.info(f"📡 Descargando GDELT: {url}")
-            response = self.session.get(url, timeout=120, verify=False)
+            response = self.session.get(url, timeout=120)
             response.raise_for_status()
             
             # Extraer y leer CSV del ZIP
@@ -394,7 +394,7 @@ class ExternalIntelligenceFeeds:
             for try_url in urls_to_try:
                 try:
                     logger.info(f"🔍 Intentando URL: {try_url}")
-                    response = self.session.get(try_url, headers=headers, timeout=30, verify=False)
+                    response = self.session.get(try_url, headers=headers, timeout=30)
                     response.raise_for_status()
                     
                     # Leer el CSV desde el contenido de la respuesta

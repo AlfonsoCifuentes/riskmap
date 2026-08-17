@@ -208,11 +208,11 @@ from typing import Dict, List, Optional, Any
 import signal
 import atexit
 
-# Configuración SSL robusta para todas las conexiones
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-import ssl
-ssl._create_default_https_context = ssl._create_unverified_context
+# SECURITY (addendum B9): TLS certificate verification is left ENABLED.
+# Previously this module globally disabled verification via
+# `ssl._create_default_https_context = ssl._create_unverified_context`, which
+# turned off TLS validation for the entire process. That line has been removed.
+import ssl  # noqa: F401  (kept for modules that reference ssl below)
 
 import sqlite3
 import requests

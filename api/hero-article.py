@@ -23,7 +23,6 @@ from api._db import (
     neon_get,
     send_response,
 )
-from api._og_image import enrich_articles_with_images
 
 _SELECT_COLS = (
     'id,title,summary,url,source,published_at,'
@@ -74,7 +73,7 @@ class handler(BaseHTTPRequestHandler):
             # Pick the first candidate that passes Python-side validation
             hero = None
             if articles:
-                enrich_articles_with_images(articles)
+                # image_url is populated by the ingest worker (SSRF-safe).
                 for art in articles:
                     if _is_valid_hero(art):
                         hero = art
@@ -90,7 +89,6 @@ class handler(BaseHTTPRequestHandler):
                     limit=5,
                 )
                 if articles:
-                    enrich_articles_with_images(articles)
                     for art in articles:
                         if len(art.get('title') or '') >= 20:
                             hero = art
