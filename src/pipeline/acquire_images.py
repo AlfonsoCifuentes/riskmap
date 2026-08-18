@@ -299,12 +299,12 @@ def get_event_locations() -> List[Dict]:
     """Get locations from recent events (fallback if no AOIs yet)."""
     db = get_db()
     rows = db.execute(
-        "SELECT DISTINCT el.latitude, el.longitude, el.name, e.id as event_id, "
-        "       e.event_type, e.title "
+        "SELECT el.latitude, el.longitude, el.name, e.id as event_id, "
+        "       e.event_type, e.title, e.last_updated "
         "FROM event_locations el "
         "JOIN events e ON e.id = el.event_id "
-        "WHERE e.severity >= 0.3 "
-        "ORDER BY e.last_updated DESC LIMIT 20",
+        "WHERE COALESCE(e.severity,0) >= 0.3 "
+        "ORDER BY e.last_updated DESC NULLS LAST LIMIT 20",
         fetch=True,
     )
     return rows
