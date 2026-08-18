@@ -1,0 +1,13 @@
+{
+  "id": "flood_valencia",
+  "title": "Flash Flood — Valencia (Spain)",
+  "hazard": "flood",
+  "data_kind": "REPLAY",
+  "description": "Torrential rain triggers flash flooding around Valencia. Multiple outlets plus an AEMET red warning. Shows how a cloud-covered flood is a case where Sentinel-1 SAR (not optical S2) would be requested by the AOI planner.",
+  "expected": {
+    "events": 1,
+    "min_independent_sources": 3,
+    "risk_level_in": ["high", "critical"],
+    "has_official_source": true
+  }
+}

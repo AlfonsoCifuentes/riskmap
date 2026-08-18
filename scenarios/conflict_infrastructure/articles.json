@@ -1,0 +1,42 @@
+[
+  {
+    "title": "Strike hits power infrastructure near Kharkiv, outages reported",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/world/europe/kharkiv-infrastructure-strike-2026",
+    "published_at": "2026-01-15T05:40:00Z",
+    "category": "armed_conflict",
+    "latitude": 49.99,
+    "longitude": 36.23,
+    "geo_precision": "city",
+    "severity": 0.82,
+    "exposure": 0.7,
+    "vulnerability": 0.6
+  },
+  {
+    "title": "Kharkiv energy facility struck, causing widespread outages",
+    "source": "AP",
+    "url": "https://apnews.com/article/kharkiv-strike-2026",
+    "published_at": "2026-01-15T06:10:00Z",
+    "category": "armed_conflict",
+    "latitude": 49.98,
+    "longitude": 36.24
+  },
+  {
+    "title": "Ataque golpea infraestructura energética cerca de Járkov",
+    "source": "El Mundo",
+    "url": "https://www.elmundo.es/internacional/jarkov-ataque-2026",
+    "published_at": "2026-01-15T06:45:00Z",
+    "category": "armed_conflict",
+    "latitude": 50.00,
+    "longitude": 36.22
+  },
+  {
+    "title": "Strike hits power infrastructure near Kharkiv, outages reported",
+    "source": "Reuters (syndicated via Yahoo)",
+    "url": "https://news.yahoo.com/kharkiv-infrastructure-strike-2026.html",
+    "published_at": "2026-01-15T07:30:00Z",
+    "category": "armed_conflict",
+    "latitude": 49.99,
+    "longitude": 36.23
+  }
+]

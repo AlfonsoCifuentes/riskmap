@@ -1,0 +1,13 @@
+{
+  "id": "wildfire_la_palma",
+  "title": "Wildfire — La Palma (Canary Islands)",
+  "hazard": "wildfire",
+  "data_kind": "REPLAY",
+  "description": "A fast-moving wildfire on La Palma reported by multiple independent outlets and an official civil-protection alert, corroborated by a FIRMS hotspot. Demonstrates evidence fusion, uncertainty-aware geolocation, and risk vs confidence.",
+  "expected": {
+    "events": 1,
+    "min_independent_sources": 3,
+    "risk_level_in": ["high", "critical"],
+    "has_official_source": true
+  }
+}

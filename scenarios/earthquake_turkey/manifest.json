@@ -1,0 +1,13 @@
+{
+  "id": "earthquake_turkey",
+  "title": "Earthquake — Gaziantep (Türkiye)",
+  "hazard": "earthquake",
+  "data_kind": "REPLAY",
+  "description": "A strong earthquake near Gaziantep, confirmed by a USGS official feed and covered by multiple outlets. Demonstrates region-level geolocation uncertainty and official-source corroboration lifting confidence.",
+  "expected": {
+    "events": 1,
+    "min_independent_sources": 3,
+    "risk_level_in": ["high", "critical"],
+    "has_official_source": true
+  }
+}

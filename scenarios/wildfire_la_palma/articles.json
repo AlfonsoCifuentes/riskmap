@@ -1,0 +1,45 @@
+[
+  {
+    "title": "Wildfire spreads across northern La Palma, evacuations ordered",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/world/europe/la-palma-wildfire-evacuations-2026",
+    "published_at": "2026-08-17T09:12:00Z",
+    "category": "wildfire",
+    "latitude": 28.79,
+    "longitude": -17.88,
+    "geo_precision": "city",
+    "severity": 0.72,
+    "exposure": 0.6,
+    "vulnerability": 0.55
+  },
+  {
+    "title": "La Palma wildfire forces hundreds from their homes",
+    "source": "BBC",
+    "url": "https://www.bbc.com/news/world-europe-la-palma-fire",
+    "published_at": "2026-08-17T10:03:00Z",
+    "category": "wildfire",
+    "latitude": 28.80,
+    "longitude": -17.87
+  },
+  {
+    "title": "Incendio forestal en el norte de La Palma obliga a evacuar",
+    "source": "El País",
+    "url": "https://elpais.com/espana/canarias/incendio-la-palma-2026",
+    "published_at": "2026-08-17T10:40:00Z",
+    "category": "wildfire",
+    "latitude": 28.78,
+    "longitude": -17.89
+  },
+  {
+    "title": "Civil Protection raises wildfire alert to level 2 for La Palma",
+    "source": "Gobierno de Canarias (Civil Protection)",
+    "url": "https://www.gobiernodecanarias.org/emergencias/la-palma-nivel2",
+    "published_at": "2026-08-17T11:15:00Z",
+    "category": "wildfire",
+    "official": true,
+    "latitude": 28.79,
+    "longitude": -17.88,
+    "geo_precision": "city",
+    "severity": 0.8
+  }
+]

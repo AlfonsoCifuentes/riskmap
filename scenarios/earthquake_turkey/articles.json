@@ -1,0 +1,34 @@
+[
+  {
+    "title": "USGS reports M6.8 earthquake near Gaziantep",
+    "source": "USGS",
+    "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us2026gaziantep",
+    "published_at": "2026-02-06T01:17:00Z",
+    "category": "earthquake",
+    "official": true,
+    "latitude": 37.06,
+    "longitude": 37.38,
+    "geo_precision": "region",
+    "severity": 0.85,
+    "exposure": 0.7,
+    "vulnerability": 0.65
+  },
+  {
+    "title": "Powerful earthquake strikes southern Türkiye near Gaziantep",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/world/middle-east/turkey-earthquake-2026",
+    "published_at": "2026-02-06T02:05:00Z",
+    "category": "earthquake",
+    "latitude": 37.05,
+    "longitude": 37.39
+  },
+  {
+    "title": "Terremoto sacude el sur de Turquía; hay edificios dañados",
+    "source": "EFE",
+    "url": "https://www.efe.com/mundo/terremoto-turquia-2026",
+    "published_at": "2026-02-06T02:30:00Z",
+    "category": "earthquake",
+    "latitude": 37.07,
+    "longitude": 37.37
+  }
+]

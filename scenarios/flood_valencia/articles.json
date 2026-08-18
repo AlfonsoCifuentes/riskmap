@@ -1,0 +1,45 @@
+[
+  {
+    "title": "Flash floods hit Valencia region after record rainfall",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/world/europe/valencia-floods-2026",
+    "published_at": "2026-10-29T18:20:00Z",
+    "category": "flood",
+    "latitude": 39.47,
+    "longitude": -0.38,
+    "geo_precision": "city",
+    "severity": 0.7,
+    "exposure": 0.75,
+    "vulnerability": 0.6
+  },
+  {
+    "title": "Valencia flooding: roads submerged, rail services suspended",
+    "source": "The Guardian",
+    "url": "https://www.theguardian.com/world/valencia-flooding-2026",
+    "published_at": "2026-10-29T19:05:00Z",
+    "category": "flood",
+    "latitude": 39.46,
+    "longitude": -0.37
+  },
+  {
+    "title": "Inundaciones en Valencia dejan carreteras cortadas",
+    "source": "RTVE",
+    "url": "https://www.rtve.es/noticias/valencia-inundaciones-2026",
+    "published_at": "2026-10-29T19:40:00Z",
+    "category": "flood",
+    "latitude": 39.48,
+    "longitude": -0.36
+  },
+  {
+    "title": "AEMET issues red warning for extreme rainfall in Valencia",
+    "source": "AEMET",
+    "url": "https://www.aemet.es/es/avisos/valencia-rojo",
+    "published_at": "2026-10-29T16:00:00Z",
+    "category": "flood",
+    "official": true,
+    "latitude": 39.47,
+    "longitude": -0.38,
+    "geo_precision": "city",
+    "severity": 0.82
+  }
+]
