@@ -51,6 +51,8 @@ def _route_from(path: str, qs: dict) -> str:
         return "pipeline-status"
     if "cv-metrics" in p:
         return "cv-metrics"
+    if "forecast" in p:
+        return "forecast"
     return ""
 
 
@@ -74,6 +76,8 @@ class handler(BaseHTTPRequestHandler):
             elif route == "cv-metrics":
                 from src.core import cv_benchmark
                 payload = cv_benchmark.load_registry()
+            elif route == "forecast":
+                payload = _forecast(qs)
             else:
                 send_response(self, json_response(
                     {"error": "unknown route", "hint": "use ?route=..."}, 404))
@@ -257,6 +261,47 @@ def _pipeline_runs(qs):
             "notes": r.get("notes"),
         })
     return {"runs": runs, "count": len(runs)}
+
+
+def _forecast(qs):
+    """Escalation forecast for a region/category from real recent-event features
+    (spec §16). Honest: returns probability WITH its baseline + uncertainty."""
+    from src.core import forecasting
+    category = qs.get("category", [None])[0]
+    if category is not None and not _IDENT.match(category):
+        raise BadRequest("invalid category")
+    cat_filter = "AND event_type = %s" if category else ""
+    params = [category] if category else []
+    try:
+        rows = neon_sql(f"""
+            SELECT
+              COUNT(*) FILTER (WHERE last_updated >= NOW() - INTERVAL '7 days') AS last7,
+              COUNT(*) FILTER (WHERE last_updated >= NOW() - INTERVAL '14 days'
+                                 AND last_updated < NOW() - INTERVAL '7 days') AS prev7,
+              AVG(COALESCE(confidence_score, 0)) AS mean_conf,
+              AVG(COALESCE(independent_source_count, 1)) AS mean_indep
+            FROM events WHERE TRUE {cat_filter}
+        """, params)
+        s = rows[0] if rows else {}
+    except Exception:
+        s = {}
+    last7 = float(s.get("last7") or 0)
+    prev7 = float(s.get("prev7") or 0)
+    rate = last7 / 7.0
+    slope = 0.0
+    if prev7 > 0:
+        slope = max(-1.0, min(1.0, (last7 - prev7) / prev7))
+    features = {
+        "recent_event_rate": rate,
+        "risk_slope": slope,
+        "source_corroboration": float(s.get("mean_indep") or 1),
+        "official_alert": False,
+        "horizon_hours": 168,
+    }
+    result = forecasting.escalation_probability(features)
+    result["category"] = category or "all"
+    result["window"] = {"last_7d_events": int(last7), "prev_7d_events": int(prev7)}
+    return result
 
 
 def _pipeline_status():
