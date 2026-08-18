@@ -8,6 +8,12 @@
     }
   },
   "rewrites": [
+    { "source": "/api/v1/map/events", "destination": "/api/v1?route=map-events" },
+    { "source": "/api/v1/events", "destination": "/api/v1?route=events" },
+    { "source": "/api/replay", "destination": "/api/v1?route=replay" },
+    { "source": "/api/data-quality", "destination": "/api/v1?route=data-quality" },
+    { "source": "/api/pipeline-runs", "destination": "/api/v1?route=pipeline-runs" },
+    { "source": "/api/pipeline-status", "destination": "/api/v1?route=pipeline-status" },
     { "source": "/static/(.*)", "destination": "/src/web/static/$1" },
     { "source": "/", "destination": "/index.html" },
     { "source": "/news-analysis", "destination": "/index.html" },
