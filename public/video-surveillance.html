@@ -80,7 +80,7 @@
   function feedCard(img){
     var link = img.source_url ? '<a class="btn" href="' + escH(img.source_url) + '" target="_blank" rel="noopener" style="margin-top:8px">' + i18n.t('video.openFeed') + '</a>' : '';
     return '<article class="feed-card">' +
-      '<div class="frame">' + escH(img.source_type || 'video source') + '</div>' +
+      '<div class="frame"><img src="/api/image?id=' + img.id + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="var c=this.closest(&quot;.feed-card&quot;); if(c) c.remove();"></div>' +
       '<div class="meta">' +
         '<div><strong>' + i18n.t('video.source') + '</strong> ' + escH(img.source_type || i18n.t('common.na')) + '</div>' +
         '<div><strong>' + i18n.t('video.coords') + '</strong> ' + (img.latitude || i18n.t('common.na')) + ', ' + (img.longitude || i18n.t('common.na')) + '</div>' +

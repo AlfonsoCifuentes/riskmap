@@ -75,7 +75,7 @@
   function imageCard(img){
     var srcUrl = img.source_url ? '<a href="' + escH(img.source_url) + '" target="_blank" rel="noopener" class="btn" style="margin-top:8px">' + i18n.t('satellite.openCapture') + '</a>' : '';
     return '<article class="img-card">' +
-      '<div class="img-box">' + (img.image_width ? img.image_width + 'x' + (img.image_height || '?') + ' px' : i18n.t('satellite.noPreview')) + '</div>' +
+      '<div class="img-box"><img src="/api/image?id=' + img.id + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="var c=this.closest(&quot;.img-card&quot;); if(c) c.remove();"></div>' +
       '<div class="meta">' +
         '<div><strong>' + escH(img.source_type || 'source') + '</strong></div>' +
         '<div>' + i18n.t('satellite.event') + ' ' + (img.event_id || i18n.t('common.na')) + ' · ' + i18n.t('satellite.aoi') + ' ' + (img.aoi_id || i18n.t('common.na')) + '</div>' +

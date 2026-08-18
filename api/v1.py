@@ -57,6 +57,8 @@ def _route_from(path: str, qs: dict) -> str:
         return "report"
     if "cameras" in p:
         return "cameras"
+    if "/image" in p:
+        return "image"
     return ""
 
 
@@ -66,6 +68,11 @@ class handler(BaseHTTPRequestHandler):
             parsed = urlparse(self.path)
             qs = parse_qs(parsed.query)
             route = _route_from(parsed.path, qs)
+
+            # Binary image bytes (served directly, not JSON).
+            if route == "image":
+                self._serve_image(qs)
+                return
 
             if route == "map-events":
                 payload = _map_events(qs)
@@ -99,6 +106,41 @@ class handler(BaseHTTPRequestHandler):
             send_response(self, json_response(payload))
         except Exception as e:
             send_response(self, error_from_exc(e))
+
+    def _serve_image(self, qs):
+        """Serve the stored WebP bytes for an image id, or 404."""
+        try:
+            img_id = int(qs.get("id", ["0"])[0])
+        except (ValueError, TypeError):
+            img_id = 0
+        if img_id <= 0:
+            self.send_response(400)
+            self.end_headers()
+            return
+        try:
+            rows = neon_sql(
+                "SELECT image_data, image_format FROM images WHERE id = %s LIMIT 1",
+                [img_id])
+            data = rows[0].get("image_data") if rows else None
+            if not data:
+                self.send_response(404)
+                self.end_headers()
+                self.wfile.write(b"not found")
+                return
+            blob = bytes(data)  # psycopg2 returns memoryview for bytea
+            fmt = (rows[0].get("image_format") or "webp").lower()
+            ctype = {"webp": "image/webp", "png": "image/png",
+                     "jpg": "image/jpeg", "jpeg": "image/jpeg"}.get(fmt, "image/webp")
+            self.send_response(200)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Cache-Control", "public, max-age=3600, immutable")
+            self.send_header("Content-Length", str(len(blob)))
+            self.end_headers()
+            self.wfile.write(blob)
+        except Exception:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(b"error")
 
 
 # --------------------------------------------------------------------------

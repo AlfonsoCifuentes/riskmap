@@ -8,31 +8,113 @@
     }
   },
   "rewrites": [
-    { "source": "/api/v1/map/events", "destination": "/api/v1?route=map-events" },
-    { "source": "/api/v1/events", "destination": "/api/v1?route=events" },
-    { "source": "/api/replay", "destination": "/api/v1?route=replay" },
-    { "source": "/api/data-quality", "destination": "/api/v1?route=data-quality" },
-    { "source": "/api/pipeline-runs", "destination": "/api/v1?route=pipeline-runs" },
-    { "source": "/api/pipeline-status", "destination": "/api/v1?route=pipeline-status" },
-    { "source": "/api/cv-metrics", "destination": "/api/v1?route=cv-metrics" },
-    { "source": "/api/forecast", "destination": "/api/v1?route=forecast" },
-    { "source": "/api/report", "destination": "/api/v1?route=report" },
-    { "source": "/api/cameras", "destination": "/api/v1?route=cameras" },
-    { "source": "/static/(.*)", "destination": "/src/web/static/$1" },
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/news-analysis", "destination": "/index.html" },
-    { "source": "/conflict-monitoring", "destination": "/conflict-monitoring.html" },
-    { "source": "/trends-analysis", "destination": "/trends-analysis.html" },
-    { "source": "/early-warning", "destination": "/early-warning.html" },
-    { "source": "/executive-reports", "destination": "/executive-reports.html" },
-    { "source": "/data-intelligence", "destination": "/data-intelligence.html" },
-    { "source": "/satellite-analysis", "destination": "/satellite-analysis.html" },
-    { "source": "/video-surveillance", "destination": "/video-surveillance.html" },
-    { "source": "/historical-analysis", "destination": "/historical-analysis.html" },
-    { "source": "/about", "destination": "/about.html" },
-    { "source": "/logs", "destination": "/logs.html" },
-    { "source": "/settings", "destination": "/settings.html" },
-    { "source": "/system", "destination": "/system.html" },
-    { "source": "/((?!api/|static/|.*\\..*).*)", "destination": "/index.html" }
+    {
+      "source": "/api/v1/map/events",
+      "destination": "/api/v1?route=map-events"
+    },
+    {
+      "source": "/api/v1/events",
+      "destination": "/api/v1?route=events"
+    },
+    {
+      "source": "/api/replay",
+      "destination": "/api/v1?route=replay"
+    },
+    {
+      "source": "/api/data-quality",
+      "destination": "/api/v1?route=data-quality"
+    },
+    {
+      "source": "/api/pipeline-runs",
+      "destination": "/api/v1?route=pipeline-runs"
+    },
+    {
+      "source": "/api/pipeline-status",
+      "destination": "/api/v1?route=pipeline-status"
+    },
+    {
+      "source": "/api/cv-metrics",
+      "destination": "/api/v1?route=cv-metrics"
+    },
+    {
+      "source": "/api/forecast",
+      "destination": "/api/v1?route=forecast"
+    },
+    {
+      "source": "/api/report",
+      "destination": "/api/v1?route=report"
+    },
+    {
+      "source": "/api/cameras",
+      "destination": "/api/v1?route=cameras"
+    },
+    {
+      "source": "/api/image",
+      "destination": "/api/v1?route=image"
+    },
+    {
+      "source": "/static/(.*)",
+      "destination": "/src/web/static/$1"
+    },
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/news-analysis",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/conflict-monitoring",
+      "destination": "/conflict-monitoring.html"
+    },
+    {
+      "source": "/trends-analysis",
+      "destination": "/trends-analysis.html"
+    },
+    {
+      "source": "/early-warning",
+      "destination": "/early-warning.html"
+    },
+    {
+      "source": "/executive-reports",
+      "destination": "/executive-reports.html"
+    },
+    {
+      "source": "/data-intelligence",
+      "destination": "/data-intelligence.html"
+    },
+    {
+      "source": "/satellite-analysis",
+      "destination": "/satellite-analysis.html"
+    },
+    {
+      "source": "/video-surveillance",
+      "destination": "/video-surveillance.html"
+    },
+    {
+      "source": "/historical-analysis",
+      "destination": "/historical-analysis.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about.html"
+    },
+    {
+      "source": "/logs",
+      "destination": "/logs.html"
+    },
+    {
+      "source": "/settings",
+      "destination": "/settings.html"
+    },
+    {
+      "source": "/system",
+      "destination": "/system.html"
+    },
+    {
+      "source": "/((?!api/|static/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
   ]
 }
