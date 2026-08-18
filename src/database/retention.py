@@ -33,7 +33,7 @@ def enforce_latest_only():
           AND id NOT IN (
             SELECT MAX(id)
             FROM images
-            GROUP BY COALESCE(aoi_id, -1), COALESCE(event_id, -1), source_type
+            GROUP BY COALESCE(aoi_id, -1), COALESCE(event_id, -1), source_type, COALESCE(source_url, '')
           )
         """
     else:
@@ -43,7 +43,7 @@ def enforce_latest_only():
           AND id NOT IN (
             SELECT MAX(id)
             FROM images
-            GROUP BY COALESCE(aoi_id, -1), COALESCE(event_id, -1), source_type
+            GROUP BY COALESCE(aoi_id, -1), COALESCE(event_id, -1), source_type, COALESCE(source_url, '')
           )
         """
 

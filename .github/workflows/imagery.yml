@@ -45,6 +45,11 @@ jobs:
         run: python -m src.pipeline.acquire_images
         timeout-minutes: 15
 
+      - name: Capture public camera frames (experimental)
+        run: python -m src.pipeline.capture_cameras
+        timeout-minutes: 6
+        continue-on-error: true
+
       - name: Run CV detection
         run: python -m src.pipeline.detect
         timeout-minutes: 12

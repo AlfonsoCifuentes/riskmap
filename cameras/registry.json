@@ -1,101 +1,15 @@
 {
-  "note": "Curated PUBLIC environmental cameras for Visual Intelligence (Experimental). Metadata only. Each entry must have license/terms verified before live sampling; status starts UNKNOWN until a health check runs. NO biometric/tracking use — environmental phenomena only.",
+  "note": "Curated PUBLIC environmental webcams for Visual Intelligence (Experimental). Snapshots courtesy of foto-webcam.eu — free for private/non-commercial use with attribution (https://www.foto-webcam.eu). Environmental phenomena only (snow, visibility, weather, cloud/plume). NO biometric/tracking use. A single camera never confirms an event.",
+  "license": "foto-webcam.eu — private/non-commercial use with attribution",
   "cameras": [
-    {
-      "camera_id": "cam_etna_volcano",
-      "name": "Mount Etna (volcano/ash)",
-      "operator": "INGV (institutional)",
-      "country": "IT",
-      "latitude": 37.75,
-      "longitude": 15.00,
-      "expected_content": ["ash_plume", "smoke"],
-      "license_or_terms_url": "https://www.ct.ingv.it/",
-      "sampling_interval_seconds": 120,
-      "status": "UNKNOWN"
-    },
-    {
-      "camera_id": "cam_lapalma_coast",
-      "name": "La Palma coast (storm surge)",
-      "operator": "public webcam",
-      "country": "ES",
-      "latitude": 28.68,
-      "longitude": -17.76,
-      "expected_content": ["high_water", "low_visibility"],
-      "license_or_terms_url": "",
-      "sampling_interval_seconds": 120,
-      "status": "UNKNOWN"
-    },
-    {
-      "camera_id": "cam_yosemite_wildfire",
-      "name": "Sierra Nevada ridge (wildfire smoke)",
-      "operator": "ALERTWildfire (institutional)",
-      "country": "US",
-      "latitude": 37.75,
-      "longitude": -119.59,
-      "expected_content": ["smoke", "fire"],
-      "license_or_terms_url": "https://www.alertwildfire.org/",
-      "sampling_interval_seconds": 90,
-      "status": "UNKNOWN"
-    },
-    {
-      "camera_id": "cam_venice_flood",
-      "name": "Venice lagoon (acqua alta)",
-      "operator": "public webcam",
-      "country": "IT",
-      "latitude": 45.44,
-      "longitude": 12.34,
-      "expected_content": ["high_water", "flood"],
-      "license_or_terms_url": "",
-      "sampling_interval_seconds": 120,
-      "status": "UNKNOWN"
-    },
-    {
-      "camera_id": "cam_iceland_volcano",
-      "name": "Reykjanes peninsula (eruption/ash)",
-      "operator": "public institutional",
-      "country": "IS",
-      "latitude": 63.89,
-      "longitude": -22.27,
-      "expected_content": ["ash_plume", "fire", "low_visibility"],
-      "license_or_terms_url": "",
-      "sampling_interval_seconds": 120,
-      "status": "UNKNOWN"
-    },
-    {
-      "camera_id": "cam_alps_snow",
-      "name": "Alpine pass (snow/road obstruction)",
-      "operator": "roads authority webcam",
-      "country": "CH",
-      "latitude": 46.55,
-      "longitude": 8.56,
-      "expected_content": ["snow_obstruction", "low_visibility", "road_obstruction"],
-      "license_or_terms_url": "",
-      "sampling_interval_seconds": 180,
-      "status": "UNKNOWN"
-    },
-    {
-      "camera_id": "cam_florida_coast",
-      "name": "Gulf coast (hurricane surge)",
-      "operator": "public webcam",
-      "country": "US",
-      "latitude": 27.77,
-      "longitude": -82.63,
-      "expected_content": ["high_water", "low_visibility"],
-      "license_or_terms_url": "",
-      "sampling_interval_seconds": 120,
-      "status": "UNKNOWN"
-    },
-    {
-      "camera_id": "cam_tokyo_bay_weather",
-      "name": "Tokyo bay (typhoon/severe weather)",
-      "operator": "public webcam",
-      "country": "JP",
-      "latitude": 35.63,
-      "longitude": 139.77,
-      "expected_content": ["low_visibility", "high_water"],
-      "license_or_terms_url": "",
-      "sampling_interval_seconds": 150,
-      "status": "UNKNOWN"
-    }
+    {"camera_id":"cam_zugspitze","name":"Zugspitze summit","operator":"foto-webcam.eu","country":"DE","latitude":47.4211,"longitude":10.9853,"snapshot_url":"https://www.foto-webcam.eu/webcam/zugspitze/current/620.jpg","source_page":"https://www.foto-webcam.eu/webcam/zugspitze/","expected_content":["snow_obstruction","low_visibility"],"sampling_interval_seconds":120,"status":"UNKNOWN"},
+    {"camera_id":"cam_kampenwand","name":"Kampenwand (Chiemgau Alps)","operator":"foto-webcam.eu","country":"DE","latitude":47.7553,"longitude":12.3400,"snapshot_url":"https://www.foto-webcam.eu/webcam/kampenwand/current/620.jpg","source_page":"https://www.foto-webcam.eu/webcam/kampenwand/","expected_content":["low_visibility","snow_obstruction"],"sampling_interval_seconds":120,"status":"UNKNOWN"},
+    {"camera_id":"cam_nebelhorn","name":"Nebelhorn (Allgäu)","operator":"foto-webcam.eu","country":"DE","latitude":47.4206,"longitude":10.3400,"snapshot_url":"https://www.foto-webcam.eu/webcam/nebelhorn/current/620.jpg","source_page":"https://www.foto-webcam.eu/webcam/nebelhorn/","expected_content":["low_visibility","snow_obstruction"],"sampling_interval_seconds":120,"status":"UNKNOWN"},
+    {"camera_id":"cam_kitzsteinhorn","name":"Kitzsteinhorn glacier","operator":"foto-webcam.eu","country":"AT","latitude":47.1889,"longitude":12.6875,"snapshot_url":"https://www.foto-webcam.eu/webcam/kitzsteinhorn/current/620.jpg","source_page":"https://www.foto-webcam.eu/webcam/kitzsteinhorn/","expected_content":["snow_obstruction","low_visibility"],"sampling_interval_seconds":120,"status":"UNKNOWN"},
+    {"camera_id":"cam_hochkar","name":"Hochkar (Lower Austria)","operator":"foto-webcam.eu","country":"AT","latitude":47.7700,"longitude":15.1000,"snapshot_url":"https://www.foto-webcam.eu/webcam/hochkar/current/620.jpg","source_page":"https://www.foto-webcam.eu/webcam/hochkar/","expected_content":["snow_obstruction","low_visibility"],"sampling_interval_seconds":120,"status":"UNKNOWN"},
+    {"camera_id":"cam_tegelberg","name":"Tegelberg (Ammergau Alps)","operator":"foto-webcam.eu","country":"DE","latitude":47.5544,"longitude":10.7500,"snapshot_url":"https://www.foto-webcam.eu/webcam/tegelberg/current/620.jpg","source_page":"https://www.foto-webcam.eu/webcam/tegelberg/","expected_content":["low_visibility","snow_obstruction"],"sampling_interval_seconds":150,"status":"UNKNOWN"},
+    {"camera_id":"cam_fellhorn","name":"Fellhorn (Oberstdorf)","operator":"foto-webcam.eu","country":"DE","latitude":47.3800,"longitude":10.2400,"snapshot_url":"https://www.foto-webcam.eu/webcam/fellhorn/current/620.jpg","source_page":"https://www.foto-webcam.eu/webcam/fellhorn/","expected_content":["snow_obstruction","low_visibility"],"sampling_interval_seconds":150,"status":"UNKNOWN"},
+    {"camera_id":"cam_predigtstuhl","name":"Predigtstuhl (Bad Reichenhall)","operator":"foto-webcam.eu","country":"DE","latitude":47.7200,"longitude":12.9000,"snapshot_url":"https://www.foto-webcam.eu/webcam/predigtstuhl/current/620.jpg","source_page":"https://www.foto-webcam.eu/webcam/predigtstuhl/","expected_content":["low_visibility","snow_obstruction"],"sampling_interval_seconds":150,"status":"UNKNOWN"},
+    {"camera_id":"cam_hochries","name":"Hochries (Samerberg)","operator":"foto-webcam.eu","country":"DE","latitude":47.7100,"longitude":12.1900,"snapshot_url":"https://www.foto-webcam.eu/webcam/hochries/current/620.jpg","source_page":"https://www.foto-webcam.eu/webcam/hochries/","expected_content":["low_visibility","snow_obstruction"],"sampling_interval_seconds":150,"status":"UNKNOWN"}
   ]
 }
