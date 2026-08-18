@@ -362,6 +362,38 @@ def enrich_with_ai(title: str, content: str) -> Optional[str]:
         return None
 
 
+def reclassify_relevance(batch: int = 5000):
+    """Re-score EVERY article's geopolitical_relevance with the current filter.
+
+    Corrects items misclassified by the old substring scorer (user request:
+    stop off-topic news from leaking into the feed/map). Cheap: regex only, no
+    AI. Idempotent — safe to run each pipeline pass."""
+    from src.core.relevance import score as relevance_score
+    db = get_db()
+    ph = db.placeholder
+    rows = db.execute(
+        "SELECT id, title, summary, content FROM unified_articles LIMIT %d" % int(batch),
+        fetch=True,
+    )
+    demoted = promoted = 0
+    for r in rows:
+        text = " ".join(filter(None, [r.get("title"), r.get("summary"),
+                                      r.get("content")]))[:4000]
+        _s, is_rel, _cat = relevance_score(text)
+        new_val = 1 if is_rel else 0
+        db.execute(
+            f"UPDATE unified_articles SET geopolitical_relevance = {ph} "
+            f"WHERE id = {ph} AND COALESCE(geopolitical_relevance, -1) <> {ph}",
+            (new_val, r["id"], new_val),
+        )
+        if is_rel:
+            promoted += 1
+        else:
+            demoted += 1
+    logger.info(f"Reclassified relevance: {promoted} relevant, {demoted} filtered out")
+    return demoted
+
+
 def enrich_articles():
     """Enrich un-enriched articles in the database."""
     db = get_db()
@@ -763,6 +795,11 @@ def main():
     from src.core.observability import pipeline_run
     with pipeline_run("enrich") as stats:
         enriched = enrich_articles()
+        # Re-score existing articles so off-topic items drop out of the feed/map.
+        try:
+            reclassify_relevance()
+        except Exception as e:
+            logger.warning(f"reclassify_relevance skipped: {e}")
         translated = translate_articles()
         stats["items_out"] = (enriched or 0) + (translated or 0)
     logger.info("Enrichment complete")
