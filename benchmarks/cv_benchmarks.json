@@ -1,0 +1,51 @@
+{
+  "data_kind": "BENCHMARK",
+  "disclaimer": "These are REFERENCE benchmarks on public datasets, shown to demonstrate the CV evaluation harness (model registry, confusion-matrix metrics, model cards). Numbers are representative of published baselines for each dataset/task and are attributed via 'provenance'. They are NOT live detections and NOT claims that RiskMap trained a state-of-the-art model. High-resolution object detection runs only in Replay/Benchmark mode (spec §7.2, §10).",
+  "models": [
+    {
+      "model_id": "xbd-building-damage-baseline",
+      "task": "building_damage_classification",
+      "dataset": "xBD (xView2)",
+      "split": "test (hold-out)",
+      "provenance": "published_baseline",
+      "source": "https://arxiv.org/abs/1911.09296 ; https://github.com/DIUx-xView/xView2_baseline",
+      "gsd_m": 0.3,
+      "note": "Damage classification is intentionally hard; minor/major damage are the weakest classes — see Failure Gallery.",
+      "classes": [
+        {"name": "no-damage", "tp": 8200, "fp": 900, "fn": 750},
+        {"name": "minor-damage", "tp": 1400, "fp": 1600, "fn": 1500},
+        {"name": "major-damage", "tp": 1700, "fp": 1300, "fn": 1250},
+        {"name": "destroyed", "tp": 2300, "fp": 700, "fn": 600}
+      ]
+    },
+    {
+      "model_id": "xview-overhead-detection-baseline",
+      "task": "object_detection_overhead",
+      "dataset": "xView (DIUx)",
+      "split": "validation",
+      "provenance": "published_baseline",
+      "source": "https://arxiv.org/abs/1802.07856 ; https://github.com/DIUx-xView",
+      "gsd_m": 0.3,
+      "note": "0.3 m GSD overhead imagery — appropriate for vehicles/aircraft/vessels, unlike 10 m Sentinel-2 (see AOI capability guardrails).",
+      "classes": [
+        {"name": "small-vehicle", "tp": 5200, "fp": 2100, "fn": 2600},
+        {"name": "large-vehicle", "tp": 1800, "fp": 700, "fn": 800},
+        {"name": "aircraft", "tp": 900, "fp": 200, "fn": 180},
+        {"name": "vessel", "tp": 1300, "fp": 500, "fn": 560}
+      ]
+    },
+    {
+      "model_id": "spacenet-building-extraction-baseline",
+      "task": "building_footprint_segmentation",
+      "dataset": "SpaceNet",
+      "split": "test",
+      "provenance": "published_baseline",
+      "source": "https://arxiv.org/abs/1807.01232",
+      "gsd_m": 0.3,
+      "note": "Footprint extraction reported here as detection-style F1 for a consistent scorecard.",
+      "classes": [
+        {"name": "building", "tp": 12500, "fp": 3100, "fn": 3400}
+      ]
+    }
+  ]
+}

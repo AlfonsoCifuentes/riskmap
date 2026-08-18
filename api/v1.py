@@ -49,6 +49,8 @@ def _route_from(path: str, qs: dict) -> str:
         return "pipeline-runs"
     if "pipeline-status" in p:
         return "pipeline-status"
+    if "cv-metrics" in p:
+        return "cv-metrics"
     return ""
 
 
@@ -69,6 +71,9 @@ class handler(BaseHTTPRequestHandler):
                 payload = _pipeline_runs(qs)
             elif route == "pipeline-status":
                 payload = _pipeline_status()
+            elif route == "cv-metrics":
+                from src.core import cv_benchmark
+                payload = cv_benchmark.load_registry()
             else:
                 send_response(self, json_response(
                     {"error": "unknown route", "hint": "use ?route=..."}, 404))
