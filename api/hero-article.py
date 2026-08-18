@@ -13,6 +13,7 @@ Ranking: risk_score DESC, then published_at DESC as tie-breaker.
 Fetches top 10 candidates and picks the best one with a valid image.
 """
 
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 
@@ -23,6 +24,33 @@ from api._db import (
     neon_get,
     send_response,
 )
+
+# Prefer a genuinely recent story for the "Featured" slot, not just the
+# highest all-time risk score (which surfaced months-old articles).
+_RECENCY_DAYS = 14
+
+_VALID_RISK_LEVELS = {'low', 'medium', 'high', 'critical'}
+
+
+def _normalize_risk_level(article):
+    """The risk_level column can hold junk (e.g. '8.0'); derive a clean band
+    from risk_score when it isn't one of the four canonical labels."""
+    lvl = (article.get('risk_level') or '').strip().lower()
+    if lvl in _VALID_RISK_LEVELS:
+        article['risk_level'] = lvl
+        return
+    try:
+        score = float(article.get('risk_score') or 0)
+    except (TypeError, ValueError):
+        score = 0
+    # risk_score is 0..100 in v2 (0..1 legacy) — handle both.
+    if score <= 1:
+        score *= 100
+    article['risk_level'] = (
+        'critical' if score >= 80 else
+        'high' if score >= 60 else
+        'medium' if score >= 35 else 'low'
+    )
 
 _SELECT_COLS = (
     'id,title,summary,url,source,published_at,'
@@ -54,20 +82,24 @@ class handler(BaseHTTPRequestHandler):
             qs = parse_qs(urlparse(self.path).query)
             lang = qs.get('lang', [None])[0]
 
+            cutoff = (datetime.now(timezone.utc)
+                      - timedelta(days=_RECENCY_DAYS)).isoformat()
+
             params = {
                 'geopolitical_relevance': 'eq.1',
                 'image_url': 'not.is.null',
+                'published_at': f'gte.{cutoff}',
             }
             if lang and lang in ('es', 'en'):
                 params['language'] = f'eq.{lang}'
 
-            # Fetch top 10 candidates: high importance + valid image + real source
+            # Recent, high-risk, image-bearing candidates.
             articles = neon_get(
                 'unified_articles',
                 params=params,
                 select=_SELECT_COLS,
                 order='risk_score.desc.nullslast,published_at.desc',
-                limit=10,
+                limit=15,
             )
 
             # Pick the first candidate that passes Python-side validation
@@ -98,6 +130,7 @@ class handler(BaseHTTPRequestHandler):
 
             if hero:
                 clean_article(hero)
+                _normalize_risk_level(hero)
                 resp = json_response({
                     'success': True,
                     'article': hero,
