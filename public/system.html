@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System Observatory — Riskmap A.I.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<style>
+  .sys{display:grid;gap:clamp(14px,2vw,26px);max-width:1200px;margin:0 auto;padding:clamp(16px,3vw,32px)}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .card{background:rgba(10,16,30,.55);border:1px solid var(--line,#22304d);border-radius:14px;padding:16px 18px}
+  .card h3{margin:0 0 8px;font:600 .8rem/1.2 Sora,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#9fb2d8}
+  .kpi{font:800 1.7rem/1 Orbitron,sans-serif;color:#eaf1ff}
+  .sub{color:#7f90b3;font-size:.76rem;margin-top:4px}
+  .badge{display:inline-block;padding:2px 9px;border-radius:999px;font:700 .66rem/1.4 Sora;letter-spacing:.05em;text-transform:uppercase}
+  .b-live{background:rgba(46,204,113,.14);color:#54e08b;border:1px solid rgba(46,204,113,.4)}
+  .b-replay{background:rgba(78,161,255,.14);color:#78b6ff;border:1px solid rgba(78,161,255,.4)}
+  .b-bench{background:rgba(155,120,255,.14);color:#b79bff;border:1px solid rgba(155,120,255,.4)}
+  .b-beta{background:rgba(255,193,7,.14);color:#ffcf5a;border:1px solid rgba(255,193,7,.4)}
+  .b-exp{background:rgba(255,138,101,.14);color:#ff9f7f;border:1px solid rgba(255,138,101,.4)}
+  .b-degr{background:rgba(150,160,180,.14);color:#aeb9cf;border:1px solid rgba(150,160,180,.35)}
+  table{width:100%;border-collapse:collapse;font-size:.8rem}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid rgba(120,140,180,.12);color:#cdd8f0}
+  th{color:#8ea3cc;font-weight:600;text-transform:uppercase;font-size:.68rem;letter-spacing:.04em}
+  h1{font:800 1.6rem/1.1 Orbitron,sans-serif;color:#fff;margin:0}
+  h2{font:700 1.05rem/1.2 Sora,sans-serif;color:#dbe6ff;margin:6px 0 2px}
+  .lead{color:#8ea3cc;max-width:70ch}
+  button.demo{background:linear-gradient(135deg,#2f6dff,#7a3cff);color:#fff;border:0;border-radius:10px;padding:10px 18px;font:700 .85rem Sora;cursor:pointer}
+  pre{background:rgba(0,0,0,.35);border:1px solid var(--line,#22304d);border-radius:10px;padding:12px;overflow:auto;color:#bcd0f5;font-size:.72rem;max-height:340px}
+  a.home{color:#78b6ff;text-decoration:none;font:600 .8rem Sora}
+</style>
+</head>
+<body>
+<div class="sys">
+  <div><a class="home" href="/index.html">← Riskmap A.I.</a></div>
+  <div>
+    <h1>System Observatory</h1>
+    <p class="lead">Live operational truth for the RiskMap pipeline. Every figure below comes from a reproducible query or a deterministic Replay — no invented numbers. <strong>HTTP 200 ≠ healthy</strong>: freshness is measured, not assumed.</p>
+  </div>
+
+  <h2>Pipeline freshness &amp; deployment</h2>
+  <div class="grid" id="statusGrid"><div class="card"><div class="sub">loading…</div></div></div>
+
+  <h2>Data quality scorecard</h2>
+  <div class="grid" id="dqGrid"><div class="card"><div class="sub">loading…</div></div></div>
+
+  <h2>Pipeline runs</h2>
+  <div class="card"><div style="overflow:auto"><table id="runsTbl"><thead><tr><th>Stage</th><th>Status</th><th>In</th><th>Out</th><th>Dur (s)</th><th>Started</th></tr></thead><tbody><tr><td class="sub">loading…</td></tr></tbody></table></div></div>
+
+  <h2>Computer Vision — benchmark <span class="badge b-bench">Benchmark</span></h2>
+  <p class="sub">Reference metrics on public datasets (xView/xBD/SpaceNet). Not live detection; published-baseline provenance.</p>
+  <div class="grid" id="cvGrid"><div class="card"><div class="sub">loading…</div></div></div>
+
+  <h2>Capability maturity</h2>
+  <div class="card"><div style="overflow:auto"><table id="capTbl"><thead><tr><th>Capability</th><th>Status</th><th>Evidence</th></tr></thead><tbody></tbody></table></div></div>
+
+  <h2>Deterministic demo <span class="badge b-replay">Replay</span></h2>
+  <p class="sub">Runs a curated scenario through the real pipeline (fusion → geo → risk) with zero external dependencies. Output flagged REPLAY.</p>
+  <div class="card">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="demo" onclick="runReplay('wildfire_la_palma')">Wildfire</button>
+      <button class="demo" onclick="runReplay('flood_valencia')">Flood</button>
+      <button class="demo" onclick="runReplay('earthquake_turkey')">Earthquake</button>
+      <button class="demo" onclick="runReplay('conflict_infrastructure')">Conflict</button>
+    </div>
+    <pre id="replayOut">Pick a scenario to run the pipeline…</pre>
+  </div>
+</div>
+
+<script>
+const $ = (id)=>document.getElementById(id);
+const j = (u)=>fetch(u).then(r=>r.json());
+const pill = (lvl)=>{const m={healthy:'b-live',warning:'b-beta',degraded:'b-beta',stale:'b-degr',offline:'b-degr'};return `<span class="badge ${m[lvl]||'b-degr'}">${lvl}</span>`;};
+function card(title, value, sub){return `<div class="card"><h3>${title}</h3><div class="kpi">${value}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;}
+
+j('/api/status').then(d=>{
+  const f=d.freshness||{}; const age=f.data_age_seconds;
+  const human = age==null?'—':(age<3600?Math.round(age/60)+' min':Math.round(age/3600)+' h');
+  $('statusGrid').innerHTML =
+    card('Freshness', pill(f.level||'offline'), 'data age: '+human) +
+    card('Total articles', d.total_articles??'—', (d.active_sources??'—')+' active sources / '+(d.known_sources??'—')+' known') +
+    card('Critical alerts', d.critical_alerts??'—', (d.regions_in_conflict??'—')+' regions') +
+    card('Deployment', (d.deployment?.git_sha||'—'), (d.deployment?.branch||'')+' · '+(d.deployment?.environment||''));
+}).catch(()=>$('statusGrid').innerHTML=card('Status','unavailable',''));
+
+j('/api/data-quality').then(d=>{
+  const dim=d.dimensions||{};
+  $('dqGrid').innerHTML =
+    card('Completeness (coords)', (dim.completeness?.coordinates??'—')+'%','title '+(dim.completeness?.title??'—')+'%') +
+    card('Valid coordinates', (dim.validity?.valid_coordinates??'—')+'%','of geocoded records') +
+    card('Duplicate rate', (dim.uniqueness?.duplicate_rate??'—')+'%','by URL') +
+    card('Fresh 24h', (dim.timeliness?.fresh_24h??'—')+'%','country-only geo '+(dim.geo_precision?.country_only_rate??'—')+'%') +
+    card('Records', d.total_records??'—','geopolitical relevance = 1');
+}).catch(()=>$('dqGrid').innerHTML=card('Data quality','unavailable',''));
+
+j('/api/pipeline-runs?limit=8').then(d=>{
+  const rows=(d.runs||[]).map(r=>`<tr><td>${r.stage||''}</td><td>${r.status||''}</td><td>${r.items_in??''}</td><td>${r.items_out??''}</td><td>${r.duration_seconds??''}</td><td class="sub">${(r.started_at||'').replace('T',' ').slice(0,16)}</td></tr>`).join('');
+  $('runsTbl').querySelector('tbody').innerHTML = rows || '<tr><td class="sub">no runs recorded yet</td></tr>';
+}).catch(()=>{});
+
+j('/api/cv-metrics').then(d=>{
+  $('cvGrid').innerHTML=(d.models||[]).map(m=>card(m.dataset, 'F1 '+(m.macro_f1??'—'), m.task+' · '+m.provenance)).join('')||card('CV','no benchmarks','');
+}).catch(()=>$('cvGrid').innerHTML=card('CV','unavailable',''));
+
+const caps=[
+  ['News/event ingestion','b-live','LIVE','/api/status · /api/pipeline-runs'],
+  ['Event fusion','b-live','LIVE','/api/v1/map/events'],
+  ['Risk ≠ confidence','b-live','LIVE','src/core/risk.py'],
+  ['Geolocation uncertainty','b-live','LIVE','geo_precision/geo_confidence'],
+  ['Data quality','b-live','LIVE','/api/data-quality'],
+  ['Replay Mode','b-replay','REPLAY','/api/replay'],
+  ['Satellite EO','b-degr','LIVE/DEGRADED','CDSE/FIRMS keys'],
+  ['CV benchmarks','b-bench','BENCHMARK','/api/cv-metrics'],
+  ['Forecasting','b-beta','BETA','/api/forecast'],
+  ['Alerts + Safety Brief','b-beta','BETA','src/core/alerts.py'],
+  ['Visual Intelligence','b-exp','EXPERIMENTAL','/api/cameras'],
+];
+$('capTbl').querySelector('tbody').innerHTML=caps.map(c=>`<tr><td>${c[0]}</td><td><span class="badge ${c[1]}">${c[2]}</span></td><td class="sub">${c[3]}</td></tr>`).join('');
+
+function runReplay(id){
+  $('replayOut').textContent='Running '+id+'…';
+  j('/api/replay?scenario='+id).then(d=>{
+    const e=(d.pipeline&&d.pipeline.results&&d.pipeline.results[0])||{};
+    const out={
+      DATA_KIND:d.data_kind, scenario:d.scenario&&d.scenario.title,
+      raw_evidence:d.pipeline&&d.pipeline.raw_evidence, events:d.pipeline&&d.pipeline.events,
+      source_count:e.source_count, independent_sources:e.independent_source_count,
+      geo:e.geo&&{precision:e.geo.geo_precision,confidence:e.geo.geo_confidence,uncertainty_m:e.geo.geo_precision_m,is_area:e.geo.geo_is_fallback},
+      risk:e.risk&&{risk_score:e.risk.risk_score,risk_level:e.risk.risk_level,confidence:e.risk.confidence},
+      why:e.risk&&e.risk.factors&&e.risk.factors.slice(0,5).map(f=>f.factor+' +'+f.contribution)
+    };
+    $('replayOut').textContent=JSON.stringify(out,null,2);
+  }).catch(()=>$('replayOut').textContent='Replay unavailable');
+}
+</script>
+</body>
+</html>
