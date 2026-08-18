@@ -8785,3 +8785,34 @@ Copernicus secrets were blank locally, so EO stays honestly DEGRADED.
 ### Owner follow-ups
 - Optionally add `NASA_FIRMS_MAP_KEY` + `COPERNICUS_CLIENT_ID/SECRET` Actions
   secrets to light up live fire/EO (currently DEGRADED, by design).
+
+## P2 — Multimodal + Replay + spectacular demo (2026-08-18)
+
+- **Deterministic Replay Mode** live (`/api/replay`): 4 scenario packs run through
+  the real core pipeline with zero external deps, flagged REPLAY. Verified in prod.
+- **AOI planner + capability guardrails**: rejects scientifically-invalid tasks
+  (tank/vehicle on 10 m Sentinel-2) and routes them to Replay/benchmark; picks
+  S2 vs S1 (cloud) per hazard.
+- **CV benchmark harness** (`/api/cv-metrics`): model registry + confusion-matrix
+  metrics for xBD/xView/SpaceNet, honestly labelled BENCHMARK with
+  published-baseline provenance (no live/self-trained claims).
+
+### Vercel Hobby function-limit finding (new, addendum-class)
+Post-merge production deploys were all in **ERROR** while master advanced. Root
+cause: **Vercel Hobby caps a deployment at 12 Serverless Functions**; the project
+was already at 12, so each new endpoint file made the deploy exceed the cap and
+be rejected (build succeeded). Fixed by consolidating the new endpoints into one
+dispatcher `api/v1.py` (routed via vercel.json rewrites) and dropping two
+low-value functions — back to 11 functions. All v2 endpoints now live.
+
+### News relevance filter (user request)
+Replaced the substring keyword scorer with `src/core/relevance.py`: word-boundary
+matching (no 'war' in 'warehouse'), a NEGATIVE lexicon (sport/entertainment/
+business/tech/lifestyle) with an off-topic veto, and a genuine-signal requirement.
+A `reclassify_relevance()` pass re-scores existing articles each run so off-topic
+items drop out of the feed/map. 8 tests.
+
+### Production state (verified)
+Fresh data flowing to Neon (freshness `healthy`, ~sec-old), 24+ fused events with
+risk≠confidence on the GeoJSON map, data-quality + pipeline-runs + replay +
+cv-metrics endpoints all 200. 81 unit tests green.
