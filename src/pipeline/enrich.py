@@ -546,28 +546,48 @@ def _create_events_from_articles(db):
     if not rows:
         return
 
-    # Group by country + conflict_type
-    groups = {}
+    # Real event fusion (spec §4.9): semantic + spatiotemporal clustering, so N
+    # reports of one incident become ONE event — not coarse country/type buckets.
+    from src.core import events as _fusion
+
+    def _dt(v):
+        if isinstance(v, datetime):
+            return v
+        try:
+            return datetime.fromisoformat(str(v).replace('Z', '+00:00'))
+        except (ValueError, TypeError):
+            return None
+
+    fusion_input = []
     for r in rows:
-        key = (r.get('country', 'Unknown'), r.get('conflict_type', 'unknown'))
-        groups.setdefault(key, []).append(r)
+        fusion_input.append({
+            'id': r.get('id'),
+            'url': r.get('url', ''),
+            'title': r.get('title', ''),
+            'category': r.get('conflict_type') or 'unknown',
+            'latitude': r.get('latitude'),
+            'longitude': r.get('longitude'),
+            'published_at': _dt(r.get('published_at')),
+            'risk_score': r.get('risk_score', 0),
+            'country': r.get('country'),
+        })
+
+    clusters = _fusion.fuse(fusion_input)
 
     created = 0
-    for (country, ctype), articles in groups.items():
-        if len(articles) < 1:
-            continue
-
-        ctype = ctype or 'unknown'
+    for cluster in clusters:
+        articles = cluster['evidence']
+        rep = cluster['representative']
+        ctype = cluster['category'] or 'unknown'
+        country = rep.get('country')
         is_disaster = ctype == 'natural_disaster'
         event_type = 'disaster' if is_disaster else 'conflict'
         avg_score = sum(a.get('risk_score', 0) for a in articles) / len(articles)
         title = f"{ctype.replace('_', ' ').title()} — {country}" if country else ctype
 
-        # v2 event-level risk + confidence (spec §4.7): the more independent
-        # domains cover it, the higher the confidence — not the risk.
-        from src.core import dedup as _dedup
-        indep = _dedup.independent_source_count(
-            [{"url": a.get("url", "")} for a in articles]) or 1
+        # v2 event-level risk + confidence (spec §4.7): more independent domains
+        # -> higher confidence, not higher risk.
+        indep = cluster['independent_source_count'] or 1
         ev_risk = derive_risk(
             keyword_risk_0_1=avg_score,
             geo_confidence=0.6,
