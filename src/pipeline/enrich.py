@@ -742,7 +742,7 @@ def translate_articles():
     rows = db.execute(
         "SELECT id, title, summary, language FROM unified_articles "
         "WHERE (is_translated IS NULL OR is_translated = 0) "
-        "ORDER BY id DESC LIMIT 60",
+        "ORDER BY id DESC LIMIT 30",
         fetch=True,
     )
 

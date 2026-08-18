@@ -21,7 +21,7 @@ env:
 jobs:
   ingest:
     runs-on: ubuntu-latest
-    timeout-minutes: 25       # stay within free tier
+    timeout-minutes: 30       # public repo = free Actions minutes
 
     steps:
       - uses: actions/checkout@v4
@@ -47,7 +47,7 @@ jobs:
 
       - name: Run NLP enrichment
         run: python -m src.pipeline.enrich
-        timeout-minutes: 8
+        timeout-minutes: 15
 
       - name: Run retention cleanup
         run: python -m src.database.retention

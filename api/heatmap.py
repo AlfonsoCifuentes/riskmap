@@ -10,6 +10,7 @@ from api._db import (
     error_from_exc,
     json_response,
     neon_get,
+    neon_sql,
     send_response,
 )
 
@@ -34,11 +35,15 @@ class handler(BaseHTTPRequestHandler):
                 limit=limit,
             )
 
-            # Event locations
-            event_locs = neon_get(
-                'event_locations',
-                select='latitude,longitude,event_id',
-                limit=200,
+            # Event locations weighted by the event's REAL risk (not a constant).
+            event_locs = neon_sql(
+                """
+                SELECT el.latitude, el.longitude,
+                       COALESCE(e.risk_score/100.0, e.severity, 0.5) AS weight
+                FROM event_locations el
+                JOIN events e ON e.id = el.event_id
+                ORDER BY el.id DESC LIMIT 200
+                """
             )
 
             # Signals
@@ -62,7 +67,8 @@ class handler(BaseHTTPRequestHandler):
             for el in event_locs:
                 points.append({
                     'lat': el['latitude'], 'lon': el['longitude'],
-                    'weight': 0.7, 'source': 'event',
+                    'weight': min(1.0, float(el.get('weight') or 0.5)),
+                    'source': 'event',
                 })
             for s in signals:
                 points.append({
