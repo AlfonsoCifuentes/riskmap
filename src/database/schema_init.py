@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from src.database.connection import get_db, _detect_backend
 from src.database.schema import POSTGRES_SCHEMA, SQLITE_SCHEMA
+from src.database import migrations_v2
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(message)s")
 logger = logging.getLogger(__name__)
@@ -47,7 +48,22 @@ def init_schema(check_only: bool = False):
         # Add event_id to unified_articles if missing
         _add_column_if_missing_sqlite(db, 'unified_articles', 'event_id', 'INTEGER')
 
+    _apply_v2_migration(db, backend)
     _check_tables(db, backend)
+
+
+def _apply_v2_migration(db, backend):
+    """Additive, idempotent event-centric v2 migration (spec §55)."""
+    logger.info("Applying v2 event-centric migration…")
+    tables = migrations_v2.V2_TABLES_PG if backend == 'postgres' else migrations_v2.V2_TABLES_SQLITE
+    for ddl in tables:
+        db.execute_script(ddl)
+    type_idx = 1 if backend == 'postgres' else 2
+    add = _add_column_if_missing_pg if backend == 'postgres' else _add_column_if_missing_sqlite
+    for table, cols in migrations_v2.V2_COLUMNS.items():
+        for col_spec in cols:
+            add(db, table, col_spec[0], col_spec[type_idx])
+    logger.info("✅ v2 migration applied")
 
 
 def _add_column_if_missing_sqlite(db, table, column, col_type):
@@ -99,7 +115,7 @@ def _check_tables(db, backend):
         'unified_articles', 'events', 'event_locations',
         'aois', 'images', 'detections', 'signals',
         'alerts', 'conflict_zones', 'enrichment_log', 'gpr_index',
-    }
+    } | migrations_v2.V2_EXPECTED_TABLES
     missing = expected - set(names)
     if missing:
         logger.warning(f"⚠ Missing tables: {', '.join(sorted(missing))}")
