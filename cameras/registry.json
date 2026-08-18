@@ -1,0 +1,101 @@
+{
+  "note": "Curated PUBLIC environmental cameras for Visual Intelligence (Experimental). Metadata only. Each entry must have license/terms verified before live sampling; status starts UNKNOWN until a health check runs. NO biometric/tracking use — environmental phenomena only.",
+  "cameras": [
+    {
+      "camera_id": "cam_etna_volcano",
+      "name": "Mount Etna (volcano/ash)",
+      "operator": "INGV (institutional)",
+      "country": "IT",
+      "latitude": 37.75,
+      "longitude": 15.00,
+      "expected_content": ["ash_plume", "smoke"],
+      "license_or_terms_url": "https://www.ct.ingv.it/",
+      "sampling_interval_seconds": 120,
+      "status": "UNKNOWN"
+    },
+    {
+      "camera_id": "cam_lapalma_coast",
+      "name": "La Palma coast (storm surge)",
+      "operator": "public webcam",
+      "country": "ES",
+      "latitude": 28.68,
+      "longitude": -17.76,
+      "expected_content": ["high_water", "low_visibility"],
+      "license_or_terms_url": "",
+      "sampling_interval_seconds": 120,
+      "status": "UNKNOWN"
+    },
+    {
+      "camera_id": "cam_yosemite_wildfire",
+      "name": "Sierra Nevada ridge (wildfire smoke)",
+      "operator": "ALERTWildfire (institutional)",
+      "country": "US",
+      "latitude": 37.75,
+      "longitude": -119.59,
+      "expected_content": ["smoke", "fire"],
+      "license_or_terms_url": "https://www.alertwildfire.org/",
+      "sampling_interval_seconds": 90,
+      "status": "UNKNOWN"
+    },
+    {
+      "camera_id": "cam_venice_flood",
+      "name": "Venice lagoon (acqua alta)",
+      "operator": "public webcam",
+      "country": "IT",
+      "latitude": 45.44,
+      "longitude": 12.34,
+      "expected_content": ["high_water", "flood"],
+      "license_or_terms_url": "",
+      "sampling_interval_seconds": 120,
+      "status": "UNKNOWN"
+    },
+    {
+      "camera_id": "cam_iceland_volcano",
+      "name": "Reykjanes peninsula (eruption/ash)",
+      "operator": "public institutional",
+      "country": "IS",
+      "latitude": 63.89,
+      "longitude": -22.27,
+      "expected_content": ["ash_plume", "fire", "low_visibility"],
+      "license_or_terms_url": "",
+      "sampling_interval_seconds": 120,
+      "status": "UNKNOWN"
+    },
+    {
+      "camera_id": "cam_alps_snow",
+      "name": "Alpine pass (snow/road obstruction)",
+      "operator": "roads authority webcam",
+      "country": "CH",
+      "latitude": 46.55,
+      "longitude": 8.56,
+      "expected_content": ["snow_obstruction", "low_visibility", "road_obstruction"],
+      "license_or_terms_url": "",
+      "sampling_interval_seconds": 180,
+      "status": "UNKNOWN"
+    },
+    {
+      "camera_id": "cam_florida_coast",
+      "name": "Gulf coast (hurricane surge)",
+      "operator": "public webcam",
+      "country": "US",
+      "latitude": 27.77,
+      "longitude": -82.63,
+      "expected_content": ["high_water", "low_visibility"],
+      "license_or_terms_url": "",
+      "sampling_interval_seconds": 120,
+      "status": "UNKNOWN"
+    },
+    {
+      "camera_id": "cam_tokyo_bay_weather",
+      "name": "Tokyo bay (typhoon/severe weather)",
+      "operator": "public webcam",
+      "country": "JP",
+      "latitude": 35.63,
+      "longitude": 139.77,
+      "expected_content": ["low_visibility", "high_water"],
+      "license_or_terms_url": "",
+      "sampling_interval_seconds": 150,
+      "status": "UNKNOWN"
+    }
+  ]
+}

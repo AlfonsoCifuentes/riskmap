@@ -55,6 +55,8 @@ def _route_from(path: str, qs: dict) -> str:
         return "forecast"
     if "report" in p:
         return "report"
+    if "cameras" in p:
+        return "cameras"
     return ""
 
 
@@ -82,6 +84,13 @@ class handler(BaseHTTPRequestHandler):
                 payload = _forecast(qs)
             elif route == "report":
                 payload = _report()
+            elif route == "cameras":
+                from src.core import cameras
+                payload = {"data_kind": "EXPERIMENTAL",
+                           "note": "Visual Intelligence is experimental; a camera "
+                                   "alone never confirms an event.",
+                           "allowed_detections": sorted(cameras.ALLOWED_DETECTIONS),
+                           "cameras": cameras.load_registry()}
             else:
                 send_response(self, json_response(
                     {"error": "unknown route", "hint": "use ?route=..."}, 404))

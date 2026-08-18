@@ -17,6 +17,7 @@
     { "source": "/api/cv-metrics", "destination": "/api/v1?route=cv-metrics" },
     { "source": "/api/forecast", "destination": "/api/v1?route=forecast" },
     { "source": "/api/report", "destination": "/api/v1?route=report" },
+    { "source": "/api/cameras", "destination": "/api/v1?route=cameras" },
     { "source": "/static/(.*)", "destination": "/src/web/static/$1" },
     { "source": "/", "destination": "/index.html" },
     { "source": "/news-analysis", "destination": "/index.html" },
