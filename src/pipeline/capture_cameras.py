@@ -14,7 +14,6 @@ page have real frames. Environmental phenomena only; no biometric/tracking use.
 
 Usage: python -m src.pipeline.capture_cameras
 """
-import io
 import logging
 import os
 import sys
