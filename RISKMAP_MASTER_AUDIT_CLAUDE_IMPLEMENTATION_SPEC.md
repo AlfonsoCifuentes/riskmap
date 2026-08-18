@@ -8816,3 +8816,82 @@ items drop out of the feed/map. 8 tests.
 Fresh data flowing to Neon (freshness `healthy`, ~sec-old), 24+ fused events with
 risk≠confidence on the GeoJSON map, data-quality + pipeline-runs + replay +
 cv-metrics endpoints all 200. 81 unit tests green.
+
+## P3–P5 summary (2026-08-18)
+
+- **P3:** `forecasting.py` (baselines, Brier, reliability, temporal split,
+  compare_to_baseline; `/api/forecast`), `alerts.py` (dedupe/cooldown),
+  `safety_brief.py` (official vs context, no invented instructions),
+  `/api/report` (reproducible aggregates).
+- **P4:** `cameras.py` Visual Intelligence — registry, health (200≠healthy),
+  adaptive sampling, temporal confirmation, corroboration; environmental-only,
+  biometrics forbidden + test-locked; `/api/cameras` (EXPERIMENTAL).
+- **P5:** honest README, `docs/{architecture,data-model,data-sources,threat-model,
+  ethics}.md`, ADR-001/003/005/008, and a live **System Observatory** page
+  (`/system`) consuming the real endpoints with a one-click Replay demo.
+
+102 unit tests green; 11 Vercel functions (under the Hobby cap).
+
+---
+
+# Post-Implementation Independent Re-Audit
+
+**Date:** 2026-08-18. A second, deliberately adversarial pass after the main work.
+
+## Verified working in production (riskmap-ai.vercel.app)
+- SQL injection closed (payload returns empty set, not a 500 SQL echo).
+- `/api/status` reports honest freshness + `data_age_seconds` + deploy SHA.
+- Pipeline persists to Neon: fresh data (freshness `healthy`), events fused with
+  risk≠confidence on the GeoJSON map.
+- Live endpoints 200: data-quality, pipeline-runs, replay, cv-metrics, forecast,
+  report, cameras; `/system` page renders them.
+- **The user's complaint is resolved:** the relevance pass filtered **926
+  off-topic articles** (→197 clean relevant); word-boundary + negative-lexicon
+  filter is test-covered.
+
+## Bugs found & fixed in this re-audit
+- `/api/heatmap` still hard-coded event weight `0.7` → now weighted by the
+  event's real risk (join). (addendum B12)
+- Enrichment step timed out at 8 min on the translation loop → capped translation
+  to 30/run + raised the step timeout (public repo = free Actions minutes). The
+  reclassification itself had already succeeded before the timeout.
+- `api/v1` map route referenced a non-existent `events.event_confidence` → fixed.
+- Vercel Hobby 12-function cap was silently failing every deploy → consolidated
+  to one dispatcher (ADR-008).
+
+## Honest remaining gaps (not hidden)
+1. **Live event fusion is coarser than the core module.** The scheduled pipeline
+   groups by (country, conflict_type) in `_create_events_from_articles`; the
+   sophisticated `src.core.events.fuse` (semantic + spatiotemporal) is exercised
+   in Replay and unit tests but not yet the sole live path. Unifying them is the
+   top follow-up.
+2. **Older frontend pages** (conflict-monitoring, satellite-analysis,
+   video-surveillance, early-warning, etc.) still use pre-v2 data/labels. The new
+   `/system` page is the honest, v2-backed showcase; rewiring the remaining pages
+   to v2 endpoints + honest labels is outstanding P5 work.
+3. **Forecast baseline saturates** at 1.0 under current event volume; the BETA
+   model needs feature scaling + a real backtest dataset before it earns more
+   than "baseline+".
+4. **Relevance filter may over-filter** (926 demoted): worth monitoring/tuning the
+   threshold against a small labelled gold set (spec §167).
+5. **DEGRADED by design (no keys):** Copernicus EO, NASA FIRMS, email, cameras.
+   Code + graceful degradation are in place; the owner can light them up by
+   adding the free Actions secrets.
+6. **Legacy `RISKMAP.py` (806 KB)** remains; the v2 pipeline runs independently of
+   it, but it is not yet moved to `legacy/`.
+7. **mypy is not in CI** (legacy tree is untyped); new `src/core` modules are typed
+   and could gate incrementally.
+
+## Science / honesty checks (pass)
+- No live tank/vehicle detection claim; AOI planner rejects it (10 m/px).
+- CV numbers labelled BENCHMARK with published-baseline provenance.
+- Replay clearly flagged REPLAY; never mixed with live.
+- Geolocation shows uncertainty tiers; risk is separate from confidence.
+
+## Highest-value next steps (ranked)
+1. Make `src.core.events.fuse` the single live fusion path (+ event merge/split).
+2. Rewire the map homepage + remaining pages to the v2 GeoJSON/observatory
+   endpoints and honest labels.
+3. Add the free FIRMS/Copernicus Actions secrets to move EO from DEGRADED→LIVE.
+4. Build a labelled gold set to tune the relevance threshold and backtest the
+   forecast.
