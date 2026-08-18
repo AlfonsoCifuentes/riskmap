@@ -53,6 +53,8 @@ def _route_from(path: str, qs: dict) -> str:
         return "cv-metrics"
     if "forecast" in p:
         return "forecast"
+    if "report" in p:
+        return "report"
     return ""
 
 
@@ -78,6 +80,8 @@ class handler(BaseHTTPRequestHandler):
                 payload = cv_benchmark.load_registry()
             elif route == "forecast":
                 payload = _forecast(qs)
+            elif route == "report":
+                payload = _report()
             else:
                 send_response(self, json_response(
                     {"error": "unknown route", "hint": "use ?route=..."}, 404))
@@ -261,6 +265,58 @@ def _pipeline_runs(qs):
             "notes": r.get("notes"),
         })
     return {"runs": runs, "count": len(runs)}
+
+
+def _report():
+    """Evidence-driven executive report from reproducible aggregates (spec §20).
+
+    No LLM fabrication: every figure comes from a query, with a data cutoff so
+    the report is reproducible. A narrative layer can be added on top later.
+    """
+    kpis = neon_sql("""
+        SELECT
+          COUNT(*) FILTER (WHERE geopolitical_relevance = 1) AS total_events_articles,
+          COUNT(*) FILTER (WHERE geopolitical_relevance = 1
+                             AND published_at >= NOW() - INTERVAL '24 hours') AS new_24h,
+          COUNT(*) FILTER (WHERE geopolitical_relevance = 1
+                             AND COALESCE(risk_score,0) >= 0.6) AS high_risk
+        FROM unified_articles
+    """)
+    k = kpis[0] if kpis else {}
+    top = neon_sql("""
+        SELECT e.id, e.title, e.event_type, e.risk_score, e.risk_level,
+               e.confidence_score, e.source_count, e.independent_source_count,
+               e.last_updated
+        FROM events e
+        ORDER BY COALESCE(e.risk_score, e.severity*100, 0) DESC NULLS LAST,
+                 e.last_updated DESC NULLS LAST
+        LIMIT 10
+    """)
+    cats = neon_sql("""
+        SELECT COALESCE(conflict_type,'other') AS category, COUNT(*) AS n
+        FROM unified_articles WHERE geopolitical_relevance = 1
+        GROUP BY COALESCE(conflict_type,'other') ORDER BY n DESC LIMIT 8
+    """)
+    return {
+        "success": True,
+        "generated_at": datetime.now(UTC).isoformat(),
+        "data_cutoff": datetime.now(UTC).isoformat(),
+        "kpis": k,
+        "top_events": [{
+            "id": t.get("id"), "title": t.get("title"),
+            "category": t.get("event_type"),
+            "risk_score": t.get("risk_score"), "risk_level": t.get("risk_level"),
+            "confidence": t.get("confidence_score"),
+            "source_count": t.get("source_count"),
+            "independent_source_count": t.get("independent_source_count"),
+            "updated_at": (t["last_updated"].isoformat()
+                           if t.get("last_updated") else None),
+        } for t in top],
+        "category_breakdown": [{"category": c["category"], "count": c["n"]} for c in cats],
+        "methodology": ("Figures are reproducible aggregates over unified_articles "
+                        "and events at the data cutoff. Risk and confidence are "
+                        "reported separately (Risk Engine v2)."),
+    }
 
 
 def _forecast(qs):
