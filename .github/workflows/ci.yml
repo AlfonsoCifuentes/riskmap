@@ -26,7 +26,7 @@ jobs:
       # Lint only the code the v2 recovery owns. The legacy src/ tree is linted
       # incrementally as modules are migrated (see audit addendum B5).
       - name: Lint (ruff)
-        run: ruff check api tests/unit
+        run: ruff check api src/core src/ai/model_registry.py tests/unit
 
       # Fast, dependency-light unit tests (no DB, no heavy ML deps).
       - name: Unit tests
