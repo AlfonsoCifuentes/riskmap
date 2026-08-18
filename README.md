@@ -1,329 +1,143 @@
-# 🌍 RISKMAP - Plataforma de Inteligencia Geopolítica
+# RiskMap — Multimodal Risk Intelligence
 
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://python.org)
-[![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)](https://flask.palletsprojects.com)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Production-brightgreen.svg)]()
+[![CI](https://github.com/AlfonsoCifuentes/riskmap/actions/workflows/ci.yml/badge.svg)](https://github.com/AlfonsoCifuentes/riskmap/actions/workflows/ci.yml)
+[![Security](https://github.com/AlfonsoCifuentes/riskmap/actions/workflows/security.yml/badge.svg)](https://github.com/AlfonsoCifuentes/riskmap/actions/workflows/security.yml)
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://python.org)
 
-> Plataforma avanzada de inteligencia geopolítica para el análisis y monitoreo de riesgos globales en tiempo real mediante IA y datos satelitales.
+An **event-centric** platform that ingests heterogeneous open sources, deduplicates
+and **fuses evidence into events**, geolocates them **with explicit uncertainty**,
+scores **risk separately from confidence**, and exposes everything through a map,
+dashboards, a deterministic **Replay Mode**, and reproducible reports.
 
-## 🚀 Características Principales
+Built to be **honest and verifiable**, not to sprinkle "AI / satellite / real-time"
+on a demo. Every capability has code + data + an API + tests + a failure state +
+documented limitations. Runs at a target cost of **€0/month**.
 
-### 🤖 Inteligencia Artificial
-- **Análisis automático** de noticias geopolíticas
-- **Procesamiento de lenguaje natural** para extracción de entidades
-- **Computer Vision** para análisis de imágenes
-- **Detección de patrones** y anomalías en tiempo real
-
-### 🛰️ Análisis Satelital
-- **Integración SentinelHub** para imágenes satelitales
-- **Análisis automático** de zonas de conflicto
-- **Detección de cambios** en infraestructura y vegetación
-- **Generación automática** de GeoJSON
-
-### 📊 Monitoreo en Tiempo Real
-- **GDELT integration** para eventos globales
-- **RSS feeds** de fuentes confiables
-- **Alertas automáticas** por nivel de riesgo
-- **Dashboard unificado** con métricas en vivo
-
-### 🗺️ Visualización Avanzada
-- **Mapas de calor** interactivos
-- **Globo 3D** con eventos geopolíticos
-- **Gráficos temporales** de tendencias
-- **Exportación** en múltiples formatos
-
-## 📋 Tabla de Contenidos
-
-- [Instalación](#-instalación)
-- [Configuración](#-configuración)
-- [Uso](#-uso)
-- [API Documentation](#-api-documentation)
-- [Arquitectura](#-arquitectura)
-- [Stack Tecnológico](#-stack-tecnológico)
-- [Contribuir](#-contribuir)
-- [Licencia](#-licencia)
-
-## 🛠️ Instalación
-
-### Requisitos Previos
-- Python 3.9+
-- Git
-- Conexión a internet (para APIs)
-
-### Instalación Rápida
-
-```bash
-# Clonar repositorio
-git clone https://github.com/AlfonsoCifuentes/riskmap.git
-cd riskmap
-
-# Crear entorno virtual
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# o
-venv\Scripts\activate   # Windows
-
-# Instalar dependencias
-pip install -r requirements.txt
-
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus API keys
-```
-
-### Variables de Entorno Requeridas
-
-```bash
-# APIs Requeridas
-GROQ_API_KEY=tu_groq_api_key
-SENTINELHUB_CLIENT_ID=tu_sentinelhub_client_id
-SENTINELHUB_CLIENT_SECRET=tu_sentinelhub_client_secret
-MAPBOX_TOKEN=tu_mapbox_token
-
-# Base de Datos
-DATABASE_URL=sqlite:///geopolitical_intelligence.db
-
-# Configuración Flask
-FLASK_ENV=production
-SECRET_KEY=tu_secret_key_seguro
-```
-
-## 🚀 Uso
-
-### Ejecutar la Aplicación
-
-```bash
-# Modo producción
-python app_BUENA.py
-
-# La aplicación estará disponible en:
-# http://localhost:5000
-```
-
-### Endpoints Principales
-
-- **Dashboard**: `/dashboard-unificado`
-- **Mapa de Calor**: `/mapa-calor`
-- **GDELT**: `/gdelt-dashboard`
-- **Reportes**: `/reportes`
-- **About**: `/about`
-
-## 📡 API Documentation
-
-### Endpoints Principales
-
-#### Artículos y Análisis
-```bash
-GET /api/articles                    # Obtener artículos
-GET /api/articles/enhanced           # Artículos con análisis IA
-POST /api/articles/analyze           # Analizar artículo específico
-```
-
-#### Datos Geográficos
-```bash
-GET /api/heatmap/data               # Datos mapa de calor
-GET /api/heatmap/zones              # Zonas de riesgo
-GET /api/geojson/list               # Archivos GeoJSON
-POST /api/geojson/auto-upload       # Subida automática
-```
-
-#### GDELT Integration
-```bash
-GET /api/gdelt/events               # Eventos GDELT recientes
-GET /api/gdelt/statistics           # Estadísticas GDELT
-GET /api/gdelt/geographic           # Análisis geográfico
-POST /api/gdelt/refresh             # Actualizar datos
-```
-
-#### Satelital
-```bash
-GET /api/satellite/images           # Imágenes satelitales
-POST /api/satellite/analyze         # Analizar zona específica
-GET /api/satellite/analysis         # Resultados análisis
-```
-
-### Ejemplos de Uso
-
-```python
-import requests
-
-# Obtener artículos recientes
-response = requests.get('http://localhost:5000/api/articles?limit=10')
-articles = response.json()
-
-# Analizar zona geográfica
-data = {
-    'latitude': 40.7128,
-    'longitude': -74.0060,
-    'size_km': 10
-}
-response = requests.post('http://localhost:5000/api/satellite/analyze', json=data)
-analysis = response.json()
-```
-
-## 🏗️ Arquitectura
-
-```
-RISKMAP/
-├── app_BUENA.py              # Aplicación principal
-├── src/
-│   ├── web/                  # Frontend
-│   │   ├── templates/        # Templates HTML
-│   │   └── static/           # CSS, JS, imágenes
-│   ├── maps/                 # Motor de mapas
-│   ├── satellite/            # Análisis satelital
-│   ├── analysis/             # Computer Vision
-│   ├── cache/                # Sistema de cache
-│   └── upload/               # Subida archivos
-├── data/                     # Bases de datos
-├── reports/                  # Reportes generados
-├── logs/                     # Archivos de log
-└── tests/                    # Tests unitarios
-```
-
-## 💻 Stack Tecnológico
-
-### Backend
-- **Python 3.9+** - Lenguaje principal
-- **Flask 2.3+** - Framework web
-- **SQLite** - Base de datos principal
-- **OpenCV** - Computer Vision
-- **GDELT** - Datos geopolíticos
-- **SentinelHub API** - Imágenes satelitales
-
-### Frontend
-- **Bootstrap 5** - Framework CSS
-- **Plotly.js** - Gráficos interactivos
-- **Mapbox GL** - Mapas avanzados
-- **Chart.js** - Visualizaciones
-- **Font Awesome** - Iconografía
-
-### APIs y Servicios
-- **GROQ API** - Modelos de IA
-- **SentinelHub** - Imágenes satelitales
-- **GDELT Project** - Eventos globales
-- **Mapbox** - Servicios de mapas
-
-### Herramientas de Desarrollo
-- **Git** - Control de versiones
-- **pytest** - Testing
-- **Black** - Formateo de código
-- **Flake8** - Linting
-
-## 🔧 Configuración Avanzada
-
-### Base de Datos
-El sistema utiliza SQLite por defecto, pero puede configurarse para PostgreSQL:
-
-```python
-# En app_BUENA.py
-DATABASE_URL = "postgresql://user:pass@localhost/riskmap"
-```
-
-### Cache
-Sistema de cache inteligente configurable:
-
-```python
-CACHE_CONFIG = {
-    'maps': {'ttl': 3600, 'max_size': 100},
-    'satellite': {'ttl': 7200, 'max_size': 50},
-    'analysis': {'ttl': 86400, 'max_size': 1000}
-}
-```
-
-### Logging
-Configuración de logs por módulo:
-
-```python
-LOGGING_CONFIG = {
-    'level': 'INFO',
-    'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    'file': 'logs/riskmap.log'
-}
-```
-
-## 🧪 Testing
-
-```bash
-# Ejecutar todos los tests
-pytest
-
-# Tests específicos
-pytest tests/test_api.py
-pytest tests/test_analysis.py
-
-# Coverage
-pytest --cov=src tests/
-```
-
-## 📈 Monitoreo y Métricas
-
-### Métricas Disponibles
-- Artículos procesados por día
-- Tiempo de respuesta de APIs
-- Uso de cache y memoria
-- Alertas generadas por hora
-- Cobertura de análisis satelital
-
-### Health Checks
-```bash
-GET /health                 # Estado general del sistema
-GET /health/database        # Estado base de datos
-GET /health/apis           # Estado APIs externas
-```
-
-## 🔒 Seguridad
-
-- **API Keys** almacenadas en variables de entorno
-- **Rate limiting** en endpoints públicos
-- **Validación** de entrada en todas las APIs
-- **Logs de seguridad** para monitoreo
-- **HTTPS** recomendado en producción
-
-## 🌟 Contribuir
-
-1. Fork el proyecto
-2. Crear rama feature (`git checkout -b feature/amazing-feature`)
-3. Commit cambios (`git commit -m 'Add amazing feature'`)
-4. Push a la rama (`git push origin feature/amazing-feature`)
-5. Abrir Pull Request
-
-### Guías de Contribución
-- Seguir PEP 8 para código Python
-- Documentar nuevas funciones
-- Incluir tests para nuevas características
-- Actualizar README si es necesario
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT - ver [LICENSE](LICENSE) para detalles.
-
-## 👨‍💻 Autor
-
-**Alfonso Cifuentes Alonso**
-- GitHub: [@AlfonsoCifuentes](https://github.com/AlfonsoCifuentes)
-- LinkedIn: [Alfonso Cifuentes Alonso](https://es.linkedin.com/in/alfonso-cifuentes-alonso-13b186b3)
-- Email: alfonso.cifuentes@example.com
-
-## 🙏 Agradecimientos
-
-- **GDELT Project** por los datos geopolíticos
-- **SentinelHub** por las imágenes satelitales
-- **OpenStreetMap** por los datos geográficos
-- **Comunidad Open Source** por las bibliotecas utilizadas
-
-## 📊 Estadísticas del Proyecto
-
-- **Líneas de código**: ~15,000
-- **Archivos Python**: 50+
-- **APIs integradas**: 4+
-- **Tests unitarios**: 100+
-- **Cobertura**: 85%+
+**Live demo:** https://riskmap-ai.vercel.app · **Live status:** [`/api/status`](https://riskmap-ai.vercel.app/api/status)
 
 ---
 
-<div align="center">
-  <h3>🌍 Monitoreo Global • 🤖 IA Avanzada • 🛰️ Análisis Satelital</h3>
-  <p>Desarrollado con ❤️ para la comunidad de inteligencia geopolítica</p>
-</div>
+## What it actually does (with proof)
+
+| Capability | Status | Proof |
+|---|---|---|
+| News/event ingestion (RSS · GDELT · GDACS) | LIVE | `/api/status` freshness, `/api/pipeline-runs` |
+| Event fusion (evidence → events) | LIVE | `src/core/events.py`, `/api/v1/map/events` |
+| Geolocation with uncertainty | LIVE | `src/core/geo.py` (`geo_precision`, `geo_confidence`) |
+| Risk ≠ confidence (versioned engine) | LIVE | `src/core/risk.py`, "why this risk" factors |
+| Relevance filter (no off-topic leaks) | LIVE | `src/core/relevance.py` |
+| Data-quality scorecard | LIVE | `/api/data-quality` |
+| System Observatory / pipeline runs | LIVE | `/api/pipeline-runs` |
+| Deterministic Replay Mode (4 scenarios) | REPLAY | `/api/replay` |
+| Satellite EO (Sentinel-2 Process API, FIRMS) | LIVE / DEGRADED | needs free CDSE/FIRMS keys, else graceful degrade |
+| CV benchmarks (xView/xBD/SpaceNet) | BENCHMARK | `/api/cv-metrics` (published-baseline provenance) |
+| AOI planner + capability guardrails | LIVE | rejects 10 m/px "tank detection" |
+| Escalation forecasting (baseline) | BETA | `/api/forecast` (probability + baseline + Brier) |
+| Alerts (dedupe/cooldown) + Safety Brief | BETA | `src/core/alerts.py`, `src/core/safety_brief.py` |
+| Visual Intelligence (public cameras) | EXPERIMENTAL | `/api/cameras` (environmental only; no biometrics) |
+
+Status labels are meaningful: `LIVE / REPLAY / BENCHMARK / BETA / EXPERIMENTAL / DEGRADED`.
+**Nothing labelled LIVE is stale, heuristic, or replay.**
+
+---
+
+## Architecture
+
+```
+Sources (RSS · GDELT · GDACS · USGS · FIRMS · Copernicus)
+   ↓ ingest            (GitHub Actions, scheduled)
+raw articles
+   ↓ relevance filter  (word-boundary + negative lexicon)
+   ↓ dedup             (canonical URL · title hash · Jaccard · syndication)
+   ↓ enrich            (classification · translation · geo · risk)
+events  ← fusion       (semantic + spatiotemporal)
+   ↓ risk engine v2    (severity/exposure/vulnerability vs confidence)
+Neon Postgres
+   ↓
+Vercel serverless API  → map (GeoJSON) · dashboards · replay · forecast · reports
+```
+
+See [`docs/architecture.md`](docs/architecture.md), [`docs/pipeline.md`](docs/pipeline.md),
+[`docs/data-model.md`](docs/data-model.md).
+
+## Stack (all free tier)
+
+- **Frontend/API:** Vercel Hobby (Python serverless) — kept ≤ 12 functions.
+- **Database:** Neon Postgres (free).
+- **Jobs:** GitHub Actions (ingest/enrich; imagery/CV).
+- **AI:** Groq free tier via a **model registry** (`src/ai/model_registry.py`)
+  with a local heuristic fallback → pipeline `DEGRADED`, never `FAILED`.
+- **EO:** Copernicus Data Space (Sentinel-1/-2), NASA FIRMS — free keys.
+
+## Data sources & licensing
+
+See [`docs/data-sources.md`](docs/data-sources.md). RiskMap stores extracts +
+links + attribution, never full-article republication.
+
+## Live vs Replay
+
+- **LIVE** reads current data from Neon; `/api/status` reports `data_age_seconds`
+  and a freshness level (`healthy/warning/degraded/stale/offline`).
+- **Replay Mode** (`/api/replay`) runs curated scenarios (wildfire/flood/
+  earthquake/conflict) through the *real* pipeline with zero external deps, so the
+  demo always works. Replay output is unambiguously flagged `REPLAY`.
+
+## Tests
+
+```bash
+pip install -r requirements/dev.txt
+pytest tests/unit            # 100+ fast unit tests, no DB required
+ruff check api src/core tests/unit
+```
+
+Security regression tests include the exact SQL-injection payload that once hit
+production, SSRF guards, and the relevance filter's off-topic cases.
+
+## Local development
+
+```bash
+git clone https://github.com/AlfonsoCifuentes/riskmap
+cd riskmap
+cp .env.example .env          # fill DATABASE_URL; AI/EO keys optional
+pip install -r requirements/pipeline.txt
+python -m src.database.schema_init      # idempotent schema + v2 migration
+python -m src.pipeline.ingest           # needs DATABASE_URL
+python -m src.pipeline.enrich
+```
+
+Replay Mode and the unit tests need **no secrets**.
+
+## Cost architecture (€0 target, €10 hard max)
+
+Free tiers only; no paid providers, no persistent GPU, no always-on compute.
+Heavy work is selective/scheduled/local/replay. See [`docs/adr/ADR-003`](docs/adr)
+and the kill switches / daily limits in `.env.example`.
+
+## Security
+
+TLS verification enforced everywhere; SSRF guard on outbound fetches (moved out
+of the request path); parameterized SQL with identifier allowlists; secrets kept
+out of the repo (gitleaks in CI). See [`docs/threat-model.md`](docs/threat-model.md).
+
+## Ethics
+
+No face recognition, identity/person tracking, licence-plate reading, or
+sensitive-trait inference — including in the experimental camera module. RiskMap
+is **not an emergency authority**. See [`docs/ethics.md`](docs/ethics.md).
+
+## Limitations (honest)
+
+- News coverage is biased; the map can reflect media attention, which is why we
+  separate risk from confidence and show geolocation uncertainty.
+- Sentinel-2 (10 m/px) cannot detect individual vehicles; high-resolution object
+  detection is demonstrated in **Replay/Benchmark** mode on public datasets.
+- Forecasts are probabilistic early-warning estimates with baselines, not
+  certainties.
+- Some optional integrations (Copernicus, cameras, email) are `DEGRADED` until
+  their free keys are configured.
+
+## Provenance
+
+This codebase was substantially rebuilt in a documented, append-only audit +
+implementation pass — see `RISKMAP_MASTER_AUDIT_CLAUDE_IMPLEMENTATION_SPEC.md`
+(`# Agent Independent Audit Addendum`, `# Implementation Log`).
