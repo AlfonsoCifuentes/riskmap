@@ -13,7 +13,7 @@ Ranking: risk_score DESC, then published_at DESC as tie-breaker.
 Fetches top 10 candidates and picks the best one with a valid image.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 
@@ -82,7 +82,7 @@ class handler(BaseHTTPRequestHandler):
             qs = parse_qs(urlparse(self.path).query)
             lang = qs.get('lang', [None])[0]
 
-            cutoff = (datetime.now(timezone.utc)
+            cutoff = (datetime.now(UTC)
                       - timedelta(days=_RECENCY_DAYS)).isoformat()
 
             params = {
