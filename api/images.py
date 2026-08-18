@@ -45,7 +45,8 @@ class handler(BaseHTTPRequestHandler):
             if source_type:
                 fam = _FAMILIES.get(source_type.lower())
                 if fam:
-                    where.append("source_type IN (%s)" % ','.join(['%s'] * len(fam)))
+                    placeholders = ','.join(['%s'] * len(fam))
+                    where.append(f"source_type IN ({placeholders})")
                     params.extend(fam)
                 else:
                     where.append("source_type = %s")
