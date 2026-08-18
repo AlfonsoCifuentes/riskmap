@@ -158,48 +158,74 @@ def fetch_newsapi() -> List[Dict]:
     return articles
 
 
+def _parse_gdelt_date(seendate: str) -> str:
+    """Parse a GDELT seendate ('YYYYMMDDTHHMMSSZ') to an ISO timestamp.
+
+    Falls back to now() only if the field is missing/unparseable — so GDELT
+    items carry their real observation time, not a fake 'fresh' stamp."""
+    if seendate:
+        for fmt in ('%Y%m%dT%H%M%SZ', '%Y%m%d%H%M%S'):
+            try:
+                return datetime.strptime(seendate.strip(), fmt).isoformat()
+            except ValueError:
+                continue
+    return datetime.utcnow().isoformat()
+
+
 def fetch_gdelt() -> List[Dict]:
-    """Fetch recent conflict/disaster coverage from GDELT DOC API."""
+    """Fetch recent conflict/disaster coverage from GDELT DOC API.
+
+    Resilient: GDELT frequently returns non-JSON (rate-limit HTML) or times out.
+    We validate status + content-type before parsing and retry once, so a flaky
+    GDELT degrades this source without raising or polluting the pipeline."""
     queries = [
         '(geopolitical OR military OR conflict OR war)',
         '(earthquake OR flood OR wildfire OR hurricane OR humanitarian crisis)',
     ]
     articles: List[Dict] = []
     endpoint = 'https://api.gdeltproject.org/api/v2/doc/doc'
+    headers = {'User-Agent': 'RiskMap/2.0 (+https://github.com/AlfonsoCifuentes/riskmap)'}
 
     for q in queries:
-        try:
-            resp = requests.get(
-                endpoint,
-                params={
-                    'query': q,
-                    'mode': 'ArtList',
-                    'format': 'json',
-                    'sort': 'DateDesc',
-                    'maxrecords': 40,
-                },
-                timeout=18,
-            )
-            data = resp.json()
-            entries = data.get('articles', []) or []
-            for art in entries:
-                title = (art.get('title') or '').strip()
-                url = (art.get('url') or '').strip()
-                if not title or not url:
+        entries = []
+        for attempt in (1, 2):
+            try:
+                resp = requests.get(
+                    endpoint,
+                    params={
+                        'query': q, 'mode': 'ArtList', 'format': 'json',
+                        'sort': 'DateDesc', 'maxrecords': 40,
+                    },
+                    headers=headers,
+                    timeout=25,
+                )
+                if resp.status_code != 200:
+                    logger.warning(f"  ✗ GDELT [{q}] HTTP {resp.status_code} (try {attempt})")
                     continue
-                articles.append({
-                    'title': title[:500],
-                    'content': (art.get('seendate') or '')[:2000],
-                    'summary': (art.get('title') or '')[:1000],
-                    'url': url,
-                    'source': f"GDELT:{(art.get('domain') or 'unknown')[:48]}",
-                    'published_at': datetime.utcnow().isoformat(),
-                    'image_url': art.get('socialimage'),
-                    'language': 'en',
-                })
-            logger.info(f"  ✓ GDELT [{q}]: {len(entries)} articles")
-        except Exception as e:
-            logger.warning(f"  ✗ GDELT [{q}]: {e}")
+                ctype = resp.headers.get('Content-Type', '')
+                if 'json' not in ctype and not resp.text.lstrip().startswith('{'):
+                    logger.warning(f"  ✗ GDELT [{q}] non-JSON response (try {attempt})")
+                    continue
+                entries = (resp.json() or {}).get('articles', []) or []
+                break
+            except Exception as e:
+                logger.warning(f"  ✗ GDELT [{q}] (try {attempt}): {e}")
+        for art in entries:
+            title = (art.get('title') or '').strip()
+            url = (art.get('url') or '').strip()
+            if not title or not url:
+                continue
+            articles.append({
+                'title': title[:500],
+                'content': '',
+                'summary': title[:1000],
+                'url': url,
+                'source': f"GDELT:{(art.get('domain') or 'unknown')[:48]}",
+                'published_at': _parse_gdelt_date(art.get('seendate', '')),
+                'image_url': art.get('socialimage'),
+                'language': (art.get('language') or 'en')[:8],
+            })
+        logger.info(f"  ✓ GDELT [{q}]: {len(entries)} articles")
 
     return articles
 
