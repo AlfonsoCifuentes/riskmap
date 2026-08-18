@@ -394,6 +394,42 @@ def reclassify_relevance(batch: int = 5000):
     return demoted
 
 
+def normalize_risk_levels(batch: int = 8000):
+    """Repair corrupted risk_level values (e.g. '8.0') to the canonical bands.
+
+    Several pages filter by risk_level ('high'/'critical'); junk numeric values
+    broke Early Warning and risk badges. Derive the band from risk_score.
+    Cheap, idempotent — runs each pipeline pass."""
+    db = get_db()
+    ph = db.placeholder
+    rows = db.execute(
+        "SELECT id, risk_score, risk_level FROM unified_articles "
+        "LIMIT %d" % int(batch),
+        fetch=True,
+    )
+    valid = {'low', 'medium', 'high', 'critical'}
+    fixed = 0
+    for r in rows:
+        lvl = (r.get('risk_level') or '').strip().lower()
+        if lvl in valid:
+            continue
+        try:
+            score = float(r.get('risk_score') or 0)
+        except (TypeError, ValueError):
+            score = 0
+        if score <= 1:
+            score *= 100
+        new_lvl = ('critical' if score >= 80 else 'high' if score >= 60
+                   else 'medium' if score >= 35 else 'low')
+        db.execute(
+            f"UPDATE unified_articles SET risk_level = {ph} WHERE id = {ph}",
+            (new_lvl, r['id']),
+        )
+        fixed += 1
+    logger.info(f"Normalized {fixed} risk_level values")
+    return fixed
+
+
 def enrich_articles():
     """Enrich un-enriched articles in the database."""
     db = get_db()
@@ -424,7 +460,7 @@ def enrich_articles():
         country, lat, lon = None, None, None
         ai_location_used = False
         ai_city_present = False
-        if is_geo and ai_count < 20:
+        if is_geo and ai_count < 60:
             loc_data = extract_event_location_ai(
                 row.get('title', ''), row.get('content', '') or row.get('summary', '')
             )
@@ -840,6 +876,10 @@ def main():
             reclassify_relevance()
         except Exception as e:
             logger.warning(f"reclassify_relevance skipped: {e}")
+        try:
+            normalize_risk_levels()
+        except Exception as e:
+            logger.warning(f"normalize_risk_levels skipped: {e}")
         translated = translate_articles()
         stats["items_out"] = (enriched or 0) + (translated or 0)
     logger.info("Enrichment complete")
