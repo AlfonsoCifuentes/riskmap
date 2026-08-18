@@ -45,6 +45,10 @@
       "destination": "/api/v1?route=report"
     },
     {
+      "source": "/api/history",
+      "destination": "/api/v1?route=history"
+    },
+    {
       "source": "/api/cameras",
       "destination": "/api/v1?route=cameras"
     },

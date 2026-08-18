@@ -10,12 +10,17 @@
 <link rel="stylesheet" href="/shared.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
-  .hist-grid{display:grid;grid-template-columns:1fr .9fr;gap:clamp(12px,2vw,24px)}
-  .country-list{display:grid;gap:10px}
-  .country-item{border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;background:rgba(255,255,255,.015);display:flex;justify-content:space-between;align-items:center;transition:all .2s var(--ease-smooth)}
-  .country-item:hover{border-color:var(--accent);background:rgba(78,161,255,.05);transform:translateX(-3px)}
-  .country-item span{color:var(--text-2);font-size:.8rem;font-family:"Orbitron",sans-serif;font-weight:600}
-  @media(max-width:980px){.hist-grid{grid-template-columns:1fr}}
+  .h-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+  .h-three{display:grid;grid-template-columns:1.1fr .95fr .95fr;gap:16px;margin-top:16px}
+  .chart-card{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--card);padding:clamp(14px,2vw,22px)}
+  .chart-wrap{position:relative;height:300px}
+  .chart-wrap.sm{height:240px}
+  .country-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-bottom:1px solid rgba(130,165,255,.08);font-size:.82rem}
+  .country-item strong{min-width:92px}
+  .country-item .bar{flex:1;height:4px;border-radius:2px;background:rgba(130,165,255,.12);margin:0 6px;overflow:hidden}
+  .country-item .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--danger))}
+  .country-item span{color:var(--text-2);font-family:"Orbitron",sans-serif;font-weight:600;font-size:.78rem}
+  @media(max-width:960px){.h-kpis{grid-template-columns:repeat(2,1fr)}.h-three{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -49,27 +54,41 @@
 <header class="page-header reveal">
   <span class="page-icon">🏛️</span>
   <h1 data-i18n="historical.title">Perspectiva Histórica de Cobertura</h1>
-  <p data-i18n="historical.desc">Análisis temporal de publicaciones y concentración geográfica para detectar patrones persistentes de conflicto.</p>
+  <p data-i18n="historical.desc">Análisis temporal de la cobertura, mezcla de categorías, distribución de riesgo y concentración geográfica sobre el conjunto completo de datos.</p>
 </header>
 
 <div class="container">
-  <div class="stats-row reveal stagger">
-    <div class="stat-card card-glow"><div class="stat-icon-lg">📚</div><div class="stat-val" id="kpiLoaded">0</div><div class="stat-lbl" data-i18n="historical.kpiLoaded">Noticias analizadas</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">🗓️</div><div class="stat-val" id="kpiMonths">0</div><div class="stat-lbl" data-i18n="historical.kpiMonths">Meses con actividad</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="kpiCountries">0</div><div class="stat-lbl" data-i18n="historical.kpiCountries">Países con cobertura</div></div>
-    <div class="stat-card card-glow"><div class="stat-icon-lg">📌</div><div class="stat-val" id="kpiTop">0</div><div class="stat-lbl" data-i18n="historical.kpiTop">Máx. artículos/mes</div></div>
+  <div class="h-kpis reveal stagger">
+    <div class="stat-card card-glow"><div class="stat-icon-lg">📚</div><div class="stat-val" id="kpiLoaded">0</div><div class="stat-lbl">Artículos analizados</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🗓️</div><div class="stat-val" id="kpiDays">0</div><div class="stat-lbl">Días con actividad</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🌍</div><div class="stat-val" id="kpiCountries">0</div><div class="stat-lbl">Lugares cubiertos</div></div>
+    <div class="stat-card card-glow"><div class="stat-icon-lg">🔥</div><div class="stat-val" id="kpiHigh">0</div><div class="stat-lbl">Artículos de alto riesgo</div></div>
   </div>
 
-  <div class="hist-grid">
-    <section class="chart-card card-glow reveal">
-      <h2 class="section-title" data-i18n="historical.timeSeries">Serie temporal (mensual)</h2>
-      <div class="chart-wrap"><canvas id="historyChart"></canvas></div>
-    </section>
-    <aside class="card reveal-right">
-      <h2 class="section-title" data-i18n="historical.topCountries">Países más cubiertos</h2>
-      <div class="country-list" id="countryList"><div class="loader"><div class="spin"></div><span data-i18n="historical.loadingHistory">Cargando histórico...</span></div></div>
+  <section class="chart-card reveal">
+    <h2 class="section-title">Volumen diario de cobertura <span style="font-size:.7rem;color:var(--text-3);font-weight:400">— total vs. alto riesgo</span></h2>
+    <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+  </section>
+
+  <div class="h-three">
+    <div class="chart-card reveal">
+      <h2 class="section-title">Categorías</h2>
+      <div class="chart-wrap sm"><canvas id="catChart"></canvas></div>
+    </div>
+    <div class="chart-card reveal">
+      <h2 class="section-title">Distribución de riesgo</h2>
+      <div class="chart-wrap sm"><canvas id="riskChart"></canvas></div>
+    </div>
+    <aside class="chart-card reveal-right">
+      <h2 class="section-title">Lugares más cubiertos</h2>
+      <div id="countryList" style="max-height:240px;overflow:auto"><div class="loader"><div class="spin"></div>Cargando…</div></div>
     </aside>
   </div>
+
+  <section class="chart-card reveal" style="margin-top:16px">
+    <h2 class="section-title">Eventos por tipo</h2>
+    <div class="chart-wrap sm"><canvas id="eventsChart"></canvas></div>
+  </section>
 </div>
 
 <div id="toast-root"></div>
@@ -78,70 +97,67 @@
 <script>
 (function(){
   'use strict';
-  var chart;
-
-  function monthlySeries(articles){
-    var map = new Map();
-    articles.forEach(function(a){
-      if (!a.published_at) return;
-      var d = new Date(a.published_at);
-      if (Number.isNaN(d.getTime())) return;
-      var key = d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0');
-      map.set(key, (map.get(key) || 0) + 1);
-    });
-    var arr = Array.from(map.entries()).sort(function(a,b){return a[0].localeCompare(b[0]);});
-    return {
-      labels: arr.map(function(e){return e[0];}),
-      values: arr.map(function(e){return e[1];})
-    };
-  }
-
-  function countriesSeries(articles){
-    var map = new Map();
-    articles.forEach(function(a){
-      var key = (a.country || a.region || i18n.t('historical.unspecified')).trim();
-      map.set(key, (map.get(key) || 0) + 1);
-    });
-    return Array.from(map.entries()).sort(function(a,b){return b[1]-a[1];}).slice(0,12);
-  }
+  var charts={};
+  var PALETTE=['#4ea1ff','#ff6b6b','#ffd166','#06d6a0','#b79bff','#f78c6b','#8ea3cc','#e879a6','#7f9a6b','#f4a259'];
+  function destroy(k){ if(charts[k]) charts[k].destroy(); }
+  function axis(){ return {x:{ticks:{color:'#7e93bd',maxRotation:0,autoSkip:true,maxTicksLimit:10},grid:{display:false}},y:{ticks:{color:'#7e93bd'},grid:{color:'rgba(130,165,255,.08)'},beginAtZero:true}}; }
 
   async function load(){
     if (window.chartDefaults) window.chartDefaults();
+    var h = await fetchJSON('/api/history?days=90');
+    if (!h) return;
+    var daily=h.daily||[], cats=h.categories||[], countries=h.countries||[], rb=h.risk_bands||{}, ev=h.events_by_type||[];
 
-    var lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'es';
-    var pages = await Promise.all([
-      fetchJSON('/api/articles?limit=100&offset=0&lang=' + lang),
-      fetchJSON('/api/articles?limit=100&offset=100&lang=' + lang),
-      fetchJSON('/api/articles?limit=100&offset=200&lang=' + lang)
-    ]);
+    var total=daily.reduce(function(s,d){return s+(d.count||0);},0);
+    var high=daily.reduce(function(s,d){return s+(d.high||0);},0);
+    animCount(document.getElementById('kpiLoaded'), total);
+    animCount(document.getElementById('kpiDays'), daily.length);
+    animCount(document.getElementById('kpiCountries'), countries.length);
+    animCount(document.getElementById('kpiHigh'), high);
 
-    var articles = [].concat.apply([], pages.map(function(p){return (p && p.articles) || [];}));
-    var monthly = monthlySeries(articles);
-    var countries = countriesSeries(articles);
-
-    if (chart) chart.destroy();
-    chart = new Chart(document.getElementById('historyChart'), {
-      type:'bar',
-      data:{labels:monthly.labels, datasets:[{label:i18n.t('historical.chartLabel'), data:monthly.values, backgroundColor:'rgba(78,161,255,.55)', borderRadius:6, borderSkipped:false}]},
-      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#7e93bd'},grid:{display:false}},y:{ticks:{color:'#7e93bd'},grid:{color:'rgba(130,165,255,.08)'}}}}
+    destroy('daily');
+    charts.daily=new Chart(document.getElementById('dailyChart'),{
+      type:'line',
+      data:{labels:daily.map(function(d){return d.day;}),datasets:[
+        {label:'Total',data:daily.map(function(d){return d.count;}),borderColor:'#4ea1ff',backgroundColor:'rgba(78,161,255,.14)',fill:true,tension:.32,pointRadius:0,borderWidth:2},
+        {label:'Alto riesgo',data:daily.map(function(d){return d.high;}),borderColor:'#ff6b6b',backgroundColor:'rgba(255,107,107,.10)',fill:true,tension:.32,pointRadius:0,borderWidth:2}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#c7d4f0'}}},scales:axis()}
     });
 
-    var list = document.getElementById('countryList');
-    if (list) {
-      list.innerHTML = countries.length
-        ? countries.map(function(c){return '<article class="country-item"><strong>' + escH(c[0]) + '</strong><span>' + c[1] + '</span></article>';}).join('')
-        : '<div class="empty-state"><div class="empty-icon">📭</div><h3>' + i18n.t('historical.noData') + '</h3><p>' + i18n.t('historical.noDataDesc') + '</p></div>';
-    }
+    destroy('cat');
+    charts.cat=new Chart(document.getElementById('catChart'),{
+      type:'doughnut',
+      data:{labels:cats.map(function(c){return c.category;}),datasets:[{data:cats.map(function(c){return c.count;}),backgroundColor:PALETTE,borderColor:'rgba(10,16,30,.6)',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#c7d4f0',font:{size:11},boxWidth:12}}},cutout:'58%'}
+    });
 
-    animCount(document.getElementById('kpiLoaded'), articles.length);
-    animCount(document.getElementById('kpiMonths'), monthly.labels.length);
-    animCount(document.getElementById('kpiCountries'), countries.length);
-    animCount(document.getElementById('kpiTop'), monthly.values.length ? Math.max.apply(null, monthly.values) : 0);
+    destroy('risk');
+    charts.risk=new Chart(document.getElementById('riskChart'),{
+      type:'doughnut',
+      data:{labels:['Bajo','Medio','Alto','Crítico'],datasets:[{data:[rb.low||0,rb.medium||0,rb.high||0,rb.critical||0],backgroundColor:['#7f9a6b','#ffd166','#f78c6b','#d8402e'],borderColor:'rgba(10,16,30,.6)',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#c7d4f0',font:{size:11},boxWidth:12}}},cutout:'58%'}
+    });
+
+    destroy('events');
+    charts.events=new Chart(document.getElementById('eventsChart'),{
+      type:'bar',
+      data:{labels:ev.map(function(e){return e.type;}),datasets:[{data:ev.map(function(e){return e.count;}),backgroundColor:'rgba(103,214,160,.6)',borderRadius:6,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:axis()}
+    });
+
+    var el=document.getElementById('countryList');
+    if(el){
+      var max=countries.length?Math.max.apply(null,countries.map(function(c){return c.count;})):1;
+      el.innerHTML=countries.length?countries.map(function(c){
+        var pct=Math.round((c.count/max)*100);
+        return '<div class="country-item"><strong>'+escH(c.place)+'</strong><span class="bar"><i style="width:'+pct+'%"></i></span><span>'+c.count+'</span></div>';
+      }).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><h3>Sin datos geolocalizados</h3></div>';
+    }
     if (window.initReveals) window.initReveals();
   }
-
   document.addEventListener('DOMContentLoaded', load);
-  window.addEventListener('langchange', function(){ i18n.apply(); load(); });
+  window.addEventListener('langchange', load);
 })();
 </script>
 </body>

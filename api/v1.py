@@ -55,6 +55,8 @@ def _route_from(path: str, qs: dict) -> str:
         return "forecast"
     if "report" in p:
         return "report"
+    if "history" in p:
+        return "history"
     if "cameras" in p:
         return "cameras"
     if "/image" in p:
@@ -91,6 +93,8 @@ class handler(BaseHTTPRequestHandler):
                 payload = _forecast(qs)
             elif route == "report":
                 payload = _report()
+            elif route == "history":
+                payload = _history(qs)
             elif route == "cameras":
                 from src.core import cameras
                 payload = {"data_kind": "EXPERIMENTAL",
@@ -367,6 +371,81 @@ def _report():
         "methodology": ("Figures are reproducible aggregates over unified_articles "
                         "and events at the data cutoff. Risk and confidence are "
                         "reported separately (Risk Engine v2)."),
+    }
+
+
+def _history(qs):
+    """Historical coverage analytics over the full dataset (spec §13).
+
+    Reproducible aggregates: daily article volume, category mix, top REAL
+    countries (never media outlets), risk-band distribution, and events by type.
+    Recent-heavy because raw articles have limited retention — honestly labelled.
+    """
+    try:
+        days = min(int(qs.get("days", ["90"])[0]), 365)
+    except (ValueError, TypeError):
+        days = 90
+
+    daily = neon_sql(
+        """
+        SELECT to_char(date_trunc('day', published_at), 'YYYY-MM-DD') AS day,
+               COUNT(*) AS n,
+               COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 60
+                                  OR risk_level IN ('high','critical')) AS high
+        FROM unified_articles
+        WHERE geopolitical_relevance = 1 AND published_at IS NOT NULL
+          AND published_at >= NOW() - (%s || ' days')::interval
+        GROUP BY 1 ORDER BY 1
+        """, [str(days)])
+
+    categories = neon_sql(
+        """
+        SELECT COALESCE(NULLIF(TRIM(conflict_type),''),'other') AS category,
+               COUNT(*) AS n
+        FROM unified_articles WHERE geopolitical_relevance = 1
+        GROUP BY 1 ORDER BY n DESC LIMIT 10
+        """)
+
+    # Top REAL places — same discipline as the zones endpoint (no outlets).
+    countries = neon_sql(
+        """
+        SELECT COALESCE(NULLIF(TRIM(country),''), NULLIF(TRIM(region),'')) AS place,
+               COUNT(*) AS n,
+               ROUND(AVG(COALESCE(risk_score,0))::numeric, 1) AS avg_risk
+        FROM unified_articles
+        WHERE geopolitical_relevance = 1
+          AND latitude IS NOT NULL AND longitude IS NOT NULL
+          AND NOT (ABS(latitude) < 0.5 AND ABS(longitude) < 0.5)
+          AND LENGTH(COALESCE(NULLIF(TRIM(country),''),NULLIF(TRIM(region),''))) > 2
+        GROUP BY 1 ORDER BY n DESC LIMIT 12
+        """)
+
+    risk_bands = neon_sql(
+        """
+        SELECT
+          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) < 25) AS low,
+          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 25 AND COALESCE(risk_score,0) < 45) AS medium,
+          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 45 AND COALESCE(risk_score,0) < 65) AS high,
+          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 65) AS critical
+        FROM unified_articles WHERE geopolitical_relevance = 1
+        """)
+
+    events_by_type = neon_sql(
+        """
+        SELECT COALESCE(NULLIF(TRIM(event_type),''),'other') AS type, COUNT(*) AS n
+        FROM events GROUP BY 1 ORDER BY n DESC LIMIT 8
+        """)
+
+    return {
+        "success": True,
+        "window_days": days,
+        "daily": [{"day": r["day"], "count": r["n"], "high": r["high"]} for r in daily],
+        "categories": [{"category": r["category"], "count": r["n"]} for r in categories],
+        "countries": [{"place": r["place"], "count": r["n"],
+                       "avg_risk": float(r["avg_risk"] or 0)} for r in countries],
+        "risk_bands": (risk_bands[0] if risk_bands else {}),
+        "events_by_type": [{"type": r["type"], "count": r["n"]} for r in events_by_type],
+        "generated_at": datetime.now(UTC).isoformat(),
     }
 
 
