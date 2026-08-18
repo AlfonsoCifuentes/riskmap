@@ -22,6 +22,7 @@ from typing import Dict, List, Optional, Tuple
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from src.ai.model_registry import get_model
+from src.core.enrichment import derive_geo, derive_risk
 from src.database.connection import get_db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [ENRICH] %(message)s")
@@ -391,6 +392,7 @@ def enrich_articles():
         # Location inference: for geopolitical articles, try AI first
         country, lat, lon = None, None, None
         ai_location_used = False
+        ai_city_present = False
         if is_geo and ai_count < 20:
             loc_data = extract_event_location_ai(
                 row.get('title', ''), row.get('content', '') or row.get('summary', '')
@@ -401,6 +403,7 @@ def enrich_articles():
                 lat = loc_data['latitude']
                 lon = loc_data['longitude']
                 ai_location_used = True
+                ai_city_present = bool(loc_data.get('city'))
                 ai_count += 1
 
         # Fallback to improved frequency-based location
@@ -424,6 +427,20 @@ def enrich_articles():
             if ai_summary:
                 ai_count += 1
 
+        # v2 geo + risk enrichment (additive columns; does not overwrite the
+        # legacy 0..1 risk_score the frontend still reads).
+        geo_fields = derive_geo(
+            method=('ai_llm' if ai_location_used else ('dictionary' if country else 'none')),
+            has_city=ai_city_present,
+            has_country=bool(country),
+            latitude=lat,
+            longitude=lon,
+        )
+        risk_fields = derive_risk(
+            keyword_risk_0_1=risk_score,
+            geo_confidence=geo_fields.get('geo_confidence', 0.4),
+        )
+
         # Update article
         coords_src = 'ai_groq' if ai_location_used else ('regex' if country else None)
         db.execute(
@@ -439,6 +456,13 @@ def enrich_articles():
                 longitude = COALESCE(longitude, {ph}),
                 coordinates_source = COALESCE(coordinates_source, {ph}),
                 ai_summary = COALESCE(ai_summary, {ph}),
+                geo_method = {ph},
+                geo_precision = {ph},
+                geo_precision_m = {ph},
+                geo_confidence = {ph},
+                geo_is_fallback = {ph},
+                event_confidence = {ph},
+                risk_engine_version = {ph},
                 enrichment_status = 'enriched',
                 quality_score = {ph}
             WHERE id = {ph}""",
@@ -454,6 +478,13 @@ def enrich_articles():
                 lon,
                 coords_src,
                 ai_summary,
+                geo_fields.get('geo_method'),
+                geo_fields.get('geo_precision'),
+                geo_fields.get('geo_precision_m'),
+                geo_fields.get('geo_confidence'),
+                geo_fields.get('geo_is_fallback'),
+                risk_fields['event_confidence'],
+                risk_fields['risk_engine_version'],
                 risk_score,  # quality_score = risk_score as baseline
                 article_id,
             ),
@@ -730,8 +761,11 @@ def main():
     logger.info("=" * 60)
     logger.info("Riskmap A.I. NLP Enrichment Pipeline")
     logger.info("=" * 60)
-    enrich_articles()
-    translate_articles()
+    from src.core.observability import pipeline_run
+    with pipeline_run("enrich") as stats:
+        enriched = enrich_articles()
+        translated = translate_articles()
+        stats["items_out"] = (enriched or 0) + (translated or 0)
     logger.info("Enrichment complete")
 
 

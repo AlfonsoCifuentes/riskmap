@@ -432,7 +432,10 @@ def main():
     all_articles = rss_articles + news_articles + gdelt_articles
     logger.info(f"Total fetched: {len(all_articles)}")
 
-    inserted = store_articles(all_articles)
+    from src.core.observability import pipeline_run
+    with pipeline_run("ingest", items_in=len(all_articles)) as stats:
+        inserted = store_articles(all_articles)
+        stats["items_out"] = inserted or 0
     logger.info(f"Pipeline complete — {inserted} new articles stored")
 
 
