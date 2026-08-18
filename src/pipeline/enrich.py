@@ -174,16 +174,15 @@ CITY_COORDS = {
 
 
 def score_geopolitical(text: str) -> Tuple[float, bool]:
-    """Return (score 0-1, is_geopolitical) based on keyword presence."""
-    text_lower = text.lower()
-    total = 0
-    for weight, keywords in GEO_KEYWORDS.items():
-        for kw in keywords:
-            if kw in text_lower:
-                total += weight
-    # Normalize: 15+ = definitely geopolitical
-    score = min(total / 15.0, 1.0)
-    return round(score, 3), score >= 0.25
+    """Return (score 0-1, is_geopolitical).
+
+    Delegates to the word-boundary relevance filter (src.core.relevance), which
+    rejects off-topic news (sport/entertainment/business/tech) that the old
+    substring scorer let through.
+    """
+    from src.core.relevance import score as _relevance_score
+    s, is_relevant, _category = _relevance_score(text)
+    return s, is_relevant
 
 
 def classify_conflict(text: str) -> Optional[str]:
