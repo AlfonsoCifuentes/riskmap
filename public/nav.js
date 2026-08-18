@@ -240,14 +240,30 @@
 
   /** Fetch JSON with error handling */
   window.fetchJSON = async function (url, options) {
-    try {
-      var res = await fetch(url, options || {});
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      return await res.json();
-    } catch (err) {
-      console.warn("[RiskMap] fetch error:", url, err.message);
-      return null;
+    // Timeout + one retry so a Vercel cold-start (which can take 15-30s the
+    // first time a serverless function is hit after idle) never leaves a page
+    // hanging on its loaders. Warm requests return immediately.
+    var attempts = 2;
+    for (var i = 0; i < attempts; i++) {
+      var ctrl = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, 13000);
+      try {
+        var opts = options || {};
+        opts.signal = ctrl.signal;
+        var res = await fetch(url, opts);
+        clearTimeout(timer);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return await res.json();
+      } catch (err) {
+        clearTimeout(timer);
+        if (i === attempts - 1) {
+          console.warn("[RiskMap] fetch error:", url, err && err.message);
+          return null;
+        }
+        await new Promise(function (r) { setTimeout(r, 700); });
+      }
     }
+    return null;
   };
 
   /** Animated counter with cubic easing */
