@@ -29,7 +29,7 @@ documented limitations. Runs at a target cost of **€0/month**.
 | Data-quality scorecard | LIVE | `/api/data-quality` |
 | System Observatory / pipeline runs | LIVE | `/api/pipeline-runs` |
 | Deterministic Replay Mode (4 scenarios) | REPLAY | `/api/replay` |
-| Satellite EO (Sentinel-2 Process API, FIRMS) | LIVE / DEGRADED | needs free CDSE/FIRMS keys, else graceful degrade |
+| Satellite EO (Sentinel-2 Process API, FIRMS) | LIVE | CDSE + FIRMS keys configured; verified 512px S2 PNG |
 | CV benchmarks (xView/xBD/SpaceNet) | BENCHMARK | `/api/cv-metrics` (published-baseline provenance) |
 | AOI planner + capability guardrails | LIVE | rejects 10 m/px "tank detection" |
 | Escalation forecasting (baseline) | BETA | `/api/forecast` (probability + baseline + Brier) |
@@ -133,7 +133,7 @@ is **not an emergency authority**. See [`docs/ethics.md`](docs/ethics.md).
   detection is demonstrated in **Replay/Benchmark** mode on public datasets.
 - Forecasts are probabilistic early-warning estimates with baselines, not
   certainties.
-- Some optional integrations (Copernicus, cameras, email) are `DEGRADED` until
+- Some optional integrations (cameras, email) are `DEGRADED` until
   their free keys are configured.
 
 ## Provenance
