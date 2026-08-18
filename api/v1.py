@@ -94,7 +94,7 @@ def _map_events(qs):
 
     where = [
         "COALESCE(e.risk_score, e.severity_normalized, e.severity*100, 0) >= %s",
-        "COALESCE(e.confidence_score, e.event_confidence, 0) >= %s",
+        "COALESCE(e.confidence_score, 0) >= %s",
     ]
     params = [min_risk, min_conf]
     if category:
@@ -107,7 +107,7 @@ def _map_events(qs):
 
     sql = f"""
         SELECT e.id, e.event_type, e.subtype, e.title, e.severity,
-               e.risk_score, e.risk_level, e.confidence_score, e.event_confidence,
+               e.risk_score, e.risk_level, e.confidence_score,
                e.severity_normalized, e.geo_precision, e.geo_precision_m,
                e.geo_is_fallback, e.source_count, e.independent_source_count,
                e.started_at, e.last_updated,
@@ -142,7 +142,7 @@ def _map_events(qs):
                 "subtype": r.get("subtype"),
                 "risk_score": risk,
                 "risk_level": r.get("risk_level"),
-                "confidence": r.get("confidence_score") or r.get("event_confidence"),
+                "confidence": r.get("confidence_score"),
                 "geo_precision": r.get("geo_precision"),
                 "uncertainty_radius_m": radius_m,
                 "geo_is_fallback": r.get("geo_is_fallback"),

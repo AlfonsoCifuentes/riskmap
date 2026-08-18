@@ -535,7 +535,7 @@ def _create_events_from_articles(db):
     ph = db.placeholder
 
     rows = db.execute(
-        "SELECT id, title, conflict_type, country, latitude, longitude, risk_score "
+        "SELECT id, title, url, conflict_type, country, latitude, longitude, risk_score "
         "FROM unified_articles "
         "WHERE geopolitical_relevance = 1 AND risk_score >= 0.5 "
         "  AND event_id IS NULL "
@@ -563,13 +563,33 @@ def _create_events_from_articles(db):
         avg_score = sum(a.get('risk_score', 0) for a in articles) / len(articles)
         title = f"{ctype.replace('_', ' ').title()} — {country}" if country else ctype
 
-        # Insert event
+        # v2 event-level risk + confidence (spec §4.7): the more independent
+        # domains cover it, the higher the confidence — not the risk.
+        from src.core import dedup as _dedup
+        indep = _dedup.independent_source_count(
+            [{"url": a.get("url", "")} for a in articles]) or 1
+        ev_risk = derive_risk(
+            keyword_risk_0_1=avg_score,
+            geo_confidence=0.6,
+            independent_source_count=indep,
+        )
+        now_iso = datetime.utcnow().isoformat()
+
+        # Insert event (with v2 fields).
         cur = db.execute(
-            f"""INSERT INTO events (event_type, subtype, title, severity, started_at, explanation)
-                VALUES ({ph},{ph},{ph},{ph},{ph},{ph})""",
-            (event_type, ctype, title, avg_score,
-             datetime.utcnow().isoformat(),
-             f"Auto-generated from {len(articles)} articles"),
+            f"""INSERT INTO events
+                (event_type, subtype, title, severity, started_at, explanation,
+                 risk_score, risk_level, confidence_score, severity_normalized,
+                 source_count, independent_source_count, risk_engine_version,
+                 status, first_seen_at, last_evidence_at)
+                VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},
+                        {ph},{ph},{ph},{ph},{ph},{ph})""",
+            (event_type, ctype, title, avg_score, now_iso,
+             f"Auto-generated from {len(articles)} articles",
+             ev_risk['risk_score'], ev_risk['risk_level'],
+             ev_risk['event_confidence'], ev_risk['severity_normalized'],
+             len(articles), indep, ev_risk['risk_engine_version'],
+             'detected', now_iso, now_iso),
         )
 
         # Get the event ID
