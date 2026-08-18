@@ -25,13 +25,17 @@ class handler(BaseHTTPRequestHandler):
             # 1. Conflict zones — group by country/region from ALL geo articles
             #    Use risk_score thresholds (not risk_level strings which are mostly null)
             # ------------------------------------------------------------------
+            # Zones are REAL PLACES the news is about — derived from the
+            # geolocated coordinates, never the media outlet. Articles without
+            # real coordinates (or that only carry a 2-letter source/country
+            # code with no location) are excluded so outlets like
+            # "www.theguardian.com" never appear as a "zone".
             zones = neon_sql("""
                 SELECT
-                    COALESCE(country, region, source) AS location,
-                    AVG(CASE WHEN latitude IS NOT NULL AND latitude != 0
-                             THEN latitude END)           AS avg_lat,
-                    AVG(CASE WHEN longitude IS NOT NULL AND longitude != 0
-                             THEN longitude END)          AS avg_lon,
+                    COALESCE(NULLIF(TRIM(country), ''),
+                             NULLIF(TRIM(region), '')) AS location,
+                    AVG(latitude)                         AS avg_lat,
+                    AVG(longitude)                        AS avg_lon,
                     COUNT(*)                              AS article_count,
                     AVG(COALESCE(risk_score, 20))          AS avg_risk_score,
                     MAX(COALESCE(risk_score, 0))           AS max_risk_score,
@@ -40,7 +44,16 @@ class handler(BaseHTTPRequestHandler):
                     string_agg(DISTINCT source, ',' ORDER BY source)  AS sources
                 FROM unified_articles
                 WHERE geopolitical_relevance = 1
-                GROUP BY COALESCE(country, region, source)
+                  AND latitude IS NOT NULL AND longitude IS NOT NULL
+                  AND latitude BETWEEN -89.9 AND 89.9
+                  AND longitude BETWEEN -179.9 AND 179.9
+                  AND NOT (ABS(latitude) < 0.5 AND ABS(longitude) < 0.5)
+                  AND COALESCE(NULLIF(TRIM(country), ''),
+                               NULLIF(TRIM(region), '')) IS NOT NULL
+                  AND LENGTH(COALESCE(NULLIF(TRIM(country), ''),
+                               NULLIF(TRIM(region), ''))) > 2
+                GROUP BY COALESCE(NULLIF(TRIM(country), ''),
+                                  NULLIF(TRIM(region), ''))
                 HAVING COUNT(*) >= 1
                 ORDER BY AVG(COALESCE(risk_score, 20)) DESC, COUNT(*) DESC
                 LIMIT 60
