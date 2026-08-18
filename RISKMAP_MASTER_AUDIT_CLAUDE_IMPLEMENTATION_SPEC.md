@@ -8751,3 +8751,37 @@ Branch: `feat/riskmap-v2-recovery` · PR #1 · CI green (build + gitleaks + Verc
   (~78 ruff issues) and the wider tree are linted incrementally as migrated.
 - **Crons** remain disabled on purpose — re-enable only after the pipeline schema
   (`schema_init`) is made reproducible in P1.
+
+## P1 — Event-centric core, geo & risk (2026-08-18) — in progress
+
+Merged to production continuously (owner directive: merge-to-prod by default).
+
+- **P0 shipped to production** (PR #1 merged): live `/api/status` now reports
+  `"stale"` + `data_age_seconds` + deploy SHA; the SQL-injection payload returns
+  a harmless empty set instead of a 500 SQL echo. Verified on `riskmap-ai.vercel.app`.
+- **src/core/** pure domain logic (34 tests): `geo` (uncertainty tiers, no false
+  precision), `risk` (risk≠confidence, versioned, structured factors), `dedup`
+  (canonical URL, syndication collapse), `events` (spatiotemporal + semantic
+  fusion).
+- **v2 migration** (`migrations_v2.py`, idempotent, PG+SQLite): geo/risk/
+  provenance columns + `event_evidence`, `pipeline_runs`, `provider_health`,
+  `data_quality_snapshots`. Applied by `schema_init` every run.
+- **Pipeline wiring**: `enrich.py` now writes honest geo_method/precision/
+  confidence + versioned risk/event_confidence (additive; legacy risk_score kept).
+  `observability.pipeline_run()` records each stage into `pipeline_runs`.
+- **API v2**: `/api/v1/map/events` (event GeoJSON + uncertainty + filters),
+  `/api/pipeline-runs`, `/api/data-quality` (reproducible scorecard).
+- **Ingestion robustness**: resilient GDELT (content-type guard + retry + real
+  seendate timestamps).
+
+### Root cause of the stale data (new finding, addendum-class)
+The scheduled pipeline was writing to an **ephemeral SQLite on the runner** because
+the GitHub Actions **`DATABASE_URL` secret was empty** — every "successful" run
+was discarded and Neon never updated. Fixed by setting the `DATABASE_URL`,
+`GROQ_API_KEY`, `NEWSAPI_KEY` Actions secrets (from the owner's own `.env`) and
+re-enabling + dispatching the ingestion workflow, which now persists to Neon.
+Copernicus secrets were blank locally, so EO stays honestly DEGRADED.
+
+### Owner follow-ups
+- Optionally add `NASA_FIRMS_MAP_KEY` + `COPERNICUS_CLIENT_ID/SECRET` Actions
+  secrets to light up live fire/EO (currently DEGRADED, by design).
