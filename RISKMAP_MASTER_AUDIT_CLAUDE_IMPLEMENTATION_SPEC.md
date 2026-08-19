@@ -8349,11 +8349,29 @@ Merged to production continuously. All work verified live on riskmap-ai.vercel.a
   rate/(rate+ref) with ref = the prior week's rate, so escalation is measured
   relative to the recent normal (steady≈0.5, surge↑, calming↓). +regression test.
 
-Unit tests: 108 green (pure `tests/unit`). Deferred (documented, not hidden):
-mypy CI gate — src/core strict-types pull in the untyped DB layer and the
-flagged items are inference artifacts, not runtime bugs; not worth a red/noisy
-gate yet. Legacy RISKMAP.py move still pending. FIRMS/Copernicus remain
-DEGRADED pending owner-supplied free secrets.
+Unit tests: 108 green (pure `tests/unit`); CI now also runs a **green mypy gate**
+over the 10 pure-logic core modules (follow-imports=silent, typed this session).
+
+**Continuation (same day) — closed the previously-deferred items:**
+- mypy CI gate: annotated relevance/risk/geo/forecasting/dedup/events/enrichment/
+  cameras/alerts/safety_brief and wired a scoped mypy step into CI (verified
+  green: ruff + mypy + unit all pass).
+- Legacy `RISKMAP.py` (16,433 lines) audited (111 methods → all core
+  capabilities migrated; see `legacy/README.md`) and MOVED to `legacy/`
+  (preserved, not deleted); repo root decluttered; `start_riskmap.py` updated.
+- Security: removed dead `urllib3.disable_warnings(InsecureRequestWarning)` +
+  unused `ssl` import from `external_feeds.py`; confirmed no TLS bypass remains
+  in project code.
+- Forecast: added honest `insufficient_history` handling (neutral 0.5 baseline)
+  when there is <2 comparable weeks of data.
+- Event titles: 'Unknown — <country>' → 'Conflicto/Desastre — <country>' (+ heal).
+- FIRMS + Copernicus code verified correct & complete (right env vars, correct
+  URL contracts, honest DEGRADED fallback). They light up the moment the owner
+  sets `NASA_FIRMS_MAP_KEY` / `COPERNICUS_CLIENT_ID` / `COPERNICUS_CLIENT_SECRET`
+  as Actions secrets — the one genuinely owner-gated step (credentials).
+
+Still owner-gated by design: the homepage visual design (owner explicitly asked
+to keep it unchanged) and the live EO/fire secrets above.
 
 # Post-Implementation Independent Re-Audit
 ```
