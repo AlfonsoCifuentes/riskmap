@@ -49,3 +49,19 @@ def test_compare_to_baseline():
     r = fc.compare_to_baseline(model, baseline, outcomes)
     assert r["model_beats_baseline"] is True
     assert r["model_brier"] < r["baseline_brier"]
+
+
+def test_steady_high_volume_does_not_saturate():
+    """A steady high baseline (rate == ref) must NOT pin the forecast near 1.0 —
+    escalation is measured relative to the recent normal (v0.2 fix)."""
+    steady = fc.escalation_probability({"recent_event_rate": 20.0, "ref_rate": 20.0})
+    # rate==ref -> base_rate 0.5, no slope/corroboration -> well below saturation
+    assert steady["baseline"] == 0.5
+    assert steady["probability"] < 0.6
+    # A genuine surge above the recent normal scores clearly higher.
+    surge = fc.escalation_probability({"recent_event_rate": 60.0, "ref_rate": 20.0,
+                                       "risk_slope": 0.6})
+    assert surge["probability"] > steady["probability"]
+    # A calming trend (below the recent normal) scores lower than steady.
+    calming = fc.escalation_probability({"recent_event_rate": 5.0, "ref_rate": 20.0})
+    assert calming["probability"] < steady["probability"]

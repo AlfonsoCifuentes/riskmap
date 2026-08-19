@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import math
 
-FORECAST_MODEL_VERSION = "0.1.0-baseline"
+FORECAST_MODEL_VERSION = "0.2.0-baseline"
 
 
 # --- Baselines -------------------------------------------------------------
@@ -46,13 +46,22 @@ def escalation_probability(features: dict) -> dict:
     """Return a calibrated-ish escalation probability with its baseline.
 
     features (all optional, sensible defaults):
-      recent_event_rate   events/day over last 7d (baseline signal)
+      recent_event_rate   events/day over last 7d (activity signal)
+      ref_rate            reference events/day to normalise against (typically
+                          the PRIOR week's rate) — escalation is measured
+                          relative to the recent normal, not absolute volume
       risk_slope          change in mean risk over the window (-1..1)
       source_corroboration mean independent-source count (0..N)
       official_alert      bool
       nearby_density      events within radius over window
     """
-    base_rate = min(1.0, features.get("recent_event_rate", 0.0) / 3.0)
+    # Smooth, non-saturating normalisation: base_rate = rate / (rate + ref).
+    # =0 when quiet, =0.5 when activity equals the reference (steady), and
+    # trends toward 1 only when activity clearly exceeds the recent normal — so
+    # a steady high baseline no longer pins the forecast at 1.0 (v0.1 bug).
+    rate = max(0.0, features.get("recent_event_rate", 0.0))
+    ref = max(0.001, features.get("ref_rate", 3.0))
+    base_rate = rate / (rate + ref)
 
     # Transparent, documented weights (not a black box).
     z = (

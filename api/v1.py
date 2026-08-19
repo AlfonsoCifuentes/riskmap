@@ -506,11 +506,16 @@ def _forecast(qs):
     last7 = float(s.get("last7") or 0)
     prev7 = float(s.get("prev7") or 0)
     rate = last7 / 7.0
+    prev_rate = prev7 / 7.0
     slope = 0.0
     if prev7 > 0:
         slope = max(-1.0, min(1.0, (last7 - prev7) / prev7))
     features = {
         "recent_event_rate": rate,
+        # Escalation is relative to the recent normal (prior week's rate), with a
+        # floor so a quiet-to-active jump still registers. This stops steady high
+        # volume from saturating the forecast at 1.0.
+        "ref_rate": max(0.5, prev_rate),
         "risk_slope": slope,
         "source_corroboration": float(s.get("mean_indep") or 1),
         "official_alert": False,
