@@ -334,12 +334,12 @@
     /* Pipeline Metrics — derived from real API data */
     var stats = (conflicts && conflicts.statistics) || {};
     renderPipeline({
-      totalArticles: (status && status.total_articles) || 0,
-      geoArticles:   stats.total_articles || 0,
+      totalArticles: (status && (status.total_ingested || status.total_articles)) || 0,
+      geoArticles:   (status && status.total_articles) || stats.total_articles || 0,
       curatedCount:  (curated && curated.count) || 0,
-      rewriteCount:  news.filter(function(a){ return a.ai_summary; }).length,
+      rewriteCount:  (status && status.ai_summarized) || news.filter(function(a){ return a.ai_summary; }).length,
       heatPoints:    (heatmap && heatmap.count) || 0,
-      eventsCount:   (events && events.count) || 0,
+      eventsCount:   (status && status.events_total) || (events && events.count) || 0,
       zoneCount:     stats.total_zones || 0,
       cvCount:       ((signals && signals.count) || 0) + ((images && images.count) || 0)
     });

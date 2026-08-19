@@ -42,8 +42,16 @@ class handler(BaseHTTPRequestHandler):
         try:
             rows = neon_sql("""
                 SELECT
+                    COUNT(*)                                            AS total_ingested,
                     COUNT(*) FILTER (WHERE geopolitical_relevance = 1) AS total_articles,
-                    COUNT(*) FILTER (WHERE risk_level IN ('high','critical')) AS critical_alerts,
+                    -- "Critical" means critical: risk_score >= 70 (risk_level
+                    -- 'critical'). Counting 'high' too inflated the headline.
+                    COUNT(*) FILTER (WHERE geopolitical_relevance = 1
+                        AND (risk_level = 'critical' OR COALESCE(risk_score,0) >= 70)
+                    ) AS critical_alerts,
+                    COUNT(*) FILTER (WHERE geopolitical_relevance = 1
+                        AND (risk_level IN ('high','critical') OR COALESCE(risk_score,0) >= 50)
+                    ) AS high_risk_alerts,
                     COUNT(DISTINCT country) FILTER (
                         WHERE country IS NOT NULL AND country <> ''
                     ) AS regions_in_conflict,
@@ -56,10 +64,21 @@ class handler(BaseHTTPRequestHandler):
                     COUNT(DISTINCT source) FILTER (
                         WHERE source IS NOT NULL AND source <> ''
                     ) AS known_sources,
+                    -- Pipeline-stage aggregates (honest counts over the dataset,
+                    -- not a page-limited slice) for the homepage flow.
+                    COUNT(*) FILTER (
+                        WHERE geopolitical_relevance = 1
+                          AND ai_summary IS NOT NULL AND TRIM(ai_summary) <> ''
+                    ) AS ai_summarized,
                     MAX(published_at) AS latest_published_at,
                     MAX(created_at)   AS latest_ingested_at
                 FROM unified_articles
             """)
+            try:
+                ev = neon_sql("SELECT COUNT(*) AS n FROM events")
+                events_total = (ev[0].get("n") if ev else 0) or 0
+            except Exception:
+                events_total = 0
             s = rows[0] if rows else {}
 
             latest_pub = s.get("latest_published_at")
@@ -82,7 +101,11 @@ class handler(BaseHTTPRequestHandler):
                 "status": "ok" if level in ("healthy", "warning") else level,
                 "timestamp": datetime.now(UTC).isoformat(),
                 "total_articles": s.get("total_articles", 0),
+                "total_ingested": s.get("total_ingested", 0),
                 "critical_alerts": s.get("critical_alerts", 0),
+                "high_risk_alerts": s.get("high_risk_alerts", 0),
+                "ai_summarized": s.get("ai_summarized", 0),
+                "events_total": events_total,
                 "regions_in_conflict": s.get("regions_in_conflict", 0),
                 "active_sources": s.get("active_sources", 0),
                 "known_sources": s.get("known_sources", 0),
