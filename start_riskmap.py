@@ -23,12 +23,12 @@ def launch_riskmap():
     print("=" * 80)
     
     # Verificar que el archivo principal existe
-    if not os.path.exists("RISKMAP.py"):
-        print("❌ Error: RISKMAP.py no encontrado")
+    if not os.path.exists("legacy/RISKMAP.py"):
+        print("❌ Error: legacy/RISKMAP.py no encontrado")
         print("   Asegúrate de estar en el directorio correcto")
         return False
     
-    print("✅ Archivo principal encontrado: RISKMAP.py")
+    print("✅ Archivo legacy encontrado: legacy/RISKMAP.py")
     print()
     print("🔧 Iniciando sistema completo...")
     print("   - Ingesta automática de noticias")
@@ -70,13 +70,13 @@ def launch_riskmap():
     
     # Ejecutar RISKMAP.py
     try:
-        result = subprocess.run([sys.executable, "RISKMAP.py"], check=False)
+        result = subprocess.run([sys.executable, "legacy/RISKMAP.py"], check=False)
         return result.returncode == 0
     except KeyboardInterrupt:
         print("\n🛑 Sistema detenido por el usuario")
         return True
     except Exception as e:
-        print(f"❌ Error ejecutando RISKMAP.py: {e}")
+        print(f"❌ Error ejecutando legacy/RISKMAP.py: {e}")
         return False
 
 if __name__ == "__main__":
