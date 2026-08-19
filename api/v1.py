@@ -398,6 +398,36 @@ def _history(qs):
         GROUP BY 1 ORDER BY 1
         """, [str(days)])
 
+    # Monthly series over the FULL real span (articles + events), so the
+    # long-range time-series is never empty even when raw-article retention is
+    # short. Honest: this is the real coverage window, not synthetic backfill.
+    monthly = neon_sql(
+        """
+        WITH pts AS (
+            SELECT date_trunc('month', published_at) AS m, risk_score AS rs
+            FROM unified_articles
+            WHERE geopolitical_relevance = 1 AND published_at IS NOT NULL
+            UNION ALL
+            SELECT date_trunc('month', COALESCE(started_at, last_updated)) AS m,
+                   COALESCE(risk_score, severity_normalized, severity*100, 0) AS rs
+            FROM events
+            WHERE COALESCE(started_at, last_updated) IS NOT NULL
+        )
+        SELECT to_char(m, 'YYYY-MM') AS month,
+               COUNT(*) AS n,
+               COUNT(*) FILTER (WHERE COALESCE(rs,0) >= 50) AS high
+        FROM pts
+        WHERE m >= date_trunc('month', NOW()) - INTERVAL '23 months'
+        GROUP BY m ORDER BY m
+        """)
+
+    span = neon_sql(
+        """
+        SELECT to_char(MIN(published_at), 'YYYY-MM-DD') AS first_day,
+               to_char(MAX(published_at), 'YYYY-MM-DD') AS last_day
+        FROM unified_articles WHERE geopolitical_relevance = 1
+        """)
+
     categories = neon_sql(
         """
         SELECT COALESCE(NULLIF(TRIM(conflict_type),''),'other') AS category,
@@ -440,6 +470,8 @@ def _history(qs):
         "success": True,
         "window_days": days,
         "daily": [{"day": r["day"], "count": r["n"], "high": r["high"]} for r in daily],
+        "monthly": [{"month": r["month"], "count": r["n"], "high": r["high"]} for r in monthly],
+        "coverage": (span[0] if span else {}),
         "categories": [{"category": r["category"], "count": r["n"]} for r in categories],
         "countries": [{"place": r["place"], "count": r["n"],
                        "avg_risk": float(r["avg_risk"] or 0)} for r in countries],

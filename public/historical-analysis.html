@@ -70,6 +70,12 @@
     <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
   </section>
 
+  <section class="chart-card reveal">
+    <h2 class="section-title">Serie mensual <span style="font-size:.7rem;color:var(--text-3);font-weight:400">— cobertura por mes (artículos + eventos)</span></h2>
+    <div id="coverageNote" style="font-size:.72rem;color:var(--text-3);margin:-4px 0 10px"></div>
+    <div class="chart-wrap"><canvas id="monthlyChart"></canvas></div>
+  </section>
+
   <div class="h-three">
     <div class="chart-card reveal">
       <h2 class="section-title">Categorías</h2>
@@ -124,6 +130,25 @@
       ]},
       options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#c7d4f0'}}},scales:axis()}
     });
+
+    var monthly=h.monthly||[], cov=h.coverage||{};
+    destroy('monthly');
+    charts.monthly=new Chart(document.getElementById('monthlyChart'),{
+      type:'bar',
+      data:{labels:monthly.map(function(m){return m.month;}),datasets:[
+        {label:'Total',data:monthly.map(function(m){return m.count;}),backgroundColor:'rgba(78,161,255,.55)',borderRadius:5,borderSkipped:false},
+        {label:'Alto riesgo',data:monthly.map(function(m){return m.high;}),backgroundColor:'rgba(255,107,107,.7)',borderRadius:5,borderSkipped:false}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#c7d4f0'}}},scales:axis()}
+    });
+    var covEl=document.getElementById('coverageNote');
+    if(covEl){
+      if(cov.first_day&&cov.last_day){
+        covEl.textContent='Ventana de cobertura real: '+cov.first_day+' → '+cov.last_day+'. Los datos crudos tienen retención limitada; la serie mensual refleja el rango disponible, sin relleno sintético.';
+      } else if(!monthly.length){
+        covEl.textContent='Aún no hay suficiente histórico para una serie mensual.';
+      }
+    }
 
     destroy('cat');
     charts.cat=new Chart(document.getElementById('catChart'),{
