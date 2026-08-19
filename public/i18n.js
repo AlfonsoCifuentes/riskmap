@@ -147,6 +147,8 @@
       'earlyWarning.noAlertsDesc': 'No hay noticias de riesgo alto en este momento.',
       'earlyWarning.noSignals': 'Sin señales',
       'earlyWarning.noSignalsDesc': 'No hay señales ni eventos críticos disponibles.',
+      'earlyWarning.loadError': 'No se pudo cargar',
+      'earlyWarning.loadErrorDesc': 'La fuente de datos no responde ahora mismo. No implica que no haya alertas — reintenta en unos segundos.',
 
       /* ──────────────────────────────────────────
          EXECUTIVE REPORTS
@@ -489,6 +491,8 @@
       'earlyWarning.noAlertsDesc': 'No high-risk news at this time.',
       'earlyWarning.noSignals': 'No signals',
       'earlyWarning.noSignalsDesc': 'No critical signals or events available.',
+      'earlyWarning.loadError': 'Could not load',
+      'earlyWarning.loadErrorDesc': 'The data source is not responding right now. This does not mean there are no alerts — retry in a few seconds.',
 
       /* ── EXECUTIVE REPORTS ── */
       'reports.title': 'Dynamic Executive Report',

@@ -91,6 +91,14 @@
       '<div class="alert-meta">' + meta + '</div></article>';
   }
 
+  // Distinct ERROR state (source unreachable) — never show "all clear" when the
+  // fetch actually failed. fetchJSON returns null on failure.
+  function errBox(){
+    return '<div class="empty-state" role="alert"><div class="empty-icon">⚠️</div>' +
+      '<h3>' + i18n.t('earlyWarning.loadError') + '</h3>' +
+      '<p>' + i18n.t('earlyWarning.loadErrorDesc') + '</p></div>';
+  }
+
   function load(){
     var lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'es';
     // Progressive: each section paints as its data lands so a slow cold-start
@@ -108,16 +116,18 @@
       animCount(document.getElementById('kpiHighNews'), news.length);
       var newsEl = document.getElementById('newsAlerts');
       if (newsEl) {
-        newsEl.innerHTML = news.length
-          ? news.slice(0, 18).map(function(a){
-              return alertCard(
-                a.title || i18n.t('common.noTitle'),
-                (a.summary || '').slice(0, 190),
-                '<span>' + escH(a.source || 'N/D') + '</span><span>' + timeAgo(a.published_at) + '</span>' + riskBadge(a.risk_level),
-                ''
-              );
-            }).join('')
-          : '<div class="empty-state"><div class="empty-icon">✅</div><h3>' + i18n.t('earlyWarning.noAlerts') + '</h3><p>' + i18n.t('earlyWarning.noAlertsDesc') + '</p></div>';
+        newsEl.innerHTML = (highNews === null)
+          ? errBox()
+          : (news.length
+            ? news.slice(0, 18).map(function(a){
+                return alertCard(
+                  a.title || i18n.t('common.noTitle'),
+                  (a.summary || '').slice(0, 190),
+                  '<span>' + escH(a.source || 'N/D') + '</span><span>' + timeAgo(a.published_at) + '</span>' + riskBadge(a.risk_level),
+                  ''
+                );
+              }).join('')
+            : '<div class="empty-state"><div class="empty-icon">✅</div><h3>' + i18n.t('earlyWarning.noAlerts') + '</h3><p>' + i18n.t('earlyWarning.noAlertsDesc') + '</p></div>');
         newsEl.setAttribute('aria-busy', 'false');
       }
       if (window.initReveals) window.initReveals();
@@ -130,6 +140,7 @@
 
     /* Signals + events feed (paints when both land) */
     Promise.all([pSignals, pEvents]).then(function(r){
+      var bothFailed = (r[0] === null && r[1] === null);
       var signals = (r[0] && r[0].signals) || [];
       var events = (r[1] && r[1].events) || [];
       animCount(document.getElementById('kpiSignals'), signals.length);
@@ -145,9 +156,11 @@
       });
       var sigEl = document.getElementById('signalsAlerts');
       if (sigEl) {
-        sigEl.innerHTML = signalItems.length
-          ? signalItems.join('')
-          : '<div class="empty-state"><div class="empty-icon">📡</div><h3>' + i18n.t('earlyWarning.noSignals') + '</h3><p>' + i18n.t('earlyWarning.noSignalsDesc') + '</p></div>';
+        sigEl.innerHTML = bothFailed
+          ? errBox()
+          : (signalItems.length
+            ? signalItems.join('')
+            : '<div class="empty-state"><div class="empty-icon">📡</div><h3>' + i18n.t('earlyWarning.noSignals') + '</h3><p>' + i18n.t('earlyWarning.noSignalsDesc') + '</p></div>');
         sigEl.setAttribute('aria-busy', 'false');
       }
       if (window.initReveals) window.initReveals();
