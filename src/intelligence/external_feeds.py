@@ -6,13 +6,10 @@ Integra ACLED, GDELT, GPR y otras fuentes abiertas de inteligencia geopolítica
 
 import os
 import requests
-import urllib3
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
-import ssl
-
-# Deshabilitar warnings SSL para desarrollo
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# NOTE: TLS verification is left ON everywhere (audit P0.7). The previous
+# `urllib3.disable_warnings(InsecureRequestWarning)` + verify=False were removed.
 import zipfile
 import io
 import pandas as pd
