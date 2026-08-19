@@ -403,30 +403,6 @@ def acquire_for_location(lat: float, lon: float, name: str = '',
                 json.dumps({'hotspots': hotspots[:10]}),
             ),
         )
-        # Surface each fire detection as a disaster_signal so it appears in the
-        # Early Warning / signals UI (real NASA fire data, near-real-time).
-        img_id = None
-        if db.backend_name == 'postgres':
-            r = db.execute("SELECT id FROM images ORDER BY id DESC LIMIT 1", fetch=True)
-            img_id = r[0]['id'] if r else None
-        _CONF = {'h': 0.85, 'high': 0.85, 'n': 0.55, 'nominal': 0.55,
-                 'l': 0.35, 'low': 0.35}
-        for hs in hotspots[:10]:
-            conf = str(hs.get('confidence', 'nominal')).lower()
-            sev = _CONF.get(conf, 0.5)
-            db.execute(
-                f"""INSERT INTO signals
-                    (event_id, image_id, signal_type, severity, title,
-                     description, latitude, longitude, created_at)
-                    VALUES ({ph},{ph},'disaster_signal',{ph},{ph},{ph},{ph},{ph},{ph})""",
-                (
-                    event_id, img_id, sev, 'Foco de calor (NASA FIRMS)',
-                    f"FIRMS VIIRS · brillo {hs.get('brightness', 0):.0f}K · "
-                    f"confianza {hs.get('confidence', 'n/d')} · {hs.get('acq_date', '')}",
-                    hs.get('latitude', lat), hs.get('longitude', lon),
-                    datetime.utcnow().isoformat(),
-                ),
-            )
         acquired += 1
 
     # 3. Sentinel-2 (if credentials available)
@@ -451,14 +427,14 @@ def main():
     except Exception as e:
         logger.warning(f"black-image purge skipped: {e}")
 
-    # Rebuild FIRMS-derived fire signals fresh each run (near-real-time snapshot;
-    # avoids duplicates/staleness). Non-destructive to non-fire signals.
+    # Surface real NASA FIRMS fire detections as signals. Built from the STORED
+    # firms_hotspot images (their metadata holds the real hotspot list), so it
+    # works even when the live FIRMS host is unreachable from the runner. Rebuilt
+    # fresh each run to stay a de-duplicated near-real-time snapshot.
     try:
-        db = get_db()
-        db.execute("DELETE FROM signals WHERE signal_type = 'disaster_signal' "
-                   "AND COALESCE(title,'') LIKE '%FIRMS%'")
+        _sync_firms_signals()
     except Exception as e:
-        logger.warning(f"FIRMS signal reset skipped: {e}")
+        logger.warning(f"FIRMS signal sync skipped: {e}")
 
     total_acquired = 0
 
@@ -525,6 +501,65 @@ def _purge_black_images():
         db.execute(f"DELETE FROM images WHERE id = {ph}", (img_id,))
     if to_delete:
         logger.info(f"🧹 Purged {len(to_delete)} black/empty EO frames")
+
+
+def _sync_firms_signals(days: int = 3, max_signals: int = 60):
+    """Rebuild FIRMS fire signals from stored firms_hotspot images' metadata.
+
+    Uses already-collected data (real NASA VIIRS detections), so it works even
+    when the live FIRMS host is unreachable from the runner. Deletes prior
+    FIRMS signals first so the result is a de-duplicated recent snapshot.
+    """
+    db = get_db()
+    ph = db.placeholder
+    # Fresh snapshot: drop previous FIRMS-derived signals (non-fire untouched).
+    db.execute("DELETE FROM signals WHERE signal_type = 'disaster_signal' "
+               "AND COALESCE(title,'') LIKE '%FIRMS%'")
+    rows = db.execute(
+        "SELECT id, event_id, metadata_json, captured_at FROM images "
+        "WHERE source_type = 'firms_hotspot' AND metadata_json IS NOT NULL "
+        "ORDER BY captured_at DESC LIMIT 40",
+        fetch=True,
+    ) or []
+    conf_map = {'h': 0.85, 'high': 0.85, 'n': 0.55, 'nominal': 0.55,
+                'l': 0.35, 'low': 0.35}
+    seen = set()
+    inserted = 0
+    for r in rows:
+        if inserted >= max_signals:
+            break
+        try:
+            meta = json.loads(r.get('metadata_json') or '{}')
+        except (ValueError, TypeError):
+            continue
+        for hs in (meta.get('hotspots') or [])[:10]:
+            if inserted >= max_signals:
+                break
+            lat = hs.get('latitude')
+            lon = hs.get('longitude')
+            if lat is None or lon is None:
+                continue
+            key = (round(float(lat), 2), round(float(lon), 2), hs.get('acq_date', ''))
+            if key in seen:
+                continue
+            seen.add(key)
+            sev = conf_map.get(str(hs.get('confidence', 'nominal')).lower(), 0.5)
+            db.execute(
+                f"""INSERT INTO signals
+                    (event_id, image_id, signal_type, severity, title,
+                     description, latitude, longitude, created_at)
+                    VALUES ({ph},{ph},'disaster_signal',{ph},{ph},{ph},{ph},{ph},{ph})""",
+                (
+                    r.get('event_id'), r.get('id'), sev,
+                    'Foco de calor (NASA FIRMS)',
+                    f"FIRMS VIIRS · brillo {float(hs.get('brightness', 0)):.0f}K · "
+                    f"confianza {hs.get('confidence', 'n/d')} · {hs.get('acq_date', '')}",
+                    float(lat), float(lon), datetime.utcnow().isoformat(),
+                ),
+            )
+            inserted += 1
+    if inserted:
+        logger.info(f"🔥 Synced {inserted} FIRMS fire signals from stored hotspots")
 
 
 def _store_gdacs_as_events(alerts: List[Dict]):
