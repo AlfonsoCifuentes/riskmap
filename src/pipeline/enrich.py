@@ -589,6 +589,13 @@ def _create_events_from_articles(db):
         db.execute(
             "UPDATE events SET severity = LEAST(1.0, severity/100.0) "
             "WHERE severity > 1")
+        # Cosmetic heal: friendlier labels for previously-unclassified events.
+        db.execute(
+            "UPDATE events SET title = 'Conflicto' || SUBSTRING(title FROM 8) "
+            "WHERE title LIKE 'Unknown —%' AND event_type = 'conflict'")
+        db.execute(
+            "UPDATE events SET title = 'Desastre' || SUBSTRING(title FROM 8) "
+            "WHERE title LIKE 'Unknown —%' AND event_type = 'disaster'")
     except Exception as exc:  # heal is best-effort; never block enrichment
         logger.warning(f"event severity heal skipped: {exc}")
 
