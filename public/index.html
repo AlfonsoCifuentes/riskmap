@@ -278,7 +278,7 @@
       return '<div class="hotspot">' +
         '<h4>' + escH(z.location || i18n.t('index.unknownZone')) + '</h4>' +
         '<div class="hotspot-stats">' +
-          '<span>' + (z.article_count || 0) + ' ' + i18n.t('common.articles') + '</span>' +
+          '<span>' + nArticles(z.article_count) + '</span>' +
           '<span>' + i18n.t('common.risk') + ' ' + Math.round(z.avg_risk_score || 0) + '%</span>' +
         '</div>' +
         '<div class="hotspot-bar"><div class="hotspot-bar-fill" style="width:' + pct + '%"></div></div>' +

@@ -107,7 +107,7 @@
     var signals = data.signals || [];
     var conflicts = analytics.conflicts || [];
 
-    var topZones = conflicts.slice(0,5).map(function(z,i){return (i+1) + '. ' + z.location + ' (' + Math.round(z.avg_risk_score || 0) + '% · ' + (z.article_count || 0) + ' ' + i18n.t('common.articles') + ')';}).join('\n') || i18n.t('reports.noHotspotsDesc');
+    var topZones = conflicts.slice(0,5).map(function(z,i){return (i+1) + '. ' + z.location + ' (' + Math.round(z.avg_risk_score || 0) + '% · ' + nArticles(z.article_count) + ')';}).join('\n') || i18n.t('reports.noHotspotsDesc');
 
     var narrative = [
       '# Executive Report — Riskmap A.I.',
@@ -144,7 +144,7 @@
       return;
     }
     el.innerHTML = conflicts.slice(0,8).map(function(z){
-      return '<article class="quick-item"><h3>' + escH(z.location || i18n.t('conflicts.unknownZone')) + '</h3><p>' + Number(z.article_count || 0) + ' ' + i18n.t('common.articles') + ' · ' + i18n.t('common.risk').toLowerCase() + ' ' + Math.round(z.avg_risk_score || 0) + '%</p></article>';
+      return '<article class="quick-item"><h3>' + escH(z.location || i18n.t('conflicts.unknownZone')) + '</h3><p>' + nArticles(z.article_count) + ' · ' + i18n.t('common.risk').toLowerCase() + ' ' + Math.round(z.avg_risk_score || 0) + '%</p></article>';
     }).join('');
     if (window.initReveals) window.initReveals();
   }

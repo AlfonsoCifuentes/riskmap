@@ -296,6 +296,15 @@
   };
 
   /** Relative time — language-aware */
+  /** "N article(s)" with correct pluralisation (drops the plural 's' for 1;
+      works for EN 'articles'->'article' and ES 'artículos'->'artículo'). */
+  window.nArticles = function (n) {
+    var _t = window.i18n ? window.i18n.t : function (k) { return k; };
+    var w = _t('common.articles');
+    if (Number(n) === 1) w = w.replace(/s$/, '');
+    return (Number(n) || 0) + ' ' + w;
+  };
+
   window.timeAgo = function (dateLike) {
     var _t = window.i18n ? window.i18n.t : function (k) { return k; };
     if (!dateLike) return _t('common.na');

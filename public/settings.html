@@ -133,7 +133,7 @@
     var panel = document.getElementById('apiStatus');
     var res = await fetchJSON('/api/status');
     panel.innerHTML = res
-      ? '<p style="color:var(--text-1);font-size:.82rem">&#x2705; ' + i18n.t('settings.apiActive') + ' &middot; ' + (res.total_articles || 0) + ' ' + i18n.t('common.articles') + ' &middot; ' + (res.critical_alerts || 0) + ' ' + i18n.t('settings.criticalAlerts') + '</p>'
+      ? '<p style="color:var(--text-1);font-size:.82rem">&#x2705; ' + i18n.t('settings.apiActive') + ' &middot; ' + nArticles(res.total_articles) + ' &middot; ' + (res.critical_alerts || 0) + ' ' + i18n.t('settings.criticalAlerts') + '</p>'
       : '<p style="color:#ff646e;font-size:.82rem">&#x274C; ' + i18n.t('settings.apiUnavailable') + '</p>';
   }
 
