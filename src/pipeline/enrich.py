@@ -580,18 +580,15 @@ def _create_events_from_articles(db):
     """Group recent high-risk articles into events."""
     ph = db.placeholder
 
-    # One-time, idempotent heal: earlier auto-generated events stored `severity`
-    # on the wrong scale (0..100 instead of 0..1) and saturated to "critical".
-    # Unlink their articles and delete them so they re-fuse correctly below.
-    # After the heal no rows have severity > 1, so this is a no-op thereafter.
+    # One-time, idempotent heal: some events stored `severity` on a 0..100 scale
+    # (auto-generated conflict events pre-fix, and GDACS disaster alerts) instead
+    # of the schema's 0..1 contract, which made the map render risk as 2999.
+    # Normalise every out-of-range row in place (non-destructive). After the heal
+    # no rows have severity > 1, so this is a no-op thereafter.
     try:
         db.execute(
-            "UPDATE unified_articles SET event_id = NULL WHERE event_id IN "
-            "(SELECT id FROM events WHERE severity > 1 "
-            " AND COALESCE(explanation,'') LIKE 'Auto-generated%')")
-        db.execute(
-            "DELETE FROM events WHERE severity > 1 "
-            "AND COALESCE(explanation,'') LIKE 'Auto-generated%'")
+            "UPDATE events SET severity = LEAST(1.0, severity/100.0) "
+            "WHERE severity > 1")
     except Exception as exc:  # heal is best-effort; never block enrichment
         logger.warning(f"event severity heal skipped: {exc}")
 

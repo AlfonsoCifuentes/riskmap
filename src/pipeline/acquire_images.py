@@ -449,13 +449,22 @@ def _store_gdacs_as_events(alerts: List[Dict]):
             if existing:
                 continue
 
+            # severity must be stored on the 0..1 scale (schema contract).
+            # GDACS scores can arrive on a larger scale; normalise defensively.
+            _sev = alert.get('severity', 0.5)
+            try:
+                _sev = float(_sev)
+            except (TypeError, ValueError):
+                _sev = 0.5
+            if _sev > 1:
+                _sev = min(1.0, _sev / 100.0)
             db.execute(
                 f"""INSERT INTO events (event_type, subtype, title, severity, started_at, explanation)
                     VALUES ('disaster', {ph}, {ph}, {ph}, {ph}, {ph})""",
                 (
                     alert.get('event_type', 'unknown'),
                     alert['title'],
-                    alert.get('severity', 0.5),
+                    _sev,
                     alert.get('date', datetime.utcnow().isoformat()),
                     f"GDACS alert: {alert['title']}",
                 ),

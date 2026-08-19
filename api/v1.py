@@ -160,8 +160,14 @@ def _map_events(qs):
     hours = qs.get("hours", [None])[0]
     limit = min(int(qs.get("limit", ["500"])[0]), 2000)
 
+    # Scale-robust risk on 0..100. `severity` should be 0..1, but some sources
+    # (GDACS) historically stored it on a 0..100 scale; treat severity>1 as
+    # already-0..100 (clamped) instead of multiplying it to five digits.
+    risk_expr = ("LEAST(100, COALESCE(NULLIF(e.risk_score,0), e.severity_normalized, "
+                 "CASE WHEN e.severity > 1 THEN LEAST(100, e.severity) "
+                 "ELSE e.severity*100 END, 0))")
     where = [
-        "COALESCE(e.risk_score, e.severity_normalized, e.severity*100, 0) >= %s",
+        f"{risk_expr} >= %s",
         "COALESCE(e.confidence_score, 0) >= %s",
     ]
     params = [min_risk, min_conf]
@@ -193,9 +199,16 @@ def _map_events(qs):
     features = []
     for r in rows:
         risk = r.get("risk_score")
-        if risk is None:
-            risk = round(float(r.get("severity_normalized")
-                               or (r.get("severity") or 0) * 100), 1)
+        if not risk:  # None or 0
+            sev = r.get("severity") or 0
+            # severity>1 => already on a 0..100 scale; else 0..1 -> *100
+            sev_100 = sev if sev > 1 else sev * 100
+            risk = round(min(100.0, float(r.get("severity_normalized") or sev_100)), 1)
+        risk = min(100.0, float(risk))
+        level = r.get("risk_level")
+        if not level:  # derive an honest band when the column is null
+            level = ("critical" if risk >= 70 else "high" if risk >= 50
+                     else "medium" if risk >= 30 else "low")
         radius_m = r.get("geo_precision_m")
         if radius_m is None and r.get("precision_km"):
             radius_m = float(r["precision_km"]) * 1000
@@ -209,7 +222,7 @@ def _map_events(qs):
                 "category": r.get("event_type"),
                 "subtype": r.get("subtype"),
                 "risk_score": risk,
-                "risk_level": r.get("risk_level"),
+                "risk_level": level,
                 "confidence": r.get("confidence_score"),
                 "geo_precision": r.get("geo_precision"),
                 "uncertainty_radius_m": radius_m,
@@ -334,7 +347,7 @@ def _report():
           COUNT(*) FILTER (WHERE geopolitical_relevance = 1
                              AND published_at >= NOW() - INTERVAL '24 hours') AS new_24h,
           COUNT(*) FILTER (WHERE geopolitical_relevance = 1
-                             AND COALESCE(risk_score,0) >= 0.6) AS high_risk
+                             AND COALESCE(risk_score,0) >= 50) AS high_risk
         FROM unified_articles
     """)
     k = kpis[0] if kpis else {}
@@ -343,7 +356,9 @@ def _report():
                e.confidence_score, e.source_count, e.independent_source_count,
                e.last_updated
         FROM events e
-        ORDER BY COALESCE(e.risk_score, e.severity*100, 0) DESC NULLS LAST,
+        ORDER BY LEAST(100, COALESCE(NULLIF(e.risk_score,0),
+                 CASE WHEN e.severity > 1 THEN LEAST(100, e.severity)
+                      ELSE e.severity*100 END, 0)) DESC NULLS LAST,
                  e.last_updated DESC NULLS LAST
         LIMIT 10
     """)
