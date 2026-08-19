@@ -525,12 +525,15 @@ def _forecast(qs):
     slope = 0.0
     if prev7 > 0:
         slope = max(-1.0, min(1.0, (last7 - prev7) / prev7))
+    # Escalation is measured relative to the recent normal (prior week's rate).
+    # With NO prior window (prev7==0) there is nothing to compare against, so we
+    # anchor the reference to the current rate -> a neutral 0.5 baseline, and
+    # flag insufficient history rather than reporting a saturated ~1.0.
+    insufficient_history = prev7 <= 0
+    ref_rate = rate if insufficient_history else max(0.5, prev_rate)
     features = {
         "recent_event_rate": rate,
-        # Escalation is relative to the recent normal (prior week's rate), with a
-        # floor so a quiet-to-active jump still registers. This stops steady high
-        # volume from saturating the forecast at 1.0.
-        "ref_rate": max(0.5, prev_rate),
+        "ref_rate": ref_rate,
         "risk_slope": slope,
         "source_corroboration": float(s.get("mean_indep") or 1),
         "official_alert": False,
@@ -539,6 +542,11 @@ def _forecast(qs):
     result = forecasting.escalation_probability(features)
     result["category"] = category or "all"
     result["window"] = {"last_7d_events": int(last7), "prev_7d_events": int(prev7)}
+    result["insufficient_history"] = insufficient_history
+    if insufficient_history:
+        result["uncertainty_note"] = (
+            "Insufficient history: fewer than two comparable weeks of data, so "
+            "no escalation trend can be established yet. Baseline shown as neutral.")
     return result
 
 
