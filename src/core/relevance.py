@@ -50,23 +50,32 @@ WEAK = [
 ]
 
 # --- Negative lexicon (off-topic domains) ---------------------------------
-NEGATIVE = [
+# HARD negatives are disqualifying domains (sport / entertainment): a genuine
+# conflict or disaster EVENT report almost always carries a STRONG or DISASTER
+# term, so if a hard-negative term appears and no strong/disaster signal does,
+# the item is off-topic (e.g. a review of a *film* about a war). SOFT negatives
+# (business / tech / lifestyle) only veto when they clearly dominate the text.
+NEG_HARD = [
     # sport
     "football", "soccer", "basketball", "baseball", "tennis", "golf", "cricket",
     "nba", "nfl", "premier league", "la liga", "champions league", "world cup",
     "olympics", "grand prix", "formula 1", "transfer window", "match day",
     "goalkeeper", "touchdown", "playoff", "quarterback", "midfielder",
     # entertainment / celebrity
-    "box office", "movie", "film premiere", "trailer", "celebrity", "singer",
+    "box office", "movie", "film premiere", "hit film", "blockbuster", "biopic",
+    "cinema", "documentary film", "tv series", "trailer", "celebrity", "singer",
     "album", "concert", "grammy", "oscars", "netflix", "tv show", "streaming",
     "actor", "actress", "red carpet", "fashion week", "reality show",
-    # business/markets/tech consumer
+]
+NEG_SOFT = [
+    # business/markets/tech consumer / lifestyle
     "quarterly earnings", "stock split", "share price", "ipo", "dividend",
     "smartphone", "gadget", "iphone", "android app", "video game", "gaming",
     "esports", "cryptocurrency price", "bitcoin price", "product launch",
     "recipe", "restaurant review", "travel guide", "horoscope", "lottery",
     "wedding", "royal baby", "influencer", "tiktok trend",
 ]
+NEGATIVE = NEG_HARD + NEG_SOFT  # kept for backwards-compatible imports
 
 
 def _compile(terms):
@@ -79,7 +88,8 @@ _RE_STRONG = _compile(STRONG)
 _RE_DISASTER = _compile(DISASTER)
 _RE_MEDIUM = _compile(MEDIUM)
 _RE_WEAK = _compile(WEAK)
-_RE_NEGATIVE = _compile(NEGATIVE)
+_RE_NEG_HARD = _compile(NEG_HARD)
+_RE_NEG_SOFT = _compile(NEG_SOFT)
 
 
 def _count(rx, text):
@@ -99,7 +109,8 @@ def score(text: str) -> tuple[float, bool, str | None]:
     disaster = _count(_RE_DISASTER, t)
     medium = _count(_RE_MEDIUM, t)
     weak = _count(_RE_WEAK, t)
-    negative = _count(_RE_NEGATIVE, t)
+    neg_hard = _count(_RE_NEG_HARD, t)
+    neg_soft = _count(_RE_NEG_SOFT, t)
 
     raw = 3 * strong + 3 * disaster + 2 * medium + 1 * weak
     score_val = min(raw / 10.0, 1.0)
@@ -107,8 +118,14 @@ def score(text: str) -> tuple[float, bool, str | None]:
     has_strong = (strong + disaster) >= 1
     enough_medium = medium >= 2 or (medium >= 1 and weak >= 1)
 
-    # Off-topic veto: negatives present and clearly dominant, with no strong hit.
-    if negative >= 1 and not has_strong and raw < (negative * 3 + 2):
+    # Hard veto: a sport/entertainment term with NO strong/disaster event term
+    # is off-topic no matter how much conflict *vocabulary* it borrows (e.g. a
+    # review of a film about a war). Real events carry a strong/disaster word.
+    if neg_hard >= 1 and not has_strong:
+        return score_val, False, None
+
+    # Soft veto: business/tech/lifestyle terms present and clearly dominant.
+    if neg_soft >= 1 and not has_strong and raw < (neg_soft * 3 + 2):
         return score_val, False, None
 
     is_relevant = has_strong or enough_medium

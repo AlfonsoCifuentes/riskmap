@@ -47,3 +47,16 @@ def test_negative_veto_but_strong_signal_still_passes():
 def test_category_hint():
     assert relevance.score("Major earthquake devastates the region")[2] == "disaster"
     assert relevance.score("Airstrike and shelling reported near the border")[2] == "conflict"
+
+
+def test_war_film_rejected_but_real_conflict_kept():
+    # A review of a *film* about a war is off-topic even though it borrows war
+    # vocabulary; a real strike report is kept (regression: user-reported leak).
+    assert not _rel("What does a hit film about the Iraq war say about viewers")
+    assert not _rel("New blockbuster movie about wartime heroes tops box office")
+    assert _rel("Israeli airstrikes kill dozens in Gaza as offensive escalates")
+
+
+def test_medium_only_unrest_still_passes():
+    # No strong term, but enough conflict signal -> stays relevant.
+    assert _rel("Protesters clash with police, dozens injured in unrest")
