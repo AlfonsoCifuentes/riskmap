@@ -107,7 +107,9 @@
     var signals = data.signals || [];
     var conflicts = analytics.conflicts || [];
 
-    var topZones = conflicts.slice(0,5).map(function(z,i){return (i+1) + '. ' + z.location + ' (' + Math.round(z.avg_risk_score || 0) + '% · ' + nArticles(z.article_count) + ')';}).join('\n') || i18n.t('reports.noHotspotsDesc');
+    // escH the place name: this string is rendered through marked.parse (which
+    // emits raw HTML), so an unescaped location would be a stored-XSS vector.
+    var topZones = conflicts.slice(0,5).map(function(z,i){return (i+1) + '. ' + escH(z.location || '') + ' (' + Math.round(z.avg_risk_score || 0) + '% · ' + nArticles(z.article_count) + ')';}).join('\n') || i18n.t('reports.noHotspotsDesc');
 
     var narrative = [
       '# Executive Report — Riskmap A.I.',
