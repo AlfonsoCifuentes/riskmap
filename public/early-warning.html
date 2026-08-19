@@ -91,59 +91,65 @@
       '<div class="alert-meta">' + meta + '</div></article>';
   }
 
-  async function load(){
+  function load(){
     var lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'es';
-    var results = await Promise.all([
-      fetchJSON('/api/articles?limit=100&lang=' + lang),
-      fetchJSON('/api/signals?limit=80'),
-      fetchJSON('/api/events?severity_min=0.6&limit=60'),
-      fetchJSON('/api/analytics/conflicts-corrected')
-    ]);
+    // Progressive: each section paints as its data lands so a slow cold-start
+    // endpoint never blanks the whole page.
+    var pNews    = fetchJSON('/api/articles?limit=100&lang=' + lang);
+    var pSignals = fetchJSON('/api/signals?limit=80');
+    var pEvents  = fetchJSON('/api/events?severity_min=0.6&limit=60');
+    var pAnalytics = fetchJSON('/api/analytics/conflicts-corrected');
 
-    var highNews = results[0], signalsResp = results[1], eventsResp = results[2], analytics = results[3];
-    var allNews = (highNews && highNews.articles) || [];
-    var news = allNews.filter(function(a){ return Number(a.risk_score||0) >= 50; })
-                      .sort(function(x,y){ return Number(y.risk_score||0) - Number(x.risk_score||0); });
-    var signals = (signalsResp && signalsResp.signals) || [];
-    var events = (eventsResp && eventsResp.events) || [];
-
-    animCount(document.getElementById('kpiHighNews'), news.length);
-    animCount(document.getElementById('kpiSignals'), signals.length);
-    animCount(document.getElementById('kpiEvents'), events.length);
-    animCount(document.getElementById('kpiRegions'), (analytics && analytics.statistics && analytics.statistics.regions_in_conflict) || 0);
-
-    var newsEl = document.getElementById('newsAlerts');
-    if (newsEl) {
-      newsEl.innerHTML = news.length
-        ? news.slice(0, 18).map(function(a){
-            return alertCard(
-              a.title || i18n.t('common.noTitle'),
-              (a.summary || '').slice(0, 190),
-              '<span>' + escH(a.source || 'N/D') + '</span><span>' + timeAgo(a.published_at) + '</span>' + riskBadge(a.risk_level),
-              ''
-            );
-          }).join('')
-        : '<div class="empty-state"><div class="empty-icon">✅</div><h3>' + i18n.t('earlyWarning.noAlerts') + '</h3><p>' + i18n.t('earlyWarning.noAlertsDesc') + '</p></div>';
-    }
-
-    var signalItems = [];
-    signals.slice(0, 10).forEach(function(s){
-      var meta = '<span>' + escH(s.signal_type || 'signal') + '</span><span>sev: ' + Number(s.severity || 0).toFixed(2) + '</span><span>' + timeAgo(s.created_at) + '</span>';
-      signalItems.push(alertCard(s.title || 'Signal', s.description || i18n.t('earlyWarning.noDesc'), meta, 'signal-item'));
-    });
-    events.slice(0, 8).forEach(function(e){
-      var meta = '<span>' + escH(e.event_type || 'event') + '</span><span>sev: ' + Number(e.severity || 0).toFixed(2) + '</span><span>' + timeAgo(e.started_at) + '</span>';
-      signalItems.push(alertCard(e.title || 'Evento', e.explanation || i18n.t('earlyWarning.noDesc'), meta, 'signal-item'));
+    /* High-risk news + its KPI */
+    pNews.then(function(highNews){
+      var allNews = (highNews && highNews.articles) || [];
+      var news = allNews.filter(function(a){ return Number(a.risk_score||0) >= 50; })
+                        .sort(function(x,y){ return Number(y.risk_score||0) - Number(x.risk_score||0); });
+      animCount(document.getElementById('kpiHighNews'), news.length);
+      var newsEl = document.getElementById('newsAlerts');
+      if (newsEl) {
+        newsEl.innerHTML = news.length
+          ? news.slice(0, 18).map(function(a){
+              return alertCard(
+                a.title || i18n.t('common.noTitle'),
+                (a.summary || '').slice(0, 190),
+                '<span>' + escH(a.source || 'N/D') + '</span><span>' + timeAgo(a.published_at) + '</span>' + riskBadge(a.risk_level),
+                ''
+              );
+            }).join('')
+          : '<div class="empty-state"><div class="empty-icon">✅</div><h3>' + i18n.t('earlyWarning.noAlerts') + '</h3><p>' + i18n.t('earlyWarning.noAlertsDesc') + '</p></div>';
+      }
+      if (window.initReveals) window.initReveals();
     });
 
-    var sigEl = document.getElementById('signalsAlerts');
-    if (sigEl) {
-      sigEl.innerHTML = signalItems.length
-        ? signalItems.join('')
-        : '<div class="empty-state"><div class="empty-icon">📡</div><h3>' + i18n.t('earlyWarning.noSignals') + '</h3><p>' + i18n.t('earlyWarning.noSignalsDesc') + '</p></div>';
-    }
+    /* Regions KPI (analytics) */
+    pAnalytics.then(function(analytics){
+      animCount(document.getElementById('kpiRegions'), (analytics && analytics.statistics && analytics.statistics.regions_in_conflict) || 0);
+    });
 
-    if (window.initReveals) window.initReveals();
+    /* Signals + events feed (paints when both land) */
+    Promise.all([pSignals, pEvents]).then(function(r){
+      var signals = (r[0] && r[0].signals) || [];
+      var events = (r[1] && r[1].events) || [];
+      animCount(document.getElementById('kpiSignals'), signals.length);
+      animCount(document.getElementById('kpiEvents'), events.length);
+      var signalItems = [];
+      signals.slice(0, 10).forEach(function(s){
+        var meta = '<span>' + escH(s.signal_type || 'signal') + '</span><span>sev: ' + Number(s.severity || 0).toFixed(2) + '</span><span>' + timeAgo(s.created_at) + '</span>';
+        signalItems.push(alertCard(s.title || 'Signal', s.description || i18n.t('earlyWarning.noDesc'), meta, 'signal-item'));
+      });
+      events.slice(0, 8).forEach(function(e){
+        var meta = '<span>' + escH(e.event_type || 'event') + '</span><span>sev: ' + Number(e.severity || 0).toFixed(2) + '</span><span>' + timeAgo(e.started_at) + '</span>';
+        signalItems.push(alertCard(e.title || 'Evento', e.explanation || i18n.t('earlyWarning.noDesc'), meta, 'signal-item'));
+      });
+      var sigEl = document.getElementById('signalsAlerts');
+      if (sigEl) {
+        sigEl.innerHTML = signalItems.length
+          ? signalItems.join('')
+          : '<div class="empty-state"><div class="empty-icon">📡</div><h3>' + i18n.t('earlyWarning.noSignals') + '</h3><p>' + i18n.t('earlyWarning.noSignalsDesc') + '</p></div>';
+      }
+      if (window.initReveals) window.initReveals();
+    });
   }
 
   document.addEventListener('DOMContentLoaded', load);
