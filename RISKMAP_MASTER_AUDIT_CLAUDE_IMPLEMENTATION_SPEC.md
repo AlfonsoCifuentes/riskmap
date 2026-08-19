@@ -8496,6 +8496,32 @@ form when there are no params (literal %). Verified the other DB path
 
 108 unit tests green; CI green.
 
+## Session 2026-08-19g — max-cardinality stress profile + RTL/bidi + multi-failure resilience
+
+**Constraint-respecting stress test (the €0-safe form of load testing):** profiled
+every endpoint at its MAXIMUM legitimate query size with single requests — no
+sustained concurrency (which would burn the Hobby quota). All stay well under
+0.35s warm even at the cap:
+  map-events@2000 0.13s · heatmap@2000 0.24s · articles@100 0.12s ·
+  deduplicated@100 0.31s · events@200 0.09s · signals@200 0.08s ·
+  images@500 0.09s · analytics 0.08s · history@365d 0.13s · report 0.09s
+The N+1 fix is validated at scale: events@200 is 0.09s where the old per-event
+location query would have been ~150s. signals@200 now returns the 60 FIRMS fire
+signals (19.7KB) instead of an empty 27 bytes. No pathological query exists.
+
+**RTL / non-ASCII (i18n):** added `unicode-bidi: plaintext` to feed-text
+elements so Arabic/Hebrew/Cyrillic/mixed titles auto-detect base direction
+(dir=auto equivalent). Current feeds are Latin-script; this is defensive and
+zero-cost.
+
+**Multi-failure resilience:** verified each page degrades per-section under
+simultaneous endpoint failures — progressive rendering + null-safe renders
+(renderHero shows a fallback on null; KPIs `if(!status) return`; mosaic shows a
+distinct error state; pipeline uses `||0`). No crash, no blank void when
+multiple endpoints fail at once.
+
+**XSS:** full render-path sweep — all feed-sourced strings escaped via
+escH+stripHtml; fixed the one gap (a place name rendered through marked.parse).
 # Post-Implementation Independent Re-Audit
 ```
 
