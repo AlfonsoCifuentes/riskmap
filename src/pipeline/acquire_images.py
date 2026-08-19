@@ -403,6 +403,30 @@ def acquire_for_location(lat: float, lon: float, name: str = '',
                 json.dumps({'hotspots': hotspots[:10]}),
             ),
         )
+        # Surface each fire detection as a disaster_signal so it appears in the
+        # Early Warning / signals UI (real NASA fire data, near-real-time).
+        img_id = None
+        if db.backend_name == 'postgres':
+            r = db.execute("SELECT id FROM images ORDER BY id DESC LIMIT 1", fetch=True)
+            img_id = r[0]['id'] if r else None
+        _CONF = {'h': 0.85, 'high': 0.85, 'n': 0.55, 'nominal': 0.55,
+                 'l': 0.35, 'low': 0.35}
+        for hs in hotspots[:10]:
+            conf = str(hs.get('confidence', 'nominal')).lower()
+            sev = _CONF.get(conf, 0.5)
+            db.execute(
+                f"""INSERT INTO signals
+                    (event_id, image_id, signal_type, severity, title,
+                     description, latitude, longitude, created_at)
+                    VALUES ({ph},{ph},'disaster_signal',{ph},{ph},{ph},{ph},{ph},{ph})""",
+                (
+                    event_id, img_id, sev, 'Foco de calor (NASA FIRMS)',
+                    f"FIRMS VIIRS · brillo {hs.get('brightness', 0):.0f}K · "
+                    f"confianza {hs.get('confidence', 'n/d')} · {hs.get('acq_date', '')}",
+                    hs.get('latitude', lat), hs.get('longitude', lon),
+                    datetime.utcnow().isoformat(),
+                ),
+            )
         acquired += 1
 
     # 3. Sentinel-2 (if credentials available)
@@ -426,6 +450,15 @@ def main():
         _purge_black_images()
     except Exception as e:
         logger.warning(f"black-image purge skipped: {e}")
+
+    # Rebuild FIRMS-derived fire signals fresh each run (near-real-time snapshot;
+    # avoids duplicates/staleness). Non-destructive to non-fire signals.
+    try:
+        db = get_db()
+        db.execute("DELETE FROM signals WHERE signal_type = 'disaster_signal' "
+                   "AND COALESCE(title,'') LIKE '%FIRMS%'")
+    except Exception as e:
+        logger.warning(f"FIRMS signal reset skipped: {e}")
 
     total_acquired = 0
 
