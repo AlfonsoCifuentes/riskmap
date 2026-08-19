@@ -45,7 +45,7 @@ def _risk_bucket(risk: float) -> str:
     return "low"
 
 
-def fingerprint(event_id, state: str, risk: float) -> str:
+def fingerprint(event_id: object, state: str, risk: float) -> str:
     """Stable id for (event, material-state, risk-bucket) to dedupe alerts."""
     raw = f"{event_id}|{state}|{_risk_bucket(risk)}"
     return hashlib.sha1(raw.encode()).hexdigest()[:16]

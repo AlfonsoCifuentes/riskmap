@@ -10,7 +10,8 @@ from src.core import geo, risk
 
 
 def derive_geo(*, method: str, has_city: bool, has_country: bool,
-               latitude, longitude, source_count: int = 1) -> dict:
+               latitude: float | None, longitude: float | None,
+               source_count: int = 1) -> dict:
     """Map an inferred location into honest geo fields.
 
     precision tier: city if a city was identified, else country (coarse).

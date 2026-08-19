@@ -58,20 +58,22 @@ class GeoResult:
         return asdict(self)
 
 
-def _valid_latlon(lat, lon) -> bool:
+def _valid_latlon(lat: object, lon: object) -> bool:
+    if lat is None or lon is None:
+        return False
     try:
-        lat = float(lat)
-        lon = float(lon)
+        latf = float(lat)  # type: ignore[arg-type]
+        lonf = float(lon)  # type: ignore[arg-type]
     except (TypeError, ValueError):
         return False
-    return -90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0
+    return bool(-90.0 <= latf <= 90.0 and -180.0 <= lonf <= 180.0)
 
 
 def resolve(
     *,
     precision: str,
-    latitude,
-    longitude,
+    latitude: float | int | str | None,
+    longitude: float | int | str | None,
     method: str,
     source_count: int = 1,
     has_official_source: bool = False,
@@ -104,9 +106,10 @@ def resolve(
         conf += 0.07
     conf = max(0.05, min(0.99, conf))
 
+    # _valid_latlon guaranteed these are finite & non-None above.
     return GeoResult(
-        latitude=float(latitude),
-        longitude=float(longitude),
+        latitude=float(latitude),  # type: ignore[arg-type]
+        longitude=float(longitude),  # type: ignore[arg-type]
         geo_method=method,
         geo_precision=precision,
         geo_precision_m=float(PRECISION_RADIUS_M[precision]),

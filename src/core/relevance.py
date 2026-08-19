@@ -80,7 +80,7 @@ NEG_SOFT = [
 NEGATIVE = NEG_HARD + NEG_SOFT  # kept for backwards-compatible imports
 
 
-def _compile(terms):
+def _compile(terms: list[str]) -> re.Pattern[str]:
     # Word-boundary alternation; escape multiword phrases.
     # trailing s? lets singular lexicon entries also match plurals (flood->floods)
     pattern = r"\b(?:" + "|".join(re.escape(t) for t in terms) + r")s?\b"
@@ -95,7 +95,7 @@ _RE_NEG_HARD = _compile(NEG_HARD)
 _RE_NEG_SOFT = _compile(NEG_SOFT)
 
 
-def _count(rx, text):
+def _count(rx: re.Pattern[str], text: str) -> int:
     return len({m.group(0).lower() for m in rx.finditer(text)})
 
 

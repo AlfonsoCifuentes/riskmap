@@ -98,7 +98,8 @@ def brier_score(probs: list[float], outcomes: list[int]) -> float:
     return round(sum((p - o) ** 2 for p, o in zip(probs, outcomes, strict=False)) / len(probs), 4)
 
 
-def reliability_bins(probs, outcomes, n_bins: int = 10) -> list[dict]:
+def reliability_bins(probs: list[float], outcomes: list[int],
+                     n_bins: int = 10) -> list[dict]:
     """Reliability diagram data: predicted vs observed frequency per bin."""
     bins = [{"lo": i / n_bins, "hi": (i + 1) / n_bins,
              "count": 0, "sum_pred": 0.0, "sum_obs": 0} for i in range(n_bins)]
@@ -126,7 +127,8 @@ def temporal_split(items: list, at_index: int) -> tuple[list, list]:
     return items[:at_index], items[at_index:]
 
 
-def compare_to_baseline(model_probs, baseline_probs, outcomes) -> dict:
+def compare_to_baseline(model_probs: list[float], baseline_probs: list[float],
+                        outcomes: list[int]) -> dict:
     """A model is only 'better' if it beats the baseline's Brier score."""
     bm = brier_score(model_probs, outcomes)
     bb = brier_score(baseline_probs, outcomes)

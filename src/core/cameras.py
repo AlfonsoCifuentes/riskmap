@@ -40,7 +40,8 @@ def load_registry() -> list[dict]:
     if not os.path.isfile(REGISTRY_PATH):
         return []
     with open(REGISTRY_PATH, encoding="utf-8") as f:
-        return json.load(f).get("cameras", [])
+        data: list[dict] = json.load(f).get("cameras", [])
+        return data
 
 
 def health_state(*, http_ok: bool, content_is_image: bool,

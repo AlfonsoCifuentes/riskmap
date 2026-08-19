@@ -24,7 +24,7 @@ DEFAULT_RADIUS_KM = 75.0
 DEFAULT_TIME_WINDOW = timedelta(hours=48)
 
 
-def haversine_km(lat1, lon1, lat2, lon2) -> float:
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     r = 6371.0
     p1, p2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
@@ -37,9 +37,9 @@ def haversine_km(lat1, lon1, lat2, lon2) -> float:
 def _same_place(a: dict, b: dict, radius_km: float) -> bool:
     la, lo = a.get("latitude"), a.get("longitude")
     lb, lob = b.get("latitude"), b.get("longitude")
-    if None in (la, lo, lb, lob):
+    if la is None or lo is None or lb is None or lob is None:
         return False
-    return haversine_km(la, lo, lb, lob) <= radius_km
+    return haversine_km(float(la), float(lo), float(lb), float(lob)) <= radius_km
 
 
 def _same_time(a: dict, b: dict, window: timedelta) -> bool:

@@ -8,7 +8,7 @@ than filling the gap with generated text.
 from __future__ import annotations
 
 
-def haversine_km(lat1, lon1, lat2, lon2) -> float:
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     import math
     r = 6371.0
     p1, p2 = math.radians(lat1), math.radians(lat2)
@@ -64,7 +64,7 @@ def build(event: dict, *, user_location: tuple | None = None,
     }
 
 
-def _context_lines(event: dict, distance_km) -> list[str]:
+def _context_lines(event: dict, distance_km: float | None) -> list[str]:
     lines = []
     if distance_km is not None:
         lines.append(f"Estimated distance to event: ~{distance_km} km.")
