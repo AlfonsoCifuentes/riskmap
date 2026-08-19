@@ -37,6 +37,11 @@ MEDIUM = [
     "crackdown", "clashes", "cyberattack", "cyber attack", "espionage",
     "evacuation", "airspace", "blockade", "embargo", "warzone", "war zone",
     "paramilitary", "airbase", "warhead", "peacekeeper",
+    # common conflict/severity terms the lexicon was missing
+    "strike", "strikes", "attack", "attacks", "killed", "dead", "death toll",
+    "explosion", "blast", "raid", "offensive", "gunfire", "gunmen", "militants",
+    "assault", "wounded", "injured", "detained", "hostages", "siege", "curfew",
+    "war",
 ]
 WEAK = [
     "diplomatic", "negotiations", "summit", "treaty", "alliance", "geopolitical",
@@ -97,7 +102,7 @@ def score(text: str) -> tuple[float, bool, str | None]:
     negative = _count(_RE_NEGATIVE, t)
 
     raw = 3 * strong + 3 * disaster + 2 * medium + 1 * weak
-    score_val = min(raw / 15.0, 1.0)
+    score_val = min(raw / 10.0, 1.0)
 
     has_strong = (strong + disaster) >= 1
     enough_medium = medium >= 2 or (medium >= 1 and weak >= 1)

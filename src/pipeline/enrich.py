@@ -375,12 +375,15 @@ def reclassify_relevance(batch: int = 5000):
         fetch=True,
     )
     promote, demote = [], []
+    rescore_ids, rescore_vals = [], []
     for r in rows:
         text = " ".join(filter(None, [r.get("title"), r.get("summary"),
                                       r.get("content")]))[:4000]
-        _s, is_rel, _cat = relevance_score(text)
+        s_val, is_rel, _cat = relevance_score(text)
         (promote if is_rel else demote).append(r["id"])
-    # Bulk updates (2 round-trips instead of one per row) to avoid timeouts.
+        rescore_ids.append(r["id"])
+        rescore_vals.append(round(s_val * 100.0, 1))  # 0..100 risk_score
+    # Bulk updates (a few round-trips instead of one per row) to avoid timeouts.
     if promote:
         db.execute("UPDATE unified_articles SET geopolitical_relevance = 1 "
                    "WHERE id = ANY(%s) AND COALESCE(geopolitical_relevance,-1) <> 1",
@@ -389,6 +392,14 @@ def reclassify_relevance(batch: int = 5000):
         db.execute("UPDATE unified_articles SET geopolitical_relevance = 0 "
                    "WHERE id = ANY(%s) AND COALESCE(geopolitical_relevance,-1) <> 0",
                    (demote,))
+    # Re-score risk_score for ALL articles with the current lexicon (one bulk
+    # statement via array unnest) so improvements heal the whole dataset.
+    if rescore_ids and getattr(db, 'backend_name', 'postgres') == 'postgres':
+        db.execute(
+            "UPDATE unified_articles u SET risk_score = t.rs "
+            "FROM (SELECT unnest(%s::int[]) AS id, unnest(%s::float8[]) AS rs) t "
+            "WHERE u.id = t.id",
+            (rescore_ids, rescore_vals))
     logger.info(f"Reclassified relevance: {len(promote)} relevant, {len(demote)} filtered out")
     return len(demote)
 
