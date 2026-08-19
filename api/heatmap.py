@@ -58,11 +58,22 @@ class handler(BaseHTTPRequestHandler):
                 limit=200,
             )
 
+            def _weight(v):
+                # risk_score is on a 0..100 scale; normalise to a 0..1 heat weight
+                # (guard values already <=1 from any legacy rows).
+                try:
+                    w = float(v)
+                except (TypeError, ValueError):
+                    return 0.5
+                if w > 1:
+                    w = w / 100.0
+                return max(0.05, min(1.0, w))
+
             points = []
             for a in articles:
                 points.append({
                     'lat': a['latitude'], 'lon': a['longitude'],
-                    'weight': a.get('risk_score', 0.5), 'source': 'article',
+                    'weight': _weight(a.get('risk_score')), 'source': 'article',
                 })
             for el in event_locs:
                 points.append({

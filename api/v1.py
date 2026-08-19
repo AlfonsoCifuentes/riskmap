@@ -390,7 +390,7 @@ def _history(qs):
         """
         SELECT to_char(date_trunc('day', published_at), 'YYYY-MM-DD') AS day,
                COUNT(*) AS n,
-               COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 60
+               COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 50
                                   OR risk_level IN ('high','critical')) AS high
         FROM unified_articles
         WHERE geopolitical_relevance = 1 AND published_at IS NOT NULL
@@ -423,10 +423,10 @@ def _history(qs):
     risk_bands = neon_sql(
         """
         SELECT
-          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) < 25) AS low,
-          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 25 AND COALESCE(risk_score,0) < 45) AS medium,
-          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 45 AND COALESCE(risk_score,0) < 65) AS high,
-          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 65) AS critical
+          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) < 30) AS low,
+          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 30 AND COALESCE(risk_score,0) < 50) AS medium,
+          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 50 AND COALESCE(risk_score,0) < 70) AS high,
+          COUNT(*) FILTER (WHERE COALESCE(risk_score,0) >= 70) AS critical
         FROM unified_articles WHERE geopolitical_relevance = 1
         """)
 

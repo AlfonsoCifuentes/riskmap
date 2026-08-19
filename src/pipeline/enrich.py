@@ -370,64 +370,56 @@ def reclassify_relevance(batch: int = 5000):
     AI. Idempotent — safe to run each pipeline pass."""
     from src.core.relevance import score as relevance_score
     db = get_db()
-    ph = db.placeholder
     rows = db.execute(
         "SELECT id, title, summary, content FROM unified_articles LIMIT %d" % int(batch),
         fetch=True,
     )
-    demoted = promoted = 0
+    promote, demote = [], []
     for r in rows:
         text = " ".join(filter(None, [r.get("title"), r.get("summary"),
                                       r.get("content")]))[:4000]
         _s, is_rel, _cat = relevance_score(text)
-        new_val = 1 if is_rel else 0
-        db.execute(
-            f"UPDATE unified_articles SET geopolitical_relevance = {ph} "
-            f"WHERE id = {ph} AND COALESCE(geopolitical_relevance, -1) <> {ph}",
-            (new_val, r["id"], new_val),
-        )
-        if is_rel:
-            promoted += 1
-        else:
-            demoted += 1
-    logger.info(f"Reclassified relevance: {promoted} relevant, {demoted} filtered out")
-    return demoted
+        (promote if is_rel else demote).append(r["id"])
+    # Bulk updates (2 round-trips instead of one per row) to avoid timeouts.
+    if promote:
+        db.execute("UPDATE unified_articles SET geopolitical_relevance = 1 "
+                   "WHERE id = ANY(%s) AND COALESCE(geopolitical_relevance,-1) <> 1",
+                   (promote,))
+    if demote:
+        db.execute("UPDATE unified_articles SET geopolitical_relevance = 0 "
+                   "WHERE id = ANY(%s) AND COALESCE(geopolitical_relevance,-1) <> 0",
+                   (demote,))
+    logger.info(f"Reclassified relevance: {len(promote)} relevant, {len(demote)} filtered out")
+    return len(demote)
 
 
-def normalize_risk_levels(batch: int = 8000):
-    """Repair corrupted risk_level values (e.g. '8.0') to the canonical bands.
+def normalize_risk_levels():
+    """Standardize the risk scale + repair risk_level, in TWO bulk statements.
 
-    Several pages filter by risk_level ('high'/'critical'); junk numeric values
-    broke Early Warning and risk badges. Derive the band from risk_score.
-    Cheap, idempotent — runs each pipeline pass."""
+    1) risk_score is stored on a single 0..100 scale (legacy keyword scores were
+       0..1). Convert any value <= 1 to *100.
+    2) risk_level derived from risk_score with the canonical bands
+       (low<30, medium 30-50, high 50-70, critical>=70), fixing junk values like
+       '8.0' that broke Early Warning and risk badges.
+
+    Bulk SQL (no per-row round-trips) so it can't time out. Idempotent."""
     db = get_db()
-    ph = db.placeholder
-    rows = db.execute(
-        "SELECT id, risk_score, risk_level FROM unified_articles "
-        "LIMIT %d" % int(batch),
-        fetch=True,
-    )
-    valid = {'low', 'medium', 'high', 'critical'}
-    fixed = 0
-    for r in rows:
-        lvl = (r.get('risk_level') or '').strip().lower()
-        if lvl in valid:
-            continue
-        try:
-            score = float(r.get('risk_score') or 0)
-        except (TypeError, ValueError):
-            score = 0
-        if score <= 1:
-            score *= 100
-        new_lvl = ('critical' if score >= 80 else 'high' if score >= 60
-                   else 'medium' if score >= 35 else 'low')
-        db.execute(
-            f"UPDATE unified_articles SET risk_level = {ph} WHERE id = {ph}",
-            (new_lvl, r['id']),
-        )
-        fixed += 1
-    logger.info(f"Normalized {fixed} risk_level values")
-    return fixed
+    # Only Postgres supports this cleanly; SQLite (local/tests) is a no-op guard.
+    if getattr(db, 'backend_name', 'postgres') != 'postgres':
+        return 0
+    db.execute(
+        "UPDATE unified_articles SET risk_score = risk_score * 100 "
+        "WHERE risk_score IS NOT NULL AND risk_score > 0 AND risk_score <= 1")
+    db.execute(
+        """UPDATE unified_articles SET risk_level = CASE
+               WHEN COALESCE(risk_score,0) >= 70 THEN 'critical'
+               WHEN COALESCE(risk_score,0) >= 50 THEN 'high'
+               WHEN COALESCE(risk_score,0) >= 30 THEN 'medium'
+               ELSE 'low' END
+           WHERE risk_level IS NULL
+              OR LOWER(risk_level) NOT IN ('low','medium','high','critical')""")
+    logger.info("Normalized risk scale + risk_level (bulk)")
+    return 1
 
 
 def enrich_articles():
@@ -507,6 +499,9 @@ def enrich_articles():
             keyword_risk_0_1=risk_score,
             geo_confidence=geo_fields.get('geo_confidence', 0.4),
         )
+        # Store risk_score on a single 0..100 scale (consistent with the rest of
+        # the app: badges, bands, Early Warning). Heatmap divides by 100.
+        risk_score_100 = round(risk_score * 100, 1)
 
         # Update article
         coords_src = 'ai_groq' if ai_location_used else ('regex' if country else None)
@@ -535,7 +530,7 @@ def enrich_articles():
             WHERE id = {ph}""",
             (
                 1 if is_geo else 0,
-                risk_score,
+                risk_score_100,
                 risk_level,
                 conflict_type,
                 sentiment,
@@ -552,7 +547,7 @@ def enrich_articles():
                 geo_fields.get('geo_is_fallback'),
                 risk_fields['event_confidence'],
                 risk_fields['risk_engine_version'],
-                risk_score,  # quality_score = risk_score as baseline
+                risk_score_100,  # quality_score baseline (0..100)
                 article_id,
             ),
         )

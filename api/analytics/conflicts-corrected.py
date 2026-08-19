@@ -63,8 +63,8 @@ class handler(BaseHTTPRequestHandler):
             for row in zones:
                 score = float(row['avg_risk_score'] or 0)
                 risk_level = (
-                    'high' if score >= 40
-                    else 'medium' if score >= 25
+                    'high' if score >= 50
+                    else 'medium' if score >= 30
                     else 'low'
                 )
                 conflict_zones.append({
