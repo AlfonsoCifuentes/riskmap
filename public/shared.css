@@ -739,3 +739,20 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   .reveal, .reveal-left, .reveal-right, .reveal-scale,
   .stagger > * { opacity: 1; transform: none; }
 }
+
+/* --- Honesty capability labels (spec: LIVE/NEAR-REAL-TIME/EXPERIMENTAL/DEGRADED/REPLAY) --- */
+.honesty {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: var(--r-full); padding: 4px 12px;
+  font-size: .66rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .08em; white-space: nowrap;
+  vertical-align: middle;
+}
+.honesty::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.honesty-live { border: 1px solid rgba(34,214,142,.5); background: rgba(34,214,142,.1); color: #5ae8b1; }
+.honesty-nrt { border: 1px solid rgba(78,161,255,.5); background: rgba(78,161,255,.1); color: #74b8ff; }
+.honesty-experimental { border: 1px solid rgba(255,176,56,.5); background: rgba(255,176,56,.1); color: #ffc55c; }
+.honesty-degraded { border: 1px solid rgba(126,147,189,.4); background: rgba(126,147,189,.09); color: #9eb0dd; }
+.honesty-replay { border: 1px solid rgba(183,155,255,.5); background: rgba(183,155,255,.1); color: #c6adff; }
+.honesty-note { display:block; margin-top:10px; font-size:.76rem; color: var(--text-2); max-width: 70ch; }
+.honesty-note b { color: var(--text-1); font-weight:600; }
