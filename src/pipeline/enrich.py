@@ -580,6 +580,21 @@ def _create_events_from_articles(db):
     """Group recent high-risk articles into events."""
     ph = db.placeholder
 
+    # One-time, idempotent heal: earlier auto-generated events stored `severity`
+    # on the wrong scale (0..100 instead of 0..1) and saturated to "critical".
+    # Unlink their articles and delete them so they re-fuse correctly below.
+    # After the heal no rows have severity > 1, so this is a no-op thereafter.
+    try:
+        db.execute(
+            "UPDATE unified_articles SET event_id = NULL WHERE event_id IN "
+            "(SELECT id FROM events WHERE severity > 1 "
+            " AND COALESCE(explanation,'') LIKE 'Auto-generated%')")
+        db.execute(
+            "DELETE FROM events WHERE severity > 1 "
+            "AND COALESCE(explanation,'') LIKE 'Auto-generated%'")
+    except Exception as exc:  # heal is best-effort; never block enrichment
+        logger.warning(f"event severity heal skipped: {exc}")
+
     # risk_score is on the 0..100 scale; >= 30 keeps genuinely-relevant items
     # (the relevance gate already guarantees >=30, so this is every relevant
     # recent article). published_at is SELECTed so temporal separation works —
