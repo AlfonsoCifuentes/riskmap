@@ -10,6 +10,7 @@ from api._db import (
     error_from_exc,
     json_response,
     neon_get,
+    neon_sql,
     send_response,
 )
 
@@ -36,15 +37,23 @@ class handler(BaseHTTPRequestHandler):
                 limit=limit,
             )
 
-            # Fetch locations for each event
+            # Fetch ALL locations in ONE query (was N+1: one query per event,
+            # which made this endpoint take ~46s for 60 events). Group in Python.
             if events:
+                ids = [ev['id'] for ev in events]
+                rows = neon_sql(
+                    "SELECT event_id, latitude, longitude, name, precision_km "
+                    "FROM event_locations WHERE event_id = ANY(%s)",
+                    [ids],
+                )
+                by_event = {}
+                for r in rows:
+                    by_event.setdefault(r['event_id'], []).append({
+                        'latitude': r['latitude'], 'longitude': r['longitude'],
+                        'name': r['name'], 'precision_km': r['precision_km'],
+                    })
                 for ev in events:
-                    locs = neon_get(
-                        'event_locations',
-                        params={'event_id': f'eq.{ev["id"]}'},
-                        select='latitude,longitude,name,precision_km',
-                    )
-                    ev['locations'] = locs
+                    ev['locations'] = by_event.get(ev['id'], [])
 
             resp = json_response({'success': True, 'events': events, 'count': len(events)})
             send_response(self, resp)
