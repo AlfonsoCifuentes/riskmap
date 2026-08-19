@@ -8463,6 +8463,39 @@ users never see the cold-start reveal delay). 12 aria-labels across pages.
 across all pages; data-intel AI-rewriting metric now uses the real
 `ai_summarized` aggregate.
 
+## Session 2026-08-19f — real fire signals + root-cause DB bug + security audits
+
+**FIRMS fire signals now surface (60 real detections).** Reading the imagery run
+logs showed NASA's FIRMS host is unreachable from GitHub runners ('Network is
+unreachable'), so live-only signal creation produced nothing. Rebuilt the
+feature to derive signals from the ALREADY-STORED firms_hotspot images (43 rows
+of real VIIRS detections) each run, deduped by lat/lon/date — connectivity
+-independent. `/api/signals` went from 0 → 60 geolocated fire signals; Early
+Warning / video / satellite signal counts now show real data.
+
+**Root-cause DB bug: literal '%' in parameterless SQL.** `db.execute` defaulted
+params to an empty tuple, so psycopg2 treated '%' in `LIKE '%FIRMS%'` /
+`LIKE 'Unknown —%'` as format placeholders → 'tuple index out of range'. This
+had SILENTLY broken the FIRMS sync AND the event-title heal (both swallowed by
+try/except). Fixed at the source — both backends now use the single-arg execute
+form when there are no params (literal %). Verified the other DB path
+(`api/_db.py::_pg_query`, params=None default) and `gdelt-events.py`
+(parameterised, `%%` correctly escaped) were already safe.
+
+**Security audits (systematic):**
+- **XSS:** swept every render path. `escH`+`stripHtml` are used consistently for
+  all feed-sourced strings (title/summary/source/description/url/source_type).
+  One gap: the executive report interpolated a geo place name into a markdown
+  string rendered by `marked.parse` (raw HTML, unsanitised) — now escaped.
+- **SQLi:** already closed at P0 (parameterised + identifier allowlist,
+  11 tests) — re-confirmed no raw interpolation of request input remains.
+- **Graceful degradation of external deps:** ingest (RSS per-feed try/except;
+  NewsAPI key-check + try/except; GDELT retry+guard), imagery (FIRMS/Sentinel-2/
+  GIBS all return empty/None on failure) — one failing source never crashes the
+  run.
+
+108 unit tests green; CI green.
+
 # Post-Implementation Independent Re-Audit
 ```
 
