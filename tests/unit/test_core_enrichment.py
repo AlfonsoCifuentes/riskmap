@@ -32,3 +32,17 @@ def test_derive_risk_separates_score_and_confidence():
     assert 0 <= r["event_confidence"] <= 100
     assert r["risk_engine_version"]
     assert r["severity_normalized"] == 90.0
+
+
+def test_severity_scale_contract_0_1_not_0_100():
+    """derive_risk expects a 0..1 severity. Feeding a 0..100 value saturates the
+    engine (every event -> critical) — the live event path must normalise first.
+    Regression for the pipeline scale bug (spec next-steps #1)."""
+    from src.core.enrichment import derive_risk
+    good = derive_risk(keyword_risk_0_1=0.6)      # correct: 0..1 severity
+    saturated = derive_risk(keyword_risk_0_1=60)  # wrong scale: clamps to 1.0
+    assert good["risk_level"] != "critical"
+    assert good["severity_normalized"] == 60.0
+    assert saturated["severity_normalized"] == 100.0  # proves saturation
+    # normalising 0..100 -> 0..1 reproduces the correct result
+    assert derive_risk(keyword_risk_0_1=60/100.0)["risk_level"] == good["risk_level"]

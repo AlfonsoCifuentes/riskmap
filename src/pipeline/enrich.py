@@ -580,12 +580,17 @@ def _create_events_from_articles(db):
     """Group recent high-risk articles into events."""
     ph = db.placeholder
 
+    # risk_score is on the 0..100 scale; >= 30 keeps genuinely-relevant items
+    # (the relevance gate already guarantees >=30, so this is every relevant
+    # recent article). published_at is SELECTed so temporal separation works —
+    # without it, fusion ignores time and merges distinct incidents.
     rows = db.execute(
-        "SELECT id, title, url, conflict_type, country, latitude, longitude, risk_score "
+        "SELECT id, title, url, conflict_type, country, latitude, longitude, "
+        "       risk_score, published_at "
         "FROM unified_articles "
-        "WHERE geopolitical_relevance = 1 AND risk_score >= 0.5 "
+        "WHERE geopolitical_relevance = 1 AND COALESCE(risk_score,0) >= 30 "
         "  AND event_id IS NULL "
-        "ORDER BY published_at DESC LIMIT 50",
+        "ORDER BY published_at DESC NULLS LAST LIMIT 120",
         fetch=True,
     )
 
@@ -628,14 +633,18 @@ def _create_events_from_articles(db):
         country = rep.get('country')
         is_disaster = ctype == 'natural_disaster'
         event_type = 'disaster' if is_disaster else 'conflict'
-        avg_score = sum(a.get('risk_score', 0) for a in articles) / len(articles)
+        # Article risk_score is on the 0..100 scale in the DB; the risk engine
+        # expects a 0..1 severity, so normalise before averaging. (Feeding 0..100
+        # here previously clamped every event to severity 1.0 -> all "critical".)
+        avg_score_100 = sum(a.get('risk_score', 0) or 0 for a in articles) / len(articles)
+        severity_01 = max(0.0, min(1.0, avg_score_100 / 100.0))
         title = f"{ctype.replace('_', ' ').title()} — {country}" if country else ctype
 
         # v2 event-level risk + confidence (spec §4.7): more independent domains
         # -> higher confidence, not higher risk.
         indep = cluster['independent_source_count'] or 1
         ev_risk = derive_risk(
-            keyword_risk_0_1=avg_score,
+            keyword_risk_0_1=severity_01,
             geo_confidence=0.6,
             independent_source_count=indep,
         )
@@ -650,7 +659,7 @@ def _create_events_from_articles(db):
                  status, first_seen_at, last_evidence_at)
                 VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},
                         {ph},{ph},{ph},{ph},{ph},{ph})""",
-            (event_type, ctype, title, avg_score, now_iso,
+            (event_type, ctype, title, severity_01, now_iso,
              f"Auto-generated from {len(articles)} articles",
              ev_risk['risk_score'], ev_risk['risk_level'],
              ev_risk['event_confidence'], ev_risk['severity_normalized'],
