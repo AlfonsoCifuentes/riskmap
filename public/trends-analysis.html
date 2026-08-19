@@ -155,27 +155,31 @@
     if (window.initReveals) window.initReveals();
   }
 
-  async function load(){
+  function load(){
     var lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'es';
-    var results = await Promise.all([
-      fetchJSON('/api/analytics/conflicts-corrected'),
-      fetchJSON('/api/articles?limit=200&lang=' + lang)
-    ]);
-    var analytics = results[0], articlesResp = results[1];
+    // Progressive: KPIs + sources paint when analytics lands; the charts render
+    // once both analytics and the articles series are in.
+    var pAnalytics = fetchJSON('/api/analytics/conflicts-corrected');
+    var pArticles  = fetchJSON('/api/articles?limit=200&lang=' + lang);
 
-    if (!analytics || !analytics.success){
-      showToast(i18n.t('trends.errorAnalytics'), 'error');
-      return;
-    }
-    var articles = (articlesResp && articlesResp.articles) || [];
+    pAnalytics.then(function(analytics){
+      if (!analytics || !analytics.success){
+        showToast(i18n.t('trends.errorAnalytics'), 'error');
+        return;
+      }
+      animCount(document.getElementById('kpiTotal'), analytics.statistics.total_articles || 0);
+      animCount(document.getElementById('kpiAvgRisk'), Math.round(analytics.statistics.avg_risk_score || 0));
+      animCount(document.getElementById('kpiSources'), analytics.statistics.active_sources || 0);
+      animCount(document.getElementById('kpiZones'), analytics.statistics.total_zones || 0);
+      renderSources(analytics.top_sources || []);
+    });
 
-    animCount(document.getElementById('kpiTotal'), analytics.statistics.total_articles || 0);
-    animCount(document.getElementById('kpiAvgRisk'), Math.round(analytics.statistics.avg_risk_score || 0));
-    animCount(document.getElementById('kpiSources'), analytics.statistics.active_sources || 0);
-    animCount(document.getElementById('kpiZones'), analytics.statistics.total_zones || 0);
-
-    renderCharts(analytics, articles);
-    renderSources(analytics.top_sources || []);
+    Promise.all([pAnalytics, pArticles]).then(function(r){
+      var analytics = r[0];
+      if (!analytics || !analytics.success) return;
+      var articles = (r[1] && r[1].articles) || [];
+      renderCharts(analytics, articles);
+    });
   }
 
   document.addEventListener('DOMContentLoaded', load);

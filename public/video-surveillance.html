@@ -91,28 +91,27 @@
       '</div></article>';
   }
 
-  async function load(){
-    var results = await Promise.all([
-      fetchJSON('/api/images?limit=200'),
-      fetchJSON('/api/signals?limit=200')
-    ]);
-    var imagesResp = results[0], signalsResp = results[1];
-
-    var images = (imagesResp && imagesResp.images) || [];
-    var feeds = images.filter(function(i){return looksVideoType(i.source_type);});
-    var visualSignals = ((signalsResp && signalsResp.signals) || []).filter(function(s){return s.image_id || s.detection_id;});
-
-    animCount(document.getElementById('kpiFeeds'), feeds.length);
-    animCount(document.getElementById('kpiSignals'), visualSignals.length);
-    animCount(document.getElementById('kpiDetections'), visualSignals.filter(function(s){return s.detection_id;}).length);
-    animCount(document.getElementById('kpiGeo'), feeds.filter(function(f){return f.latitude && f.longitude;}).length);
-
-    var grid = document.getElementById('feedGrid');
-    if (!grid) return;
-    grid.innerHTML = feeds.length
-      ? feeds.slice(0, 60).map(feedCard).join('')
-      : '<div class="empty-state"><div class="empty-icon">📷</div><h3>' + i18n.t('video.noFeeds') + '</h3><p>' + i18n.t('video.noFeedsDesc') + '</p></div>';
-    if (window.initReveals) window.initReveals();
+  function load(){
+    // Progressive: feeds paint as soon as images land; visual-signal KPIs fill
+    // in independently.
+    fetchJSON('/api/images?limit=200').then(function(imagesResp){
+      var images = (imagesResp && imagesResp.images) || [];
+      var feeds = images.filter(function(i){return looksVideoType(i.source_type);});
+      animCount(document.getElementById('kpiFeeds'), feeds.length);
+      animCount(document.getElementById('kpiGeo'), feeds.filter(function(f){return f.latitude && f.longitude;}).length);
+      var grid = document.getElementById('feedGrid');
+      if (grid) {
+        grid.innerHTML = feeds.length
+          ? feeds.slice(0, 60).map(feedCard).join('')
+          : '<div class="empty-state"><div class="empty-icon">📷</div><h3>' + i18n.t('video.noFeeds') + '</h3><p>' + i18n.t('video.noFeedsDesc') + '</p></div>';
+      }
+      if (window.initReveals) window.initReveals();
+    });
+    fetchJSON('/api/signals?limit=200').then(function(signalsResp){
+      var visualSignals = ((signalsResp && signalsResp.signals) || []).filter(function(s){return s.image_id || s.detection_id;});
+      animCount(document.getElementById('kpiSignals'), visualSignals.length);
+      animCount(document.getElementById('kpiDetections'), visualSignals.filter(function(s){return s.detection_id;}).length);
+    });
   }
 
   document.addEventListener('DOMContentLoaded', load);

@@ -97,14 +97,9 @@
 (function(){
   'use strict';
 
-  async function load(){
-    var results = await Promise.all([
-      fetchJSON('/api/status'),
-      fetchJSON('/api/analytics/conflicts-corrected')
-    ]);
-    var status = results[0];
-    var analytics = results[1];
-
+  function load(){
+    // Progressive: the status panel and the sources list paint independently.
+    fetchJSON('/api/analytics/conflicts-corrected').then(function(analytics){
     var sources = (analytics && analytics.top_sources) || [];
     var srcEl = document.getElementById('sourcesList');
     if (srcEl) {
@@ -112,7 +107,10 @@
         ? sources.map(function(s){return '<div class="src-item"><strong>' + escH(s.name || i18n.t('about.unknownSource')) + '</strong><span>' + Number(s.count || 0) + '</span></div>';}).join('')
         : '<p style="color:var(--text-2);font-size:.82rem">' + i18n.t('about.noSources') + '</p>';
     }
+      if (window.initReveals) window.initReveals();
+    });
 
+    fetchJSON('/api/status').then(function(status){
     var stEl = document.getElementById('statusPanel');
     if (stEl) {
       stEl.innerHTML = status
@@ -124,8 +122,8 @@
           + '</ul>'
         : '<p style="color:var(--text-2);font-size:.82rem">' + i18n.t('about.noStatus') + '</p>';
     }
-
-    if (window.initReveals) window.initReveals();
+      if (window.initReveals) window.initReveals();
+    });
   }
 
   document.addEventListener('DOMContentLoaded', load);

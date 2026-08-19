@@ -87,31 +87,28 @@
       '</div></article>';
   }
 
-  async function load(){
-    var results = await Promise.all([
-      fetchJSON('/api/images?limit=120&source_type=satellite'),
-      fetchJSON('/api/signals?limit=200')
-    ]);
-    var imagesResp = results[0], signalsResp = results[1];
-
-    var images = (imagesResp && imagesResp.images) || [];
-    var signals = (signalsResp && signalsResp.signals) || [];
-
-    var geocoded = images.filter(function(i){return i.latitude && i.longitude;}).length;
-    var eventsLinked = images.filter(function(i){return i.event_id;}).length;
-
-    animCount(document.getElementById('kpiImages'), images.length);
-    animCount(document.getElementById('kpiGeo'), geocoded);
-    animCount(document.getElementById('kpiSignals'), signals.length);
-    animCount(document.getElementById('kpiEvents'), eventsLinked);
-
-    var gallery = document.getElementById('gallery');
-    if (gallery) {
-      gallery.innerHTML = images.length
-        ? images.slice(0, 60).map(imageCard).join('')
-        : '<div class="empty-state"><div class="empty-icon">🛰️</div><h3>' + i18n.t('satellite.noImages') + '</h3><p>' + i18n.t('satellite.noImagesDesc') + '</p></div>';
-    }
-    if (window.initReveals) window.initReveals();
+  function load(){
+    // Progressive: the gallery paints as soon as images land; the signals KPI
+    // fills in independently so it never blocks the imagery.
+    fetchJSON('/api/images?limit=120&source_type=satellite').then(function(imagesResp){
+      var images = (imagesResp && imagesResp.images) || [];
+      var geocoded = images.filter(function(i){return i.latitude && i.longitude;}).length;
+      var eventsLinked = images.filter(function(i){return i.event_id;}).length;
+      animCount(document.getElementById('kpiImages'), images.length);
+      animCount(document.getElementById('kpiGeo'), geocoded);
+      animCount(document.getElementById('kpiEvents'), eventsLinked);
+      var gallery = document.getElementById('gallery');
+      if (gallery) {
+        gallery.innerHTML = images.length
+          ? images.slice(0, 60).map(imageCard).join('')
+          : '<div class="empty-state"><div class="empty-icon">🛰️</div><h3>' + i18n.t('satellite.noImages') + '</h3><p>' + i18n.t('satellite.noImagesDesc') + '</p></div>';
+      }
+      if (window.initReveals) window.initReveals();
+    });
+    fetchJSON('/api/signals?limit=200').then(function(signalsResp){
+      var signals = (signalsResp && signalsResp.signals) || [];
+      animCount(document.getElementById('kpiSignals'), signals.length);
+    });
   }
 
   document.addEventListener('DOMContentLoaded', load);

@@ -158,24 +158,23 @@
     if (Number.isFinite(lat) && Number.isFinite(lon)) map.flyTo([lat, lon], 5, {duration:1.2});
   };
 
-  async function load(){
-    var results = await Promise.all([
-      fetchJSON('/api/heatmap?limit=1800'),
-      fetchJSON('/api/analytics/conflicts-corrected')
-    ]);
-    var heat = results[0], analytics = results[1];
-    var zones = (analytics && analytics.conflicts) || [];
-    var points = (heat && heat.points) || [];
-    var dist = (analytics && analytics.statistics && analytics.statistics.risk_distribution) || {};
-
-    animCount(document.getElementById('kpiPoints'), (heat && heat.count) || 0);
-    animCount(document.getElementById('kpiZones'), zones.length);
-    animCount(document.getElementById('kpiHigh'), (dist.high || 0));
-    animCount(document.getElementById('kpiArticles'), (analytics && analytics.statistics && analytics.statistics.total_articles) || 0);
-
-    drawZones(zones);
-    drawHeat(points);
-    renderZoneList(zones);
+  function load(){
+    // Progressive: the heat layer and the zones/list paint independently, so a
+    // slow endpoint never blocks the whole map.
+    fetchJSON('/api/heatmap?limit=1800').then(function(heat){
+      var points = (heat && heat.points) || [];
+      animCount(document.getElementById('kpiPoints'), (heat && heat.count) || 0);
+      drawHeat(points);
+    });
+    fetchJSON('/api/analytics/conflicts-corrected').then(function(analytics){
+      var zones = (analytics && analytics.conflicts) || [];
+      var dist = (analytics && analytics.statistics && analytics.statistics.risk_distribution) || {};
+      animCount(document.getElementById('kpiZones'), zones.length);
+      animCount(document.getElementById('kpiHigh'), (dist.high || 0));
+      animCount(document.getElementById('kpiArticles'), (analytics && analytics.statistics && analytics.statistics.total_articles) || 0);
+      drawZones(zones);
+      renderZoneList(zones);
+    });
   }
 
   document.addEventListener('DOMContentLoaded', function(){

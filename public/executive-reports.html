@@ -149,38 +149,39 @@
     if (window.initReveals) window.initReveals();
   }
 
-  async function load(){
-    var results = await Promise.all([
-      fetchJSON('/api/status'),
-      fetchJSON('/api/analytics/conflicts-corrected?timeframe=30d'),
-      fetchJSON('/api/events?limit=60'),
-      fetchJSON('/api/signals?limit=80')
-    ]);
-    var status = results[0], analytics = results[1], eventsResp = results[2], signalsResp = results[3];
+  function load(){
+    // Progressive: KPIs + priority list paint as their data lands; the full
+    // report renders once all four sources are in (it summarises all of them).
+    var pStatus  = fetchJSON('/api/status');
+    var pAnalytics = fetchJSON('/api/analytics/conflicts-corrected?timeframe=30d');
+    var pEvents  = fetchJSON('/api/events?limit=60');
+    var pSignals = fetchJSON('/api/signals?limit=80');
 
-    var model = {
-      status: status || {},
-      analytics: analytics || {},
-      events: (eventsResp && eventsResp.events) || [],
-      signals: (signalsResp && signalsResp.signals) || []
-    };
+    pStatus.then(function(status){
+      animCount(document.getElementById('kpiArticles'), (status && status.total_articles) || 0);
+      animCount(document.getElementById('kpiCritical'), (status && status.critical_alerts) || 0);
+    });
+    pSignals.then(function(s){ animCount(document.getElementById('kpiSignals'), ((s && s.signals) || []).length); });
+    pEvents.then(function(e){ animCount(document.getElementById('kpiEvents'), ((e && e.events) || []).length); });
+    pAnalytics.then(function(analytics){ renderQuickList((analytics && analytics.conflicts) || []); });
 
-    animCount(document.getElementById('kpiArticles'), (status && status.total_articles) || 0);
-    animCount(document.getElementById('kpiCritical'), (status && status.critical_alerts) || 0);
-    animCount(document.getElementById('kpiSignals'), model.signals.length);
-    animCount(document.getElementById('kpiEvents'), model.events.length);
-
-    reportText = buildReport(model);
-    var reportBody = document.getElementById('reportBody');
-    if (reportBody) {
-      if (typeof marked !== 'undefined' && marked.parse) {
-        reportBody.innerHTML = marked.parse(reportText);
-      } else {
-        reportBody.innerHTML = reportText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    Promise.all([pStatus, pAnalytics, pEvents, pSignals]).then(function(r){
+      var model = {
+        status: r[0] || {},
+        analytics: r[1] || {},
+        events: (r[2] && r[2].events) || [],
+        signals: (r[3] && r[3].signals) || []
+      };
+      reportText = buildReport(model);
+      var reportBody = document.getElementById('reportBody');
+      if (reportBody) {
+        if (typeof marked !== 'undefined' && marked.parse) {
+          reportBody.innerHTML = marked.parse(reportText);
+        } else {
+          reportBody.innerHTML = reportText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        }
       }
-    }
-
-    renderQuickList((analytics && analytics.conflicts) || []);
+    });
   }
 
   function downloadReport(){

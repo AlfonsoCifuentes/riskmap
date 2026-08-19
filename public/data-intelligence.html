@@ -147,41 +147,48 @@
     if (window.initReveals) window.initReveals();
   }
 
-  async function load(){
+  function load(){
     var lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'es';
-    var results = await Promise.all([
-      fetchJSON('/api/status'),
-      fetchJSON('/api/analytics/conflicts-corrected'),
-      fetchJSON('/api/articles/deduplicated?limit=60&lang=' + lang),
-      fetchJSON('/api/heatmap?limit=2000'),
-      fetchJSON('/api/signals?limit=200'),
-      fetchJSON('/api/images?limit=200'),
-      fetchJSON('/api/events?limit=120'),
-      fetchJSON('/api/hero-article?lang=' + lang)
-    ]);
-    var status = results[0], analytics = results[1], curated = results[2];
-    var heat = results[3], signalsResp = results[4], imagesResp = results[5];
-    var eventsResp = results[6], hero = results[7];
+    // Progressive: fire all fetches; each section paints as its data lands.
+    var pStatus  = fetchJSON('/api/status');
+    var pAnalytics = fetchJSON('/api/analytics/conflicts-corrected');
+    var pCurated = fetchJSON('/api/articles/deduplicated?limit=60&lang=' + lang);
+    var pHeat    = fetchJSON('/api/heatmap?limit=2000');
+    var pSignals = fetchJSON('/api/signals?limit=200');
+    var pImages  = fetchJSON('/api/images?limit=200');
+    var pEvents  = fetchJSON('/api/events?limit=120');
+    var pHero    = fetchJSON('/api/hero-article?lang=' + lang);
 
-    var metrics = {
-      ingest: (status && status.total_articles) || 0,
-      filtered: (analytics && analytics.statistics && analytics.statistics.total_articles) || 0,
-      curated: (curated && curated.count) || 0,
-      rewritten: (hero && hero.article && hero.article.ai_summary ? 1 : 0),
-      heat: (heat && heat.count) || 0,
-      events: (eventsResp && eventsResp.count) || 0,
-      zones: (analytics && analytics.statistics && analytics.statistics.total_zones) || 0,
-      vision: ((signalsResp && signalsResp.count) || 0) + ((imagesResp && imagesResp.count) || 0)
-    };
+    pStatus.then(function(status){
+      animCount(document.getElementById('kpiIngest'), (status && status.total_articles) || 0);
+    });
+    pAnalytics.then(function(analytics){
+      animCount(document.getElementById('kpiFiltered'), (analytics && analytics.statistics && analytics.statistics.total_articles) || 0);
+      renderSources((analytics && analytics.top_sources) || []);
+    });
+    pHeat.then(function(heat){
+      animCount(document.getElementById('kpiHeat'), (heat && heat.count) || 0);
+    });
+    Promise.all([pSignals, pImages]).then(function(r){
+      animCount(document.getElementById('kpiVision'), ((r[0] && r[0].count) || 0) + ((r[1] && r[1].count) || 0));
+    });
+    pEvents.then(function(eventsResp){ renderEvents(eventsResp); });
 
-    animCount(document.getElementById('kpiIngest'), metrics.ingest);
-    animCount(document.getElementById('kpiFiltered'), metrics.filtered);
-    animCount(document.getElementById('kpiHeat'), metrics.heat);
-    animCount(document.getElementById('kpiVision'), metrics.vision);
-
-    renderPipeline(metrics);
-    renderSources((analytics && analytics.top_sources) || []);
-    renderEvents(eventsResp);
+    /* Pipeline metrics need every source; renders when they're all in. */
+    Promise.all([pStatus, pAnalytics, pCurated, pHeat, pSignals, pImages, pEvents, pHero]).then(function(r){
+      var status=r[0], analytics=r[1], curated=r[2], heat=r[3],
+          signalsResp=r[4], imagesResp=r[5], eventsResp=r[6], hero=r[7];
+      renderPipeline({
+        ingest: (status && status.total_articles) || 0,
+        filtered: (analytics && analytics.statistics && analytics.statistics.total_articles) || 0,
+        curated: (curated && curated.count) || 0,
+        rewritten: (hero && hero.article && hero.article.ai_summary ? 1 : 0),
+        heat: (heat && heat.count) || 0,
+        events: (eventsResp && eventsResp.count) || 0,
+        zones: (analytics && analytics.statistics && analytics.statistics.total_zones) || 0,
+        vision: ((signalsResp && signalsResp.count) || 0) + ((imagesResp && imagesResp.count) || 0)
+      });
+    });
   }
 
   document.addEventListener('DOMContentLoaded', load);
