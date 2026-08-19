@@ -8432,6 +8432,37 @@ honest note naming the real live sources, keeping the "no vehicle/tank detection
 at 10 m" scientific caveat. Lesson: verify capability status against live data,
 not against a stale assumption.
 
+## Session 2026-08-19e — systematic perf profiling + a11y audit
+
+**Endpoint performance profiling (all 18 live endpoints, warm timing):** every
+endpoint returns in <0.5s EXCEPT one bug found and fixed:
+- `/api/events` was **46.5s** — an N+1 query (one DB round-trip per event to
+  fetch locations, 61 queries for 60 events). Rewritten to a single
+  `WHERE event_id = ANY(%s)` batched query → **1.9s cold / 0.23s warm**
+  (~24-240x). This had been silently breaking the executive report (browser's
+  13s fetch timeout → "Eventos: 0"). Scanned every api/ handler — no other
+  query-in-loop N+1 remains.
+- Full warm profile: status 0.09s, analytics 0.25s, heatmap 0.09s, articles
+  0.09s, deduplicated 0.45s, events 0.29s, signals 0.08s, images 0.09s,
+  hero 0.08s, history 0.09s, map-events 0.10s, forecast/report/data-quality/
+  cv-metrics/replay/cameras all <0.1s, pipeline-runs 0.28s.
+
+**Site-wide progressive rendering:** all data pages (home, early-warning,
+satellite, video, conflict-monitoring, data-intelligence, trends, about,
+executive-reports) converted from blocking `await Promise.all([...])` to
+per-section progressive paint, so a single cold-start endpoint no longer blanks
+the page. (logs stays on Promise.all by design — it is an endpoint-health tool.)
+
+**Accessibility audit (passes):** every <img> has alt text; all pages carry a
+`lang` attribute; icon-only controls (hamburger, lang toggle) have aria-labels;
+`:focus-visible` outlines on nav/buttons/inputs/chips; a `prefers-reduced-motion`
+block disables animation AND forces reveals to opacity:1 (so reduced-motion
+users never see the cold-start reveal delay). 12 aria-labels across pages.
+
+**Consistency:** shared `nArticles()` pluraliser ('1 article' not '1 articles')
+across all pages; data-intel AI-rewriting metric now uses the real
+`ai_summarized` aggregate.
+
 # Post-Implementation Independent Re-Audit
 ```
 
