@@ -8397,6 +8397,24 @@ probes). Found and fixed issues only visible in the rendered UI:
   elements. Verified fly-to on the conflict map centres on the real zone
   (Levant), not 0,0. Pluralised "1 article".
 
+## Session 2026-08-19c — imagery QA (satellite + cameras verified real)
+
+Extended the live browser QA to the imagery pages. Findings:
+- Satellite gallery and camera feeds DO serve real imagery (verified by decoding
+  stored frames: a real Sentinel-2 river-delta city scene, a MODIS ocean/cloud
+  scene, and a live Alpine webcam with its own weather overlay). The momentary
+  "blank" thumbnails were `loading="lazy"` placeholders, not a bug.
+- Real bug found: the GIBS fetch used Web-Mercator tile math against the
+  epsg4326 WMTS endpoint, so gibs_modis frames were mis-located (Santiago coords
+  returned open Pacific, not the city). Switched to GIBS **WMS GetMap** with an
+  explicit bbox centred on the event (no tile math), multi-day fallback for
+  cloud/unpublished passes, a near-black guard so empty frames are never stored,
+  and a one-time purge of any pre-existing empty frames.
+
+Pages verified rendering real data end-to-end this session: home, conflict
+-monitor (fly-to → real zone), historical (charts fixed), trends, satellite,
+early-warning (62 high-risk), video (9 live webcams). CI green throughout.
+
 # Post-Implementation Independent Re-Audit
 ```
 
