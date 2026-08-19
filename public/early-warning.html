@@ -68,11 +68,11 @@
   <div class="alert-grid">
     <section class="card reveal">
       <h2 class="section-title" data-i18n="earlyWarning.newsHighRisk">Noticias con riesgo alto/crítico</h2>
-      <div class="alert-list" id="newsAlerts"><div class="loader"><div class="spin"></div><span data-i18n="earlyWarning.loadingNews">Cargando alertas de noticias...</span></div></div>
+      <div class="alert-list" id="newsAlerts" role="region" aria-live="polite" aria-busy="true" aria-label="Alertas de noticias de alto riesgo"><div class="loader"><div class="spin"></div><span data-i18n="earlyWarning.loadingNews">Cargando alertas de noticias...</span></div></div>
     </section>
     <section class="card reveal-right">
       <h2 class="section-title" data-i18n="earlyWarning.operationalSignals">Señales operativas y eventos</h2>
-      <div class="alert-list" id="signalsAlerts"><div class="loader"><div class="spin"></div><span data-i18n="earlyWarning.loadingSignals">Cargando señales...</span></div></div>
+      <div class="alert-list" id="signalsAlerts" role="region" aria-live="polite" aria-busy="true" aria-label="Señales operativas y eventos"><div class="loader"><div class="spin"></div><span data-i18n="earlyWarning.loadingSignals">Cargando señales...</span></div></div>
     </section>
   </div>
 </div>
@@ -118,6 +118,7 @@
               );
             }).join('')
           : '<div class="empty-state"><div class="empty-icon">✅</div><h3>' + i18n.t('earlyWarning.noAlerts') + '</h3><p>' + i18n.t('earlyWarning.noAlertsDesc') + '</p></div>';
+        newsEl.setAttribute('aria-busy', 'false');
       }
       if (window.initReveals) window.initReveals();
     });
@@ -147,6 +148,7 @@
         sigEl.innerHTML = signalItems.length
           ? signalItems.join('')
           : '<div class="empty-state"><div class="empty-icon">📡</div><h3>' + i18n.t('earlyWarning.noSignals') + '</h3><p>' + i18n.t('earlyWarning.noSignalsDesc') + '</p></div>';
+        sigEl.setAttribute('aria-busy', 'false');
       }
       if (window.initReveals) window.initReveals();
     });
