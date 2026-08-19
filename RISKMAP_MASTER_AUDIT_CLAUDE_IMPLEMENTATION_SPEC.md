@@ -8415,6 +8415,23 @@ Pages verified rendering real data end-to-end this session: home, conflict
 -monitor (fly-to → real zone), historical (charts fixed), trends, satellite,
 early-warning (62 high-risk), video (9 live webcams). CI green throughout.
 
+## Session 2026-08-19d — CORRECTION: EO is LIVE, not degraded
+
+Earlier logs (and my own handoffs) repeatedly stated Copernicus/Sentinel-2 and
+NASA FIRMS were "DEGRADED pending owner-supplied secrets". **That was wrong.**
+The live image inventory proves the secrets ARE set and real EO data is flowing:
+
+    /api/images by source_type → sentinel2: 73, firms_hotspot: 27,
+                                 gibs_modis: 74, camera: 9
+
+i.e. real 10 m Sentinel-2 L2A true-colour scenes (Copernicus CDSE), NASA FIRMS
+fire hotspots, MODIS/VIIRS (GIBS) and live cameras are all in production. The
+satellite page's honesty badge was therefore *under-claiming* (labelled
+EXPERIMENTAL / "requires keys / degraded"). Corrected to NEAR-REAL-TIME with an
+honest note naming the real live sources, keeping the "no vehicle/tank detection
+at 10 m" scientific caveat. Lesson: verify capability status against live data,
+not against a stale assumption.
+
 # Post-Implementation Independent Re-Audit
 ```
 
