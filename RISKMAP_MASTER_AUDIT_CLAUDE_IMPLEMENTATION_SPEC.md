@@ -8300,6 +8300,61 @@ Después:
 y al final:
 
 ```text
+## Session 2026-08-19 — data-integrity & honesty pass (continuation)
+
+Merged to production continuously. All work verified live on riskmap-ai.vercel.app.
+
+**Risk scoring & relevance (the "everything is low / off-topic leaks" complaints)**
+- Broadened the conflict lexicon (strike/attack/killed/raid/siege/explosion…) and
+  lowered the normaliser (÷15→÷10); the reclassify pass now BULK re-scores
+  `risk_score` for the whole dataset via array-unnest, so lexicon changes heal
+  existing rows, not just new ones. Live bands went from ~all-low to a real
+  spread (critical 29 / high 20 / medium 51 per 100).
+- Split the negative lexicon into HARD (sport/entertainment) and SOFT
+  (business/tech/lifestyle): a hard-negative term with no strong/disaster event
+  word now disqualifies the item (a review of a *film about a war* no longer
+  scores critical), while medium-only real news (protests, clashes) is kept.
+- Added a 30-item hand-labelled gold set + a precision/recall/F1 quality gate
+  (spec §167). It surfaced two real recall gaps (plural 'floods' not matched;
+  single 'cyberattack' under the 2-signal bar) — fixed via optional-plural
+  matching, 'displaced', and promoting cyberattack to STRONG. Gold P/R/F1 = 1.00.
+
+**Event fusion correctness (re-audit next-step #1)**
+- The live path already called core.events.fuse, but: published_at was not
+  SELECTed (so temporal split was disabled and distinct incidents merged);
+  `risk_score >= 0.5` was a dead 0..1 threshold on the 0..100 scale; and the
+  event fed avg risk_score (0..100) into derive_risk(keyword_risk_0_1=) which
+  clamps to 1.0 → EVERY event became severity 1.0 / critical, storing 100× in
+  the 0..1 `severity` column. All three fixed; +regression test.
+
+**The 2999 risk_score (found during verification)**
+- GDACS disaster alerts stored `severity` on a 0..100 scale, so the map's
+  `severity*100` produced risk up to 2999 with 58 null risk_levels. Made the
+  map + report queries scale-robust (treat severity>1 as already-0..100, clamp
+  100), derive an honest risk_level when null, normalise GDACS severity on
+  insert, and heal all severity>1 rows in place. Live map risk is now bounded
+  1.6–100 with no null levels.
+
+**Frontend honesty & UX (user's multi-part request)**
+- Early Warning fixed (was filtering a null risk_level column → empty); now
+  selects by risk_score client-side and risk_level is kept in sync.
+- Real monthly historical time-series (articles ∪ events, 24 mo) + coverage
+  window with an honest "no synthetic backfill" note.
+- Conflict-monitor zones verified real (Jenin/Kharkiv/Gaza…), fly-to correct.
+- Honest capability labels (LIVE/NEAR-REAL-TIME/EXPERIMENTAL/DEGRADED) added to
+  satellite, video, early-warning and conflict-monitoring pages.
+
+**Forecast (re-audit gap #3)**
+- v0.1 baseline saturated at 1.0 for any steady volume; reframed as
+  rate/(rate+ref) with ref = the prior week's rate, so escalation is measured
+  relative to the recent normal (steady≈0.5, surge↑, calming↓). +regression test.
+
+Unit tests: 108 green (pure `tests/unit`). Deferred (documented, not hidden):
+mypy CI gate — src/core strict-types pull in the untyped DB layer and the
+flagged items are inference artifacts, not runtime bugs; not worth a red/noisy
+gate yet. Legacy RISKMAP.py move still pending. FIRMS/Copernicus remain
+DEGRADED pending owner-supplied free secrets.
+
 # Post-Implementation Independent Re-Audit
 ```
 
