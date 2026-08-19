@@ -182,7 +182,8 @@
         ingest: (status && status.total_articles) || 0,
         filtered: (analytics && analytics.statistics && analytics.statistics.total_articles) || 0,
         curated: (curated && curated.count) || 0,
-        rewritten: (hero && hero.article && hero.article.ai_summary ? 1 : 0),
+        rewritten: (status && status.ai_summarized)
+                   || (hero && hero.article && hero.article.ai_summary ? 1 : 0),
         heat: (heat && heat.count) || 0,
         events: (eventsResp && eventsResp.count) || 0,
         zones: (analytics && analytics.statistics && analytics.statistics.total_zones) || 0,
