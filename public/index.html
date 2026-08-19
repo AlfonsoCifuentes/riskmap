@@ -318,12 +318,17 @@
       var heroA = (hero && hero.article) || null;
       var grid = document.getElementById('newsGrid');
       if (grid) {
-        var heroUrl = heroA && heroA.url;
-        var rest = news.filter(function (a) { return !heroUrl || a.url !== heroUrl; });
-        var html = '';
-        if (heroA) html += tile(heroA, 'featured');
-        html += rest.map(function (a) { return tile(a, riskCls(a)); }).join('');
-        grid.innerHTML = html || '<div class="empty-state"><div class="empty-icon">🗞️</div><h3>' + i18n.t('index.noArticles') + '</h3><p>' + i18n.t('index.noArticlesDesc') + '</p></div>';
+        if (curated === null && hero === null) {
+          // Distinct error state (source unreachable) — not "no news".
+          grid.innerHTML = '<div class="empty-state" role="alert"><div class="empty-icon">⚠️</div><h3>' + i18n.t('index.loadError') + '</h3><p>' + i18n.t('index.loadErrorDesc') + '</p></div>';
+        } else {
+          var heroUrl = heroA && heroA.url;
+          var rest = news.filter(function (a) { return !heroUrl || a.url !== heroUrl; });
+          var html = '';
+          if (heroA) html += tile(heroA, 'featured');
+          html += rest.map(function (a) { return tile(a, riskCls(a)); }).join('');
+          grid.innerHTML = html || '<div class="empty-state"><div class="empty-icon">🗞️</div><h3>' + i18n.t('index.noArticles') + '</h3><p>' + i18n.t('index.noArticlesDesc') + '</p></div>';
+        }
       }
       if (window.initReveals) window.initReveals();
     });
