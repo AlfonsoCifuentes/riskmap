@@ -82,7 +82,9 @@ class _SQLiteBackend:
 
     def execute(self, sql: str, params: tuple = (), *, fetch: bool = False):
         with self.get_conn() as conn:
-            cur = conn.execute(sql, params)
+            # No params -> single-arg form so a literal '%' in the SQL is never
+            # treated as a parameter placeholder by the driver.
+            cur = conn.execute(sql, params) if params else conn.execute(sql)
             if fetch:
                 return [dict(r) for r in cur.fetchall()]
             return cur
@@ -155,7 +157,13 @@ class _PostgresBackend:
         sql = _sqlite_to_pg(sql)
         with self.get_conn() as conn:
             cur = conn.cursor()
-            cur.execute(sql, params)
+            # No params -> single-arg form so a literal '%' in the SQL is never
+            # treated by psycopg2 as a format placeholder (which raises
+            # "tuple index out of range").
+            if params:
+                cur.execute(sql, params)
+            else:
+                cur.execute(sql)
             if fetch:
                 return cur.fetchall()
             return cur

@@ -590,12 +590,14 @@ def _create_events_from_articles(db):
             "UPDATE events SET severity = LEAST(1.0, severity/100.0) "
             "WHERE severity > 1")
         # Cosmetic heal: friendlier labels for previously-unclassified events.
+        # LIKE pattern bound as a parameter — a literal '%' in SQL is mis-read
+        # by the driver as a format placeholder.
         db.execute(
             "UPDATE events SET title = 'Conflicto' || SUBSTRING(title FROM 8) "
-            "WHERE title LIKE 'Unknown —%' AND event_type = 'conflict'")
+            f"WHERE title LIKE {ph} AND event_type = 'conflict'", ('Unknown —%',))
         db.execute(
             "UPDATE events SET title = 'Desastre' || SUBSTRING(title FROM 8) "
-            "WHERE title LIKE 'Unknown —%' AND event_type = 'disaster'")
+            f"WHERE title LIKE {ph} AND event_type = 'disaster'", ('Unknown —%',))
     except Exception as exc:  # heal is best-effort; never block enrichment
         logger.warning(f"event severity heal skipped: {exc}")
 

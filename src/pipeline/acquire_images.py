@@ -513,8 +513,10 @@ def _sync_firms_signals(days: int = 3, max_signals: int = 60):
     db = get_db()
     ph = db.placeholder
     # Fresh snapshot: drop previous FIRMS-derived signals (non-fire untouched).
+    # NB: the LIKE pattern is bound as a parameter — a literal '%FIRMS%' in the
+    # SQL would be mis-read by the driver as a format placeholder.
     db.execute("DELETE FROM signals WHERE signal_type = 'disaster_signal' "
-               "AND COALESCE(title,'') LIKE '%FIRMS%'")
+               f"AND COALESCE(title,'') LIKE {ph}", ('%FIRMS%',))
     rows = db.execute(
         "SELECT id, event_id, metadata_json, captured_at FROM images "
         "WHERE source_type = 'firms_hotspot' AND metadata_json IS NOT NULL "
