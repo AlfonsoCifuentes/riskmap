@@ -650,7 +650,13 @@ def _create_events_from_articles(db):
         # here previously clamped every event to severity 1.0 -> all "critical".)
         avg_score_100 = sum(a.get('risk_score', 0) or 0 for a in articles) / len(articles)
         severity_01 = max(0.0, min(1.0, avg_score_100 / 100.0))
-        title = f"{ctype.replace('_', ' ').title()} — {country}" if country else ctype
+        # Human-friendly label; avoid ugly "Unknown — Iran" when the conflict
+        # type wasn't classified — fall back to the event kind.
+        if ctype and ctype not in ('unknown', 'natural_disaster'):
+            label = ctype.replace('_', ' ').title()
+        else:
+            label = 'Desastre' if is_disaster else 'Conflicto'
+        title = f"{label} — {country}" if country else label
 
         # v2 event-level risk + confidence (spec §4.7): more independent domains
         # -> higher confidence, not higher risk.
