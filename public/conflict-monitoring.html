@@ -101,6 +101,11 @@
     return '#3fe49f';
   }
 
+  function nArticles(n){
+    var w = i18n.t('common.articles');
+    if (Number(n) === 1) w = w.replace(/s$/, '');  // articles->article / artículos->artículo
+    return Number(n || 0) + ' ' + w;
+  }
   function drawZones(zones){
     markers.forEach(function(m){m.remove();});
     markers = [];
@@ -112,7 +117,7 @@
         radius: Math.max(6, Math.min(28, (Number(z.article_count) || 1) * 2)),
         color: color, fillColor: color, fillOpacity: .5, weight: 1.5
       }).addTo(map);
-      marker.bindPopup('<strong>' + escH(z.location || i18n.t('conflicts.unknownZone')) + '</strong><br>' + Number(z.article_count || 0) + ' ' + i18n.t('common.articles') + '<br>' + i18n.t('common.risk') + ' ' + Math.round(z.avg_risk_score || 0) + '%');
+      marker.bindPopup('<strong>' + escH(z.location || i18n.t('conflicts.unknownZone')) + '</strong><br>' + nArticles(z.article_count) + '<br>' + i18n.t('common.risk') + ' ' + Math.round(z.avg_risk_score || 0) + '%');
       markers.push(marker);
     });
   }
@@ -142,7 +147,7 @@
       var pct = Math.min(100, Math.round(((z.avg_risk_score || 0) / maxRisk) * 100));
       return '<article class="zone-item" onclick="flyToZone(' + lat + ',' + lon + ')">' +
         '<h3>' + escH(z.location || i18n.t('conflicts.unknownZone')) + '</h3>' +
-        '<p>' + Number(z.article_count || 0) + ' ' + i18n.t('common.articles') + ' ' + riskBadge(z.risk_level) + ' score ' + Math.round(z.avg_risk_score || 0) + '%</p>' +
+        '<p>' + nArticles(z.article_count) + ' ' + riskBadge(z.risk_level) + ' score ' + Math.round(z.avg_risk_score || 0) + '%</p>' +
         '<div class="zone-risk-bar"><div class="zone-risk-fill" style="width:' + pct + '%"></div></div>' +
       '</article>';
     }).join('');
