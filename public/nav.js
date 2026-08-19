@@ -151,6 +151,19 @@
 
     document.querySelectorAll(".reveal, .reveal-left, .reveal-right, .reveal-scale, .stagger")
       .forEach(function (el) { observer.observe(el); });
+
+    // Safety net: never let reveal animations leave content invisible. If for
+    // any reason an element hasn't been revealed shortly after load (slow
+    // paint, observer hiccup), force it visible so the page is never blank.
+    setTimeout(function () {
+      document.querySelectorAll(
+        ".reveal:not(.visible), .reveal-left:not(.visible), " +
+        ".reveal-right:not(.visible), .reveal-scale:not(.visible), .stagger:not(.visible)"
+      ).forEach(function (el) {
+        var r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight) el.classList.add("visible");
+      });
+    }, 1200);
   }
 
   /* ═══════════════════════════════════════════════════════════
