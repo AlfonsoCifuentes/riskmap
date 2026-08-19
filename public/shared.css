@@ -756,3 +756,17 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .honesty-replay { border: 1px solid rgba(183,155,255,.5); background: rgba(183,155,255,.1); color: #c6adff; }
 .honesty-note { display:block; margin-top:10px; font-size:.76rem; color: var(--text-2); max-width: 70ch; }
 .honesty-note b { color: var(--text-1); font-weight:600; }
+
+/* --- Bidirectional text: feed content can arrive in RTL (Arabic/Hebrew) or
+   mixed scripts. `unicode-bidi: plaintext` makes each element auto-detect its
+   base direction from its first strong character (like dir="auto"), so titles
+   and summaries render correctly regardless of the source language. --- */
+.tile-title, .tile-src,
+.alert-item h3, .alert-item p,
+.country-item strong,
+.zone-item h3, .zone-item p,
+.quick-item h3, .quick-item p,
+.hero-feature h2, .hero-feature p,
+.src-item strong, .source-item strong {
+  unicode-bidi: plaintext;
+}
