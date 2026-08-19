@@ -92,14 +92,16 @@
   async function load(){
     var lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'es';
     var results = await Promise.all([
-      fetchJSON('/api/articles?limit=40&risk_level=high&lang=' + lang),
+      fetchJSON('/api/articles?limit=100&lang=' + lang),
       fetchJSON('/api/signals?limit=80'),
       fetchJSON('/api/events?severity_min=0.6&limit=60'),
       fetchJSON('/api/analytics/conflicts-corrected')
     ]);
 
     var highNews = results[0], signalsResp = results[1], eventsResp = results[2], analytics = results[3];
-    var news = (highNews && highNews.articles) || [];
+    var allNews = (highNews && highNews.articles) || [];
+    var news = allNews.filter(function(a){ return Number(a.risk_score||0) >= 50; })
+                      .sort(function(x,y){ return Number(y.risk_score||0) - Number(x.risk_score||0); });
     var signals = (signalsResp && signalsResp.signals) || [];
     var events = (eventsResp && eventsResp.events) || [];
 

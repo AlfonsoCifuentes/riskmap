@@ -396,7 +396,11 @@ def reclassify_relevance(batch: int = 5000):
     # statement via array unnest) so improvements heal the whole dataset.
     if rescore_ids and getattr(db, 'backend_name', 'postgres') == 'postgres':
         db.execute(
-            "UPDATE unified_articles u SET risk_score = t.rs "
+            "UPDATE unified_articles u SET risk_score = t.rs, "
+            "  risk_level = CASE WHEN t.rs >= 70 THEN 'critical' "
+            "                    WHEN t.rs >= 50 THEN 'high' "
+            "                    WHEN t.rs >= 30 THEN 'medium' "
+            "                    ELSE 'low' END "
             "FROM (SELECT unnest(%s::int[]) AS id, unnest(%s::float8[]) AS rs) t "
             "WHERE u.id = t.id",
             (rescore_ids, rescore_vals))
