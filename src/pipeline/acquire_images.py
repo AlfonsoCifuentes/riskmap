@@ -111,31 +111,56 @@ def fetch_firms_hotspots(lat: float, lon: float, radius_km: float = 50) -> List[
 # ---------------------------------------------------------------------------
 
 def fetch_gibs_tile(lat: float, lon: float, layer: str = "VIIRS_SNPP_CorrectedReflectance_TrueColor",
-                    date: str = None) -> Optional[bytes]:
-    """Fetch a GIBS tile (WMTS) for the given location."""
-    if date is None:
-        date = (datetime.utcnow() - timedelta(days=1)).strftime('%Y-%m-%d')
+                    date: str = None, half_deg: float = 3.0) -> Optional[bytes]:
+    """Fetch a real GIBS true-color image centred on (lat, lon).
 
-    # Convert lat/lon to tile coordinates (zoom level 6 for overview)
-    import math
-    zoom = 6
-    n = 2 ** zoom
-    xtile = int((lon + 180.0) / 360.0 * n)
-    ytile = int((1.0 - math.log(math.tan(math.radians(lat)) +
-                1.0 / math.cos(math.radians(lat))) / math.pi) / 2.0 * n)
-
-    url = (
-        f"https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/"
-        f"{layer}/default/{date}/250m/{zoom}/{ytile}/{xtile}.jpg"
-    )
-
-    try:
-        resp = requests.get(url, timeout=20)
-        if resp.status_code == 200 and len(resp.content) > 1000:
-            return resp.content
-    except Exception as e:
-        logger.debug(f"GIBS tile failed: {e}")
+    Uses the GIBS **WMS GetMap** API with an explicit BBOX rather than WMTS
+    tile math: the previous WMTS path mixed Web-Mercator tile coordinates with
+    the epsg4326 (equirectangular) endpoint, so it fetched the wrong tiles and
+    returned black/empty imagery. WMS with a bbox needs no tile math and returns
+    a proper scene. Recent days can be cloudy/not-yet-published, so we try a few
+    back to the last clear pass.
+    """
+    candidates = [date] if date else [
+        (datetime.utcnow() - timedelta(days=d)).strftime('%Y-%m-%d')
+        for d in (1, 2, 3, 5)
+    ]
+    d = half_deg
+    min_lat, max_lat = max(-90.0, lat - d), min(90.0, lat + d)
+    min_lon, max_lon = max(-180.0, lon - d), min(180.0, lon + d)
+    for day in candidates:
+        # WMS 1.3.0 + EPSG:4326 expects BBOX as minLat,minLon,maxLat,maxLon.
+        url = (
+            "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi"
+            "?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0"
+            f"&LAYERS={layer}&CRS=EPSG:4326"
+            f"&BBOX={min_lat},{min_lon},{max_lat},{max_lon}"
+            "&WIDTH=512&HEIGHT=512&FORMAT=image/jpeg"
+            f"&TIME={day}"
+        )
+        try:
+            resp = requests.get(url, timeout=25)
+            ct = resp.headers.get('content-type', '')
+            if (resp.status_code == 200 and ct.startswith('image')
+                    and len(resp.content) > 2000 and not _is_near_black(resp.content)):
+                return resp.content
+        except Exception as e:
+            logger.debug(f"GIBS WMS failed ({day}): {e}")
     return None
+
+
+def _is_near_black(image_bytes: bytes, threshold: float = 12.0) -> bool:
+    """True if the image is essentially black/empty (mean luminance < threshold).
+
+    Guards against storing empty EO tiles as if they were real imagery."""
+    try:
+        from PIL import Image
+        img = Image.open(io.BytesIO(image_bytes)).convert('L')
+        img.thumbnail((64, 64))
+        px = list(img.getdata())
+        return (sum(px) / len(px)) < threshold if px else True
+    except Exception:
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -314,6 +339,10 @@ def store_image(source_type: str, image_bytes: bytes, lat: float, lon: float,
                 event_id: int = None, aoi_id: int = None,
                 source_url: str = None, metadata: dict = None):
     """Compress and store an image in the database."""
+    # Never store an empty/black EO frame as if it were real imagery.
+    if _is_near_black(image_bytes):
+        logger.info(f"  ⏭ skipped near-black {source_type} frame at ({lat:.2f}, {lon:.2f})")
+        return
     db = get_db()
     ph = db.placeholder
 
@@ -391,6 +420,13 @@ def main():
     logger.info("Riskmap A.I. Image Acquisition Pipeline")
     logger.info("=" * 60)
 
+    # One-time cleanup: purge previously-stored black/empty EO frames (the old
+    # WMTS tile math produced them). Idempotent — once purged this finds none.
+    try:
+        _purge_black_images()
+    except Exception as e:
+        logger.warning(f"black-image purge skipped: {e}")
+
     total_acquired = 0
 
     # 1. Process AOIs
@@ -431,6 +467,31 @@ def main():
         _store_gdacs_as_events(gdacs)
 
     logger.info(f"✅ Total images acquired: {total_acquired}")
+
+
+def _purge_black_images():
+    """Decode stored EO frames and delete any that are essentially black/empty."""
+    db = get_db()
+    ph = db.placeholder
+    rows = db.execute(
+        "SELECT id, image_data FROM images "
+        "WHERE image_format = 'webp' AND image_data IS NOT NULL",
+        fetch=True,
+    ) or []
+    to_delete = []
+    for r in rows:
+        data = r.get('image_data')
+        if data is None:
+            continue
+        try:
+            if _is_near_black(bytes(data)):
+                to_delete.append(r['id'])
+        except Exception:
+            continue
+    for img_id in to_delete:
+        db.execute(f"DELETE FROM images WHERE id = {ph}", (img_id,))
+    if to_delete:
+        logger.info(f"🧹 Purged {len(to_delete)} black/empty EO frames")
 
 
 def _store_gdacs_as_events(alerts: List[Dict]):
