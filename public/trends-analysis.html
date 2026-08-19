@@ -77,7 +77,7 @@
   <div class="chart-grid" style="margin-top:clamp(12px,2vw,24px)">
     <section class="chart-card reveal">
       <h2 class="section-title" data-i18n="trends.conflictCategories">Categorías de conflicto</h2>
-      <div class="chart-wrap"><canvas id="categoryChart"></canvas></div>
+      <div id="categoryList" class="chart-wrap" style="height:auto;min-height:120px"><div class="loader"><div class="spin"></div>Cargando…</div></div>
     </section>
     <aside class="card reveal-right">
       <h2 class="section-title" data-i18n="trends.topSources">Top fuentes</h2>
@@ -129,12 +129,17 @@
       options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#c2d4f0',font:{family:'Sora'}}}}}
     });
 
-    if (categoryChart) categoryChart.destroy();
-    categoryChart = new Chart(document.getElementById('categoryChart'), {
-      type:'bar',
-      data:{labels:categories.map(function(c){return c.name;}), datasets:[{label:'Artículos', data:categories.map(function(c){return c.count;}), backgroundColor:'rgba(78,161,255,.55)', borderRadius:6, borderSkipped:false}]},
-      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#7e93bd'},grid:{display:false}},y:{ticks:{color:'#7e93bd'},grid:{color:'rgba(130,165,255,.08)'}}}}
-    });
+    var catEl=document.getElementById('categoryList');
+    if(catEl){
+      var cMax=categories.length?Math.max.apply(null,categories.map(function(c){return c.count;})):1;
+      catEl.innerHTML=categories.length?categories.map(function(c){
+        var pct=Math.round((c.count/cMax)*100);
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 2px;font-size:.82rem;border-bottom:1px solid rgba(130,165,255,.08)">'+
+          '<strong style="min-width:120px;color:var(--text-1)">'+escH(c.name)+'</strong>'+
+          '<span style="flex:1;height:5px;border-radius:3px;background:rgba(130,165,255,.12);overflow:hidden"><i style="display:block;height:100%;width:'+pct+'%;background:linear-gradient(90deg,var(--accent),var(--danger))"></i></span>'+
+          '<span style="color:var(--text-2);font-family:\'Orbitron\',sans-serif;font-weight:600;font-size:.78rem">'+Number(c.count||0)+'</span></div>';
+      }).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><h3>Sin categorías</h3></div>';
+    }
   }
 
   function renderSources(sources){

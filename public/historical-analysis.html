@@ -93,7 +93,7 @@
 
   <section class="chart-card reveal" style="margin-top:16px">
     <h2 class="section-title">Eventos por tipo</h2>
-    <div class="chart-wrap sm"><canvas id="eventsChart"></canvas></div>
+    <div id="eventsList"><div class="loader"><div class="spin"></div>Cargando…</div></div>
   </section>
 </div>
 
@@ -134,12 +134,12 @@
     var monthly=h.monthly||[], cov=h.coverage||{};
     destroy('monthly');
     charts.monthly=new Chart(document.getElementById('monthlyChart'),{
-      type:'bar',
+      type:'line',
       data:{labels:monthly.map(function(m){return m.month;}),datasets:[
-        {label:'Total',data:monthly.map(function(m){return m.count;}),backgroundColor:'rgba(78,161,255,.55)',borderRadius:5,borderSkipped:false},
-        {label:'Alto riesgo',data:monthly.map(function(m){return m.high;}),backgroundColor:'rgba(255,107,107,.7)',borderRadius:5,borderSkipped:false}
+        {label:'Total',data:monthly.map(function(m){return m.count;}),borderColor:'#4ea1ff',backgroundColor:'rgba(78,161,255,.18)',fill:true,tension:.3,borderWidth:2,pointRadius:3,pointBackgroundColor:'#4ea1ff'},
+        {label:'Alto riesgo',data:monthly.map(function(m){return m.high;}),borderColor:'#ff6b6b',backgroundColor:'rgba(255,107,107,.12)',fill:true,tension:.3,borderWidth:2,pointRadius:3,pointBackgroundColor:'#ff6b6b'}
       ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#c7d4f0'}}},scales:axis()}
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#c7d4f0'}}},scales:axis()}
     });
     var covEl=document.getElementById('coverageNote');
     if(covEl){
@@ -164,12 +164,14 @@
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#c7d4f0',font:{size:11},boxWidth:12}}},cutout:'58%'}
     });
 
-    destroy('events');
-    charts.events=new Chart(document.getElementById('eventsChart'),{
-      type:'bar',
-      data:{labels:ev.map(function(e){return e.type;}),datasets:[{data:ev.map(function(e){return e.count;}),backgroundColor:'rgba(103,214,160,.6)',borderRadius:6,borderSkipped:false}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:axis()}
-    });
+    var evEl=document.getElementById('eventsList');
+    if(evEl){
+      var evMax=ev.length?Math.max.apply(null,ev.map(function(e){return e.count;})):1;
+      evEl.innerHTML=ev.length?ev.map(function(e){
+        var pct=Math.round((e.count/evMax)*100);
+        return '<div class="country-item"><strong>'+escH(e.type)+'</strong><span class="bar"><i style="width:'+pct+'%"></i></span><span>'+e.count+'</span></div>';
+      }).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><h3>Sin eventos</h3></div>';
+    }
 
     var el=document.getElementById('countryList');
     if(el){
