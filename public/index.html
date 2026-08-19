@@ -286,66 +286,66 @@
     }).join('');
   }
 
-  /* ── Load Everything ── */
-  async function load() {
+  /* ── Load Everything (progressive: each section paints as its data lands,
+     so one slow cold-start endpoint never blanks the whole page) ── */
+  function load() {
     var lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'es';
-    var results = await Promise.all([
-      fetchJSON('/api/status'),
-      fetchJSON('/api/analytics/conflicts-corrected'),
-      fetchJSON('/api/hero-article?lang=' + lang),
-      fetchJSON('/api/articles/deduplicated?limit=12&lang=' + lang),
-      fetchJSON('/api/heatmap?limit=1500'),
-      fetchJSON('/api/events?limit=50'),
-      fetchJSON('/api/signals?limit=120'),
-      fetchJSON('/api/images?limit=120')
-    ]);
+    var pStatus  = fetchJSON('/api/status');
+    var pConf    = fetchJSON('/api/analytics/conflicts-corrected');
+    var pHero    = fetchJSON('/api/hero-article?lang=' + lang);
+    var pCurated = fetchJSON('/api/articles/deduplicated?limit=12&lang=' + lang);
+    var pHeat    = fetchJSON('/api/heatmap?limit=1500');
+    var pEvents  = fetchJSON('/api/events?limit=50');
+    var pSignals = fetchJSON('/api/signals?limit=120');
+    var pImages  = fetchJSON('/api/images?limit=120');
 
-    var status    = results[0];
-    var conflicts = results[1];
-    var hero      = results[2];
-    var curated   = results[3];
-    var heatmap   = results[4];
-    var events    = results[5];
-    var signals   = results[6];
-    var images    = results[7];
-
-    /* KPIs */
-    animCount(document.getElementById('kpiArticles'), (status && status.total_articles) || 0);
-    animCount(document.getElementById('kpiAlerts'),   (status && status.critical_alerts) || 0);
-    animCount(document.getElementById('kpiRegions'),  (status && status.regions_in_conflict) || 0);
-    animCount(document.getElementById('kpiSources'),  (status && status.active_sources) || 0);
-
-    /* Hero */
-    renderHero(hero);
-
-    /* News mosaic — featured (hero) first, then risk-sized tiles */
-    var news = (curated && (curated.mosaic || curated.articles)) || [];
-    var heroA = (hero && hero.article) || null;
-    var grid = document.getElementById('newsGrid');
-    if (grid) {
-      var heroUrl = heroA && heroA.url;
-      var rest = news.filter(function(a){ return !heroUrl || a.url !== heroUrl; });
-      var html = '';
-      if (heroA) html += tile(heroA, 'featured');
-      html += rest.map(function(a){ return tile(a, riskCls(a)); }).join('');
-      grid.innerHTML = html || '<div class="empty-state"><div class="empty-icon">🗞️</div><h3>' + i18n.t('index.noArticles') + '</h3><p>' + i18n.t('index.noArticlesDesc') + '</p></div>';
-    }
-
-    /* Pipeline Metrics — derived from real API data */
-    var stats = (conflicts && conflicts.statistics) || {};
-    renderPipeline({
-      totalArticles: (status && (status.total_ingested || status.total_articles)) || 0,
-      geoArticles:   (status && status.total_articles) || stats.total_articles || 0,
-      curatedCount:  (curated && curated.count) || 0,
-      rewriteCount:  (status && status.ai_summarized) || news.filter(function(a){ return a.ai_summary; }).length,
-      heatPoints:    (heatmap && heatmap.count) || 0,
-      eventsCount:   (status && status.events_total) || (events && events.count) || 0,
-      zoneCount:     stats.total_zones || 0,
-      cvCount:       ((signals && signals.count) || 0) + ((images && images.count) || 0)
+    /* KPIs — paint as soon as /api/status lands */
+    pStatus.then(function (status) {
+      if (!status) return;
+      animCount(document.getElementById('kpiArticles'), status.total_articles || 0);
+      animCount(document.getElementById('kpiAlerts'),   status.critical_alerts || 0);
+      animCount(document.getElementById('kpiRegions'),  status.regions_in_conflict || 0);
+      animCount(document.getElementById('kpiSources'),  status.active_sources || 0);
     });
 
-    /* Re-init reveals for dynamic content */
-    if (window.initReveals) window.initReveals();
+    /* Hero — paint as soon as the hero article lands */
+    pHero.then(function (hero) { renderHero(hero); });
+
+    /* News mosaic — needs the curated list + hero (to de-duplicate the featured) */
+    Promise.all([pCurated, pHero]).then(function (r) {
+      var curated = r[0], hero = r[1];
+      var news = (curated && (curated.mosaic || curated.articles)) || [];
+      var heroA = (hero && hero.article) || null;
+      var grid = document.getElementById('newsGrid');
+      if (grid) {
+        var heroUrl = heroA && heroA.url;
+        var rest = news.filter(function (a) { return !heroUrl || a.url !== heroUrl; });
+        var html = '';
+        if (heroA) html += tile(heroA, 'featured');
+        html += rest.map(function (a) { return tile(a, riskCls(a)); }).join('');
+        grid.innerHTML = html || '<div class="empty-state"><div class="empty-icon">🗞️</div><h3>' + i18n.t('index.noArticles') + '</h3><p>' + i18n.t('index.noArticlesDesc') + '</p></div>';
+      }
+      if (window.initReveals) window.initReveals();
+    });
+
+    /* Pipeline Metrics — needs every count source; renders when they're all in */
+    Promise.all([pStatus, pConf, pCurated, pHeat, pEvents, pSignals, pImages]).then(function (r) {
+      var status = r[0], conflicts = r[1], curated = r[2], heatmap = r[3],
+          events = r[4], signals = r[5], images = r[6];
+      var stats = (conflicts && conflicts.statistics) || {};
+      var news = (curated && (curated.mosaic || curated.articles)) || [];
+      renderPipeline({
+        totalArticles: (status && (status.total_ingested || status.total_articles)) || 0,
+        geoArticles:   (status && status.total_articles) || stats.total_articles || 0,
+        curatedCount:  (curated && curated.count) || 0,
+        rewriteCount:  (status && status.ai_summarized) || news.filter(function (a) { return a.ai_summary; }).length,
+        heatPoints:    (heatmap && heatmap.count) || 0,
+        eventsCount:   (status && status.events_total) || (events && events.count) || 0,
+        zoneCount:     stats.total_zones || 0,
+        cvCount:       ((signals && signals.count) || 0) + ((images && images.count) || 0)
+      });
+      if (window.initReveals) window.initReveals();
+    });
   }
 
   document.addEventListener('DOMContentLoaded', load);
