@@ -8373,6 +8373,30 @@ over the 10 pure-logic core modules (follow-imports=silent, typed this session).
 Still owner-gated by design: the homepage visual design (owner explicitly asked
 to keep it unchanged) and the live EO/fire secrets above.
 
+## Session 2026-08-19b — live browser QA (visual verification of the real site)
+
+Did hands-on visual QA of the deployed site in a real browser (not just API
+probes). Found and fixed issues only visible in the rendered UI:
+
+- **Chart.js bar charts rendered no bars** (Chart.js 4.4.4 UMD in this env: bar
+  elements computed `base`/`height` as null though the value scale was correct).
+  This was the actual cause of the user's "monthly series shows nothing".
+  Diagnosed live via injected JS; replaced the three affected bar charts with
+  patterns proven to render on the same pages — monthly → filled line, events
+  -by-type and trends categories → horizontal HTML bars. All render now
+  (verified: monthly peaks 2026-03≈290 / 2026-08≈684; conflict 508 / disaster 3).
+- **Inflated "Critical alerts" KPI**: counted high+critical (≈54% of articles).
+  Now counts only truly critical (risk_score≥70) → 313→168; added a separate
+  high_risk_alerts figure.
+- **Pipeline funnel dishonest/zeroed**: Ingestion==Filtering (both relevant
+  only), Rewriting=0 (filtered a field the API never returned), GDELT=0
+  (page-limited fetch). Now sourced from real /api/status aggregates:
+  Ingestion 2461 → Filtering 577, Rewriting 91, GDELT/events 511.
+- **Blank-on-cold-start**: reveal animations (opacity:0) could leave above-the
+  -fold content invisible; added a 1200ms safety net that force-reveals in-view
+  elements. Verified fly-to on the conflict map centres on the real zone
+  (Levant), not 0,0. Pluralised "1 article".
+
 # Post-Implementation Independent Re-Audit
 ```
 
