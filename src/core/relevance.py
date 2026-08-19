@@ -23,18 +23,20 @@ STRONG = [
     "ceasefire", "coup", "war crime", "genocide", "ethnic cleansing",
     "chemical weapon", "nuclear weapon", "terrorist", "terrorism", "hostage",
     "armed conflict", "gunmen", "massacre", "occupation", "annexation",
+    "cyberattack", "cyber attack",
 ]
 DISASTER = [
     "earthquake", "aftershock", "tsunami", "hurricane", "typhoon", "cyclone",
     "wildfire", "bushfire", "flood", "flash flood", "landslide", "mudslide",
     "volcano", "volcanic eruption", "drought", "famine", "storm surge",
-    "tornado", "heatwave", "humanitarian crisis", "displacement", "refugee",
+    "tornado", "heatwave", "humanitarian crisis", "displacement",
+    "displaced", "refugee",
 ]
 MEDIUM = [
     "military", "troops", "soldiers", "casualties", "warplane", "artillery",
     "sanctions", "conflict", "escalation", "border clash", "cross-border",
     "sovereignty", "territorial", "rebel", "protest", "unrest", "riot",
-    "crackdown", "clashes", "cyberattack", "cyber attack", "espionage",
+    "crackdown", "clashes", "espionage",
     "evacuation", "airspace", "blockade", "embargo", "warzone", "war zone",
     "paramilitary", "airbase", "warhead", "peacekeeper",
     # common conflict/severity terms the lexicon was missing
@@ -80,7 +82,8 @@ NEGATIVE = NEG_HARD + NEG_SOFT  # kept for backwards-compatible imports
 
 def _compile(terms):
     # Word-boundary alternation; escape multiword phrases.
-    pattern = r"\b(?:" + "|".join(re.escape(t) for t in terms) + r")\b"
+    # trailing s? lets singular lexicon entries also match plurals (flood->floods)
+    pattern = r"\b(?:" + "|".join(re.escape(t) for t in terms) + r")s?\b"
     return re.compile(pattern, re.IGNORECASE)
 
 
