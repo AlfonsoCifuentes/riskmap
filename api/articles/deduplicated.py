@@ -1,7 +1,7 @@
 """
 GET /api/articles/deduplicated
 Returns deduplicated geopolitical articles for the mosaic view.
-Query params: hours (default 24), limit (default 20)
+Query params: hours (default 24), limit (default 20), offset (default 0)
 Deduplication: selects the latest article per (source, country) combination.
 """
 
@@ -22,6 +22,7 @@ class handler(BaseHTTPRequestHandler):
         try:
             qs = parse_qs(urlparse(self.path).query)
             limit = min(int(qs.get('limit', ['20'])[0]), 50)
+            offset = max(int(qs.get('offset', ['0'])[0]), 0)
             lang = qs.get('lang', [None])[0]
             # hours param accepted but we just fetch recent articles ordered by date
             # True dedup would need DISTINCT ON which PostgREST doesn't support,
@@ -35,6 +36,10 @@ class handler(BaseHTTPRequestHandler):
             if lang and lang in ('es', 'en'):
                 params['language'] = f'eq.{lang}'
 
+            # Fetch a buffer beyond offset+limit so that title-collision dedup
+            # still yields a full page even when some rows get dropped.
+            fetch_limit = min((offset + limit) * 2 + 20, 300)
+
             articles = neon_get(
                 'unified_articles',
                 params=params,
@@ -45,12 +50,12 @@ class handler(BaseHTTPRequestHandler):
                        'latitude,longitude,'
                        'ai_sentiment,sentiment_score,language',
                 order='published_at.desc',
-                limit=100,  # Fetch more to allow dedup
+                limit=fetch_limit,
             )
 
             # Deduplicate: keep first (most recent) article per title similarity
             seen_titles = set()
-            mosaic = []
+            mosaic_all = []
             for article in articles:
                 # Simple dedup key: first 60 chars of title lowercased
                 title = (article.get('title') or '').strip().lower()[:60]
@@ -58,9 +63,11 @@ class handler(BaseHTTPRequestHandler):
                     continue
                 if title:
                     seen_titles.add(title)
-                mosaic.append(article)
-                if len(mosaic) >= limit:
+                mosaic_all.append(article)
+                if len(mosaic_all) >= offset + limit:
                     break
+
+            mosaic = mosaic_all[offset:offset + limit]
 
             # og:image extraction runs in the ingest worker (SSRF-safe), not here.
 
@@ -72,6 +79,7 @@ class handler(BaseHTTPRequestHandler):
                 'mosaic': mosaic,
                 'articles': mosaic,  # Alias for fallback compatibility
                 'count': len(mosaic),
+                'has_more': len(mosaic) >= limit,
             })
             send_response(self, resp)
 
