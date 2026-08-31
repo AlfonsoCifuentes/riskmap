@@ -33,6 +33,7 @@ jobs:
       # Fail fast on an unreachable/over-quota DB before installing torch and
       # transformers for a run that would die on its first query.
       - name: Preflight — database reachable
+        id: preflight
         run: |
           pip install --upgrade pip
           pip install psycopg2-binary
@@ -58,5 +59,5 @@ jobs:
       # Runs even when ingestion/enrichment failed, so a partial failure does
       # not leave the tables growing untrimmed until the next green run.
       - name: Run retention cleanup
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.preflight.outcome == 'success' }}
         run: python -m src.database.retention

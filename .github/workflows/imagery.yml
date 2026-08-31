@@ -34,6 +34,7 @@ jobs:
       # Fail fast on an unreachable/over-quota DB before installing ~2 GB of
       # CV dependencies that the run would never get to use.
       - name: Preflight — database reachable
+        id: preflight
         run: |
           pip install --upgrade pip
           pip install psycopg2-binary
@@ -64,5 +65,5 @@ jobs:
       # Runs even when acquisition/detection failed: skipping it lets the image
       # table grow unbounded, which inflates the next run's transfer volume.
       - name: Retention cleanup
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.preflight.outcome == 'success' }}
         run: python -m src.database.retention
