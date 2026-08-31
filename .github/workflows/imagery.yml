@@ -31,10 +31,17 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install dependencies
+      # Fail fast on an unreachable/over-quota DB before installing ~2 GB of
+      # CV dependencies that the run would never get to use.
+      - name: Preflight — database reachable
         run: |
           pip install --upgrade pip
-          pip install psycopg2-binary requests Pillow \
+          pip install psycopg2-binary
+          python scripts/db_preflight.py
+
+      - name: Install dependencies
+        run: |
+          pip install requests Pillow \
                       ultralytics opencv-python-headless \
                       torch torchvision geopy
 
@@ -54,5 +61,8 @@ jobs:
         run: python -m src.pipeline.detect
         timeout-minutes: 12
 
+      # Runs even when acquisition/detection failed: skipping it lets the image
+      # table grow unbounded, which inflates the next run's transfer volume.
       - name: Retention cleanup
+        if: ${{ !cancelled() }}
         run: python -m src.database.retention

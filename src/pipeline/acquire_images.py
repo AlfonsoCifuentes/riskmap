@@ -478,13 +478,25 @@ def main():
     logger.info(f"✅ Total images acquired: {total_acquired}")
 
 
+#: Frames inspected per purge sweep. Bounds how many blobs the sweep pulls
+#: over the wire — the whole-table scan this replaced re-downloaded every
+#: stored WebP on each 6-hourly run and exhausted the Neon transfer quota.
+_PURGE_SCAN_LIMIT = 200
+
+
 def _purge_black_images():
-    """Decode stored EO frames and delete any that are essentially black/empty."""
+    """Delete recently stored EO frames that are essentially black/empty.
+
+    Only the newest frames are inspected. `_store_image` already rejects
+    near-black frames at insert time, so anything older has been vetted twice
+    over; re-reading it would just re-transfer the corpus every run.
+    """
     db = get_db()
     ph = db.placeholder
     rows = db.execute(
         "SELECT id, image_data FROM images "
-        "WHERE image_format = 'webp' AND image_data IS NOT NULL",
+        "WHERE image_format = 'webp' AND image_data IS NOT NULL "
+        f"ORDER BY stored_at DESC LIMIT {_PURGE_SCAN_LIMIT}",
         fetch=True,
     ) or []
     to_delete = []

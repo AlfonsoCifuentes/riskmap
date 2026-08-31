@@ -16,7 +16,6 @@ env:
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
   NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
   GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-  DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 
 jobs:
   ingest:
@@ -31,12 +30,19 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install dependencies
+      # Fail fast on an unreachable/over-quota DB before installing torch and
+      # transformers for a run that would die on its first query.
+      - name: Preflight — database reachable
         run: |
           pip install --upgrade pip
-          pip install psycopg2-binary requests feedparser newspaper3k \
+          pip install psycopg2-binary
+          python scripts/db_preflight.py
+
+      - name: Install dependencies
+        run: |
+          pip install requests feedparser newspaper3k \
                       beautifulsoup4 lxml transformers torch sentencepiece \
-                      groq deepseek-sdk geopy python-dotenv pydantic
+                      groq geopy python-dotenv pydantic
 
       - name: Init schema
         run: python -m src.database.schema_init
@@ -49,5 +55,8 @@ jobs:
         run: python -m src.pipeline.enrich
         timeout-minutes: 15
 
+      # Runs even when ingestion/enrichment failed, so a partial failure does
+      # not leave the tables growing untrimmed until the next green run.
       - name: Run retention cleanup
+        if: ${{ !cancelled() }}
         run: python -m src.database.retention
