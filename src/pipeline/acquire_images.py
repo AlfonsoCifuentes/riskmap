@@ -59,6 +59,24 @@ def compress_to_webp(image_bytes: bytes, max_size_px: int = 512, quality: int = 
 # 1. NASA FIRMS (Fire Information for Resource Management System)
 # ---------------------------------------------------------------------------
 
+#: (connect, read) timeouts for FIRMS. The connect leg is short because the
+#: failure mode we actually see is an unroutable host, not a slow one.
+_FIRMS_TIMEOUT = (5, 15)
+
+#: firms.modaps.eosdis.nasa.gov is regularly unroutable from GitHub-hosted
+#: runners (ENETUNREACH) while other NASA hosts such as GIBS stay reachable.
+#: Retrying it per AOI cost ~35s × ~20 locations ≈ 12 min of a 15 min run, so
+#: connection-level failures trip a breaker for the remainder of the run.
+#: Reset per process, so the next run still probes and self-heals.
+_FIRMS_MAX_CONN_FAILURES = 2
+_firms_conn_failures = 0
+
+
+def _firms_unreachable() -> bool:
+    """True once FIRMS has failed to connect enough times to stop trying."""
+    return _firms_conn_failures >= _FIRMS_MAX_CONN_FAILURES
+
+
 def fetch_firms_hotspots(lat: float, lon: float, radius_km: float = 50) -> List[Dict]:
     """Fetch recent fire hotspots from NASA FIRMS.
 
@@ -66,10 +84,17 @@ def fetch_firms_hotspots(lat: float, lon: float, radius_km: float = 50) -> List[
     https://firms.modaps.eosdis.nasa.gov/api/map_key/). Contract (addendum B7):
         /api/area/csv/[MAP_KEY]/[SOURCE]/[west,south,east,north]/[DAY_RANGE]
     Without the key we return [] and stay DEGRADED — never a fake/empty-success.
+
+    An unreachable FIRMS host degrades this source only: `_sync_firms_signals`
+    still rebuilds fire signals from previously stored hotspot metadata.
     """
+    global _firms_conn_failures
+
     map_key = os.getenv('NASA_FIRMS_MAP_KEY', '').strip()
     if not map_key:
         logger.info("⏭ NASA_FIRMS_MAP_KEY not set — FIRMS hotspots DEGRADED (skipped)")
+        return []
+    if _firms_unreachable():
         return []
     try:
         # bbox order is west,south,east,north (minLon,minLat,maxLon,maxLat).
@@ -77,10 +102,13 @@ def fetch_firms_hotspots(lat: float, lon: float, radius_km: float = 50) -> List[
             f"https://firms.modaps.eosdis.nasa.gov/api/area/csv/"
             f"{map_key}/VIIRS_SNPP_NRT/{lon-1},{lat-1},{lon+1},{lat+1}/1"
         )
-        resp = requests.get(url, timeout=30)
+        resp = requests.get(url, timeout=_FIRMS_TIMEOUT)
         if resp.status_code != 200:
             logger.warning(f"FIRMS HTTP {resp.status_code}")
             return []
+        # A real response means the host is routable — clear any earlier
+        # transient connection failures so one blip cannot disable the source.
+        _firms_conn_failures = 0
 
         lines = resp.text.strip().split('\n')
         if len(lines) < 2:
@@ -101,7 +129,20 @@ def fetch_firms_hotspots(lat: float, lon: float, radius_km: float = 50) -> List[
                     'source': 'FIRMS_VIIRS',
                 })
         return hotspots
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+        # Reaching the host failed — count it, and say so once when the
+        # breaker trips rather than repeating the same traceback per AOI.
+        _firms_conn_failures += 1
+        if _firms_unreachable():
+            logger.warning(
+                f"FIRMS unreachable after {_firms_conn_failures} attempts — "
+                f"skipping FIRMS for the rest of this run ({e.__class__.__name__})"
+            )
+        else:
+            logger.warning(f"FIRMS connection failed: {e}")
+        return []
     except Exception as e:
+        # Parse/format problems are not connectivity — do not trip the breaker.
         logger.warning(f"FIRMS fetch failed: {e}")
         return []
 
@@ -335,6 +376,25 @@ def get_event_locations() -> List[Dict]:
     return rows
 
 
+#: Days a stored frame stays before `retention.delete_expired` may remove it.
+#: Nothing wrote `expires_at` before, so that sweep matched no rows and the
+#: table grew ~150 images/day forever — the growth that exhausted the Neon
+#: transfer quota. Override with IMAGE_RETENTION_DAYS; 0 disables expiry.
+def _retention_days() -> int:
+    try:
+        return int(os.getenv('IMAGE_RETENTION_DAYS', '30'))
+    except ValueError:
+        return 30
+
+
+def _expiry_timestamp() -> Optional[str]:
+    """ISO timestamp after which a frame stored now becomes collectable."""
+    days = _retention_days()
+    if days <= 0:
+        return None
+    return (datetime.utcnow() + timedelta(days=days)).isoformat()
+
+
 def store_image(source_type: str, image_bytes: bytes, lat: float, lon: float,
                 event_id: int = None, aoi_id: int = None,
                 source_url: str = None, metadata: dict = None):
@@ -361,13 +421,15 @@ def store_image(source_type: str, image_bytes: bytes, lat: float, lon: float,
         f"""INSERT INTO images
             (source_type, source_url, aoi_id, event_id,
              latitude, longitude, captured_at,
-             image_data, image_format, image_size_kb, metadata_json, is_latest)
-            VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},'webp',{ph},{ph},1)""",
+             image_data, image_format, image_size_kb, metadata_json, is_latest,
+             expires_at)
+            VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},'webp',{ph},{ph},1,{ph})""",
         (
             source_type, source_url, aoi_id, event_id,
             lat, lon, datetime.utcnow().isoformat(),
             compressed, size_kb,
             json.dumps(metadata) if metadata else None,
+            _expiry_timestamp(),
         ),
     )
     logger.info(f"  📸 Stored {source_type} image: {size_kb:.1f} KB at ({lat:.2f}, {lon:.2f})")
@@ -395,12 +457,14 @@ def acquire_for_location(lat: float, lon: float, name: str = '',
         db.execute(
             f"""INSERT INTO images
                 (source_type, aoi_id, event_id, latitude, longitude,
-                 captured_at, metadata_json, is_latest, image_format)
-                VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},1,'json')""",
+                 captured_at, metadata_json, is_latest, image_format,
+                 expires_at)
+                VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},1,'json',{ph})""",
             (
                 'firms_hotspot', aoi_id, event_id, lat, lon,
                 datetime.utcnow().isoformat(),
                 json.dumps({'hotspots': hotspots[:10]}),
+                _expiry_timestamp(),
             ),
         )
         acquired += 1
